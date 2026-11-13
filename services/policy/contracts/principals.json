@@ -19,5 +19,12 @@
     "roles": ["operator"],
     "subject_refs": ["subject-demo-42"],
     "case_ids": ["case-demo-42"]
+  },
+  "star-scope-demo-token": {
+    "principal_id": "svc-workflow-star",
+    "tenant_id": "demo-tenant-a",
+    "roles": ["workflow"],
+    "subject_refs": ["subject-demo-42"],
+    "case_ids": ["*"]
   }
 }

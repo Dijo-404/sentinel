@@ -41,6 +41,20 @@ def test_wrong_tenant_case_denied(evaluate: EvaluatePolicy, allow_request: dict)
     assert rc.TENANT_SCOPE_DENIED in result.reason_codes
 
 
+def test_empty_case_ids_denied(evaluate: EvaluatePolicy, allow_request: dict) -> None:
+    req = parse_policy_request(allow_request)
+    result = evaluate(_principal(case_ids=()), req)
+    assert result.outcome == "DENY"
+    assert rc.TENANT_SCOPE_DENIED in result.reason_codes
+
+
+def test_star_case_ids_allows(evaluate: EvaluatePolicy, allow_request: dict) -> None:
+    req = parse_policy_request(allow_request)
+    result = evaluate(_principal(case_ids=("*",)), req)
+    assert result.outcome == "ALLOW"
+    assert rc.REFUND_APPROVED in result.reason_codes
+
+
 def test_wrong_subject_denied(evaluate: EvaluatePolicy, allow_request: dict) -> None:
     req = parse_policy_request(allow_request)
     principal = _principal(subject_refs=("subject-other",))
