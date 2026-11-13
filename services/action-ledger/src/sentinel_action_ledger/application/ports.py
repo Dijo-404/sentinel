@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from datetime import datetime
@@ -137,10 +137,12 @@ class LedgerUnitOfWork(Protocol):
         *,
         tenant_id: str,
         limit: int,
-        lease_id: str,
         lease_expires_at: str,
         now: str,
+        new_lease_id: Callable[[], str],
     ) -> list[Command]: ...
+
+    def mark_outbox_done(self, *, tenant_id: str, action_id: str) -> None: ...
 
     def insert_audit(
         self,

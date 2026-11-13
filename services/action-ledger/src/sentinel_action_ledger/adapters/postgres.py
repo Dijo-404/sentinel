@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Iterator, Sequence
+from collections.abc import Callable, Iterator, Sequence
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 from typing import Any
@@ -370,61 +370,85 @@ class PostgresUnitOfWork:
         *,
         tenant_id: str,
         limit: int,
-        lease_id: str,
         lease_expires_at: str,
         now: str,
+        new_lease_id: Callable[[], str],
     ) -> list[Command]:
-        rows = (
+        picked = (
             self.connection.execute(
                 text(
                     """
-                WITH picked AS (
-                  SELECT id FROM outbox
-                  WHERE tenant_id = :tenant
-                    AND (
-                      (status = 'PENDING' AND available_at <= :now)
-                      OR (status = 'CLAIMED' AND lease_expires_at <= :now)
-                    )
-                  ORDER BY available_at
-                  FOR UPDATE SKIP LOCKED
-                  LIMIT :limit
-                )
-                UPDATE outbox AS o
-                SET status = 'CLAIMED',
-                    lease_id = :lease_id,
-                    lease_expires_at = :lease_expires_at,
-                    attempts = o.attempts + 1
-                FROM picked
-                WHERE o.id = picked.id
-                RETURNING o.action_id, o.payload, o.lease_id, o.lease_expires_at
-                """
+                    SELECT id FROM outbox
+                    WHERE tenant_id = :tenant
+                      AND (
+                        (status = 'PENDING' AND available_at <= :now)
+                        OR (status = 'CLAIMED' AND lease_expires_at <= :now)
+                      )
+                    ORDER BY available_at
+                    FOR UPDATE SKIP LOCKED
+                    LIMIT :limit
+                    """
                 ),
-                {
-                    "tenant": tenant_id,
-                    "limit": limit,
-                    "lease_id": lease_id,
-                    "lease_expires_at": lease_expires_at,
-                    "now": now,
-                },
+                {"tenant": tenant_id, "limit": limit, "now": now},
             )
             .mappings()
             .all()
         )
         commands: list[Command] = []
-        for row in rows:
-            payload = row.payload if isinstance(row.payload, dict) else json.loads(row.payload)
+        for row in picked:
+            lease_id = new_lease_id()
+            updated = (
+                self.connection.execute(
+                    text(
+                        """
+                        UPDATE outbox
+                        SET status = 'CLAIMED',
+                            lease_id = :lease_id,
+                            lease_expires_at = :lease_expires_at,
+                            attempts = attempts + 1
+                        WHERE id = :id
+                        RETURNING action_id, payload, lease_id, lease_expires_at
+                        """
+                    ),
+                    {
+                        "id": row.id,
+                        "lease_id": lease_id,
+                        "lease_expires_at": lease_expires_at,
+                    },
+                )
+                .mappings()
+                .one()
+            )
+            payload = (
+                updated.payload
+                if isinstance(updated.payload, dict)
+                else json.loads(updated.payload)
+            )
             commands.append(
                 Command(
-                    action_id=row.action_id,
+                    action_id=updated.action_id,
                     provider_ref=payload["provider_ref"],
                     payload=payload["payload"],
                     action_digest=payload["action_digest"],
-                    lease_id=row.lease_id,
-                    lease_expires_at=row.lease_expires_at,
+                    lease_id=updated.lease_id,
+                    lease_expires_at=updated.lease_expires_at,
                     provider_capabilities=payload["provider_capabilities"],
                 )
             )
         return commands
+
+    def mark_outbox_done(self, *, tenant_id: str, action_id: str) -> None:
+        self.connection.execute(
+            text(
+                """
+                UPDATE outbox
+                SET status = 'DONE', lease_id = NULL, lease_expires_at = NULL
+                WHERE tenant_id = :tenant AND action_id = :aid
+                  AND status <> 'DONE'
+                """
+            ),
+            {"tenant": tenant_id, "aid": action_id},
+        )
 
     def insert_audit(
         self,

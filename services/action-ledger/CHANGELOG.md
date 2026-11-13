@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Fixed — 14 November 2026
+
+- Enforce subject_ref scope on eligibility (empty subject_refs still allowed for service principals).
+- Mark outbox DONE on post-claim outcomes; claim skips DISPATCHING rewrite when action already progressed.
+- Bind PROVIDER/FAILED/CREDIT outcome evidence fields to the action; reject mismatches.
+- Monotonic eligibility snapshot versions under lock; unique lease_id per claimed outbox row.
+- Principal.allows_case denies empty case_ids; wildcard `"*"` grants broad case access.
+
 ### Added — 13 November 2026
 
 - `sentinel-action-ledger` service implementing `action-ledger.v1`: proposals, decisions, reservations, claims, get, outcomes.
