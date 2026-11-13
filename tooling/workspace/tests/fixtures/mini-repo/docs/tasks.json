@@ -1,0 +1,6 @@
+[
+  {"id": "SN-001", "root": "modules/good", "paths": ["modules/good/**"], "standalone": {"check_command": "make -C modules/good check"}},
+  {"id": "SN-002", "root": "modules/absent", "paths": ["modules/absent/**", ".github/workflows/fixture.yml"]},
+  {"id": "SN-003", "root": "modules/scaffold", "paths": ["modules/scaffold/**"]},
+  {"id": "SN-004", "root": "modules/fail", "paths": ["modules/fail/**"]}
+]

@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools==80.9.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sentinel-workspace"
+version = "0.1.0"
+description = "Optional standalone module discovery and check aggregation"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+sentinel-modules = "sentinel_workspace.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
