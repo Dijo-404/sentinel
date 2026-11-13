@@ -1,0 +1,23 @@
+{
+  "port": "approval-ui.v1",
+  "contract_version": "sentinel.task-contracts.v1",
+  "baseline_sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa",
+  "input": {
+    "case": "Case",
+    "action": "ActionRecord",
+    "evidence": "Evidence[]"
+  },
+  "injected_client": {
+    "decide": {
+      "args": ["action_id:string", "DecisionRequest"],
+      "returns": "Approval"
+    }
+  },
+  "events": ["refresh", "conflict"],
+  "consumes": ["case-api.v1", "action-ledger.v1"],
+  "notes": [
+    "Models do not approve. The host injects an authorized decide client.",
+    "Approve/reject submits the action's digest, case_revision, and policy_version.",
+    "Standalone preview does not require the web shell."
+  ]
+}
