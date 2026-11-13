@@ -1,0 +1,12 @@
+{
+  "request_id": "mrr-demo-1",
+  "tenant_id": "tenant-demo-1",
+  "merchant_ref": "merchant-demo-1",
+  "case_id": "case-demo-42",
+  "transaction_ref": "TXN-B",
+  "amount_minor": 150000,
+  "currency": "INR",
+  "evidence_ids": ["evidence-payment-b", "evidence-order"],
+  "rationale": "Duplicate capture on DEMO-ORDER-42",
+  "status": "DRAFT"
+}

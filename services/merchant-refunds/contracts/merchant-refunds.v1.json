@@ -1,0 +1,35 @@
+{
+  "port": "merchant-refunds.v1",
+  "contract_version": "sentinel.task-contracts.v1",
+  "contract_sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb",
+  "component": "merchant-refunds",
+  "produces": "MerchantRefundRequest",
+  "consumes": ["case-api.v1", "policy.v1", "action-ledger.v1", "evidence.v1"],
+  "statuses": [
+    "DRAFT",
+    "SUBMITTED",
+    "AWAITING_APPROVAL",
+    "RESERVED",
+    "REJECTED",
+    "VERIFIED",
+    "FAILED"
+  ],
+  "routes": [
+    "GET /healthz",
+    "GET /readyz",
+    "GET /v1/capabilities",
+    "POST /v1/refund-requests",
+    "GET /v1/refund-requests/{request_id}",
+    "PATCH /v1/refund-requests/{request_id}",
+    "POST /v1/refund-requests/{request_id}/submit",
+    "POST /v1/refund-requests/{request_id}/decisions",
+    "POST /v1/refund-requests/{request_id}/sync"
+  ],
+  "invariants": [
+    "SN-009 action-ledger is sole financial authority",
+    "action_id only from ledger responses",
+    "no payment-provider write adapter",
+    "PENDING and PROVIDER_CONFIRMED are not customer credit",
+    "integer minor units only"
+  ]
+}
