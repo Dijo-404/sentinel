@@ -1,0 +1,40 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "refunds": [
+    {
+      "case_id": "case-m-02",
+      "amount_minor": 50000,
+      "currency": "INR",
+      "status": "PENDING",
+      "observed_at": "2026-11-13T20:00:00Z"
+    },
+    {
+      "case_id": "case-m-03",
+      "amount_minor": 30000,
+      "currency": "INR",
+      "status": "PENDING",
+      "observed_at": "2026-11-12T00:00:00Z"
+    },
+    {
+      "case_id": "case-m-04",
+      "amount_minor": 20000,
+      "currency": "INR",
+      "status": "PENDING",
+      "observed_at": "2026-11-09T00:00:00Z"
+    },
+    {
+      "case_id": "case-m-01",
+      "amount_minor": 150000,
+      "currency": "INR",
+      "status": "PROVIDER_CONFIRMED",
+      "observed_at": "2026-11-02T10:30:00Z"
+    },
+    {
+      "case_id": "case-other-01",
+      "amount_minor": 999999,
+      "currency": "INR",
+      "status": "PENDING",
+      "observed_at": "2026-11-13T20:00:00Z"
+    }
+  ]
+}

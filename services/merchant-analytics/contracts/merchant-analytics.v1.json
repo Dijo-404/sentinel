@@ -1,0 +1,49 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "component": "merchant-analytics",
+  "port": "merchant-analytics.v1",
+  "sha256_baseline": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb",
+  "produces": "MerchantMetrics",
+  "consumes": ["case-api.v1", "evidence.v1"],
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/v1/merchants/{merchant_ref}/metrics",
+      "query": ["window_start", "window_end"],
+      "roles": ["operator", "supervisor"],
+      "response": "MerchantMetrics",
+      "read_only": true
+    },
+    {
+      "method": "GET",
+      "path": "/healthz"
+    },
+    {
+      "method": "GET",
+      "path": "/readyz"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/capabilities"
+    }
+  ],
+  "MerchantMetrics": {
+    "tenant_id": "string",
+    "merchant_ref": "string",
+    "window_start": "string",
+    "window_end": "string",
+    "exception_rate": "string",
+    "unresolved_minor": "int",
+    "currency": "string",
+    "refund_aging_buckets": {"[bucket: string]": "int"},
+    "median_handling_seconds": "int",
+    "top_causes": "string[]"
+  },
+  "compatibility_checklist": [
+    "Fixture mode labeled; real-peers never falls back to fixtures",
+    "Unauthorized merchant scope returns 403 without existence leak",
+    "Unavailable/malformed peers fail closed (503/502)",
+    "Money fields are integer minor units",
+    "Metrics endpoints reject POST/PUT/PATCH/DELETE"
+  ]
+}
