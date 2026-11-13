@@ -1,84 +1,84 @@
-# SN-006 — Build an independent evidence and reconciliation service
+# SN-006 — Evidence and reconciliation service
 
-**State:** scaffold and task instructions only. No implementation, dependency installation, module check target or product result is claimed.
+Independent `evidence.v1` HTTP service: collect scoped read-only payment-provider facts, retain original digest/provenance/freshness, and emit deterministic reconciliation codes. Owns local storage/migrations and payment-provider doubles. Does **not** import `services/simulator`.
 
-**Owned root:** `services/evidence/`
-**Branch:** `feat/sn-006-evidence`
-**Lane:** B · **Phase:** 1 · **Priority:** P0 · **Optional for MVP:** no
+**Owned root:** `services/evidence/` · **Branch:** `feat/sn-006-evidence`
 
-## Outcome
+Contract: `sentinel.task-contracts.v1`, SHA-256 `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`. Typed snapshot: [contracts/evidence.v1.json](contracts/evidence.v1.json).
 
-Collect scoped read-only facts through an injected payment-provider port, retain original digest/provenance/freshness, and reconcile duplicate/order/refund facts. Own evidence storage/migrations and a local provider stub.
+## Routes
 
-## Independence
+| Method | Path | Roles | Response |
+| --- | --- | --- | --- |
+| `POST` | `/v1/evidence/collect` | workflow, verifier | `EvidenceBundle` |
+| `GET` | `/v1/cases/{case_id}/evidence` | workflow, verifier, operator, supervisor | `EvidenceBundle` |
 
-No task-completion prerequisites. This module must install, run its local checks, and be reviewable with every other Sentinel task implementation absent. Use explicit local port doubles rather than another developer's server or an unfinished sibling import. Phase and task number do not establish build order.
+Also: `/healthz`, `/readyz`, `/v1/capabilities` (`mode: fixture|real-peers`).
 
-Read [root agent rules](../../AGENTS.md), [claim/PR workflow](../../CONTRIBUTING.md), [architecture](../../docs/architecture.md), and [testing](../../docs/testing.md). The [task register](../../docs/task-register.md) links the live issue once published.
+## Standalone setup and checks
 
-## Ownership and interfaces
+Requires Python 3.11+, [uv](https://docs.astral.sh/uv/), GNU Make, Docker (PostgreSQL acceptance). From this directory:
 
-- `services/evidence/**`
+```sh
+make setup
+make check
+```
 
-- Produces: `evidence.v1`
-- Consumes: `payment-provider.v1`
-- Optional consumed interfaces: None
-
-Contract input: [baseline](../../docs/independent-task-contracts.md) · `sentinel.task-contracts.v1` · SHA-256 `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`.
-
-Implement the exact supplied routes, request/response types, auth context, canonical digest and state/idempotency behavior for the relevant ports. Keep typed snapshots and compatibility examples in this module. The contract-checker/SDK implementation is not required.
-
-### Required local peer doubles
-
-- `payment-provider.v1` under `tests/stubs/`: valid, unavailable, malformed, unauthorized_or_out_of_scope.
-
-## Implementation layout
-
-Baseline category: Python service/library/tool.
-
-Use module-local dependency declarations and a reproducible lockfile, configuration example, tests, README and changelog. Stateful components own local migrations and a test database. No root application install or shared migration chain is allowed.
-
-Keep deterministic business rules/types separate from application use cases/ports and external adapters. Wire adapters at one composition entry point. Introduce only directories that contain real responsibilities; the repository does not pre-generate empty layers. See the architecture and folder guides for language-specific layouts.
-
-## Deliverables
-
-- [ ] Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.
-- [ ] Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.
-- [ ] Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation.
-- [ ] Update the local README/configuration and CHANGELOG.md with actual behavior and limitations.
-
-## Acceptance criteria
-
-- [ ] Local valid, stale, conflicting, unauthorized and unavailable provider fixtures produce explicit evidence/reconciliation states.
-- [ ] Equal amounts alone never prove duplication; independently exercise distinct transaction, scope, merchant confirmation and order evidence without a running simulator.
-- [ ] All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required.
-
-## Planned local commands
-
-The owning task must implement and document dependency setup, a local run/preview command where applicable, and this check target. It does not exist yet:
+Or from the repository root:
 
 ```sh
 make -C services/evidence check
+make check
 ```
 
-Run root `make check` as well. Root checks validate repository metadata and tools; they do not implement or substitute for this component's behavior tests. External provider credentials are optional for local fixture checks.
+`make check` runs Ruff lint/format and pytest. PostgreSQL tests start a disposable `postgres:17-alpine` container on `127.0.0.1`; they never use a shared Sentinel database.
 
-## Test and failure requirements
+## Local peer doubles
 
-- Exercise observable acceptance behavior and meaningful invalid, unavailable, malformed and unauthorized boundary cases.
-- Use real PostgreSQL tests for financial locking/transactions, durable checkpoints or other database behavior that an in-memory double cannot establish.
-- Label fixtures/simulated providers/fake or live inference precisely. A real-peer adapter must not silently convert peer failure into fixture success.
-- Confirm the module works with sibling implementations absent and record exactly which local doubles/databases were used.
+`tests/stubs/` implements `payment-provider.v1` cases:
 
-## Evidence and review
+| Module | Behavior |
+| --- | --- |
+| `valid` | Two distinct captured payments, under-fulfilled order, merchant-confirmed duplicate |
+| order suffix `:equal` | Equal amounts without merchant confirmation → `EQUAL_AMOUNTS_INSUFFICIENT` (never `DUPLICATE_PAYMENT`) |
+| order suffix `:stale` | Expired snapshot → `UNVERIFIED` + `STALE_PROVIDER_SNAPSHOT` |
+| order suffix `:conflict` | Contradictory payment records → `CONFLICTING` |
+| `unavailable` / `:unavailable` | `PEER_UNAVAILABLE` (503) |
+| `malformed` / `:malformed` | `PEER_MALFORMED` (502) |
+| `unauthorized_or_out_of_scope` / `:unauthorized` | `PEER_UNAUTHORIZED` (403) |
 
-- Exact standalone setup/check commands, actual results and pinned contract baseline hash.
-- Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.
-- PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status.
+**Duplication rule:** `DUPLICATE_PAYMENT` requires `DISTINCT_TRANSACTION_REFS`, `MERCHANT_CONFIRMED_DUPLICATE`, and `ORDER_UNDERFULFILLED`. Equal `amount_minor` alone is never enough.
 
-Open a PR targeting main with `Refs #<issue>` and the PR template. Update the issue to review. Owner review/merge and accepted standalone evidence close the component issue. Agents never push main, merge or enable auto-merge.
+## Configuration
 
-## Assembly limits
+See [.env.example](.env.example). `EVIDENCE_MODE=fixture` uses in-process stubs. `EVIDENCE_MODE=real-peers` requires `PAYMENT_PROVIDER_BASE_URL` and `PAYMENT_PROVIDER_TOKEN` and **fails closed** on unavailable/malformed/unauthorized peers — no silent fixture fallback.
 
-- A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.
-- Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence.
+```sh
+# optional local serve (fixture mode + memory store if DATABASE_URL unset)
+export EVIDENCE_MODE=fixture
+export EVIDENCE_TOKENS='workflow-token=svc-workflow|tenant-demo|workflow|subj-demo-1|case-demo-42'
+make preview
+```
+
+With PostgreSQL:
+
+```sh
+export DATABASE_URL=postgresql+psycopg://...
+uv run --frozen sentinel-evidence migrate
+uv run --frozen sentinel-evidence serve --port 8006
+```
+
+## Compatibility checklist
+
+- [x] Task-local contract snapshot, fixtures, and peer stubs
+- [x] Collect/list routes with bearer principal map and case/subject scope
+- [x] Digest = SHA-256 of retained original UTF-8 snapshot bytes
+- [x] Explicit states for valid/stale/conflicting/unauthorized/unavailable
+- [x] Equal amounts alone never prove duplication
+- [x] Real-peer HTTP adapter fail-closed (no fixture fallback)
+- [x] Own PostgreSQL schema/tables for durable evidence retention
+- [ ] Assembled product wiring against a live SN-004 simulator (owner assembly)
+
+## Evidence status
+
+Standalone fixture + private PostgreSQL checks only. No running sibling services, live payment credentials, or product/pilot release claim.
