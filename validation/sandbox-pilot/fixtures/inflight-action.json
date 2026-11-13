@@ -1,0 +1,12 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "case_id": "case-sandbox-26",
+  "action_id": "action-sandbox-26",
+  "provider_ref": "refund-sandbox-26",
+  "status": "OUTCOME_UNKNOWN",
+  "runtime_pin": "finharness-runtime-fixture-v1",
+  "amount_minor": 150000,
+  "currency": "INR",
+  "evidence_mode": "fixture",
+  "note": "Synthetic in-flight identity for restart/restore/rollback drills. Not live money."
+}

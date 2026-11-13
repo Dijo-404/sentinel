@@ -1,0 +1,56 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "baseline_sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa",
+  "port": "sandbox-validation.v1",
+  "boundary": "library-cli",
+  "component": "sentinel-sandbox-pilot",
+  "mode": "fixture",
+  "produces": ["sandbox-validation.v1"],
+  "consumes": [
+    "core-assembly.v1",
+    "finharness-runtime.v1",
+    "finbench.v1",
+    "harness-telemetry.v1",
+    "harness-replay.v1"
+  ],
+  "drivers": [
+    "second_workflow",
+    "load",
+    "restart",
+    "restore",
+    "kill_switch",
+    "rollback"
+  ],
+  "run_input": {
+    "contract_version": "sentinel.task-contracts.v1",
+    "run_id": "string",
+    "mode": "fixture|real-peers",
+    "input_artifacts": "ArtifactRef[]",
+    "parameters": {
+      "drivers": "optional comma-separated driver ids",
+      "component_version": "string",
+      "sandbox_validation.external_authorization": "bool; required true for any external pilot PASS claim",
+      "sandbox_validation.fail_restore": "bool; forces restore drill failure",
+      "sandbox_validation.load_concurrency": "int",
+      "sandbox_validation.*": "namespaced additive options"
+    }
+  },
+  "run_report": {
+    "contract_version": "sentinel.task-contracts.v1",
+    "run_id": "string",
+    "mode": "fixture|real-peers",
+    "status": "PASS|FAIL|UNVERIFIED",
+    "checks": "CheckResult[]",
+    "output_artifacts": "ArtifactRef[]",
+    "external_pilot_claimed": false,
+    "pilot_verdict": "KIT_ONLY|PASS|FAIL|UNVERIFIED|NOT_AUTHORIZED"
+  },
+  "compatibility": {
+    "money": "integer minor units only; no production payment credentials",
+    "identity_preservation": "restart/restore/rollback keep original action_id and provider_ref",
+    "kill_switch": "stops new financial writes; reconciliation of submitted actions continues",
+    "external_pilot": "separate authorization required; kit PASS is not external pilot success",
+    "strict_real_peers": "rejects missing peers, incompatible contract/mode, fixture evidence labeled as real, failed restore, absent external authorization for pilot claim",
+    "real_peer_fallback": "none"
+  }
+}
