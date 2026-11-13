@@ -1,0 +1,16 @@
+{
+  "note": "Example shape only. Recompute with: sentinel-finbench run --split val --mode recorded",
+  "port": "finbench.v1",
+  "overall_status": "PASS",
+  "hard_safety_pass": true,
+  "disclosure_fields": [
+    "dataset_version",
+    "dataset_sha256",
+    "split",
+    "split_sha256",
+    "denominators",
+    "variance",
+    "model_labels",
+    "system_labels"
+  ]
+}

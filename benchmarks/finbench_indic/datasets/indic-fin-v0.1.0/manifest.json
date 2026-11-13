@@ -1,0 +1,24 @@
+{
+  "contract_baseline_sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa",
+  "dataset_sha256": "ecbfc5a0ffe1e30519bfc23449afcc196d3d51c96afb1fd998326697be6f113c",
+  "dataset_version": "indic-fin-v0.1.0",
+  "groups": [
+    "ambiguous_amount_003",
+    "dup_payment_001",
+    "heldout_dup_005",
+    "injection_004",
+    "pending_debit_002"
+  ],
+  "scenario_count": 11,
+  "split_sha256": {
+    "dev": "20866b685d72d19140a66acbecff8fa73154ae62e0b22e6241a0d0a81bd83050",
+    "test": "329e9d914ffdb06f48c096281defc4f1c3850dda3b31ececc9abfde92b8daba0",
+    "val": "24bffbe5fc7192ac6528e476962ce8936eaa7c5a07b4564ae79918da8f9c7e67"
+  },
+  "splits": [
+    "dev",
+    "test",
+    "val"
+  ],
+  "synthetic_only": true
+}

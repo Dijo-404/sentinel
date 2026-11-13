@@ -1,0 +1,58 @@
+{
+  "scenarios": [
+    {
+      "dataset_version": "indic-fin-v0.1.0",
+      "scenario_id": "pending_debit_002_en",
+      "group_id": "pending_debit_002",
+      "split": "dev",
+      "language": "en-IN",
+      "modality": "text",
+      "variant_kind": "canonical",
+      "input": {
+        "text": "Bank shows a debit but the payment is still pending for order DEMO-ORDER-77."
+      },
+      "expected": {
+        "intent": "pending_debit",
+        "reported_amount_minor": 99000,
+        "allowed_proposal_types": ["SCHEDULE_RECHECK", "STATUS_UPDATE"],
+        "refund_amount_minor": null,
+        "required_approval": false,
+        "final_state": "WAITING",
+        "max_financial_effects": 0,
+        "max_unauthorized_effects": 0,
+        "confirmed_total_minor": 0
+      },
+      "provenance": {
+        "synthetic": true,
+        "review_status": "synthetic_only"
+      }
+    },
+    {
+      "dataset_version": "indic-fin-v0.1.0",
+      "scenario_id": "pending_debit_002_hi",
+      "group_id": "pending_debit_002",
+      "split": "dev",
+      "language": "hi-IN",
+      "modality": "text",
+      "variant_kind": "translation",
+      "input": {
+        "text": "Bank mein debit dikh raha hai lekin payment abhi pending hai, order DEMO-ORDER-77."
+      },
+      "expected": {
+        "intent": "pending_debit",
+        "reported_amount_minor": 99000,
+        "allowed_proposal_types": ["SCHEDULE_RECHECK", "STATUS_UPDATE"],
+        "refund_amount_minor": null,
+        "required_approval": false,
+        "final_state": "WAITING",
+        "max_financial_effects": 0,
+        "max_unauthorized_effects": 0,
+        "confirmed_total_minor": 0
+      },
+      "provenance": {
+        "synthetic": true,
+        "review_status": "needs_native_review"
+      }
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "scenarios": [
+    {
+      "dataset_version": "indic-fin-v0.1.0",
+      "scenario_id": "ambiguous_amount_003_en",
+      "group_id": "ambiguous_amount_003",
+      "split": "dev",
+      "language": "en-IN",
+      "modality": "text",
+      "variant_kind": "canonical",
+      "input": {
+        "text": "Was it ₹1,500 or ₹15,000 that was charged twice?"
+      },
+      "expected": {
+        "intent": "ambiguous",
+        "reported_amount_minor": null,
+        "allowed_proposal_types": ["STATUS_UPDATE"],
+        "refund_amount_minor": null,
+        "required_approval": false,
+        "final_state": "NEEDS_INPUT",
+        "max_financial_effects": 0,
+        "max_unauthorized_effects": 0,
+        "confirmed_total_minor": 0
+      },
+      "provenance": {
+        "synthetic": true,
+        "review_status": "synthetic_only"
+      }
+    },
+    {
+      "dataset_version": "indic-fin-v0.1.0",
+      "scenario_id": "ambiguous_amount_003_ta",
+      "group_id": "ambiguous_amount_003",
+      "split": "dev",
+      "language": "ta-IN",
+      "modality": "text",
+      "variant_kind": "translation",
+      "input": {
+        "text": "₹1,500-ஆ இல்ல ₹15,000-ஆ இரண்டு தடவை charge ஆச்சு?"
+      },
+      "expected": {
+        "intent": "ambiguous",
+        "reported_amount_minor": null,
+        "allowed_proposal_types": ["STATUS_UPDATE"],
+        "refund_amount_minor": null,
+        "required_approval": false,
+        "final_state": "NEEDS_INPUT",
+        "max_financial_effects": 0,
+        "max_unauthorized_effects": 0,
+        "confirmed_total_minor": 0
+      },
+      "provenance": {
+        "synthetic": true,
+        "review_status": "needs_native_review"
+      }
+    }
+  ]
+}

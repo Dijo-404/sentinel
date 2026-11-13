@@ -1,85 +1,66 @@
-# SN-023 — Build an independent FinBench-Indic dataset and CLI
+# SN-023 — FinBench-Indic dataset and CLI
 
-**State:** scaffold and task instructions only. No implementation, dependency installation, module check target or product result is claimed.
-
-**Owned root:** `benchmarks/finbench_indic/`
-**Branch:** `feat/sn-023-finbench`
-**Lane:** D · **Phase:** 2 · **Priority:** P1 · **Optional for MVP:** yes
+**Owned root:** `benchmarks/finbench_indic/`  
+**Branch:** `feat/sn-023-finbench`  
+**Produces:** `finbench.v1`  
+**Consumes (local stubs / optional real adapters):** `finharness-runtime.v1`, `indic-context.v1`  
+**Contract baseline:** `sentinel.task-contracts.v1` / `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`
 
 ## Outcome
 
-Implement grouped synthetic datasets, version/hash manifests, deterministic scoring and injected candidate adapters with local model/runtime fakes. Own the CLI/report examples and test data without requiring context/runtime packages.
+Grouped synthetic Indic financial scenarios with version/hash manifests, deterministic scoring, and injected candidate adapters (recorded / fake / opt-in live / unsafe fault demo). Standalone CLI and tests do not require live context or runtime peers.
 
-## Independence
+## Setup
 
-No task-completion prerequisites. This module must install, run its local checks, and be reviewable with every other Sentinel task implementation absent. Use explicit local port doubles rather than another developer's server or an unfinished sibling import. Phase and task number do not establish build order.
+```sh
+cd benchmarks/finbench_indic
+uv sync --frozen
+```
 
-Read [root agent rules](../../AGENTS.md), [claim/PR workflow](../../CONTRIBUTING.md), [architecture](../../docs/architecture.md), and [testing](../../docs/testing.md). The [task register](../../docs/task-register.md) links the live issue once published.
+Optional: copy `.env.example` for documentation. Fixture checks need no secrets.
 
-## Ownership and interfaces
-
-- `benchmarks/finbench_indic/**`
-
-- Produces: `finbench.v1`
-- Consumes: `finharness-runtime.v1`, `indic-context.v1`
-- Optional consumed interfaces: None
-
-Contract input: [baseline](../../docs/independent-task-contracts.md) · `sentinel.task-contracts.v1` · SHA-256 `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`.
-
-Implement the exact supplied routes, request/response types, auth context, canonical digest and state/idempotency behavior for the relevant ports. Keep typed snapshots and compatibility examples in this module. The contract-checker/SDK implementation is not required.
-
-### Required local peer doubles
-
-- `finharness-runtime.v1` under `tests/stubs/`: valid, unavailable, malformed, unauthorized_or_out_of_scope.
-- `indic-context.v1` under `tests/stubs/`: valid, unavailable, malformed, unauthorized_or_out_of_scope.
-
-## Implementation layout
-
-Baseline category: Python service/library/tool.
-
-Use module-local dependency declarations and a reproducible lockfile, configuration example, tests, README and changelog. Stateful components own local migrations and a test database. No root application install or shared migration chain is allowed.
-
-Keep deterministic business rules/types separate from application use cases/ports and external adapters. Wire adapters at one composition entry point. Introduce only directories that contain real responsibilities; the repository does not pre-generate empty layers. See the architecture and folder guides for language-specific layouts.
-
-## Deliverables
-
-- [ ] Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.
-- [ ] Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.
-- [ ] Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation.
-- [ ] Update the local README/configuration and CHANGELOG.md with actual behavior and limitations.
-
-## Acceptance criteria
-
-- [ ] Translations/paraphrases stay within one split; local baseline/candidate examples disclose dataset hashes, denominators, versions and uncertainty.
-- [ ] Hard safety regressions fail independently of average score; fake/live model and deterministic system scores remain distinct.
-- [ ] All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required.
-
-## Planned local commands
-
-The owning task must implement and document dependency setup, a local run/preview command where applicable, and this check target. It does not exist yet:
+## Check
 
 ```sh
 make -C benchmarks/finbench_indic check
 ```
 
-Run root `make check` as well. Root checks validate repository metadata and tools; they do not implement or substitute for this component's behavior tests. External provider credentials are optional for local fixture checks.
+Runs ruff + pytest using only this module, bundled synthetic datasets, and `tests/stubs/`.
 
-## Test and failure requirements
+## Preview
 
-- Exercise observable acceptance behavior and meaningful invalid, unavailable, malformed and unauthorized boundary cases.
-- Use real PostgreSQL tests for financial locking/transactions, durable checkpoints or other database behavior that an in-memory double cannot establish.
-- Label fixtures/simulated providers/fake or live inference precisely. A real-peer adapter must not silently convert peer failure into fixture success.
-- Confirm the module works with sibling implementations absent and record exactly which local doubles/databases were used.
+```sh
+uv run --frozen sentinel-finbench run --dataset indic-fin-v0.1.0 --split val --mode recorded
+uv run --frozen sentinel-finbench self-test
+```
 
-## Evidence and review
+Modes: `recorded`, `fake-model`, `live-model` (requires `--live-model`), `system`, `unsafe` (fault demo).
 
-- Exact standalone setup/check commands, actual results and pinned contract baseline hash.
-- Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.
-- PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status.
+Probe real peers (fail closed; no fixture fallback):
 
-Open a PR targeting main with `Refs #<issue>` and the PR template. Update the issue to review. Owner review/merge and accepted standalone evidence close the component issue. Agents never push main, merge or enable auto-merge.
+```sh
+uv run --frozen sentinel-finbench probe-peers \
+  --runtime-peer tests/stubs/finharness_runtime/valid.json \
+  --context-peer tests/stubs/indic_context/valid.json
+```
 
-## Assembly limits
+## Acceptance behavior
 
-- A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.
-- Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence.
+1. Translations/paraphrases of one `group_id` stay in one split; reports disclose dataset/split hashes, denominators, and variance.
+2. Hard safety regressions fail the run even when model averages look strong; `fake` / `live` / `recorded` model scores stay separate from deterministic `system` scores.
+3. `make check` passes with sibling implementations absent.
+
+## Layout
+
+| Path | Role |
+| --- | --- |
+| `datasets/indic-fin-v0.1.0/` | Synthetic grouped scenarios + hashed manifest |
+| `src/sentinel_finbench/` | Domain rules, evaluation use case, adapters, CLI |
+| `contracts/` | `finbench.v1` snapshot + compatibility checklist |
+| `tests/stubs/` | finharness-runtime + indic-context doubles |
+
+## Evidence limits
+
+- Fixture / recorded / fake only. Real-peer assembly, payment simulator, and live-provider evidence remain **unverified** here.
+- Synthetic utterances are not native-speaker certified language quality claims.
+- No financial tables, refund executor, or production credentials in this module.
