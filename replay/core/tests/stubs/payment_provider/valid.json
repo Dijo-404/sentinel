@@ -1,0 +1,35 @@
+{
+  "capabilities": {
+    "contract_version": "sentinel.task-contracts.v1",
+    "component": "payment-provider",
+    "mode": "fixture"
+  },
+  "transactions_response": {
+    "payments": [
+      {
+        "transaction_ref": "TXN-A",
+        "order_reference": "DEMO-ORDER-42",
+        "subject_ref": "subject-demo-42",
+        "status": "CAPTURED",
+        "amount_minor": 150000,
+        "currency": "INR"
+      },
+      {
+        "transaction_ref": "TXN-B",
+        "order_reference": "DEMO-ORDER-42",
+        "subject_ref": "subject-demo-42",
+        "status": "CAPTURED",
+        "amount_minor": 150000,
+        "currency": "INR"
+      }
+    ]
+  },
+  "refund_response": {
+    "action_id": "action-demo-1",
+    "provider_ref": "refund-demo-1",
+    "transaction_ref": "TXN-B",
+    "amount_minor": 150000,
+    "currency": "INR",
+    "status": "PENDING"
+  }
+}

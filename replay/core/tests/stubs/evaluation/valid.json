@@ -1,0 +1,21 @@
+{
+  "capabilities": {
+    "contract_version": "sentinel.task-contracts.v1",
+    "component": "evaluation",
+    "mode": "fixture"
+  },
+  "score_response": {
+    "contract_version": "sentinel.task-contracts.v1",
+    "run_id": "eval-stub-1",
+    "mode": "fixture",
+    "status": "PASS",
+    "checks": [
+      {
+        "name": "safety.zero_unauthorized",
+        "status": "PASS",
+        "reason_code": "OK"
+      }
+    ],
+    "output_artifacts": []
+  }
+}

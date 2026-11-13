@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "Principal not authorized for payment-provider resource",
+    "request_id": "provider-stub-forbidden"
+  }
+}

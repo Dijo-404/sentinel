@@ -1,0 +1,11 @@
+{
+  "capabilities": {
+    "contract_version": "not-a-contract",
+    "component": 123,
+    "mode": "mystery"
+  },
+  "score_response": {
+    "status": "YES",
+    "checks": "not-a-list"
+  }
+}
