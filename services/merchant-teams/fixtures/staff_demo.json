@@ -1,0 +1,23 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "staff": {
+    "staff_id": "staff-demo-1",
+    "tenant_id": "tenant-demo",
+    "merchant_ref": "merchant-demo-1",
+    "display_name": "Ada Merchant",
+    "roles": ["operator", "approver"],
+    "approval_limit_minor": 50000,
+    "currency": "INR",
+    "active": true
+  },
+  "activity": [
+    {
+      "event_id": "event-demo-1",
+      "staff_id": "staff-demo-1",
+      "at": "2026-11-13T12:00:00Z",
+      "kind": "STAFF_CREATED",
+      "subject_ref": "merchant-demo-1",
+      "summary": "Created staff Ada Merchant"
+    }
+  ]
+}

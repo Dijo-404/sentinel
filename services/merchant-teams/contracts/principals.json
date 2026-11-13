@@ -1,0 +1,26 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "tokens": {
+    "operator-token": {
+      "principal_id": "op-1",
+      "tenant_id": "tenant-demo",
+      "roles": ["operator"],
+      "subject_refs": ["merchant-demo-1"],
+      "case_ids": ["case-demo-42"]
+    },
+    "supervisor-token": {
+      "principal_id": "sup-1",
+      "tenant_id": "tenant-demo",
+      "roles": ["supervisor"],
+      "subject_refs": ["merchant-demo-1", "*"],
+      "case_ids": ["case-demo-42"]
+    },
+    "outsider-token": {
+      "principal_id": "op-other",
+      "tenant_id": "tenant-other",
+      "roles": ["operator"],
+      "subject_refs": ["merchant-other"],
+      "case_ids": ["case-other"]
+    }
+  }
+}

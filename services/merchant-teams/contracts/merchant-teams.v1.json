@@ -1,0 +1,88 @@
+{
+  "port": "merchant-teams.v1",
+  "contract_version": "sentinel.task-contracts.v1",
+  "contract_sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb",
+  "produces": ["MerchantStaff", "StaffActivity"],
+  "consumes": ["case-api.v1"],
+  "routes": [
+    {
+      "method": "POST",
+      "path": "/v1/staff",
+      "request": {
+        "merchant_ref": "string",
+        "display_name": "string",
+        "roles": "string[]",
+        "approval_limit_minor?": "int",
+        "currency?": "string",
+        "staff_id?": "string"
+      },
+      "response": "MerchantStaff",
+      "roles": ["operator", "supervisor", "sandbox-admin"]
+    },
+    {
+      "method": "GET",
+      "path": "/v1/staff?merchant_ref=...",
+      "response": "{ staff: MerchantStaff[] }",
+      "roles": ["operator", "supervisor", "sandbox-admin"]
+    },
+    {
+      "method": "GET",
+      "path": "/v1/staff/{staff_id}",
+      "response": "MerchantStaff",
+      "roles": ["operator", "supervisor", "sandbox-admin"]
+    },
+    {
+      "method": "PATCH",
+      "path": "/v1/staff/{staff_id}",
+      "request": {
+        "display_name?": "string",
+        "roles?": "string[]",
+        "approval_limit_minor?": "int",
+        "currency?": "string",
+        "clear_approval_limit?": "bool"
+      },
+      "response": "MerchantStaff",
+      "roles": ["operator", "supervisor", "sandbox-admin"]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/staff/{staff_id}/deactivate",
+      "response": "MerchantStaff",
+      "roles": ["operator", "supervisor", "sandbox-admin"]
+    },
+    {
+      "method": "GET",
+      "path": "/v1/staff/{staff_id}/activity",
+      "response": "{ events: StaffActivity[] }",
+      "roles": ["operator", "supervisor", "sandbox-admin"]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/staff/{staff_id}/activity",
+      "request": { "kind": "string", "subject_ref": "string", "summary": "string" },
+      "response": "StaffActivity",
+      "roles": ["operator", "supervisor", "sandbox-admin"]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/staff/{staff_id}/advisory-check",
+      "request": { "amount_minor": "int", "currency": "string" },
+      "response": "AdvisoryLimitResult",
+      "roles": ["operator", "supervisor", "sandbox-admin"]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/staff/{staff_id}/authorize",
+      "request": { "amount_minor": "int", "currency": "string" },
+      "response": "always 403 FINANCIAL_AUTHORITY_DENIED",
+      "roles": ["operator", "supervisor", "sandbox-admin"]
+    }
+  ],
+  "notes": [
+    "approval_limit_minor is advisory metadata only.",
+    "Advisory checks never mint approval_id or reservation_id.",
+    "POST /v1/staff/{id}/authorize always fails closed.",
+    "CASE_* activity kinds require a live case-api.v1 get; real-peers never falls back to fixtures.",
+    "Unauthorized tenant/merchant scope returns 403."
+  ]
+}

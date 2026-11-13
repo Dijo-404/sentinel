@@ -1,0 +1,32 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "contract_sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb",
+  "MerchantStaff": {
+    "staff_id": "staff-demo-1",
+    "tenant_id": "tenant-demo",
+    "merchant_ref": "merchant-demo-1",
+    "display_name": "Ada Merchant",
+    "roles": ["operator", "approver"],
+    "approval_limit_minor": 50000,
+    "currency": "INR",
+    "active": true
+  },
+  "StaffActivity": {
+    "event_id": "event-demo-1",
+    "staff_id": "staff-demo-1",
+    "at": "2026-11-13T12:00:00Z",
+    "kind": "STAFF_CREATED",
+    "subject_ref": "merchant-demo-1",
+    "summary": "Created staff Ada Merchant"
+  },
+  "AdvisoryLimitResult": {
+    "staff_id": "staff-demo-1",
+    "amount_minor": 25000,
+    "currency": "INR",
+    "within_advisory_limit": true,
+    "advisory": true,
+    "authorizes_ledger_or_provider": false,
+    "approval_id": null,
+    "reservation_id": null
+  }
+}
