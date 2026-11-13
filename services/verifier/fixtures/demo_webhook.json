@@ -1,0 +1,8 @@
+{
+  "event_id": "evt-demo-1",
+  "tenant_id": "tenant-demo-1",
+  "merchant_ref": "merchant-demo-1",
+  "provider_ref": "refund-demo-1",
+  "type": "REFUND_STATUS",
+  "occurred_at": "2026-11-13T11:59:00Z"
+}

@@ -1,0 +1,6 @@
+{
+  "case_id": "case-demo-42",
+  "case_revision": 1,
+  "action_id": "action-demo-1",
+  "provider_ref": "refund-demo-1"
+}
