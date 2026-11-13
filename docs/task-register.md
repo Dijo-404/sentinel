@@ -34,6 +34,14 @@ See [tasks.json](tasks.json), the [workflow design](agent-workflow-design.md), a
 | SN-024 | Build an independent harness telemetry extension | D | 2 | `packages/finharness-telemetry/` | None | Yes | `feat/sn-024-harness-observability` | [#24](https://github.com/Dijo-404/sentinel/issues/24) |
 | SN-025 | Build an independent FinHarness replay and promotion gate | B | 2 | `replay/finharness/` | None | Yes | `feat/sn-025-harness-replay` | [#25](https://github.com/Dijo-404/sentinel/issues/25) |
 | SN-026 | Build an independent sandbox pilot validation kit | B | 2 | `validation/sandbox-pilot/` | None | Yes | `feat/sn-026-sandbox-pilot` | [#26](https://github.com/Dijo-404/sentinel/issues/26) |
+| SN-027 | Build independent merchant settlement reconciliation | B | 2 | `services/merchant-settlement/` | None | Yes | `feat/sn-027-merchant-settlement` | unpublished |
+| SN-028 | Build an independent merchant exception inbox | C | 2 | `services/merchant-inbox/` | None | Yes | `feat/sn-028-merchant-inbox` | unpublished |
+| SN-029 | Build independent merchant refund request workflow | B | 2 | `services/merchant-refunds/` | None | Yes | `feat/sn-029-merchant-refunds` | unpublished |
+| SN-030 | Build independent merchant dispute management | B | 2 | `services/merchant-disputes/` | None | Yes | `feat/sn-030-merchant-disputes` | unpublished |
+| SN-031 | Build independent merchant SLA and task management | A | 2 | `services/merchant-sla/` | None | Yes | `feat/sn-031-merchant-sla` | unpublished |
+| SN-032 | Build independent merchant analytics aggregates | D | 2 | `services/merchant-analytics/` | None | Yes | `feat/sn-032-merchant-analytics` | unpublished |
+| SN-033 | Build independent multilingual merchant communications | C | 2 | `packages/merchant-comms/` | None | Yes | `feat/sn-033-merchant-comms` | unpublished |
+| SN-034 | Build independent merchant team and role management | A | 2 | `services/merchant-teams/` | None | Yes | `feat/sn-034-merchant-teams` | unpublished |
 
 ## Independence checklist
 
@@ -41,7 +49,7 @@ See [tasks.json](tasks.json), the [workflow design](agent-workflow-design.md), a
 - Each module owns its manifest/lockfile, migrations if needed, configuration, README, fixtures and typed boundary validation.
 - Consumed interfaces are supplied ports with local stubs, not task prerequisites. Never wait for SN-001 tooling, SN-002 validators, SN-003 database helpers, or an unfinished peer.
 - Only SN-001 additionally owns `.github/workflows/module-checks.yml`; absent module tooling does not block another task's local check or review.
-- The 26 primary roots do not overlap. No cross-service table writes or broad shared parent ownership is permitted.
+- The primary roots do not overlap. No cross-service table writes or broad shared parent ownership is permitted.
 - SN-009 alone owns authoritative financial approvals/reservations/action/outbox/audit transactions. Other workers use its ports, with local doubles during independent development.
 
 ## Completion and assembly

@@ -16,13 +16,13 @@
 
 ## Independent module roots
 
-The [task register](task-register.md) lists all 26 roots and their owning task. Parent directories group purpose rather than shared builds:
+The [task register](task-register.md) lists all task-owned roots and their owning task. Parent directories group purpose rather than shared builds:
 
 | Parent | Components |
 | --- | --- |
 | `apps/` | `api`, `web` |
-| `services/` | `simulator`, `policy`, `evidence`, `workflow`, `action-ledger`, `dispatcher`, `verifier`, `voice`, `finharness-runtime` |
-| `packages/` | `contract-checks`, `persistence`, `approval-ui`, `telemetry`, `finharness-sdk`, `indic-context`, `finharness-telemetry` |
+| `services/` | `simulator`, `policy`, `evidence`, `workflow`, `action-ledger`, `dispatcher`, `verifier`, `voice`, `finharness-runtime`, `merchant-settlement`, `merchant-inbox`, `merchant-refunds`, `merchant-disputes`, `merchant-sla`, `merchant-analytics`, `merchant-teams` |
+| `packages/` | `contract-checks`, `persistence`, `approval-ui`, `telemetry`, `finharness-sdk`, `indic-context`, `finharness-telemetry`, `merchant-comms` |
 | `tooling/` | `workspace` |
 | `integration/` | `core` |
 | `evals/` | `core` |

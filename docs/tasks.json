@@ -16,7 +16,7 @@
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
-      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
     "produces": [
       "module-checks.v1"
@@ -34,7 +34,7 @@
       "peer_stubs": [],
       "check_command": "make -C tooling/workspace check",
       "command_status": "Required deliverable; not currently implemented or executed.",
-      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
     },
     "acceptance": [
       "A miniature local fixture repo runs declared checks for present modules and reports absent modules without failing unrelated component PRs.",
@@ -69,7 +69,7 @@
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
-      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
     "produces": [
       "contract-checks.v1"
@@ -87,7 +87,7 @@
       "peer_stubs": [],
       "check_command": "make -C packages/contract-checks check",
       "command_status": "Required deliverable; not currently implemented or executed.",
-      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
     },
     "acceptance": [
       "Canonical action byte/digest fixtures match the baseline; wrong fields, monetary floats, invalid states and payload conflicts fail.",
@@ -122,7 +122,7 @@
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
-      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
     "produces": [
       "persistence-kit.v1"
@@ -140,7 +140,7 @@
       "peer_stubs": [],
       "check_command": "make -C packages/persistence check",
       "command_status": "Required deliverable; not currently implemented or executed.",
-      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
     },
     "acceptance": [
       "The toolkit checks migrations, tenant-aware keys and role isolation against its own real PostgreSQL instance and synthetic seed records.",
@@ -175,7 +175,7 @@
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
-      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
     "produces": [
       "payment-provider.v1"
@@ -193,7 +193,7 @@
       "peer_stubs": [],
       "check_command": "make -C services/simulator check",
       "command_status": "Required deliverable; not currently implemented or executed.",
-      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
     },
     "acceptance": [
       "Two captured payments of 150000 INR minor units map to one fulfilled order; provider outcome and credit are separate events.",
@@ -228,7 +228,7 @@
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
-      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
     "produces": [
       "policy.v1"
@@ -246,7 +246,7 @@
       "peer_stubs": [],
       "check_command": "make -C services/policy check",
       "command_status": "Required deliverable; not currently implemented or executed.",
-      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
     },
     "acceptance": [
       "Wrong tenant, pending/failed payment, expired evidence, fraud/chargeback, arbitrary destination and excess amount reject or require evidence with reason codes.",
@@ -281,7 +281,7 @@
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
-      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
     "produces": [
       "evidence.v1"
@@ -312,7 +312,7 @@
       ],
       "check_command": "make -C services/evidence check",
       "command_status": "Required deliverable; not currently implemented or executed.",
-      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
     },
     "acceptance": [
       "Local valid, stale, conflicting, unauthorized and unavailable provider fixtures produce explicit evidence/reconciliation states.",
@@ -347,7 +347,7 @@
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
-      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
     "produces": [
       "case-api.v1"
@@ -411,7 +411,7 @@
       ],
       "check_command": "make -C apps/api check",
       "command_status": "Required deliverable; not currently implemented or executed.",
-      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
     },
     "acceptance": [
       "Self-contained API tests exercise 202 creation, idempotent reuse/409 conflict, role/tenant boundaries, restart and cursor-resumable ordered events.",
@@ -446,7 +446,7 @@
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
-      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
     "produces": [
       "workflow.v1"
@@ -521,7 +521,7 @@
       ],
       "check_command": "make -C services/workflow check",
       "command_status": "Required deliverable; not currently implemented or executed.",
-      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
     },
     "acceptance": [
       "Synthetic approval pauses survive restart and authenticated resume; node replay cannot create a duplicate logical financial command.",
@@ -556,7 +556,7 @@
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
-      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
     "produces": [
       "action-ledger.v1"
@@ -598,7 +598,7 @@
       ],
       "check_command": "make -C services/action-ledger check",
       "command_status": "Required deliverable; not currently implemented or executed.",
-      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
     },
     "acceptance": [
       "Real PostgreSQL concurrency tests prove completed/pending/reserved amounts never overrun eligible capture; reservation/action/outbox/audit commit or roll back together.",
@@ -633,7 +633,7 @@
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
-      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
     "produces": [
       "dispatcher.v1"
@@ -675,7 +675,7 @@
       ],
       "check_command": "make -C services/dispatcher check",
       "command_status": "Required deliverable; not currently implemented or executed.",
-      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
     },
     "acceptance": [
       "Commit-then-timeout and crash/restart fixtures use the original action/provider references and produce one simulated refund side effect.",
@@ -710,7 +710,7 @@
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
-      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
     "produces": [
       "verifier.v1"
@@ -774,7 +774,7 @@
       ],
       "check_command": "make -C services/verifier check",
       "command_status": "Required deliverable; not currently implemented or executed.",
-      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
     },
     "acceptance": [
       "Original-byte signature, tenant mapping and replay checks reject bad events; durable inbox deduplicates/reorders correctly without creating money movement.",
@@ -809,7 +809,7 @@
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
-      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
     "produces": [
       "web-shell.v1"
@@ -862,7 +862,7 @@
       ],
       "check_command": "make -C apps/web check",
       "command_status": "Required deliverable; not currently implemented or executed.",
-      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
     },
     "acceptance": [
       "Standalone browser checks cover loading/error/empty/permission states, masked references, responsive layout and keyboard use against a local API fixture.",
@@ -899,7 +899,7 @@
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
-      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
     "produces": [
       "approval-ui.v1"
@@ -941,7 +941,7 @@
       ],
       "check_command": "make -C packages/approval-ui check",
       "command_status": "Required deliverable; not currently implemented or executed.",
-      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
     },
     "acceptance": [
       "Preview fixtures show exact amount/transaction, policy version, evidence age, digest, expiry and reviewer identity; approve/reject submits the supplied digest/revision.",
@@ -976,7 +976,7 @@
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
-      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
     "produces": [
       "core-assembly.v1"
@@ -1073,7 +1073,7 @@
       ],
       "check_command": "make -C integration/core check",
       "command_status": "Required deliverable; not currently implemented or executed.",
-      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
     },
     "acceptance": [
       "The runner exercises all four journeys against local reference peers, including 150000-paise approval/timeout/credit recovery, and tests peer/schema/failure diagnostics.",
@@ -1108,7 +1108,7 @@
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
-      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
     "produces": [
       "telemetry.v1"
@@ -1126,7 +1126,7 @@
       "peer_stubs": [],
       "check_command": "make -C packages/telemetry check",
       "command_status": "Required deliverable; not currently implemented or executed.",
-      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
     },
     "acceptance": [
       "Local producers and exports demonstrate request/approval/worker/provider correlation and timeout/retry-suppression events.",
@@ -1161,7 +1161,7 @@
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
-      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
     "produces": [
       "evaluation.v1"
@@ -1192,7 +1192,7 @@
       ],
       "check_command": "make -C evals/core check",
       "command_status": "Required deliverable; not currently implemented or executed.",
-      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
     },
     "acceptance": [
       "Local negative candidates trigger unauthorized action, over-refund, cross-tenant, duplicate-effect and false-credit failures; critical safety failure overrides aggregate quality.",
@@ -1227,7 +1227,7 @@
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
-      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
     "produces": [
       "voice.v1"
@@ -1245,7 +1245,7 @@
       "peer_stubs": [],
       "check_command": "make -C services/voice check",
       "command_status": "Required deliverable; not currently implemented or executed.",
-      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
     },
     "acceptance": [
       "Tamil/English/code-mixed amount/negation fixtures preserve original input and flag ambiguity rather than authorizing a financial action.",
@@ -1280,7 +1280,7 @@
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
-      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
     "produces": [
       "replay.v1"
@@ -1322,7 +1322,7 @@
       ],
       "check_command": "make -C replay/core check",
       "command_status": "Required deliverable; not currently implemented or executed.",
-      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
     },
     "acceptance": [
       "The local defective retry candidate fails state/effect assertions; the conforming local candidate preserves one simulated financial side effect.",
@@ -1357,7 +1357,7 @@
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
-      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
     "produces": [
       "release-evidence.v1"
@@ -1421,7 +1421,7 @@
       ],
       "check_command": "make -C release/mvp check",
       "command_status": "Required deliverable; not currently implemented or executed.",
-      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
     },
     "acceptance": [
       "Local manifests exercise required component versions/contracts, exact checks/results, artifact hashes/timestamps and separate real-component/simulator/model evidence fields.",
@@ -1456,7 +1456,7 @@
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
-      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
     "produces": [
       "finharness-sdk.v1"
@@ -1531,7 +1531,7 @@
       ],
       "check_command": "make -C packages/finharness-sdk check",
       "command_status": "Required deliverable; not currently implemented or executed.",
-      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
     },
     "acceptance": [
       "A local sample workflow uses fake ports through the SDK with contract validation, disabled-by-default routing and version-pinned case configuration.",
@@ -1566,7 +1566,7 @@
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
-      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
     "produces": [
       "indic-context.v1"
@@ -1584,7 +1584,7 @@
       "peer_stubs": [],
       "check_command": "make -C packages/indic-context check",
       "command_status": "Required deliverable; not currently implemented or executed.",
-      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
     },
     "acceptance": [
       "Local malformed proposals, hallucinated references, prompt injection and unsupported actions fail; Tamil/Hindi/English code-mixed amount/negation/count/reference fixtures are explicit.",
@@ -1619,7 +1619,7 @@
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
-      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
     "produces": [
       "finharness-runtime.v1"
@@ -1705,7 +1705,7 @@
       ],
       "check_command": "make -C services/finharness-runtime check",
       "command_status": "Required deliverable; not currently implemented or executed.",
-      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
     },
     "acceptance": [
       "Local shadow execution has no write adapter/credentials/notification capability and cannot send a second refund.",
@@ -1740,7 +1740,7 @@
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
-      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
     "produces": [
       "finbench.v1"
@@ -1782,7 +1782,7 @@
       ],
       "check_command": "make -C benchmarks/finbench_indic check",
       "command_status": "Required deliverable; not currently implemented or executed.",
-      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
     },
     "acceptance": [
       "Translations/paraphrases stay within one split; local baseline/candidate examples disclose dataset hashes, denominators, versions and uncertainty.",
@@ -1817,7 +1817,7 @@
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
-      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
     "produces": [
       "harness-telemetry.v1"
@@ -1870,7 +1870,7 @@
       ],
       "check_command": "make -C packages/finharness-telemetry check",
       "command_status": "Required deliverable; not currently implemented or executed.",
-      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
     },
     "acceptance": [
       "Local hooks join case/action/model/evaluation versions through bounded redacted records without sampling financial audit.",
@@ -1905,7 +1905,7 @@
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
-      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
     "produces": [
       "harness-replay.v1"
@@ -1958,7 +1958,7 @@
       ],
       "check_command": "make -C replay/finharness check",
       "command_status": "Required deliverable; not currently implemented or executed.",
-      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
     },
     "acceptance": [
       "Local record/replay reproduces deterministic state/effect results; changed write sequences execute against simulation rather than static recordings.",
@@ -1993,7 +1993,7 @@
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
-      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
     "produces": [
       "sandbox-validation.v1"
@@ -2068,7 +2068,7 @@
       ],
       "check_command": "make -C validation/sandbox-pilot check",
       "command_status": "Required deliverable; not currently implemented or executed.",
-      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
     },
     "acceptance": [
       "Local reference peers exercise validation drivers and preserve in-flight action identities/reconciliation through restart and routing rollback.",
@@ -2086,5 +2086,623 @@
     ],
     "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite.",
     "optional_consumes": []
+  },
+  {
+    "id": "SN-027",
+    "title": "Build independent merchant settlement reconciliation",
+    "lane": "B",
+    "phase": 2,
+    "priority": "P1",
+    "optional": true,
+    "branch": "feat/sn-027-merchant-settlement",
+    "depends_on": [],
+    "root": "services/merchant-settlement",
+    "paths": [
+      "services/merchant-settlement/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
+    },
+    "produces": [
+      "merchant-settlement.v1"
+    ],
+    "consumes": [
+      "evidence.v1",
+      "payment-provider.v1"
+    ],
+    "optional_consumes": [],
+    "scope": [
+      "Import synthetic settlement CSV/JSON batches, match payments and orders through evidence/provider ports, and flag missing entries, duplicate rows, fee differences and short settlements. Own discrepancy state only; never write provider refunds or ledger tables."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [
+        {
+          "port": "evidence.v1",
+          "location": "services/merchant-settlement/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "payment-provider.v1",
+          "location": "services/merchant-settlement/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        }
+      ],
+      "check_command": "make -C services/merchant-settlement check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "Synthetic settlement import detects missing payment, missing settlement, duplicate row, fee difference and short settlement with deterministic fixtures.",
+      "Unavailable, unauthorized and malformed evidence/provider peers fail closed; fixture mode is labeled and real-peer mode never falls back to fixtures.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite."
+  },
+  {
+    "id": "SN-028",
+    "title": "Build an independent merchant exception inbox",
+    "lane": "C",
+    "phase": 2,
+    "priority": "P1",
+    "optional": true,
+    "branch": "feat/sn-028-merchant-inbox",
+    "depends_on": [],
+    "root": "services/merchant-inbox",
+    "paths": [
+      "services/merchant-inbox/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
+    },
+    "produces": [
+      "merchant-inbox.v1"
+    ],
+    "consumes": [
+      "case-api.v1",
+      "evidence.v1"
+    ],
+    "optional_consumes": [],
+    "scope": [
+      "Provide a merchant-scoped exception inbox for paid-but-unfulfilled orders, unmatched payments and pending refunds with filters, assignment, notes and escalation. Escalation must remain distinct from verified resolution; no ledger authority."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [
+        {
+          "port": "case-api.v1",
+          "location": "services/merchant-inbox/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "evidence.v1",
+          "location": "services/merchant-inbox/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        }
+      ],
+      "check_command": "make -C services/merchant-inbox check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "Inbox lists synthetic paid-unfulfilled, unmatched payment and pending-refund items with filter, assign, note and escalate transitions.",
+      "Escalated items are not marked resolved; unauthorized merchant scope and unavailable peers fail closed.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite."
+  },
+  {
+    "id": "SN-029",
+    "title": "Build independent merchant refund request workflow",
+    "lane": "B",
+    "phase": 2,
+    "priority": "P1",
+    "optional": true,
+    "branch": "feat/sn-029-merchant-refunds",
+    "depends_on": [],
+    "root": "services/merchant-refunds",
+    "paths": [
+      "services/merchant-refunds/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
+    },
+    "produces": [
+      "merchant-refunds.v1"
+    ],
+    "consumes": [
+      "case-api.v1",
+      "policy.v1",
+      "action-ledger.v1",
+      "evidence.v1"
+    ],
+    "optional_consumes": [],
+    "scope": [
+      "Let merchant staff draft and submit refund requests with attached evidence, track supervisor approval through action-ledger/policy ports, and surface verified outcomes. Never mint provider refunds, edit ledger tables, or treat pending confirmation as customer credit."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [
+        {
+          "port": "case-api.v1",
+          "location": "services/merchant-refunds/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "policy.v1",
+          "location": "services/merchant-refunds/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "action-ledger.v1",
+          "location": "services/merchant-refunds/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "evidence.v1",
+          "location": "services/merchant-refunds/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        }
+      ],
+      "check_command": "make -C services/merchant-refunds check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "Happy-path request reaches AWAITING_APPROVAL/RESERVED only via ledger/policy stub responses; rejection and peer failures leave no forged action_id.",
+      "Module never calls a payment provider write adapter; pending refund evidence is not treated as verified credit.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite."
+  },
+  {
+    "id": "SN-030",
+    "title": "Build independent merchant dispute management",
+    "lane": "B",
+    "phase": 2,
+    "priority": "P1",
+    "optional": true,
+    "branch": "feat/sn-030-merchant-disputes",
+    "depends_on": [],
+    "root": "services/merchant-disputes",
+    "paths": [
+      "services/merchant-disputes/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
+    },
+    "produces": [
+      "merchant-disputes.v1"
+    ],
+    "consumes": [
+      "case-api.v1",
+      "evidence.v1"
+    ],
+    "optional_consumes": [],
+    "scope": [
+      "Create dispute cases, collect transaction/order/delivery evidence into an evidence packet, and track deadlines through terminal outcomes. Own dispute state only; financial actions remain on ledger ports when separately requested."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [
+        {
+          "port": "case-api.v1",
+          "location": "services/merchant-disputes/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "evidence.v1",
+          "location": "services/merchant-disputes/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        }
+      ],
+      "check_command": "make -C services/merchant-disputes check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "Dispute lifecycle covers open, evidence-pending, submitted and terminal states with deadline tracking on synthetic fixtures.",
+      "Missing required evidence blocks submission; unauthorized scope and unavailable peers fail closed.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite."
+  },
+  {
+    "id": "SN-031",
+    "title": "Build independent merchant SLA and task management",
+    "lane": "A",
+    "phase": 2,
+    "priority": "P1",
+    "optional": true,
+    "branch": "feat/sn-031-merchant-sla",
+    "depends_on": [],
+    "root": "services/merchant-sla",
+    "paths": [
+      "services/merchant-sla/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
+    },
+    "produces": [
+      "merchant-sla.v1"
+    ],
+    "consumes": [
+      "case-api.v1"
+    ],
+    "optional_consumes": [],
+    "scope": [
+      "Configure merchant response/resolution targets, assign case tasks, highlight overdue work and schedule follow-ups. Escalation must not mark a case financially resolved."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [
+        {
+          "port": "case-api.v1",
+          "location": "services/merchant-sla/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        }
+      ],
+      "check_command": "make -C services/merchant-sla check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "SLA policies produce overdue flags and follow-up schedules against a virtual clock fixture.",
+      "Escalated tasks remain unresolved until an explicit non-financial DONE transition; unauthorized peers fail closed.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite."
+  },
+  {
+    "id": "SN-032",
+    "title": "Build independent merchant analytics aggregates",
+    "lane": "D",
+    "phase": 2,
+    "priority": "P1",
+    "optional": true,
+    "branch": "feat/sn-032-merchant-analytics",
+    "depends_on": [],
+    "root": "services/merchant-analytics",
+    "paths": [
+      "services/merchant-analytics/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
+    },
+    "produces": [
+      "merchant-analytics.v1"
+    ],
+    "consumes": [
+      "case-api.v1",
+      "evidence.v1"
+    ],
+    "optional_consumes": [],
+    "scope": [
+      "Compute merchant-scoped read-only analytics: exception rates, unresolved amounts, refund aging, handling time and recurring causes from case/evidence ports. No mutations of peer state."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [
+        {
+          "port": "case-api.v1",
+          "location": "services/merchant-analytics/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "evidence.v1",
+          "location": "services/merchant-analytics/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        }
+      ],
+      "check_command": "make -C services/merchant-analytics check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "Deterministic fixtures yield expected exception rate, unresolved minor units, aging buckets and top causes.",
+      "Analytics endpoints are read-only; unauthorized merchant scope and unavailable peers fail closed.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite."
+  },
+  {
+    "id": "SN-033",
+    "title": "Build independent multilingual merchant communications",
+    "lane": "C",
+    "phase": 2,
+    "priority": "P1",
+    "optional": true,
+    "branch": "feat/sn-033-merchant-comms",
+    "depends_on": [],
+    "root": "packages/merchant-comms",
+    "paths": [
+      "packages/merchant-comms/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
+    },
+    "produces": [
+      "merchant-comms.v1"
+    ],
+    "consumes": [
+      "case-api.v1",
+      "indic-context.v1"
+    ],
+    "optional_consumes": [
+      "indic-context.v1"
+    ],
+    "scope": [
+      "Generate English/Tamil/Hindi customer or merchant status drafts with an operator approval gate and simulated delivery history. Models propose text only; no financial authority. Indic-context remains optional with a local fake."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [
+        {
+          "port": "case-api.v1",
+          "location": "packages/merchant-comms/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "indic-context.v1",
+          "location": "packages/merchant-comms/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        }
+      ],
+      "check_command": "make -C packages/merchant-comms check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "Drafts require explicit operator approval before simulated send; rejected drafts are not delivered.",
+      "Missing optional indic-context falls back to deterministic template generation labeled fake; unauthorized case scope fails closed.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite."
+  },
+  {
+    "id": "SN-034",
+    "title": "Build independent merchant team and role management",
+    "lane": "A",
+    "phase": 2,
+    "priority": "P1",
+    "optional": true,
+    "branch": "feat/sn-034-merchant-teams",
+    "depends_on": [],
+    "root": "services/merchant-teams",
+    "paths": [
+      "services/merchant-teams/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
+    },
+    "produces": [
+      "merchant-teams.v1"
+    ],
+    "consumes": [
+      "case-api.v1"
+    ],
+    "optional_consumes": [],
+    "scope": [
+      "Manage merchant-scoped staff accounts, roles, advisory approval limits and an activity timeline. Approval limits are advisory metadata only and must never authorize ledger or provider writes."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [
+        {
+          "port": "case-api.v1",
+          "location": "services/merchant-teams/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        }
+      ],
+      "check_command": "make -C services/merchant-teams check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "Staff create/update/deactivate and role assignment persist with an append-only activity timeline on synthetic fixtures.",
+      "Advisory approval limits cannot create approvals or reservations; unauthorized tenant/merchant scope fails closed.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite."
   }
 ]
