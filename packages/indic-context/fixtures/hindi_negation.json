@@ -1,0 +1,37 @@
+{
+  "principal": {
+    "principal_id": "svc-workflow",
+    "tenant_id": "tenant-demo",
+    "roles": ["workflow"],
+    "subject_refs": ["subject-demo"],
+    "case_ids": ["case-demo-42"]
+  },
+  "request": {
+    "case": {
+      "contract_version": "sentinel.task-contracts.v1",
+      "case_id": "case-demo-42",
+      "revision": 1,
+      "status": "NEEDS_INPUT",
+      "language": "hi-IN",
+      "intent": "unknown",
+      "evidence_ids": []
+    },
+    "input": {
+      "case_id": "case-demo-42",
+      "case_revision": 1,
+      "original_text": "मेरा order नहीं मिला और refund नहीं चाहिए, सिर्फ status बताओ।",
+      "language": "hi-IN",
+      "order_reference": "ORD-2002",
+      "messages": [
+        {
+          "message_id": "msg-hi-1",
+          "text": "मेरा order नहीं मिला और refund नहीं चाहिए, सिर्फ status बताओ।",
+          "language": "hi-IN",
+          "author": "CUSTOMER",
+          "occurred_at": "2026-11-13T11:00:00Z"
+        }
+      ]
+    },
+    "evidence": []
+  }
+}

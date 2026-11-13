@@ -1,80 +1,92 @@
-# SN-021 — Build independent Sarvam reasoning and Indic context adapters
+# SN-021 — Sarvam reasoning and Indic context adapters
 
-**State:** scaffold and task instructions only. No implementation, dependency installation, module check target or product result is claimed.
+Optional `indic-context.v1` adapter: configurable fake/live Sarvam ports, source-preserving Indic/English normalization, structured proposal parsing and safety checks. Models propose only — no financial authority, ledger writes or approvals.
 
-**Owned root:** `packages/indic-context/`
-**Branch:** `feat/sn-021-indic-context`
-**Lane:** C · **Phase:** 2 · **Priority:** P1 · **Optional for MVP:** yes
+**Owned root:** `packages/indic-context/` · **Branch:** `feat/sn-021-indic-context`
 
-## Outcome
+Contract: `sentinel.task-contracts.v1`, SHA-256 `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`. Typed snapshots live in [domain/types.py](src/sentinel_indic_context/domain/types.py); wire contract in [contracts/indic-context.v1.json](contracts/indic-context.v1.json). Consumes nothing. Module-local fixtures under [fixtures/](fixtures/).
 
-Implement configurable fake/live Sarvam ports, source-preserving normalization, structured proposal parsing and ambiguity checks with module-local evidence fixtures. No FinHarness/voice/workflow implementation is required.
+## Standalone setup and checks
 
-## Independence
+Requires Python 3.11+, [uv](https://docs.astral.sh/uv/) and GNU Make. From this directory:
 
-No task-completion prerequisites. This module must install, run its local checks, and be reviewable with every other Sentinel task implementation absent. Use explicit local port doubles rather than another developer's server or an unfinished sibling import. Phase and task number do not establish build order.
+```sh
+make setup
+make check
+```
 
-Read [root agent rules](../../AGENTS.md), [claim/PR workflow](../../CONTRIBUTING.md), [architecture](../../docs/architecture.md), and [testing](../../docs/testing.md). The [task register](../../docs/task-register.md) links the live issue once published.
-
-## Ownership and interfaces
-
-- `packages/indic-context/**`
-
-- Produces: `indic-context.v1`
-- Consumes: None
-- Optional consumed interfaces: None
-
-Contract input: [baseline](../../docs/independent-task-contracts.md) · `sentinel.task-contracts.v1` · SHA-256 `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`.
-
-Implement the exact supplied routes, request/response types, auth context, canonical digest and state/idempotency behavior for the relevant ports. Keep typed snapshots and compatibility examples in this module. The contract-checker/SDK implementation is not required.
-
-## Implementation layout
-
-Baseline category: Python service/library/tool.
-
-Use module-local dependency declarations and a reproducible lockfile, configuration example, tests, README and changelog. Stateful components own local migrations and a test database. No root application install or shared migration chain is allowed.
-
-Keep deterministic business rules/types separate from application use cases/ports and external adapters. Wire adapters at one composition entry point. Introduce only directories that contain real responsibilities; the repository does not pre-generate empty layers. See the architecture and folder guides for language-specific layouts.
-
-## Deliverables
-
-- [ ] Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.
-- [ ] Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.
-- [ ] Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation.
-- [ ] Update the local README/configuration and CHANGELOG.md with actual behavior and limitations.
-
-## Acceptance criteria
-
-- [ ] Local malformed proposals, hallucinated references, prompt injection and unsupported actions fail; Tamil/Hindi/English code-mixed amount/negation/count/reference fixtures are explicit.
-- [ ] Live calls remain opt-in, and reports distinguish fake inference, actual provider observations, measured cost/latency and native-review limits.
-- [ ] All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required.
-
-## Planned local commands
-
-The owning task must implement and document dependency setup, a local run/preview command where applicable, and this check target. It does not exist yet:
+Or from the repository root:
 
 ```sh
 make -C packages/indic-context check
 ```
 
-Run root `make check` as well. Root checks validate repository metadata and tools; they do not implement or substitute for this component's behavior tests. External provider credentials are optional for local fixture checks.
+`make check` runs Ruff and pytest in **fake** mode only. No sibling Sentinel service, FinHarness, voice stack or live Sarvam credentials are required. Live provider calls stay opt-in (`INDIC_CONTEXT_MODE=live` plus `INDIC_CONTEXT_SARVAM_API_KEY`); failures never fall back to fixtures.
 
-## Test and failure requirements
+Root `make check` validates repository metadata. It does not substitute for this module's behavior tests.
 
-- Exercise observable acceptance behavior and meaningful invalid, unavailable, malformed and unauthorized boundary cases.
-- Use real PostgreSQL tests for financial locking/transactions, durable checkpoints or other database behavior that an in-memory double cannot establish.
-- Label fixtures/simulated providers/fake or live inference precisely. A real-peer adapter must not silently convert peer failure into fixture success.
-- Confirm the module works with sibling implementations absent and record exactly which local doubles/databases were used.
+## Behavior
 
-## Evidence and review
+| Surface | Role |
+| --- | --- |
+| `POST /v1/proposals` | `ModelRequest` → `ModelResult` (+ `inference_report`) for workflow callers |
+| `FakeSarvamAdapter` | Labeled `fake-inference`; scenarios for proposal / needs_input / escalate / malformed / hallucinated_ref / prompt_injection / unsupported_action / outage |
+| `LiveSarvamAdapter` | Opt-in `provider-observation` via Sarvam chat completions; records latency and token cost units |
+| Normalization | Tamil/Hindi/English amount, negation, count and reference extraction **without** rewriting `original_text` or `language` |
 
-- Exact standalone setup/check commands, actual results and pinned contract baseline hash.
-- Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.
-- PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status.
+Safety failures (malformed proposals, hallucinated evidence/transaction refs, prompt injection, unsupported actions) return `outcome=ESCALATE` with explicit reason codes and **no** proposal. Ambiguous amounts return `NEEDS_INPUT`.
 
-Open a PR targeting main with `Refs #<issue>` and the PR template. Update the issue to review. Owner review/merge and accepted standalone evidence close the component issue. Agents never push main, merge or enable auto-merge.
+Example report fields:
 
-## Assembly limits
+```json
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "port": "indic-context.v1",
+  "evidence_mode": "fake-inference",
+  "model_id": "fake-sarvam",
+  "latency_ms": 0,
+  "cost_units": 0.0,
+  "native_review_limit": "human-review-required-for-refunds",
+  "outcome": "PROPOSAL",
+  "reason_codes": ["DUPLICATE_PAYMENT"]
+}
+```
 
-- A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.
-- Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence.
+## Configuration
+
+See [.env.example](.env.example). Environment files are documentation only. Defaults:
+
+- `INDIC_CONTEXT_MODE=fake`
+- `INDIC_CONTEXT_FAKE_SCENARIO=proposal`
+- Synthetic bearer map for local demos (never production credentials)
+
+Preview one fixture locally:
+
+```sh
+uv run --frozen sentinel-indic-context preview --fixture fixtures/tamil_duplicate.json
+```
+
+Serve the HTTP adapter:
+
+```sh
+make preview
+# or: uv run --frozen sentinel-indic-context serve
+```
+
+## Layout
+
+```
+src/sentinel_indic_context/
+  domain/          # types, normalize, validate, digest (framework-free)
+  application/     # ports + propose use case
+  adapters/        # fake/live Sarvam, HTTP, auth, settings
+fixtures/          # Tamil / Hindi / English / injection evidence fixtures
+contracts/         # indic-context.v1 snapshot
+tests/             # acceptance, normalization, HTTP, mocked live
+```
+
+## Evidence limits
+
+- Standalone `make check` proves fake-mode behavior and mocked live adapter error/reporting paths.
+- Real Sarvam account observations, FinHarness assembly and product pilot acceptance are **unverified** here and remain separate owner decisions.
+- This package owns no financial tables and cannot authorize refunds.
