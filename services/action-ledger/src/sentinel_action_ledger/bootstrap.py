@@ -39,7 +39,7 @@ def build_app(
     if evidence is None or policy is None:
         if resolved_mode != "real-peers":
             raise PeerUnavailableError("Fixture mode requires injected policy/evidence ports")
-        token = os.environ.get("LEDGER_TOKEN_WORKFLOW", "token-workflow-demo")
+        token = os.environ.get("LEDGER_TOKEN_WORKFLOW", "tok-workflow")
         evidence = evidence or HttpEvidenceClient(
             os.environ.get("EVIDENCE_BASE_URL", ""),
             token=token,
@@ -60,7 +60,7 @@ def build_app(
         lease_seconds=lease_seconds or int(os.environ.get("LEDGER_LEASE_SECONDS", "300")),
     )
     token_map = auth or TokenPrincipalMap(
-        demo_principals(os.environ.get("LEDGER_TENANT_ID", "tenant-demo-1"))
+        demo_principals(os.environ.get("LEDGER_TENANT_ID", "tenant-demo"))
     )
     return create_app(service=service, auth=token_map, mode=resolved_mode)
 

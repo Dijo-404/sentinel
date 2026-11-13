@@ -14,7 +14,7 @@ from sentinel_policy.domain import reason_codes as rc
 def _principal(**overrides) -> Principal:
     base = {
         "principal_id": "svc-workflow-demo",
-        "tenant_id": "demo-tenant-a",
+        "tenant_id": "tenant-demo",
         "roles": ("workflow",),
         "subject_refs": ("subject-demo-42",),
         "case_ids": ("case-demo-42",),

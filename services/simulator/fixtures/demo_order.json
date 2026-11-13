@@ -1,7 +1,7 @@
 {
   "contract_version": "sentinel.task-contracts.v1",
   "evidence_mode": "fixture",
-  "tenant_id": "demo-tenant-a",
+  "tenant_id": "tenant-demo",
   "order": {
     "order_reference": "DEMO-ORDER-42",
     "subject_ref": "subject-demo-42",

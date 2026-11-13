@@ -17,7 +17,7 @@ class StubLedger:
         commands: Sequence[Command] | None = None,
         *,
         mode: StubMode = "valid",
-        tenant_id: str = "demo-tenant-a",
+        tenant_id: str = "tenant-demo",
     ) -> None:
         self.mode = mode
         self.tenant_id = tenant_id

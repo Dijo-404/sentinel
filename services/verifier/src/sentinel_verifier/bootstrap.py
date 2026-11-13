@@ -25,7 +25,7 @@ DEMO_BEARER_TOKEN = "token-verifier-demo"
 
 
 def _merchant_map_from_env() -> dict[str, str]:
-    raw = os.environ.get("VERIFIER_MERCHANT_MAP", "merchant-demo-1=tenant-demo-1")
+    raw = os.environ.get("VERIFIER_MERCHANT_MAP", "merchant-demo-1=tenant-demo")
     mapping: dict[str, str] = {}
     for part in raw.split(","):
         part = part.strip()
@@ -114,7 +114,7 @@ def build_app(
         enforce_event_age=enforce_event_age,
     )
     token_map = auth or TokenPrincipalMap(
-        demo_principals(os.environ.get("VERIFIER_TENANT_ID", "tenant-demo-1"))
+        demo_principals(os.environ.get("VERIFIER_TENANT_ID", "tenant-demo"))
     )
     return create_app(service=service, auth=token_map, mode=resolved_mode)
 

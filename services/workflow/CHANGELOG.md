@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed — 14 November 2026
+
+- Default auth map includes canonical `tok-workflow` / `tok-case-api` / `tok-verifier` plus legacy aliases; outbound bearer defaults to `tok-workflow`. Refs #77.
+
 ### Fixed
 
 - Remove `X-Sentinel-Approval` forge path; DECISION resume uses ledger approval only.

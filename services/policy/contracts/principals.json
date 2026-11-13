@@ -1,7 +1,14 @@
 {
+  "tok-workflow": {
+    "principal_id": "svc-workflow-demo",
+    "tenant_id": "tenant-demo",
+    "roles": ["workflow"],
+    "subject_refs": ["subject-demo-42"],
+    "case_ids": ["case-demo-42"]
+  },
   "workflow-demo-token": {
     "principal_id": "svc-workflow-demo",
-    "tenant_id": "demo-tenant-a",
+    "tenant_id": "tenant-demo",
     "roles": ["workflow"],
     "subject_refs": ["subject-demo-42"],
     "case_ids": ["case-demo-42"]
@@ -15,14 +22,14 @@
   },
   "operator-demo-token": {
     "principal_id": "op-demo",
-    "tenant_id": "demo-tenant-a",
+    "tenant_id": "tenant-demo",
     "roles": ["operator"],
     "subject_refs": ["subject-demo-42"],
     "case_ids": ["case-demo-42"]
   },
   "star-scope-demo-token": {
     "principal_id": "svc-workflow-star",
-    "tenant_id": "demo-tenant-a",
+    "tenant_id": "tenant-demo",
     "roles": ["workflow"],
     "subject_refs": ["subject-demo-42"],
     "case_ids": ["*"]

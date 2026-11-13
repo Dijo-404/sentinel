@@ -32,6 +32,14 @@ WORKFLOW = Principal(
 )
 
 TOKENS = {
+    "tok-workflow": WORKFLOW,
+    "tok-verifier": Principal(
+        "svc-verifier",
+        "tenant-demo",
+        ("verifier",),
+        ("subj-demo-1",),
+        ("case-demo-42",),
+    ),
     "workflow-token": WORKFLOW,
     "verifier-token": Principal(
         "svc-verifier",

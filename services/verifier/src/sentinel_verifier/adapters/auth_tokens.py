@@ -20,16 +20,26 @@ class TokenPrincipalMap:
         return principal
 
 
-def demo_principals(tenant_id: str = "tenant-demo-1") -> dict[str, Principal]:
+def demo_principals(tenant_id: str = "tenant-demo") -> dict[str, Principal]:
+    """Canonical sandbox tokens plus legacy aliases (integration/core/docs/sandbox-matrix.md)."""
     # Explicit "*" — empty case_ids deny by default.
     cases = ("*",)
     subject = ("subject-demo-1",)
-    return {
-        "token-workflow-demo": Principal("workflow-demo", tenant_id, ("workflow",), subject, cases),
-        "token-verifier-demo": Principal("verifier-demo", tenant_id, ("verifier",), (), cases),
-        "token-case-api-demo": Principal("case-api-demo", tenant_id, ("workflow",), subject, cases),
-        "token-operator-demo": Principal("operator-demo", tenant_id, ("operator",), subject, cases),
-        "token-other-tenant": Principal(
-            "other-tenant", "tenant-other", ("workflow",), subject, cases
-        ),
+    workflow = Principal("workflow-demo", tenant_id, ("workflow",), subject, cases)
+    verifier = Principal("verifier-demo", tenant_id, ("verifier",), (), cases)
+    case_api = Principal("case-api-demo", tenant_id, ("workflow",), subject, cases)
+    operator = Principal("operator-demo", tenant_id, ("operator",), subject, cases)
+    other = Principal("other-tenant", "tenant-other", ("workflow",), subject, cases)
+    canonical = {
+        "tok-workflow": workflow,
+        "tok-verifier": verifier,
+        "tok-case-api": case_api,
     }
+    aliases = {
+        "token-workflow-demo": workflow,
+        "token-verifier-demo": verifier,
+        "token-case-api-demo": case_api,
+        "token-operator-demo": operator,
+        "token-other-tenant": other,
+    }
+    return {**canonical, **aliases}

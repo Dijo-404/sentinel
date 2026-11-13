@@ -56,7 +56,7 @@ See [.env.example](.env.example). `EVIDENCE_MODE=fixture` uses in-process stubs.
 ```sh
 # fixture mode allows in-process memory store without DATABASE_URL
 export EVIDENCE_MODE=fixture
-export EVIDENCE_TOKENS='workflow-token=svc-workflow|tenant-demo|workflow|subj-demo-1|case-demo-42'
+export EVIDENCE_TOKENS='tok-workflow=svc-workflow|tenant-demo|workflow|subject-demo-42|case-demo-42'
 make preview
 ```
 

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed — 14 November 2026
+
+- `.env.example` / test token map accept canonical `tok-workflow` / `tok-verifier` (legacy aliases kept). Refs #77.
+
 ### Fixed
 
 - Require `DATABASE_URL` unless `SENTINEL_EVIDENCE_ALLOW_MEMORY=1`, `EVIDENCE_MODE=fixture`, or pytest; no silent memory fallback for real-peers.

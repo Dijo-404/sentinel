@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed — 14 November 2026
+
+- Fixture token map accepts canonical sandbox bearers (`tok-workflow`, `tok-case-api`, `tok-customer`, …) alongside legacy aliases; points at `integration/core` matrix. Refs #77.
+
 ### Fixed
 
 - Atomic workflow outbox claim (`PENDING` → `CLAIMED` via `FOR UPDATE SKIP LOCKED`).

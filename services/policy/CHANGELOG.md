@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed — 14 November 2026
+
+- Principals default tenant `tenant-demo`; accepts `tok-workflow` (keeps `workflow-demo-token` alias). Refs #77.
+
 ### Fixed
 
 - Empty `case_ids` deny; `*` allows all cases (deny-by-default). Demo `star-scope-demo-token` fixture added.

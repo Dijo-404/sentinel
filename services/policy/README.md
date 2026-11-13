@@ -31,7 +31,7 @@ make -C services/policy preview
 # listens on POLICY_HOST/POLICY_PORT (default 127.0.0.1:8005)
 ```
 
-Synthetic tokens are in `contracts/principals.json`. Example workflow bearer: `workflow-demo-token`. Empty `case_ids` deny; `*` allows all cases (deny-by-default).
+Synthetic tokens are in `contracts/principals.json`. Canonical workflow bearer: `tok-workflow` (alias `workflow-demo-token`). Tenant `tenant-demo`. Empty `case_ids` deny; `*` allows all cases (deny-by-default). See `integration/core/docs/sandbox-matrix.md`.
 
 ## Routes
 

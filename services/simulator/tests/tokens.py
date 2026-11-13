@@ -1,7 +1,7 @@
-WORKFLOW = {"Authorization": "Bearer tok-workflow-demo"}
-VERIFIER = {"Authorization": "Bearer tok-verifier-demo"}
-DISPATCHER = {"Authorization": "Bearer tok-dispatcher-demo"}
-ADMIN = {"Authorization": "Bearer tok-sandbox-admin-demo"}
+WORKFLOW = {"Authorization": "Bearer tok-workflow"}
+VERIFIER = {"Authorization": "Bearer tok-verifier"}
+DISPATCHER = {"Authorization": "Bearer tok-dispatcher"}
+ADMIN = {"Authorization": "Bearer tok-sandbox-admin"}
 
 REFUND_BODY = {
     "action_id": "action-demo-1",

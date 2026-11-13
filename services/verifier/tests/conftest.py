@@ -32,7 +32,7 @@ from sentinel_verifier.domain.types import Credit, Refund
 IMAGE = "postgres:17-alpine@sha256:d3244e8ce3f165ee3c93d9c4a4b1d0fe48b3a89e2287b717fdcbbde92d405065"
 ROOT = Path(__file__).resolve().parents[1]
 HMAC_KEY = "demo-simulator-hmac-key"
-TENANT = "tenant-demo-1"
+TENANT = "tenant-demo"
 MERCHANT = "merchant-demo-1"
 NOW = datetime(2026, 11, 13, 12, 0, 0, tzinfo=UTC)
 PROVIDER_REF = "refund-demo-1"

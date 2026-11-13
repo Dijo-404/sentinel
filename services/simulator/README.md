@@ -48,7 +48,7 @@ Provider refund confirmation and customer credit are separate admin steps / even
 | `GET /v1/refunds/{provider_ref}` | dispatcher, verifier, workflow | Recover after timeout-after-accept; `404` is not proof a write failed |
 | `GET /v1/credits/{provider_ref}` | verifier, workflow | Separate credit evidence |
 
-Opaque demo tokens (see [.env.example](.env.example)): `tok-workflow-demo`, `tok-verifier-demo`, `tok-dispatcher-demo`, `tok-sandbox-admin-demo`.
+Opaque demo tokens (see [.env.example](.env.example) and `integration/core/docs/sandbox-matrix.md`): `tok-workflow`, `tok-verifier`, `tok-dispatcher`, `tok-sandbox-admin` (legacy `*-demo` aliases still accepted).
 
 ## Fault-control admin routes (`sandbox-admin`)
 

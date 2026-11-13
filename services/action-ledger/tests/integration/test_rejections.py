@@ -123,7 +123,7 @@ def test_wrong_subject_scope_forbidden(engine, clock, tokens, guard):
     principals = demo_principals()
     wrong = Principal(
         "workflow-wrong-subject",
-        "tenant-demo-1",
+        "tenant-demo",
         ("workflow",),
         ("subject-other",),
         ("case-demo-42",),

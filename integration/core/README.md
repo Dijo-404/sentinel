@@ -39,7 +39,7 @@ make preview
 | `fixture` | In-process reference peers | Labeled `fixture` | Always `assembled_mvp_claimed=false` |
 | `real-peers` | HTTP `/v1/capabilities` probes from env URLs | Rejects missing peers, incompatible contract/mode, and `evidence_mode=fixture` | Never auto-claims product release |
 
-Configuration: [.env.example](.env.example). Contract snapshot: [contracts/core-assembly.v1.json](contracts/core-assembly.v1.json). Hero fixture: [fixtures/duplicate_payment.json](fixtures/duplicate_payment.json) (150000 paise, approval, timeout-after-accept, credit recovery, single side effect).
+Configuration: [.env.example](.env.example). Canonical sandbox tenant/token/port matrix: [docs/sandbox-matrix.md](docs/sandbox-matrix.md) ([fixtures/sandbox-tokens.json](fixtures/sandbox-tokens.json)). Contract snapshot: [contracts/core-assembly.v1.json](contracts/core-assembly.v1.json). Hero fixture: [fixtures/duplicate_payment.json](fixtures/duplicate_payment.json) (150000 paise, approval, timeout-after-accept, credit recovery, single side effect).
 
 ## Local peer stubs
 
