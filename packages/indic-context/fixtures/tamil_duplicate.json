@@ -1,0 +1,79 @@
+{
+  "principal": {
+    "principal_id": "svc-workflow",
+    "tenant_id": "tenant-demo",
+    "roles": ["workflow"],
+    "subject_refs": ["subject-demo"],
+    "case_ids": ["case-demo-42"]
+  },
+  "request": {
+    "case": {
+      "contract_version": "sentinel.task-contracts.v1",
+      "case_id": "case-demo-42",
+      "revision": 1,
+      "status": "INVESTIGATING",
+      "language": "ta-IN",
+      "intent": "duplicate_payment",
+      "evidence_ids": ["evidence-payment-b", "evidence-order"]
+    },
+    "input": {
+      "case_id": "case-demo-42",
+      "case_revision": 1,
+      "original_text": "என்னோட account-ல இருந்து ஆயிரத்து ஐநூறு ரூபாய் இரண்டு தடவை debit ஆயிடுச்சு, ஆனா ஒரு order தான் வந்திருக்கு.",
+      "language": "ta-IN",
+      "order_reference": "ORD-1001",
+      "messages": [
+        {
+          "message_id": "msg-1",
+          "text": "என்னோட account-ல இருந்து ஆயிரத்து ஐநூறு ரூபாய் இரண்டு தடவை debit ஆயிடுச்சு, ஆனா ஒரு order தான் வந்திருக்கு.",
+          "language": "ta-IN",
+          "author": "CUSTOMER",
+          "occurred_at": "2026-11-13T10:00:00Z"
+        }
+      ]
+    },
+    "evidence": [
+      {
+        "evidence_id": "evidence-payment-b",
+        "case_id": "case-demo-42",
+        "source": "payment_gateway",
+        "subject_ref": "subject-demo",
+        "observed_at": "2026-11-13T10:01:00Z",
+        "expires_at": "2026-11-14T10:01:00Z",
+        "digest": "aaa",
+        "verification_status": "VERIFIED",
+        "facts": {
+          "kind": "PAYMENT",
+          "payment": {
+            "transaction_ref": "TXN-B",
+            "order_reference": "ORD-1001",
+            "subject_ref": "subject-demo",
+            "status": "CAPTURED",
+            "amount_minor": 150000,
+            "currency": "INR"
+          }
+        }
+      },
+      {
+        "evidence_id": "evidence-order",
+        "case_id": "case-demo-42",
+        "source": "merchant",
+        "subject_ref": "subject-demo",
+        "observed_at": "2026-11-13T10:02:00Z",
+        "expires_at": "2026-11-14T10:02:00Z",
+        "digest": "bbb",
+        "verification_status": "VERIFIED",
+        "facts": {
+          "kind": "ORDER",
+          "order": {
+            "order_reference": "ORD-1001",
+            "subject_ref": "subject-demo",
+            "fulfilled_order_count": 1,
+            "merchant_confirmed_duplicate": true,
+            "paid": true
+          }
+        }
+      }
+    ]
+  }
+}
