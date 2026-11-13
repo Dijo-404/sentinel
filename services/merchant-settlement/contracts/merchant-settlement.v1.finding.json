@@ -1,0 +1,10 @@
+{
+  "finding_id": "finding-batch-demo-1-fee_diff-1",
+  "batch_id": "batch-demo-1",
+  "kind": "FEE_DIFF",
+  "transaction_ref": "TXN-FEE",
+  "expected_minor": 5000,
+  "observed_minor": 9000,
+  "evidence_ids": ["evidence-txn-fee"],
+  "status": "OPEN"
+}

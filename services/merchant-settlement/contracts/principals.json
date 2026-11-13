@@ -1,0 +1,30 @@
+{
+  "operator-demo-token": {
+    "principal_id": "op-demo",
+    "tenant_id": "demo-tenant-a",
+    "roles": ["operator"],
+    "subject_refs": ["merchant:demo-merchant-1", "subj-demo-1"],
+    "case_ids": ["*"]
+  },
+  "supervisor-demo-token": {
+    "principal_id": "sup-demo",
+    "tenant_id": "demo-tenant-a",
+    "roles": ["supervisor"],
+    "subject_refs": ["merchant:demo-merchant-1", "subj-demo-1"],
+    "case_ids": ["*"]
+  },
+  "other-tenant-token": {
+    "principal_id": "op-other",
+    "tenant_id": "demo-tenant-b",
+    "roles": ["operator"],
+    "subject_refs": ["merchant:other-merchant", "subj-other"],
+    "case_ids": ["*"]
+  },
+  "customer-demo-token": {
+    "principal_id": "cust-demo",
+    "tenant_id": "demo-tenant-a",
+    "roles": ["customer"],
+    "subject_refs": ["subj-demo-1"],
+    "case_ids": ["case-demo-42"]
+  }
+}

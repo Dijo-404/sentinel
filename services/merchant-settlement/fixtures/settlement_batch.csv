@@ -1,0 +1,3 @@
+row_id,transaction_ref,order_ref,settled_minor,fee_minor,occurred_at
+row-ok,TXN-OK,ORDER-OK,145000,5000,2026-11-02T10:00:00Z
+row-fee,TXN-FEE,ORDER-FEE,141000,9000,2026-11-02T11:00:00Z

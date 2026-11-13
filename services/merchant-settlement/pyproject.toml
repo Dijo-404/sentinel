@@ -1,0 +1,51 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sentinel-merchant-settlement"
+version = "0.1.0"
+description = "Standalone merchant-settlement.v1 reconciliation service"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn[standard]>=0.32,<1",
+  "httpx>=0.28,<1",
+]
+
+[project.scripts]
+sentinel-merchant-settlement = "sentinel_merchant_settlement.__main__:main"
+
+[dependency-groups]
+dev = [
+  "httpx>=0.28,<1",
+  "pytest>=8.4,<10",
+  "ruff>=0.14,<1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sentinel_merchant_settlement"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "src/sentinel_merchant_settlement",
+  "contracts",
+  "fixtures",
+  "tests",
+  "Makefile",
+  "README.md",
+  "CHANGELOG.md",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "."]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]

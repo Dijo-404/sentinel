@@ -1,0 +1,66 @@
+{
+  "batch_id": "batch-all-kinds",
+  "tenant_id": "demo-tenant-a",
+  "merchant_ref": "demo-merchant-1",
+  "period_start": "2026-11-01T00:00:00Z",
+  "period_end": "2026-11-30T23:59:59Z",
+  "currency": "INR",
+  "rows": [
+    {
+      "row_id": "row-ok",
+      "transaction_ref": "TXN-OK",
+      "order_ref": "ORDER-OK",
+      "settled_minor": 145000,
+      "fee_minor": 5000,
+      "occurred_at": "2026-11-02T10:00:00Z"
+    },
+    {
+      "row_id": "row-fee",
+      "transaction_ref": "TXN-FEE",
+      "order_ref": "ORDER-FEE",
+      "settled_minor": 141000,
+      "fee_minor": 9000,
+      "occurred_at": "2026-11-02T11:00:00Z"
+    },
+    {
+      "row_id": "row-short",
+      "transaction_ref": "TXN-SHORT",
+      "order_ref": "ORDER-SHORT",
+      "settled_minor": 100000,
+      "fee_minor": 5000,
+      "occurred_at": "2026-11-02T12:00:00Z"
+    },
+    {
+      "row_id": "row-dup-a",
+      "transaction_ref": "TXN-DUP",
+      "order_ref": "ORDER-DUP",
+      "settled_minor": 49500,
+      "fee_minor": 500,
+      "occurred_at": "2026-11-02T13:00:00Z"
+    },
+    {
+      "row_id": "row-dup-b",
+      "transaction_ref": "TXN-DUP",
+      "order_ref": "ORDER-DUP",
+      "settled_minor": 49500,
+      "fee_minor": 500,
+      "occurred_at": "2026-11-02T13:01:00Z"
+    },
+    {
+      "row_id": "row-ghost",
+      "transaction_ref": "TXN-GHOST",
+      "order_ref": "ORDER-GHOST",
+      "settled_minor": 1000,
+      "fee_minor": 0,
+      "occurred_at": "2026-11-02T15:00:00Z"
+    },
+    {
+      "row_id": "row-unmatched",
+      "transaction_ref": "TXN-UNMATCHED",
+      "order_ref": "ORDER-FAKE",
+      "settled_minor": 19800,
+      "fee_minor": 200,
+      "occurred_at": "2026-11-02T14:00:00Z"
+    }
+  ]
+}
