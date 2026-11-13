@@ -1,0 +1,30 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "baseline_sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa",
+  "port": "persistence-kit.v1",
+  "boundary": "optional-library-and-local-cli",
+  "consumes": [],
+  "typed_snapshot": "sentinel_persistence.contracts.ServiceSchema and CheckReport",
+  "functions": {
+    "tenant_transaction": "(Engine, authenticated_tenant_id: str) -> contextmanager[Connection]",
+    "apply_tenant_policy": "(Connection, ServiceSchema, table: str) -> None",
+    "migrate_demo": "(Engine, ServiceSchema, environment: str, revision: head|base) -> None",
+    "seed_demo": "(Engine, ServiceSchema, environment: str) -> None",
+    "reset_demo": "(Engine, ServiceSchema, environment: str) -> None",
+    "inspect_demo": "(Engine, ServiceSchema, authenticated_tenant_id: str) -> CheckReport"
+  },
+  "example_report": {
+    "contract_version": "sentinel.task-contracts.v1",
+    "port": "persistence-kit.v1",
+    "evidence_mode": "real-postgresql/synthetic-records",
+    "schema": "demo_intake",
+    "migration_revision": "0001_demo_notes",
+    "tenant_records": 1
+  },
+  "compatibility": {
+    "required_version_mismatch": "configuration-error",
+    "database_unavailable_or_unauthorized": "explicit-error-no-fallback",
+    "service_schemas_and_migrations": "owned-by-each-service",
+    "financial_tables": "none; authoritative ownership stays with SN-009"
+  }
+}

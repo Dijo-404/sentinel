@@ -1,0 +1,13 @@
+{
+  "mode": "synthetic-records",
+  "service_schemas": ["demo_intake", "demo_workflow"],
+  "isolation": "Separate owner/runtime login per schema; no cross-schema grants",
+  "demo_records": [
+    {"tenant_id": "demo-tenant-a", "id": "shared-record", "label": "synthetic A"},
+    {"tenant_id": "demo-tenant-b", "id": "shared-record", "label": "synthetic B"}
+  ],
+  "demo_notes": [
+    {"tenant_id": "demo-tenant-a", "id": "shared-note", "record_id": "shared-record", "body": "synthetic note A"},
+    {"tenant_id": "demo-tenant-b", "id": "shared-note", "record_id": "shared-record", "body": "synthetic note B"}
+  ]
+}
