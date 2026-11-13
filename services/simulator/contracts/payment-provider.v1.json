@@ -1,0 +1,36 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "baseline_sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa",
+  "port": "payment-provider.v1",
+  "boundary": "http-service",
+  "component": "sentinel-simulator",
+  "mode": "fixture",
+  "consumes": [],
+  "routes": {
+    "GET /healthz": "liveness",
+    "GET /readyz": "readiness; fixture mode labels synthetic readiness",
+    "GET /v1/capabilities": "Capabilities { contract_version, component, mode }",
+    "GET /v1/transactions?order_reference=": "{ payments: Payment[] }; roles workflow|verifier|sandbox-admin",
+    "GET /v1/orders/{order_reference}": "Order; roles workflow|verifier|sandbox-admin",
+    "GET /v1/refunds?transaction_ref=": "{ refunds: Refund[] }; roles workflow|verifier|sandbox-admin",
+    "POST /v1/refunds": "RefundRequest + Idempotency-Key=provider_ref → Refund 202; role dispatcher",
+    "GET /v1/refunds/{provider_ref}": "Refund; 404 is not proof an ambiguous write failed; roles dispatcher|verifier|workflow",
+    "GET /v1/credits/{provider_ref}": "Credit; roles verifier|workflow"
+  },
+  "admin_fault_controls": {
+    "PUT /v1/admin/faults": "sandbox-admin; outage|delay_ms|timeout_after_accept|duplicate_events|out_of_order_credit",
+    "GET /v1/admin/faults": "sandbox-admin; current fault schedule",
+    "POST /v1/admin/faults/reset": "sandbox-admin; clear faults",
+    "GET /v1/admin/refunds/{provider_ref}/stats": "sandbox-admin; accept_count|side_effect_count|timeout_count",
+    "POST /v1/admin/refunds/{provider_ref}/confirm": "sandbox-admin; PROVIDER_CONFIRMED without credit",
+    "POST /v1/admin/credits/{provider_ref}/confirm": "sandbox-admin; separate Credit event",
+    "GET /v1/admin/events": "sandbox-admin; inspect emitted provider events"
+  },
+  "compatibility": {
+    "money": "integer minor units + explicit INR only",
+    "idempotency": "logical provider_ref creates one side effect",
+    "timeout_after_accept": "state persists; recover via GET /v1/refunds/{provider_ref}",
+    "credit": "separate from provider refund confirmation",
+    "real_peer_fallback": "none; this module is the synthetic provider"
+  }
+}
