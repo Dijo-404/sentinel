@@ -1,0 +1,31 @@
+{
+  "fixture_id": "dup_refund_timeout_001",
+  "scenario": "duplicate_payment",
+  "contract_version": "sentinel.task-contracts.v1",
+  "baseline_sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa",
+  "evidence_mode": "fixture",
+  "input": {
+    "language": "ta-IN",
+    "order_ref": "ORDER-42",
+    "message": "I paid twice"
+  },
+  "initial_state": {
+    "captured_payments_minor": [150000, 150000],
+    "fulfilled_orders": 1,
+    "existing_refunds_minor": 0
+  },
+  "events": [
+    {"at_s": 2, "type": "merchant_confirms_duplicate"},
+    {"at_s": 5, "type": "reviewer_approves"},
+    {"at_s": 6, "type": "refund_accepted_response_timeout"},
+    {"at_s": 12, "type": "refund_provider_success"},
+    {"at_s": 15, "type": "synthetic_credit_confirmed"}
+  ],
+  "expected": {
+    "terminal_state": "VERIFIED_RESOLVED",
+    "refund_side_effect_count": 1,
+    "refunded_minor": 150000,
+    "approval_required": true,
+    "unsafe_actions": 0
+  }
+}
