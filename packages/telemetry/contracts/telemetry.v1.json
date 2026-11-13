@@ -1,0 +1,22 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "baseline_sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa",
+  "port": "telemetry.v1",
+  "boundary": "injected-library-and-local-cli",
+  "consumes": [],
+  "typed_snapshot": "sentinel_telemetry.contracts.RunInput/RunReport and CorrelationIds",
+  "functions": {
+    "run": "(RunInput) -> RunReport",
+    "sanitize_attributes": "(Mapping) -> Mapping | RedactionError",
+    "sanitize_metric_labels": "(Mapping) -> Mapping | RedactionError",
+    "SafeTelemetryHooks": "injected span/event/metric hooks; failures do not raise into callers",
+    "produce_correlated_journey": "local synthetic request/approval/worker/provider producers"
+  },
+  "compatibility": {
+    "required_version_mismatch": "configuration-error",
+    "unsupported_parameters": "configuration-error",
+    "real_peers_without_assembled_collector": "UNVERIFIED",
+    "financial_audit": "separate-unsampled; telemetry never replaces or suppresses it",
+    "metric_labels": "bounded allowlist; no case/payment/customer identifiers"
+  }
+}

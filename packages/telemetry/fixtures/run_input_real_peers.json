@@ -1,0 +1,7 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "run_id": "telemetry-real-peers-1",
+  "mode": "real-peers",
+  "input_artifacts": [],
+  "parameters": {}
+}

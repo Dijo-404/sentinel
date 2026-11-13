@@ -1,0 +1,49 @@
+{
+  "title": "Sentinel SN-015 Telemetry Example",
+  "uid": "sentinel-sn015-telemetry",
+  "timezone": "utc",
+  "schemaVersion": 39,
+  "version": 1,
+  "description": "Module-local example panels. Correlation IDs belong in traces, not Prometheus labels. Financial audit is a separate unsampled ledger view.",
+  "tags": ["sentinel", "sn-015", "telemetry"],
+  "panels": [
+    {
+      "id": 1,
+      "title": "Case starts (bounded labels)",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+      "targets": [
+        {
+          "expr": "sum by (scenario) (rate(sentinel_cases_started_total[5m]))",
+          "legendFormat": "{{scenario}}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Provider timeouts and retry suppression",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+      "targets": [
+        {
+          "expr": "sum by (error_type) (rate(sentinel_tool_calls_total{outcome=\"timeout\"}[5m]))",
+          "legendFormat": "timeout {{error_type}}"
+        },
+        {
+          "expr": "sum(rate(sentinel_retry_suppressed_total[5m]))",
+          "legendFormat": "retry_suppressed"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Trace correlation (Tempo)",
+      "type": "text",
+      "gridPos": {"h": 6, "w": 24, "x": 0, "y": 8},
+      "options": {
+        "mode": "markdown",
+        "content": "Search traces by `request_id`, `approval_id`, `worker_id`, and `provider_ref` span attributes. Do not promote those identifiers to metric labels. Open the action-ledger financial audit for unsampled monetary outcomes."
+      }
+    }
+  ]
+}

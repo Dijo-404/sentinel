@@ -2,11 +2,12 @@
 
 ## Unreleased
 
-### Added — 13 November 2026
+### Added
 
-- Independent module ownership, architecture/interface guide, scoped agent rules and acceptance checklist.
+- `sentinel-telemetry` package implementing `telemetry.v1`: injected OTel hooks, allowlisted redaction, bounded-label metrics, synthetic correlation producers, and module-local collector/dashboard examples.
+- `make check` runs Ruff and pytest; fixture `run()` proves correlation, timeout/retry-suppression events, redaction rejection, and financial-audit isolation.
+- CLI: `sentinel-telemetry check|preview|run` with explicit `UNVERIFIED` real-peers status when no assembled collector is present.
 
 ### Implementation status
 
-- Scaffold only. No module implementation, local dependency manifest/check target or product evidence is supplied yet.
-- Future SN-015 behavior/configuration/contract changes must update this file with observed validation and limits.
+- Standalone fixture evidence only. Real-peer Collector/Grafana assembly remains owner-verified and separate from this module check.
