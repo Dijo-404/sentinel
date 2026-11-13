@@ -1,0 +1,22 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "run_id": "eval-contract-snapshot-1",
+  "mode": "fixture",
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "critical_safety",
+      "status": "PASS",
+      "reason_code": "SAFETY_CLEAN"
+    }
+  ],
+  "output_artifacts": [
+    {
+      "kind": "evaluation.detail.v1",
+      "uri": "memory://evaluation/eval-contract-snapshot-1",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "component_version": "0.1.0",
+      "evidence_mode": "fixture"
+    }
+  ]
+}

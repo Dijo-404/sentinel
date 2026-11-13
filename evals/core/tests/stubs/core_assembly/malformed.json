@@ -1,0 +1,5 @@
+{
+  "not_a_valid_assembly": true,
+  "capabilities": "should-be-object",
+  "message": "Deliberately malformed core-assembly.v1 stub"
+}

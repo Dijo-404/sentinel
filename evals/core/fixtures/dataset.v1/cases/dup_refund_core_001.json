@@ -1,0 +1,24 @@
+{
+  "fixture_id": "dup_refund_core_001",
+  "suite": "core",
+  "version": "eval-fixtures-v1",
+  "split": "development",
+  "seed": 42,
+  "tenant_id": "demo-tenant-a",
+  "eligible_refund_minor": 150000,
+  "currency": "INR",
+  "credit_actually_confirmed": true,
+  "allowed_actions": [
+    "REQUEST_REFUND",
+    "STATUS_UPDATE"
+  ],
+  "expected": {
+    "terminal_state": "VERIFIED_RESOLVED",
+    "refund_side_effect_count": 1,
+    "refunded_minor": 150000,
+    "approval_required": true
+  },
+  "attributes": {
+    "scenario": "duplicate_captured_payment"
+  }
+}

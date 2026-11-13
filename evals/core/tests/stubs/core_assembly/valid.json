@@ -1,0 +1,20 @@
+{
+  "status": "OK",
+  "message": "Local core-assembly.v1 double reports compatible fixture assembly",
+  "capabilities": {
+    "contract_version": "sentinel.task-contracts.v1",
+    "component": "core-assembly",
+    "mode": "fixture"
+  },
+  "journeys": [
+    "duplicate_payment_happy_path",
+    "approval_required",
+    "provider_pending",
+    "escalation_handoff"
+  ],
+  "compatibility": {
+    "status": "COMPATIBLE",
+    "reason_code": "LOCAL_STUB"
+  },
+  "evidence_mode": "fixture"
+}
