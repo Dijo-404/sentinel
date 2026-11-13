@@ -1,17 +1,20 @@
 # SN-010 — Independent refund dispatcher and recovery worker
 
-**State:** implemented. Module-local `make check` is the acceptance command.
+**State:** implemented (V1 HTTP probe surface for sandbox assembly). Module-local `make check` is the acceptance command.
 
 **Owned root:** `services/dispatcher/`  
 **Package:** `sentinel-dispatcher`  
 **Port:** `dispatcher.v1`  
-**Branch:** `feat/sn-010-dispatch-recovery`
+**HTTP listen:** `127.0.0.1:8010` (`make preview`)  
+**Branch:** `feat/v1-dispatcher-http` (historical: `feat/sn-010-dispatch-recovery`)
 
 Contract input: `sentinel.task-contracts.v1` · SHA-256 `0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb`.
 
 ## Outcome
 
 Consumes authenticated ledger-issued `Command` values, dispatches only through the configured payment provider using the command's stable `provider_ref` as `Idempotency-Key`, and reports `PENDING` / `OUTCOME_UNKNOWN` / `ESCALATED` outcomes through ledger ports. Durable worker checkpoints survive crash/restart. This module never creates a second authoritative ledger, never mints a new refund ID, and never releases a reservation because a lease expired.
+
+The payment-provider peer for V1 sandbox assembly is the **mock sandbox simulator**. A future real Paytm adapter must implement the same `payment-provider.v1` contract; dispatcher financial rules stay unchanged.
 
 ## Standalone setup and checks
 
@@ -54,15 +57,28 @@ Evidence mode for `make check`: `payment-provider: simulated stub`, `action-ledg
 | --- | --- |
 | `src/sentinel_dispatcher/domain/` | Digest, validation, recovery decisions (framework-free) |
 | `src/sentinel_dispatcher/application/` | `DispatchWorker` use case and ports |
-| `src/sentinel_dispatcher/adapters/` | PostgreSQL store, HTTP peer clients, clocks |
+| `src/sentinel_dispatcher/adapters/` | FastAPI probe surface, PostgreSQL store, HTTP peer clients, clocks |
 | `tests/stubs/` | Ledger and provider doubles |
 | `contracts/` | `dispatcher.v1` snapshot and real-peer checklist |
 | `migrations/0001_dispatch_jobs.sql` | Owned durable schema |
 | `fixtures/demo_command.json` | Baseline claim/refund examples |
 
+## HTTP probe surface
+
+Assembly probes use FastAPI (default `DISPATCHER_MODE` from env):
+
+| Method | Path | Body |
+| --- | --- | --- |
+| GET | `/healthz` | `{"status":"ok"}` |
+| GET | `/readyz` | `{"status":"ready","mode":"fixture\|real-peers"}` |
+| GET | `/v1/capabilities` | `contract_version`, `component=dispatcher`, `port=dispatcher.v1`, `mode`, `contract_sha256` |
+
+Worker dispatch is **not** an HTTP route. Use CLI `run-once` / `recover` against ledger + payment-provider.
+
 ## CLI / preview
 
 ```sh
+make preview   # uvicorn on 127.0.0.1:8010
 uv run --frozen sentinel-dispatcher capabilities
 uv run --frozen sentinel-dispatcher migrate   # requires DATABASE_URL
 # Real-peer only (no fixture fallback):
@@ -70,4 +86,4 @@ uv run --frozen sentinel-dispatcher migrate   # requires DATABASE_URL
 # DISPATCHER_MODE=real-peers ... uv run --frozen sentinel-dispatcher recover
 ```
 
-See [.env.example](.env.example). Real-peer assembly remains unverified until owner-run integration against live SN-009 / SN-004 components.
+See [.env.example](.env.example). Provider peer today: mock sandbox simulator at `PROVIDER_BASE_URL`. Real-peer assembly against live SN-009 / live Paytm remains unverified and out of scope for this module.

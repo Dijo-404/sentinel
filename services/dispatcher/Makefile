@@ -10,4 +10,4 @@ check: setup
 	$(UV) run --frozen pytest
 
 preview: setup
-	$(UV) run --frozen sentinel-dispatcher capabilities
+	$(UV) run --frozen uvicorn sentinel_dispatcher.composition:create_preview_app --factory --host 127.0.0.1 --port 8010

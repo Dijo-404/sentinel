@@ -33,18 +33,38 @@ class App:
                 dispose()
 
 
+def resolve_mode(mode: str | None = None) -> str:
+    resolved = mode or os.environ.get("DISPATCHER_MODE", "fixture")
+    if resolved not in {"fixture", "real-peers"}:
+        raise ValueError("DISPATCHER_MODE must be fixture or real-peers")
+    return resolved
+
+
 def capabilities(*, mode: str = "fixture") -> dict[str, str]:
+    resolved = resolve_mode(mode)
     return {
         "contract_version": CONTRACT_VERSION,
         "component": "dispatcher",
-        "mode": mode,
+        "mode": resolved,
         "port": "dispatcher.v1",
         "contract_sha256": CONTRACT_HASH,
     }
 
 
+def build_http_app(*, mode: str | None = None):
+    """Probe surface only. Worker path remains CLI run-once / recover."""
+    from sentinel_dispatcher.adapters.http_api import create_app
+
+    return create_app(mode=resolve_mode(mode))
+
+
+def create_preview_app():
+    """Uvicorn factory: listen 127.0.0.1:8010 by default via make preview."""
+    return build_http_app()
+
+
 def build_real_peer_app_from_env() -> App:
-    mode = os.environ.get("DISPATCHER_MODE", "real-peers")
+    mode = resolve_mode(os.environ.get("DISPATCHER_MODE", "real-peers"))
     if mode == "fixture":
         raise RuntimeError("DISPATCHER_MODE=fixture cannot build real-peer adapters")
     database_url = os.environ["DATABASE_URL"]
