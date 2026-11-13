@@ -283,6 +283,20 @@ class ActionLedgerService:
                 if action_approval is None or action_approval.approval_id != approval_id:
                     raise ConflictError("Approval does not bind this action")
 
+                # Lock payment first so eligibility version bumps serialize under concurrency.
+                uow.upsert_payment(
+                    tenant_id=principal.tenant_id,
+                    transaction_ref=normalized["transaction_ref"],
+                    merchant_ref=snapshot.case_id,
+                    captured_minor=snapshot.captured_minor
+                    - snapshot.external_refunded_minor
+                    - snapshot.external_pending_minor,
+                    currency=snapshot.currency,
+                )
+                balance = uow.lock_payment(principal.tenant_id, normalized["transaction_ref"])
+                if balance is None:
+                    raise ConflictError("Payment reservation row missing")
+
                 existing_elig = uow.get_eligibility(
                     principal.tenant_id, normalized["transaction_ref"]
                 )
@@ -296,21 +310,10 @@ class ActionLedgerService:
                     raise ConflictError("Eligibility snapshot expired", code="ELIGIBILITY_EXPIRED")
                 if locked_elig.payment_status != "CAPTURED":
                     raise ConflictError("Payment not eligible for refund")
-                if locked_elig.version != versioned.version:
+                # DB bumps version atomically on conflict; accept the stored row.
+                if locked_elig.version < next_version:
                     raise ConflictError("Eligibility snapshot superseded")
 
-                uow.upsert_payment(
-                    tenant_id=principal.tenant_id,
-                    transaction_ref=normalized["transaction_ref"],
-                    merchant_ref=locked_elig.case_id,
-                    captured_minor=locked_elig.captured_minor
-                    - locked_elig.external_refunded_minor
-                    - locked_elig.external_pending_minor,
-                    currency=locked_elig.currency,
-                )
-                balance = uow.lock_payment(principal.tenant_id, normalized["transaction_ref"])
-                if balance is None:
-                    raise ConflictError("Payment reservation row missing")
                 new_balance = apply_reserve(balance, normalized["amount_minor"])
                 uow.write_payment_balance(
                     principal.tenant_id, normalized["transaction_ref"], new_balance

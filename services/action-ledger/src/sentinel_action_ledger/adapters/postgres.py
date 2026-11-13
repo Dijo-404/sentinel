@@ -333,7 +333,7 @@ class PostgresUnitOfWork:
                   evidence_digest = EXCLUDED.evidence_digest,
                   external_refunded_minor = EXCLUDED.external_refunded_minor,
                   external_pending_minor = EXCLUDED.external_pending_minor,
-                  version = EXCLUDED.version
+                  version = eligibility_snapshots.version + 1
                 """
             ),
             asdict(snapshot),
