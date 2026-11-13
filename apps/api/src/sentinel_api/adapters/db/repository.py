@@ -6,7 +6,7 @@ import hashlib
 import json
 from typing import Any
 
-from sqlalchemy import Engine, select
+from sqlalchemy import Engine, select, text
 from sqlalchemy.exc import IntegrityError
 
 from sentinel_api.adapters.db import schema
@@ -620,10 +620,23 @@ class SqlCaseRepository:
         with self._engine.begin() as conn:
             rows = (
                 conn.execute(
-                    select(schema.workflow_outbox)
-                    .where(schema.workflow_outbox.c.status == "PENDING")
-                    .order_by(schema.workflow_outbox.c.created_at.asc())
-                    .limit(limit)
+                    text(
+                        """
+                        WITH picked AS (
+                          SELECT id FROM workflow_outbox
+                          WHERE status = 'PENDING'
+                          ORDER BY created_at ASC
+                          FOR UPDATE SKIP LOCKED
+                          LIMIT :limit
+                        )
+                        UPDATE workflow_outbox AS o
+                        SET status = 'CLAIMED'
+                        FROM picked
+                        WHERE o.id = picked.id
+                        RETURNING o.id, o.payload_json
+                        """
+                    ),
+                    {"limit": limit},
                 )
                 .mappings()
                 .all()

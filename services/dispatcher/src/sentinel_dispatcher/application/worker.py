@@ -100,7 +100,7 @@ class DispatchWorker:
                 job,
                 status="ESCALATED",
                 reason_code=plan.reason_code,
-                terminal_phase="ESCALATED",
+                phase="ESCALATED",
             )
         if plan.action == "lookup":
             return self._reconcile_lookup(job, caps, reason_code=plan.reason_code)
@@ -132,26 +132,28 @@ class DispatchWorker:
             submitted = replace(job, phase="SUBMITTED", reason_code="PROVIDER_TIMEOUT")
             self._store.save(submitted)
             decision = after_provider_timeout(command.provider_capabilities)
-            reported = self._report(
+            if decision.status == "ESCALATED":
+                return self._report(
+                    submitted,
+                    status=decision.status,
+                    reason_code=decision.reason_code,
+                    phase="ESCALATED",
+                )
+            # Stay recoverable until lookup / same-key retry finishes.
+            self._report(
                 submitted,
                 status=decision.status,
                 reason_code=decision.reason_code,
-                terminal_phase=(
-                    "ESCALATED" if decision.status == "ESCALATED" else "OUTCOME_REPORTED"
-                ),
+                phase="SUBMITTED",
             )
-            if decision.status == "OUTCOME_UNKNOWN" and command.provider_capabilities.status_lookup:
-                latest = self._store.get(self._tenant_id, job.action_id) or submitted
+            latest = self._store.get(self._tenant_id, job.action_id) or submitted
+            if command.provider_capabilities.status_lookup:
                 return self._reconcile_lookup(
                     latest,
                     command.provider_capabilities,
                     reason_code="POST_TIMEOUT_LOOKUP",
                 )
-            if (
-                decision.status == "OUTCOME_UNKNOWN"
-                and decision.may_resubmit
-                and command.provider_capabilities.same_key_retry
-            ):
+            if decision.may_resubmit and command.provider_capabilities.same_key_retry:
                 # Safe same-key retry still uses the original provider_ref only.
                 try:
                     refund = self._provider.create_refund(
@@ -159,19 +161,30 @@ class DispatchWorker:
                         idempotency_key=job.provider_ref,
                     )
                 except ProviderTimeout:
-                    return reported
-                return self._accept(job=submitted, refund=refund, lease_id=command.lease_id)
-            return reported
+                    return {
+                        "action_id": job.action_id,
+                        "provider_ref": job.provider_ref,
+                        "status": decision.status,
+                        "reason_code": decision.reason_code,
+                    }
+                return self._accept(job=latest, refund=refund, lease_id=command.lease_id)
+            return {
+                "action_id": job.action_id,
+                "provider_ref": job.provider_ref,
+                "status": decision.status,
+                "reason_code": decision.reason_code,
+            }
         except PeerError as exc:
             if exc.code in {"UNAUTHORIZED", "FORBIDDEN", "OUT_OF_SCOPE"}:
                 raise
+            # Non-auth peer failure: durable SUBMITTED so recover can lookup/retry.
             submitted = replace(job, phase="SUBMITTED", reason_code=exc.code)
             self._store.save(submitted)
             return self._report(
                 submitted,
                 status="OUTCOME_UNKNOWN",
                 reason_code=exc.code,
-                terminal_phase="OUTCOME_REPORTED",
+                phase="SUBMITTED",
             )
 
         return self._accept(job=job, refund=refund, lease_id=command.lease_id)
@@ -193,7 +206,7 @@ class DispatchWorker:
             submitted,
             status=decision.status,
             reason_code=decision.reason_code,
-            terminal_phase="OUTCOME_REPORTED",
+            phase="OUTCOME_REPORTED",
             refund=refund,
             lease_id=lease_id,
         )
@@ -218,7 +231,7 @@ class DispatchWorker:
                     job,
                     status="ESCALATED",
                     reason_code="LOOKUP_UNAVAILABLE_PRESERVE_RESERVATION",
-                    terminal_phase="ESCALATED",
+                    phase="ESCALATED",
                 )
         decision = after_lookup(
             capabilities=caps,
@@ -233,11 +246,12 @@ class DispatchWorker:
                     idempotency_key=job.provider_ref,
                 )
             except ProviderTimeout:
+                # Still ambiguous — keep SUBMITTED for another recover pass.
                 return self._report(
                     job,
                     status="OUTCOME_UNKNOWN",
                     reason_code="RETRY_TIMEOUT_PRESERVE_RESERVATION",
-                    terminal_phase="OUTCOME_REPORTED",
+                    phase="SUBMITTED",
                 )
             return self._accept(job=job, refund=refund, lease_id=job.lease_id)
         phase = "ESCALATED" if decision.status == "ESCALATED" else "OUTCOME_REPORTED"
@@ -245,7 +259,7 @@ class DispatchWorker:
             job,
             status=decision.status,
             reason_code=decision.reason_code,
-            terminal_phase=phase,
+            phase=phase,
             refund=refund,
         )
 
@@ -255,7 +269,7 @@ class DispatchWorker:
         *,
         status: str,
         reason_code: str,
-        terminal_phase: str,
+        phase: str,
         refund: Refund | None = None,
         lease_id: str | None = None,
     ) -> dict[str, Any]:
@@ -285,7 +299,7 @@ class DispatchWorker:
         self._ledger.report_outcome(job.action_id, outcome)
         saved = replace(
             job,
-            phase=terminal_phase,  # type: ignore[arg-type]
+            phase=phase,  # type: ignore[arg-type]
             outcome_status=status,
             reason_code=reason_code,
             provider_status=refund.status if refund is not None else job.provider_status,

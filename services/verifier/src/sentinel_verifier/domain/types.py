@@ -33,6 +33,8 @@ class Principal:
 
     def allows_case(self, case_id: str) -> bool:
         if not self.case_ids:
+            return False
+        if "*" in self.case_ids:
             return True
         return case_id in self.case_ids
 

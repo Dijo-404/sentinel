@@ -82,9 +82,11 @@ def plan_recovery(
     capabilities: ProviderCapabilities,
     outcome_status: str | None,
 ) -> RecoveryPlan:
+    # Terminal only after reconcile finished (or no-safe-path escalate).
     if phase == "OUTCOME_REPORTED" or phase == "ESCALATED":
         return RecoveryPlan(action="noop", reason_code="ALREADY_TERMINAL")
-    if phase == "SUBMITTED":
+    # Crash-after-timeout / peer-error: SUBMITTED|RECONCILING stay incomplete until lookup/retry.
+    if phase in {"SUBMITTED", "RECONCILING"}:
         if capabilities.status_lookup:
             return RecoveryPlan(action="lookup", reason_code="RECOVER_LOOKUP_ORIGINAL_REF")
         if capabilities.same_key_retry:

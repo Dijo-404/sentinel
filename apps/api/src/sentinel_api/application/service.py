@@ -180,21 +180,22 @@ class CaseService:
     ) -> Approval:
         require_roles(principal, "supervisor")
         request = validate_decision_request(body)
+        find = getattr(self._repo, "find_case_for_action", None)
+        case_id = (
+            find(tenant_id=principal.tenant_id, action_id=action_id) if callable(find) else None
+        )
+        if not case_id:
+            raise DomainError("NOT_FOUND", "Action not bound to a case", 404)
         # Forward the original authenticated supervisor token; never elevate.
         approval = self._ledger.decide(action_id, request, authorization=authorization)
-        case_id = None
-        find = getattr(self._repo, "find_case_for_action", None)
-        if callable(find):
-            case_id = find(tenant_id=principal.tenant_id, action_id=action_id)
-        if case_id:
-            self._schedule_workflow(
-                principal.tenant_id,
-                case_id,
-                request.case_revision,
-                f"decision:{action_id}:{request.action_digest}:{request.case_revision}",
-                "DECISION",
-            )
-            self._flush_workflow()
+        self._schedule_workflow(
+            principal.tenant_id,
+            case_id,
+            request.case_revision,
+            f"decision:{action_id}:{request.action_digest}:{request.case_revision}",
+            "DECISION",
+        )
+        self._flush_workflow()
         return approval
 
     def escalate(self, principal: Principal, case_id: str, body: dict) -> Case:

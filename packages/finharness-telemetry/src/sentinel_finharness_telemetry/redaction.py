@@ -1,9 +1,17 @@
-"""Framework-free redaction and bounded-label rules for harness-telemetry.v1."""
+"""Harness redaction: wraps sentinel_telemetry.redaction with harness allowlists."""
 
 from __future__ import annotations
 
-import re
 from collections.abc import Mapping
+
+from sentinel_telemetry.contracts import RedactionError as TelemetryRedactionError
+from sentinel_telemetry.redaction import (
+    FORBIDDEN_KEY_FRAGMENTS,
+    normalize_key,
+)
+from sentinel_telemetry.redaction import (
+    reject_value as telemetry_reject_value,
+)
 
 from .contracts import RedactionError
 
@@ -47,30 +55,6 @@ ALLOWED_METRIC_LABELS = frozenset(
     }
 )
 
-_FORBIDDEN_KEY_FRAGMENTS = (
-    "password",
-    "secret",
-    "token",
-    "authorization",
-    "api_key",
-    "apikey",
-    "otp",
-    "cvv",
-    "pan",
-    "upi_pin",
-    "pin",
-    "complaint",
-    "prompt",
-    "message",
-    "raw_",
-    "customer",
-    "subject_ref",
-    "transaction_ref",
-    "order_reference",
-    "card",
-    "audio",
-)
-
 _FORBIDDEN_METRIC_ONLY = frozenset(
     {
         "case_id",
@@ -88,44 +72,26 @@ _FORBIDDEN_METRIC_ONLY = frozenset(
     }
 )
 
-_SECRET_VALUE = re.compile(
-    r"(?i)(bearer\s+[a-z0-9\-._~+/]+=*|sk-[a-z0-9]{16,}|"
-    r"\b\d{12,19}\b|"
-    r"\b\d{4,8}\b.*otp|upi[_\s-]?pin)",
-)
-_RAW_COMPLAINT = re.compile(r"(?i)(i was charged twice|please refund|my card ending)")
-
-
-def _normalize_key(key: str) -> str:
-    return key.strip().lower().replace("-", "_")
-
 
 def _reject_key(key: str, *, for_metric: bool) -> None:
     if not isinstance(key, str) or not key or len(key) > 64:
         raise RedactionError("Telemetry key must be a nonempty string up to 64 characters")
-    normalized = _normalize_key(key)
+    normalized = normalize_key(key)
     if for_metric and (
-        normalized in {_normalize_key(k) for k in _FORBIDDEN_METRIC_ONLY}
-        or normalized in {_normalize_key(k) for k in CORRELATION_ATTRIBUTE_KEYS}
+        normalized in {normalize_key(k) for k in _FORBIDDEN_METRIC_ONLY}
+        or normalized in {normalize_key(k) for k in CORRELATION_ATTRIBUTE_KEYS}
     ):
         raise RedactionError("Correlation and customer-payment identifiers are not metric labels")
-    for fragment in _FORBIDDEN_KEY_FRAGMENTS:
+    for fragment in FORBIDDEN_KEY_FRAGMENTS:
         if fragment in normalized:
             raise RedactionError("Forbidden telemetry key rejected")
 
 
 def _reject_value(value: object) -> str | int | bool:
-    if isinstance(value, bool):
-        return value
-    if isinstance(value, int) and not isinstance(value, bool):
-        return value
-    if not isinstance(value, str):
-        raise RedactionError("Telemetry values must be string, int, or bool")
-    if len(value) > 256:
-        raise RedactionError("Telemetry string value exceeds bound")
-    if _SECRET_VALUE.search(value) or _RAW_COMPLAINT.search(value):
-        raise RedactionError("Secret, raw complaint, or payment identifier value rejected")
-    return value
+    try:
+        return telemetry_reject_value(value)
+    except TelemetryRedactionError as exc:
+        raise RedactionError(str(exc)) from None
 
 
 def sanitize_attributes(attributes: Mapping[str, object] | None) -> dict[str, str | int | bool]:
@@ -135,10 +101,10 @@ def sanitize_attributes(attributes: Mapping[str, object] | None) -> dict[str, st
     if not isinstance(attributes, Mapping):
         raise RedactionError("Attributes must be a mapping")
     cleaned: dict[str, str | int | bool] = {}
-    allow_norm = {_normalize_key(k) for k in CORRELATION_ATTRIBUTE_KEYS}
+    allow_norm = {normalize_key(k) for k in CORRELATION_ATTRIBUTE_KEYS}
     for key, value in attributes.items():
         _reject_key(key, for_metric=False)
-        if key not in CORRELATION_ATTRIBUTE_KEYS and _normalize_key(key) not in allow_norm:
+        if key not in CORRELATION_ATTRIBUTE_KEYS and normalize_key(key) not in allow_norm:
             raise RedactionError("Attribute key is not on the harness telemetry allowlist")
         cleaned[key if key in CORRELATION_ATTRIBUTE_KEYS else key] = _reject_value(value)
     return cleaned

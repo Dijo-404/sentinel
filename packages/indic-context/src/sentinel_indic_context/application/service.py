@@ -95,7 +95,7 @@ class IndicContextService:
 def authorize_propose(principal: Principal, case_id: str) -> None:
     if "workflow" not in principal.roles:
         raise ForbiddenError("workflow role required")
-    if principal.case_ids and case_id not in principal.case_ids:
+    if "*" not in principal.case_ids and case_id not in principal.case_ids:
         raise ForbiddenError("case not in principal scope")
     if not principal.principal_id or not principal.tenant_id:
         raise UnauthorizedError("principal incomplete")

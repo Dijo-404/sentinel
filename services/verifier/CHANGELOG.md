@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Fixed — 14 November 2026
+
+- Unprocessed inbox duplicates re-run provider reconciliation after crash-after-insert.
+- Real-peers bootstrap refuses demo webhook HMAC and demo peer bearer defaults.
+- PENDING refund synthetic evidence uses `verification_status=UNVERIFIED`.
+- `drain_due_rechecks` / `POST /v1/rechecks/drain` / CLI claim due SCHEDULED or lease-expired jobs.
+- Empty `case_ids` deny; `"*"` allows; demo principals use `"*"`.
+
 ### Added — 13 November 2026
 
 - `sentinel-verifier` implementing `verifier.v1`: signed webhook inbox, scheduled rechecks, closure assessments.

@@ -23,7 +23,10 @@ class TokenMapAuth:
         roles = set(principal.roles)
         if not roles.intersection({"workflow", "verifier"}):
             raise UnauthorizedError("Role cannot start workflow runs")
-        if case_id not in principal.case_ids and "*" not in principal.case_ids:
+        # Empty case_ids deny; "*" allows all; otherwise require exact case id.
+        if not principal.case_ids:
+            raise UnauthorizedError("Case out of scope")
+        if "*" not in principal.case_ids and case_id not in principal.case_ids:
             raise UnauthorizedError("Case out of scope")
 
 

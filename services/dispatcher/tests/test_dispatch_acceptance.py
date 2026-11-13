@@ -64,7 +64,7 @@ def test_happy_path_reports_pending_with_original_refs(demo_command: Command) ->
 def test_commit_then_timeout_reconciles_original_ref_one_side_effect(
     demo_command: Command,
 ) -> None:
-    worker, ledger, provider, _ = _worker(demo_command, provider_mode="commit_then_timeout")
+    worker, ledger, provider, store = _worker(demo_command, provider_mode="commit_then_timeout")
     result = worker.process_command(demo_command)
     assert result["provider_ref"] == "refund-demo-1"
     assert result["action_id"] == "action-demo-1"
@@ -76,6 +76,78 @@ def test_commit_then_timeout_reconciles_original_ref_one_side_effect(
     assert ledger.reservation_held("action-demo-1")
     # Never invent a second refund reference.
     assert set(provider.refunds) == {"refund-demo-1"}
+    # Interim OUTCOME_UNKNOWN then PENDING; final phase only after reconcile.
+    assert [o["status"] for o in ledger.outcomes] == ["OUTCOME_UNKNOWN", "PENDING"]
+    saved = store.get(TENANT, demo_command.action_id)
+    assert saved is not None
+    assert saved.phase == "OUTCOME_REPORTED"
+
+
+def test_timeout_leaves_job_recoverable_until_reconcile(
+    demo_command: Command,
+) -> None:
+    """Crash after timeout checkpoint: phase stays non-terminal; recover looks up original ref."""
+    store = MemoryWorkerStore()
+    provider = StubProvider(mode="commit_then_timeout")
+    ledger = StubLedger([demo_command], tenant_id=TENANT)
+    # Simulate crash after timeout save / OUTCOME_UNKNOWN report, before lookup finishes.
+    job = DispatchJob(
+        tenant_id=TENANT,
+        action_id=demo_command.action_id,
+        provider_ref=demo_command.provider_ref,
+        lease_id=demo_command.lease_id,
+        action_digest=demo_command.action_digest,
+        payload=dict(demo_command.payload),
+        phase="SUBMITTED",
+        same_key_retry=True,
+        status_lookup=True,
+        outcome_status="OUTCOME_UNKNOWN",
+        reason_code="PROVIDER_TIMEOUT_RECONCILE",
+    )
+    provider.refunds[demo_command.provider_ref] = Refund(
+        action_id=demo_command.action_id,
+        provider_ref=demo_command.provider_ref,
+        transaction_ref=str(demo_command.payload["transaction_ref"]),
+        amount_minor=int(demo_command.payload["amount_minor"]),
+        currency="INR",
+        status="PENDING",
+    )
+    provider.side_effects.append(demo_command.provider_ref)
+    store.save(job)
+    assert job.phase not in {"OUTCOME_REPORTED", "ESCALATED"}
+    incomplete = store.list_incomplete(TENANT)
+    assert len(incomplete) == 1
+    assert incomplete[0].provider_ref == "refund-demo-1"
+
+    worker = DispatchWorker(
+        tenant_id=TENANT,
+        ledger=ledger,
+        provider=provider,
+        store=store,
+        clock=FixedClock(NOW),
+    )
+    result = worker.recover_job(incomplete[0])
+    assert result["status"] == "PENDING"
+    assert provider.lookup_calls == ["refund-demo-1"]
+    assert all(call["idempotency_key"] == "refund-demo-1" for call in provider.create_calls)
+    saved = store.get(TENANT, demo_command.action_id)
+    assert saved is not None
+    assert saved.phase == "OUTCOME_REPORTED"
+    assert store.list_incomplete(TENANT) == []
+
+
+def test_peer_error_keeps_job_recoverable(demo_command: Command) -> None:
+    worker, ledger, provider, store = _worker(demo_command, provider_mode="unavailable")
+    result = worker.process_command(demo_command)
+    assert result["status"] == "OUTCOME_UNKNOWN"
+    assert result["reason_code"] == "PEER_UNAVAILABLE"
+    saved = store.get(TENANT, demo_command.action_id)
+    assert saved is not None
+    assert saved.phase == "SUBMITTED"
+    assert saved.phase not in {"OUTCOME_REPORTED", "ESCALATED"}
+    assert len(store.list_incomplete(TENANT)) == 1
+    assert provider.side_effect_count() == 0
+    assert ledger.reservation_held("action-demo-1")
 
 
 def test_crash_restart_uses_durable_original_refs_one_side_effect(

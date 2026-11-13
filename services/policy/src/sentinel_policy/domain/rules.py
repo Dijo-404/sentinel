@@ -48,7 +48,7 @@ def _result(
 def _scope_denied(principal: Principal, case_id: str, evidence: tuple[Evidence, ...]) -> str | None:
     if "workflow" not in principal.roles:
         return rc.ROLE_DENIED
-    if case_id not in principal.case_ids:
+    if not principal.allows_case(case_id):
         return rc.CASE_SCOPE_DENIED
     for item in evidence:
         if item.case_id != case_id:

@@ -283,7 +283,26 @@ class ActionLedgerService:
                 if action_approval is None or action_approval.approval_id != approval_id:
                     raise ConflictError("Approval does not bind this action")
 
-                uow.upsert_eligibility(snapshot)
+                # Lock payment first so eligibility version bumps serialize under concurrency.
+                uow.upsert_payment(
+                    tenant_id=principal.tenant_id,
+                    transaction_ref=normalized["transaction_ref"],
+                    merchant_ref=snapshot.case_id,
+                    captured_minor=snapshot.captured_minor
+                    - snapshot.external_refunded_minor
+                    - snapshot.external_pending_minor,
+                    currency=snapshot.currency,
+                )
+                balance = uow.lock_payment(principal.tenant_id, normalized["transaction_ref"])
+                if balance is None:
+                    raise ConflictError("Payment reservation row missing")
+
+                existing_elig = uow.get_eligibility(
+                    principal.tenant_id, normalized["transaction_ref"]
+                )
+                next_version = existing_elig.version + 1 if existing_elig is not None else 1
+                versioned = replace(snapshot, version=next_version)
+                uow.upsert_eligibility(versioned)
                 locked_elig = uow.get_eligibility(
                     principal.tenant_id, normalized["transaction_ref"]
                 )
@@ -291,21 +310,10 @@ class ActionLedgerService:
                     raise ConflictError("Eligibility snapshot expired", code="ELIGIBILITY_EXPIRED")
                 if locked_elig.payment_status != "CAPTURED":
                     raise ConflictError("Payment not eligible for refund")
-                if locked_elig.version != snapshot.version:
+                # DB bumps version atomically on conflict; accept the stored row.
+                if locked_elig.version < next_version:
                     raise ConflictError("Eligibility snapshot superseded")
 
-                uow.upsert_payment(
-                    tenant_id=principal.tenant_id,
-                    transaction_ref=normalized["transaction_ref"],
-                    merchant_ref=locked_elig.case_id,
-                    captured_minor=locked_elig.captured_minor
-                    - locked_elig.external_refunded_minor
-                    - locked_elig.external_pending_minor,
-                    currency=locked_elig.currency,
-                )
-                balance = uow.lock_payment(principal.tenant_id, normalized["transaction_ref"])
-                if balance is None:
-                    raise ConflictError("Payment reservation row missing")
                 new_balance = apply_reserve(balance, normalized["amount_minor"])
                 uow.write_payment_balance(
                     principal.tenant_id, normalized["transaction_ref"], new_balance
@@ -363,20 +371,25 @@ class ActionLedgerService:
         if not isinstance(limit, int) or limit < 1 or limit > 100:
             raise ValidationError("limit must be an integer from 1 to 100")
         now = self._clock.now()
-        lease_id = self._ids.new_id("lease")
         lease_expires = _iso(now + timedelta(seconds=self._lease_seconds))
         with self._store.transaction() as uow:
-            commands = uow.claim_outbox(
+            claimed = uow.claim_outbox(
                 tenant_id=principal.tenant_id,
                 limit=limit,
-                lease_id=lease_id,
                 lease_expires_at=lease_expires,
                 now=_iso(now),
+                new_lease_id=lambda: self._ids.new_id("lease"),
             )
-            for command in commands:
+            commands = []
+            for command in claimed:
                 action = uow.get_action_by_id(principal.tenant_id, command.action_id)
                 if action is None:
                     continue
+                if action.status not in {"RESERVED", "DISPATCHING"}:
+                    # Dispatch already progressed; finish outbox and skip rewrite.
+                    uow.mark_outbox_done(tenant_id=principal.tenant_id, action_id=command.action_id)
+                    continue
+                assert_transition(action.status, "DISPATCHING", roles=principal.roles)  # type: ignore[arg-type]
                 updated = replace(
                     action,
                     status="DISPATCHING",
@@ -393,6 +406,7 @@ class ActionLedgerService:
                     detail={"lease_id": command.lease_id},
                     occurred_at=_iso(now),
                 )
+                commands.append(command)
             return ClaimResult(commands=tuple(commands))
 
     def get(self, principal: Principal, *, action_id: str) -> ActionRecord:
@@ -458,6 +472,15 @@ class ActionLedgerService:
 
             updated = replace(action, status=target, updated_at=now_s)
             uow.update_action(updated)
+            if target in {
+                "PENDING",
+                "PROVIDER_CONFIRMED",
+                "FAILED_FINAL",
+                "CREDIT_CONFIRMED",
+                "OUTCOME_UNKNOWN",
+                "ESCALATED",
+            }:
+                uow.mark_outbox_done(tenant_id=principal.tenant_id, action_id=action_id)
             uow.insert_audit(
                 tenant_id=principal.tenant_id,
                 action_id=action_id,
@@ -526,8 +549,27 @@ class ActionLedgerService:
                 raise ConflictError("Evidence expired")
             if item.get("case_id") != action.case_id:
                 raise ConflictError("Evidence case mismatch")
+            if kind == "REFUND" and "REFUND" in required_kinds:
+                self._assert_refund_evidence_binds(facts.get("refund") or {}, action)
+            elif kind == "CREDIT" and "CREDIT" in required_kinds:
+                self._assert_credit_evidence_binds(facts.get("credit") or {}, action)
         if not required_kinds.issubset(kinds):
             raise ConflictError("Evidence kind mismatch for transition")
+
+    def _assert_refund_evidence_binds(self, refund: dict[str, Any], action: StoredAction) -> None:
+        if (
+            refund.get("amount_minor") != action.amount_minor
+            or refund.get("currency") != action.currency
+            or refund.get("provider_ref") != action.provider_ref
+            or refund.get("transaction_ref") != action.transaction_ref
+        ):
+            raise ConflictError("Evidence does not match action", code="EVIDENCE_MISMATCH")
+
+    def _assert_credit_evidence_binds(self, credit: dict[str, Any], action: StoredAction) -> None:
+        if credit.get("provider_ref") != action.provider_ref:
+            raise ConflictError("Evidence does not match action", code="EVIDENCE_MISMATCH")
+        if "amount_minor" in credit and credit.get("amount_minor") != action.amount_minor:
+            raise ConflictError("Evidence does not match action", code="EVIDENCE_MISMATCH")
 
     def _build_eligibility(
         self,
@@ -568,16 +610,16 @@ class ActionLedgerService:
             raise ConflictError("Payment not captured")
         if payment_obj.get("currency") != payload["currency"]:
             raise ConflictError("Currency mismatch")
-        if principal.subject_refs and payment_obj.get("subject_ref") not in principal.subject_refs:
-            if item.subject_ref not in principal.subject_refs and principal.subject_refs:
-                # Service principals may carry empty subject_refs when case-scoped.
-                pass
+        payment_subject = str(payment_obj.get("subject_ref") or item.subject_ref)
+        # Empty subject_refs allowed for service principals; non-empty must contain payment subject.
+        if principal.subject_refs and payment_subject not in principal.subject_refs:
+            raise ForbiddenError("Subject outside principal scope")
         captured = int(payment_obj["amount_minor"])
         return EligibilitySnapshot(
             tenant_id=principal.tenant_id,
             transaction_ref=payload["transaction_ref"],
             case_id=payload["case_id"],
-            subject_ref=str(payment_obj.get("subject_ref") or item.subject_ref),
+            subject_ref=payment_subject,
             captured_minor=captured,
             currency=payload["currency"],
             payment_status="CAPTURED",

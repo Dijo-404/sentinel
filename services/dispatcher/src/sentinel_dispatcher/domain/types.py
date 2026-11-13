@@ -21,6 +21,7 @@ ActionState = Literal[
 JobPhase = Literal[
     "CLAIMED",
     "SUBMITTED",
+    "RECONCILING",
     "OUTCOME_REPORTED",
     "ESCALATED",
 ]

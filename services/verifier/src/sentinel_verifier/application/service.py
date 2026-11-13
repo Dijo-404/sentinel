@@ -108,15 +108,16 @@ class VerifierService:
             reason_code=None,
         )
         stored = self._store.insert_inbox(record)
-        if not stored.duplicate:
+        # Crash after inbox insert leaves ACCEPTED; duplicate must re-run process.
+        if not stored.duplicate or stored.process_status != "PROCESSED":
             self._process_provider_ref(
-                tenant_id=event.tenant_id,
-                provider_ref=event.provider_ref,
-                source_event_id=event.event_id,
+                tenant_id=stored.tenant_id,
+                provider_ref=stored.provider_ref,
+                source_event_id=stored.event_id,
             )
             self._store.mark_inbox_processed(
-                event.tenant_id,
-                event.event_id,
+                stored.tenant_id,
+                stored.event_id,
                 process_status="PROCESSED",
                 reason_code="RECONCILED",
                 processed_at=self._clock.now().isoformat().replace("+00:00", "Z"),
@@ -178,7 +179,59 @@ class VerifierService:
             provider_ref=request.provider_ref,
             source_event_id=job_id,
         )
+        done_at = self._clock.now().isoformat().replace("+00:00", "Z")
+        self._store.save_recheck(
+            RecheckJob(
+                tenant_id=job.tenant_id,
+                job_id=job.job_id,
+                idempotency_key=job.idempotency_key,
+                case_id=job.case_id,
+                case_revision=job.case_revision,
+                action_id=job.action_id,
+                provider_ref=job.provider_ref,
+                request_digest=job.request_digest,
+                available_at=job.available_at,
+                lease_expires_at=job.lease_expires_at,
+                attempts=job.attempts + 1,
+                status="COMPLETED",
+                created_at=job.created_at,
+                updated_at=done_at,
+            )
+        )
         return Ack(CONTRACT_VERSION, job_id)
+
+    def drain_due_rechecks(self, *, limit: int = 100) -> int:
+        """Claim due SCHEDULED / lease-expired rechecks and reconcile provider_ref."""
+        now = self._clock.now()
+        now_s = now.isoformat().replace("+00:00", "Z")
+        lease_until = (now + RECHECK_LEASE).isoformat().replace("+00:00", "Z")
+        jobs = self._store.claim_due_rechecks(now=now_s, lease_expires_at=lease_until, limit=limit)
+        for job in jobs:
+            self._process_provider_ref(
+                tenant_id=job.tenant_id,
+                provider_ref=job.provider_ref,
+                source_event_id=job.job_id,
+            )
+            done_at = self._clock.now().isoformat().replace("+00:00", "Z")
+            self._store.save_recheck(
+                RecheckJob(
+                    tenant_id=job.tenant_id,
+                    job_id=job.job_id,
+                    idempotency_key=job.idempotency_key,
+                    case_id=job.case_id,
+                    case_revision=job.case_revision,
+                    action_id=job.action_id,
+                    provider_ref=job.provider_ref,
+                    request_digest=job.request_digest,
+                    available_at=job.available_at,
+                    lease_expires_at=job.lease_expires_at,
+                    attempts=job.attempts,
+                    status="COMPLETED",
+                    created_at=job.created_at,
+                    updated_at=done_at,
+                )
+            )
+        return len(jobs)
 
     def create_assessment(
         self, principal: Principal, request: VerificationRequest
@@ -352,7 +405,9 @@ class VerifierService:
                             sort_keys=True,
                         ).encode()
                     ).hexdigest(),
-                    "verification_status": "VERIFIED",
+                    "verification_status": (
+                        "UNVERIFIED" if refund.status == "PENDING" else "VERIFIED"
+                    ),
                     "facts": {
                         "kind": "REFUND",
                         "refund": {

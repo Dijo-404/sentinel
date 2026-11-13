@@ -23,12 +23,15 @@ class TokenPrincipalMap:
 def demo_principals(tenant_id: str = "tenant-demo-1") -> dict[str, Principal]:
     case = ("case-demo-42",)
     subject = ("subject-demo-1",)
+    # Empty case_ids deny all; "*" is the explicit broad-access wildcard.
     return {
         "token-workflow-demo": Principal("workflow-demo", tenant_id, ("workflow",), subject, case),
         "token-supervisor-demo": Principal(
             "supervisor-demo", tenant_id, ("supervisor",), subject, case
         ),
-        "token-dispatcher-demo": Principal("dispatcher-demo", tenant_id, ("dispatcher",), (), case),
-        "token-verifier-demo": Principal("verifier-demo", tenant_id, ("verifier",), (), case),
+        "token-dispatcher-demo": Principal(
+            "dispatcher-demo", tenant_id, ("dispatcher",), (), ("*",)
+        ),
+        "token-verifier-demo": Principal("verifier-demo", tenant_id, ("verifier",), (), ("*",)),
         "token-operator-demo": Principal("operator-demo", tenant_id, ("operator",), subject, case),
     }

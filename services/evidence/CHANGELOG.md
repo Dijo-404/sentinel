@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- Require `DATABASE_URL` unless `SENTINEL_EVIDENCE_ALLOW_MEMORY=1`, `EVIDENCE_MODE=fixture`, or pytest; no silent memory fallback for real-peers.
+- Empty `case_ids` deny; `*` allows all cases (deny-by-default).
+
 ### Added — 13 November 2026
 
 - Independent module ownership, architecture/interface guide, scoped agent rules and acceptance checklist.

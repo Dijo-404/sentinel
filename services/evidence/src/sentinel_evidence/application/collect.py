@@ -26,7 +26,7 @@ def _require_roles(principal: Principal, allowed: frozenset[str]) -> None:
 
 
 def _require_case_scope(principal: Principal, case_id: str) -> None:
-    if case_id not in principal.case_ids:
+    if not principal.allows_case(case_id):
         raise UnauthorizedError("Case is outside authenticated scope")
 
 

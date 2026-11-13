@@ -12,7 +12,7 @@ from sentinel_workflow import CONTRACT_VERSION, __version__
 from sentinel_workflow.adapters.auth import TokenMapAuth
 from sentinel_workflow.application.errors import WorkflowError
 from sentinel_workflow.application.service import WorkflowService, authorize_run
-from sentinel_workflow.domain.types import Ack, Approval, WorkflowRequest
+from sentinel_workflow.domain.types import Ack, WorkflowRequest
 
 
 def create_app(
@@ -46,17 +46,11 @@ def create_app(
     def runs(
         body: WorkflowRequest,
         authorization: str | None = Header(default=None),
-        x_sentinel_approval: str | None = Header(default=None),
     ) -> Ack:
         principal = auth.authenticate(authorization)
         authorize_run(principal, body.case_id)
-        resume_approval = None
-        if x_sentinel_approval:
-            # Test/assembly helper: authenticated JSON approval for DECISION resume.
-            import json
-
-            resume_approval = Approval.model_validate(json.loads(x_sentinel_approval))
-        return service.accept(body, principal, resume_approval=resume_approval)
+        # DECISION resume approval comes from ledger.get_action(...).approval only.
+        return service.accept(body, principal)
 
     @app.exception_handler(WorkflowError)
     async def workflow_error(_request: Request, exc: WorkflowError) -> JSONResponse:

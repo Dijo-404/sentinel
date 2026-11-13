@@ -20,6 +20,9 @@ from sentinel_verifier.adapters.postgres_store import PostgresVerifierStore, ens
 from sentinel_verifier.application.service import VerifierService
 from sentinel_verifier.domain.errors import PeerUnavailableError
 
+DEMO_WEBHOOK_HMAC_KEY = "demo-simulator-hmac-key"
+DEMO_BEARER_TOKEN = "token-verifier-demo"
+
 
 def _merchant_map_from_env() -> dict[str, str]:
     raw = os.environ.get("VERIFIER_MERCHANT_MAP", "merchant-demo-1=tenant-demo-1")
@@ -31,6 +34,33 @@ def _merchant_map_from_env() -> dict[str, str]:
         merchant, _, tenant = part.partition("=")
         mapping[merchant.strip()] = tenant.strip()
     return mapping
+
+
+def _resolve_mode(mode: str | None) -> str:
+    return mode or os.environ.get("VERIFIER_MODE") or os.environ.get("SENTINEL_MODE") or "fixture"
+
+
+def _resolve_webhook_hmac_key(*, webhook_hmac_key: str | None, resolved_mode: str) -> str:
+    if webhook_hmac_key is not None:
+        key = webhook_hmac_key
+    else:
+        key = os.environ.get("VERIFIER_WEBHOOK_HMAC_KEY")
+        if key is None and resolved_mode != "real-peers":
+            key = DEMO_WEBHOOK_HMAC_KEY
+    if resolved_mode == "real-peers":
+        if not key or key == DEMO_WEBHOOK_HMAC_KEY:
+            raise PeerUnavailableError("real-peers requires non-demo VERIFIER_WEBHOOK_HMAC_KEY")
+    assert key is not None
+    return key
+
+
+def _resolve_peer_bearer(resolved_mode: str) -> str:
+    token = os.environ.get("VERIFIER_BEARER_TOKEN")
+    if resolved_mode == "real-peers":
+        if not token or token == DEMO_BEARER_TOKEN:
+            raise PeerUnavailableError("real-peers requires non-demo VERIFIER_BEARER_TOKEN")
+        return token
+    return token or DEMO_BEARER_TOKEN
 
 
 def build_app(
@@ -48,7 +78,10 @@ def build_app(
     merchant_map: dict[str, str] | None = None,
     enforce_event_age: bool = True,
 ):
-    resolved_mode = mode or os.environ.get("VERIFIER_MODE", "fixture")
+    resolved_mode = _resolve_mode(mode)
+    resolved_hmac = _resolve_webhook_hmac_key(
+        webhook_hmac_key=webhook_hmac_key, resolved_mode=resolved_mode
+    )
     if store is None:
         database_url = os.environ.get("DATABASE_URL")
         if not database_url:
@@ -62,7 +95,7 @@ def build_app(
     if any(peer is None for peer in peers):
         if resolved_mode != "real-peers":
             raise PeerUnavailableError("Fixture mode requires injected peer ports")
-        token = os.environ.get("VERIFIER_BEARER_TOKEN", "token-verifier-demo")
+        token = _resolve_peer_bearer(resolved_mode)
         provider = provider or HttpProviderClient(os.environ["PROVIDER_BASE_URL"], token=token)
         ledger = ledger or HttpLedgerClient(os.environ["LEDGER_BASE_URL"], token=token)
         evidence = evidence or HttpEvidenceClient(os.environ["EVIDENCE_BASE_URL"], token=token)
@@ -76,8 +109,7 @@ def build_app(
         ledger=ledger,
         evidence=evidence,
         case_api=case_api,
-        webhook_hmac_key=webhook_hmac_key
-        or os.environ.get("VERIFIER_WEBHOOK_HMAC_KEY", "demo-simulator-hmac-key"),
+        webhook_hmac_key=resolved_hmac,
         merchant_map=merchant_map or _merchant_map_from_env(),
         enforce_event_age=enforce_event_age,
     )

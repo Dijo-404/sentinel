@@ -9,6 +9,7 @@ from typing import Any
 from langgraph.types import Command
 
 from sentinel_workflow.application.errors import (
+    IdempotencyConflictError,
     PeerError,
     PeerUnavailableError,
     UnauthorizedError,
@@ -57,7 +58,12 @@ class WorkflowService:
             thread_id=thread_id,
         )
         if resume_approval is not None:
-            self.decisions.put_decision(thread_id, resume_approval, principal.principal_id)
+            self._store_resume_approval(
+                thread_id=thread_id,
+                approval=resume_approval,
+                principal_id=principal.principal_id,
+                created=created,
+            )
 
         if created and run_now:
             self.execute(
@@ -68,6 +74,25 @@ class WorkflowService:
                 resume_approval=resume_approval,
             )
         return Ack(job_id=job_id)
+
+    def _store_resume_approval(
+        self,
+        *,
+        thread_id: str,
+        approval: Approval,
+        principal_id: str,
+        created: bool,
+    ) -> None:
+        """Persist resume approval only for newly created jobs; else require identical."""
+        if created:
+            self.decisions.put_decision(thread_id, approval, principal_id)
+            return
+        existing = self.decisions.get_decision(thread_id)
+        if existing is None:
+            raise IdempotencyConflictError("DECISION approval missing for existing job")
+        stored = Approval.model_validate(existing["approval"])
+        if stored.model_dump(exclude_none=True) != approval.model_dump(exclude_none=True):
+            raise IdempotencyConflictError("DECISION approval conflicts with stored value")
 
     def execute(
         self,
@@ -84,13 +109,10 @@ class WorkflowService:
                 CONFIG_KEY: self.deps,
             }
         }
+        # DECISION resume trusts ledger approval only (never HTTP-forged payloads).
         decision = resume_approval
         if decision is None and request.event == "DECISION":
-            stored = self.decisions.get_decision(thread_id)
-            if stored is not None:
-                decision = Approval.model_validate(stored["approval"])
-            else:
-                decision = self._approval_from_ledger(thread_id)
+            decision = self._approval_from_ledger(thread_id)
 
         try:
             if request.event in {"DECISION", "RECHECK", "INPUT"} and self._has_checkpoint(
@@ -141,12 +163,8 @@ class WorkflowService:
             except PeerUnavailableError as exc:
                 self.outbox.mark_retry(item["outbox_id"], exc.message)
             except PeerError as exc:
-                if exc.status_code == 409:
-                    # Identical event already applied, or unrecoverable conflict after reconcile.
-                    self.outbox.mark_delivered(item["outbox_id"])
-                    delivered += 1
-                else:
-                    self.outbox.mark_retry(item["outbox_id"], exc.message)
+                # IDEMPOTENCY_CONFLICT and other 409s are not delivery success.
+                self.outbox.mark_retry(item["outbox_id"], exc.message)
             except WorkflowError as exc:
                 self.outbox.mark_retry(item["outbox_id"], exc.message)
         return delivered
@@ -156,9 +174,9 @@ class WorkflowService:
             self.case_api.submit_result(case_id, payload)
             return
         except PeerError as exc:
-            if exc.status_code != 409:
+            if exc.code != "REVISION_CONFLICT":
                 raise
-        # Stale revision: read current case and retry once with reconciled revision.
+        # Only REVISION_CONFLICT may bump expected_revision and retry once.
         case = self.case_api.get_case(case_id)
         reconciled = payload.model_copy(update={"expected_revision": case.revision})
         self.case_api.submit_result(case_id, reconciled)
@@ -199,5 +217,8 @@ def authorize_run(principal: Principal, case_id: str) -> None:
     roles = set(principal.roles)
     if not roles.intersection({"workflow", "verifier"}):
         raise UnauthorizedError("Role cannot invoke workflow runs")
-    if case_id not in principal.case_ids and "*" not in principal.case_ids:
+    # Empty case_ids deny; "*" allows all; otherwise require exact case id.
+    if not principal.case_ids:
+        raise UnauthorizedError("Case out of scope")
+    if "*" not in principal.case_ids and case_id not in principal.case_ids:
         raise UnauthorizedError("Case out of scope")

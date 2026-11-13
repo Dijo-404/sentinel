@@ -103,3 +103,7 @@ def test_concurrent_reservations_never_overrun(app_client, tokens, engine, clock
             == 3
         )
         assert connection.execute(text("SELECT count(*) FROM outbox")).scalar_one() == 3
+        elig_version = connection.execute(
+            text("SELECT version FROM eligibility_snapshots WHERE transaction_ref = 'TXN-CONC'")
+        ).scalar_one()
+        assert elig_version == 3

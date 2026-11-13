@@ -19,6 +19,10 @@ from .application.errors import ConfigurationError
 from .domain.types import CONTRACT_VERSION
 
 
+def _truthy(value: str | None) -> bool:
+    return (value or "").strip().lower() in {"1", "true", "yes", "on"}
+
+
 @dataclass(frozen=True)
 class Settings:
     mode: str
@@ -29,6 +33,7 @@ class Settings:
     provider_token: str
     ttl_seconds: int
     contract_version: str
+    allow_memory: bool = False
 
     @classmethod
     def from_environ(cls, env: dict[str, str] | None = None) -> Settings:
@@ -36,6 +41,12 @@ class Settings:
         mode = source.get("EVIDENCE_MODE", "fixture")
         if mode not in {"fixture", "real-peers"}:
             raise ConfigurationError("EVIDENCE_MODE must be fixture or real-peers")
+        # Memory store only when explicitly allowed, fixture mode, or under pytest.
+        allow_memory = (
+            _truthy(source.get("SENTINEL_EVIDENCE_ALLOW_MEMORY"))
+            or mode == "fixture"
+            or bool(source.get("PYTEST_CURRENT_TEST"))
+        )
         return cls(
             mode=mode,
             database_url=source.get("DATABASE_URL"),
@@ -45,6 +56,7 @@ class Settings:
             provider_token=source.get("PAYMENT_PROVIDER_TOKEN", ""),
             ttl_seconds=int(source.get("EVIDENCE_TTL_SECONDS", "3600")),
             contract_version=source.get("EVIDENCE_CONTRACT_VERSION", CONTRACT_VERSION),
+            allow_memory=allow_memory,
         )
 
 
@@ -65,12 +77,18 @@ def build_app(settings: Settings | None = None, *, use_memory_store: bool = Fals
         )
         mode = "real-peers"
 
-    if use_memory_store or not settings.database_url:
-        store = MemoryEvidenceStore()
-    else:
+    memory_ok = use_memory_store or settings.allow_memory
+    if settings.database_url:
         engine = create_engine(settings.database_url, hide_parameters=True)
         store = PostgresEvidenceStore(engine, schema=settings.schema)
         store.migrate()
+    elif memory_ok:
+        store = MemoryEvidenceStore()
+    else:
+        raise ConfigurationError(
+            "DATABASE_URL is required unless SENTINEL_EVIDENCE_ALLOW_MEMORY=1 "
+            "or EVIDENCE_MODE=fixture"
+        )
 
     clock = SystemClock()
     services = AppServices(

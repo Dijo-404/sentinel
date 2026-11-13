@@ -248,6 +248,18 @@ def test_ops_queue_evidence_escalate_and_decision_proxy(client, app):
     )
     assert forbidden.status_code == 403
 
+    # Unknown action in tenant → 404 before ledger call.
+    app.state.peers["ledger"].last_request = None
+    app.state.peers["ledger"].last_authorization = None
+    unknown = client.post(
+        "/v1/ops/actions/action-missing/decisions",
+        headers=auth("token-supervisor"),
+        json=decision_body,
+    )
+    assert unknown.status_code == 404
+    assert app.state.peers["ledger"].last_request is None
+    assert app.state.peers["ledger"].last_authorization is None
+
     escalated = client.post(
         f"/v1/ops/cases/{case_id}/escalate",
         headers=auth("token-operator"),
@@ -347,6 +359,37 @@ def test_result_idempotency_and_verified_resolution(client, app):
     assert verified.status_code == 200
     assert verified.json()["status"] == "VERIFIED_RESOLVED"
     assert verified.json()["revision"] == 3
+
+
+def test_claim_workflow_jobs_exclusive(engine):
+    """Atomic claim marks PENDING → CLAIMED; second claim gets nothing."""
+    from sqlalchemy import text
+
+    from sentinel_api.adapters.db.repository import SqlCaseRepository
+    from sentinel_api.domain.types import WorkflowRequest
+
+    repo = SqlCaseRepository(engine)
+    request = WorkflowRequest(
+        case_id="case-claim",
+        case_revision=1,
+        job_key="job-claim-1",
+        event="START",
+    )
+    repo.enqueue_workflow(tenant_id="tenant-demo", request=request)
+
+    first = repo.claim_workflow_jobs(limit=10)
+    assert len(first) == 1
+    assert first[0][1].job_key == "job-claim-1"
+
+    with engine.connect() as conn:
+        status = conn.execute(
+            text("SELECT status FROM workflow_outbox WHERE job_key = :k"),
+            {"k": "job-claim-1"},
+        ).scalar_one()
+    assert status == "CLAIMED"
+
+    second = repo.claim_workflow_jobs(limit=10)
+    assert second == []
 
 
 def test_real_peer_http_clients_reject_bad_peers():

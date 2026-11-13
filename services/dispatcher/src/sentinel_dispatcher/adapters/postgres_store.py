@@ -97,6 +97,7 @@ class PostgresWorkerStore:
         return None if row is None else self._from_row(row)
 
     def list_incomplete(self, tenant_id: str) -> list[DispatchJob]:
+        # SUBMITTED / RECONCILING after timeout stay here until reconcile completes.
         sql = text(
             f"""
             SELECT tenant_id, action_id, provider_ref, lease_id, action_digest,

@@ -30,6 +30,29 @@ def test_http_case_unauthorized(monkeypatch):
     assert exc.value.status_code == 403
 
 
+def test_http_409_propagates_body_code(monkeypatch):
+    from sentinel_workflow.domain.types import CaseResult
+
+    def fake_request(method, url, headers=None, json=None, timeout=None):
+        return FakeResponse(
+            409,
+            {"code": "IDEMPOTENCY_CONFLICT", "message": "event_key conflict"},
+        )
+
+    monkeypatch.setattr(httpx, "request", fake_request)
+    result = CaseResult(
+        event_key="ek-1",
+        expected_revision=1,
+        status="NEEDS_INPUT",
+        evidence_ids=[],
+        reason_code="MISSING_EVIDENCE",
+    )
+    with pytest.raises(PeerError) as exc:
+        HttpCaseApi("http://peer", "token").submit_result("case-demo-42", result)
+    assert exc.value.code == "IDEMPOTENCY_CONFLICT"
+    assert exc.value.status_code == 409
+
+
 def test_http_case_malformed(monkeypatch):
     def fake_request(method, url, headers=None, json=None, timeout=None):
         return FakeResponse(200, {"not": "a-case"})

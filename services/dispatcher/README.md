@@ -44,8 +44,8 @@ Evidence mode for `make check`: `payment-provider: simulated stub`, `action-ledg
 2. Persist a durable `CLAIMED` checkpoint keyed by `(tenant_id, action_id)` with the original `provider_ref`.
 3. Call provider `POST /v1/refunds` with `Idempotency-Key = provider_ref` only.
 4. On accept → ledger outcome `PENDING`.
-5. On timeout after a possible commit → ledger `OUTCOME_UNKNOWN`, then reconcile by original `provider_ref` when `status_lookup` is allowed; otherwise escalate without inventing a reference.
-6. On crash/restart → load incomplete jobs and continue with the same references.
+5. On timeout after a possible commit → durable `SUBMITTED` + ledger `OUTCOME_UNKNOWN` (job stays recoverable), then reconcile by original `provider_ref` when `status_lookup` is allowed; terminal `OUTCOME_REPORTED` / `ESCALATED` only after reconcile (or when no safe retry path).
+6. On crash/restart → load incomplete jobs (`list_incomplete`) and continue with the same references.
 7. Providers without safe same-key retry/status lookup escalate; reservation authority remains with the ledger stub/peer.
 
 ## Layout

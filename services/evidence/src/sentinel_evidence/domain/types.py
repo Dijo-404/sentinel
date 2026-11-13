@@ -20,6 +20,12 @@ class Principal:
     subject_refs: tuple[str, ...]
     case_ids: tuple[str, ...]
 
+    def allows_case(self, case_id: str) -> bool:
+        """Empty case_ids deny; '*' grants all cases."""
+        if "*" in self.case_ids:
+            return True
+        return case_id in self.case_ids
+
 
 @dataclass(frozen=True, slots=True)
 class Payment:

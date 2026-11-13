@@ -54,11 +54,13 @@ make check
 See [.env.example](.env.example). `EVIDENCE_MODE=fixture` uses in-process stubs. `EVIDENCE_MODE=real-peers` requires `PAYMENT_PROVIDER_BASE_URL` and `PAYMENT_PROVIDER_TOKEN` and **fails closed** on unavailable/malformed/unauthorized peers — no silent fixture fallback.
 
 ```sh
-# optional local serve (fixture mode + memory store if DATABASE_URL unset)
+# fixture mode allows in-process memory store without DATABASE_URL
 export EVIDENCE_MODE=fixture
 export EVIDENCE_TOKENS='workflow-token=svc-workflow|tenant-demo|workflow|subj-demo-1|case-demo-42'
 make preview
 ```
+
+Real/default path requires Postgres (`DATABASE_URL`). Set `SENTINEL_EVIDENCE_ALLOW_MEMORY=1` only for explicit local doubles. Empty `case_ids` deny; `*` allows all cases.
 
 With PostgreSQL:
 

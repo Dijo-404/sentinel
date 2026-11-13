@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Export `FORBIDDEN_KEY_FRAGMENTS`, `normalize_key`, and `reject_value` for finharness-telemetry reuse.
+
 ### Added
 
 - `sentinel-telemetry` package implementing `telemetry.v1`: injected OTel hooks, allowlisted redaction, bounded-label metrics, synthetic correlation producers, and module-local collector/dashboard examples.

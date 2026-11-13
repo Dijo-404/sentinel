@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Timeout and non-auth peer errors keep the job in `SUBMITTED` (list_incomplete) until lookup / same-key retry finishes; only then set `OUTCOME_REPORTED` or `ESCALATED`.
+
 ### Added — 13 November 2026
 
 - `sentinel-dispatcher` worker implementing `dispatcher.v1`: claim → provider dispatch → ledger outcome, with durable PostgreSQL checkpoints and crash recovery.
