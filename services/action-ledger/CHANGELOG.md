@@ -16,7 +16,7 @@
 - PostgreSQL schema/migrations for actions, approvals, payment_reservations, eligibility_snapshots, outbox, financial_audit, outcome_events.
 - Local `policy.v1` / `evidence.v1` stubs and fail-closed HTTP real-peer adapters.
 - Real Postgres concurrency and atomicity proofs; `make check` via uv/ruff/pytest.
-- Contract snapshots and canonical digest vector pinned to baseline SHA-256 `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`.
+- Contract snapshots and canonical digest vector pinned to baseline SHA-256 `0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb`.
 
 ### Implementation status
 

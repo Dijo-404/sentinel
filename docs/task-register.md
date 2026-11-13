@@ -1,8 +1,8 @@
 # Sentinel independent task register
 
-Status: published to GitHub on 13 November 2026. Task IDs and branch names remain stable; GitHub owns live assignment and status.
+Status: SN-001–026 published 13 November 2026; SN-027–034 published 14 November 2026. Task IDs and branch names remain stable; GitHub owns live assignment and status.
 
-Every task has **zero completion prerequisites** and can start from the same planning baseline. Every task owns its build, contracts, stubs and tests. Phase labels describe product priority, not development order. Phase 2 tasks are optional for MVP release but can be developed now.
+Every task has **zero completion prerequisites** and owns its build, contracts, stubs and tests. Phase labels describe product priority, not development order. Phase 2 and merchant-ops tasks are optional for MVP release.
 
 See [tasks.json](tasks.json), the [workflow design](agent-workflow-design.md), and the supplied [contract baseline](independent-task-contracts.md). GitHub owns live assignment/status; the issue URLs below identify the published tasks.
 

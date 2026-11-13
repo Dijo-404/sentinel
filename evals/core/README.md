@@ -3,7 +3,7 @@
 **Owned root:** `evals/core/`  
 **Branch:** `feat/sn-016-evaluation`  
 **Port:** `evaluation.v1` (produces) · consumes local `core-assembly.v1` stubs  
-**Contract:** `sentinel.task-contracts.v1` · SHA-256 `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`
+**Contract:** `sentinel.task-contracts.v1` · SHA-256 `0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb`
 
 ## Outcome
 

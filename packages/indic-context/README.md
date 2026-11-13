@@ -4,7 +4,7 @@ Optional `indic-context.v1` adapter: configurable fake/live Sarvam ports, source
 
 **Owned root:** `packages/indic-context/` · **Branch:** `feat/sn-021-indic-context`
 
-Contract: `sentinel.task-contracts.v1`, SHA-256 `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`. Typed snapshots live in [domain/types.py](src/sentinel_indic_context/domain/types.py); wire contract in [contracts/indic-context.v1.json](contracts/indic-context.v1.json). Consumes nothing. Module-local fixtures under [fixtures/](fixtures/).
+Contract: `sentinel.task-contracts.v1`, SHA-256 `0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb`. Typed snapshots live in [domain/types.py](src/sentinel_indic_context/domain/types.py); wire contract in [contracts/indic-context.v1.json](contracts/indic-context.v1.json). Consumes nothing. Module-local fixtures under [fixtures/](fixtures/).
 
 ## Standalone setup and checks
 

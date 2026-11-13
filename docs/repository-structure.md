@@ -31,7 +31,7 @@ The [task register](task-register.md) lists all task-owned roots and their ownin
 | `release/` | `mvp` |
 | `validation/` | `sandbox-pilot` |
 
-Each root starts with `AGENTS.md`, `README.md` and `CHANGELOG.md`. These are scaffolding and task instructions, not applications. No empty source hierarchy, dummy endpoint, stub check target or fabricated package version is supplied to imply implementation.
+Each root starts with `AGENTS.md`, `README.md` and `CHANGELOG.md`, plus the module's own manifests, tests and `make check`. Presence of a module on `main` means the component is independently checkable; it does not by itself mean an assembled product runtime or release evidence exists.
 
 ## Implemented Python module layout
 

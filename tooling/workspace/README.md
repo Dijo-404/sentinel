@@ -114,7 +114,7 @@ start services, or certify a module's test adequacy.
 ## Contract, verification and limits
 
 Pinned input: `sentinel.task-contracts.v1`, SHA-256
-`0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`.
+`0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb`.
 See [typed snapshot and compatibility checklist](contracts/README.md).
 No consumed service ports, auth API, database migrations or peer stubs apply;
 the subprocess adapter runs actual local Makefiles against synthetic inputs.

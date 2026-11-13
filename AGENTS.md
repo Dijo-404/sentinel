@@ -28,7 +28,7 @@ Use `rg` for search, bound command output, retain decisive errors, and never pri
 - Keep business invariants in framework-free domain code; application use cases depend on small ports. HTTP, SQLAlchemy, LangGraph, model/provider SDKs, telemetry exporters and filesystem access belong in adapters/composition.
 - Introduce a layer when a real rule or external boundary needs it. Do not generate empty layers, generic service frameworks, global registries, or abstractions for hypothetical extensions.
 - No deep imports into another module, cross-service table access, root application manifest, or shared lockfile. Consume a versioned wire contract or injected public port.
-- Keep each module installable and testable with every other task implementation absent. Module-local `make check` is a required deliverable; the scaffold does not claim it already exists.
+- Keep each module installable and testable with every other task implementation absent. Module-local `make check` is required evidence for the owned root; root `make check` validates repository metadata only.
 - Real-peer mode must reject unavailable, malformed, unauthorized or incompatible peers. Never silently fall back to a fixture in a real run.
 - Preserve compatible contract semantics. Add versioned adapters for breaking changes; do not force other agents to stop work.
 

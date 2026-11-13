@@ -11,7 +11,7 @@
 
 `agents` selects the shared queue. Exactly one `status:*` belongs on each task. Lanes A–D, priorities P0/P1, phases 1/2 and `optional` describe scope/priority. All tasks may be ready together. Neither issue ordering nor phase requires another implementation to finish.
 
-Status definitions, claims, updates and owner merge policy are in [CONTRIBUTING.md](../CONTRIBUTING.md). General new-task templates start in backlog until a self-contained contract/root is supplied; the approved 26 briefs are complete enough to admit together.
+Status definitions, claims, updates and owner merge policy are in [CONTRIBUTING.md](../CONTRIBUTING.md). General new-task templates start in backlog until a self-contained contract/root is supplied; admitted briefs (SN-001–034) are complete enough to claim when labeled `status:ready`.
 
 ## Render and publish
 

@@ -4,7 +4,7 @@ Independent `evidence.v1` HTTP service: collect scoped read-only payment-provide
 
 **Owned root:** `services/evidence/` · **Branch:** `feat/sn-006-evidence`
 
-Contract: `sentinel.task-contracts.v1`, SHA-256 `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`. Typed snapshot: [contracts/evidence.v1.json](contracts/evidence.v1.json).
+Contract: `sentinel.task-contracts.v1`, SHA-256 `0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb`. Typed snapshot: [contracts/evidence.v1.json](contracts/evidence.v1.json).
 
 ## Routes
 
