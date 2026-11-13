@@ -1,0 +1,23 @@
+{
+  "voice-demo-token": {
+    "principal_id": "svc-voice-demo",
+    "tenant_id": "demo-tenant-a",
+    "roles": ["voice"],
+    "subject_refs": ["subject-demo-42"],
+    "case_ids": ["case-demo-42"]
+  },
+  "voice-other-tenant-token": {
+    "principal_id": "svc-voice-other",
+    "tenant_id": "demo-tenant-b",
+    "roles": ["voice"],
+    "subject_refs": ["subject-other"],
+    "case_ids": ["case-other"]
+  },
+  "operator-demo-token": {
+    "principal_id": "op-demo",
+    "tenant_id": "demo-tenant-a",
+    "roles": ["operator"],
+    "subject_refs": ["subject-demo-42"],
+    "case_ids": ["case-demo-42"]
+  }
+}

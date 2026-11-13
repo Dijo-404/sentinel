@@ -1,0 +1,10 @@
+{
+  "original_text": "எனக்கு ரூபாய் 1500 refund வேண்டாம், cancel பண்ணுங்க",
+  "language": "ta-IN",
+  "ambiguous": true,
+  "reason_codes": [
+    "AMBIGUOUS_AMOUNT",
+    "AMBIGUOUS_NEGATION",
+    "NO_FINANCIAL_AUTHORITY"
+  ]
+}

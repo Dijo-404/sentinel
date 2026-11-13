@@ -1,80 +1,78 @@
-# SN-017 — Build an independent optional Tamil voice adapter
+# SN-017 — Optional Tamil voice adapter
 
-**State:** scaffold and task instructions only. No implementation, dependency installation, module check target or product result is claimed.
+**State:** implemented. Local `make check` exercises `voice.v1` with labeled Sarvam fixtures and text fallback only. Live Sarvam is opt-in and never required.
 
 **Owned root:** `services/voice/`
 **Branch:** `feat/sn-017-voice`
-**Lane:** C · **Phase:** 1 · **Priority:** P1 · **Optional for MVP:** yes
+**Produces:** `voice.v1`
+**Consumes:** nothing
+
+Contract baseline: `sentinel.task-contracts.v1` · SHA-256 `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`.
 
 ## Outcome
 
-Implement opt-in speech/transcript ports with a standalone client example, local Sarvam response fixtures and text fallback. Own all voice assets/tests; avoid edits to the main web app and never require live credentials for local checks.
+Opt-in speech/transcript ports with a standalone typed client, local Sarvam response fixtures, and text intake when STT is unavailable. Voice never authorizes financial action: amount/negation/code-mixed fixtures preserve `original_text` and set `ambiguous` with reason codes including `NO_FINANCIAL_AUTHORITY`.
 
-## Independence
+## Setup and check
 
-No task-completion prerequisites. This module must install, run its local checks, and be reviewable with every other Sentinel task implementation absent. Use explicit local port doubles rather than another developer's server or an unfinished sibling import. Phase and task number do not establish build order.
-
-Read [root agent rules](../../AGENTS.md), [claim/PR workflow](../../CONTRIBUTING.md), [architecture](../../docs/architecture.md), and [testing](../../docs/testing.md). The [task register](../../docs/task-register.md) links the live issue once published.
-
-## Ownership and interfaces
-
-- `services/voice/**`
-
-- Produces: `voice.v1`
-- Consumes: None
-- Optional consumed interfaces: None
-
-Contract input: [baseline](../../docs/independent-task-contracts.md) · `sentinel.task-contracts.v1` · SHA-256 `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`.
-
-Implement the exact supplied routes, request/response types, auth context, canonical digest and state/idempotency behavior for the relevant ports. Keep typed snapshots and compatibility examples in this module. The contract-checker/SDK implementation is not required.
-
-## Implementation layout
-
-Baseline category: Python service/library/tool.
-
-Use module-local dependency declarations and a reproducible lockfile, configuration example, tests, README and changelog. Stateful components own local migrations and a test database. No root application install or shared migration chain is allowed.
-
-Keep deterministic business rules/types separate from application use cases/ports and external adapters. Wire adapters at one composition entry point. Introduce only directories that contain real responsibilities; the repository does not pre-generate empty layers. See the architecture and folder guides for language-specific layouts.
-
-## Deliverables
-
-- [ ] Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.
-- [ ] Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.
-- [ ] Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation.
-- [ ] Update the local README/configuration and CHANGELOG.md with actual behavior and limitations.
-
-## Acceptance criteria
-
-- [ ] Tamil/English/code-mixed amount/negation fixtures preserve original input and flag ambiguity rather than authorizing a financial action.
-- [ ] Provider outage, malformed output, consent and retention controls pass locally; secrets never reach browser bundles or fixtures.
-- [ ] All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required.
-
-## Planned local commands
-
-The owning task must implement and document dependency setup, a local run/preview command where applicable, and this check target. It does not exist yet:
+Requires `uv` on PATH. No sibling Sentinel service, shared lockfile, PostgreSQL, browser bundle, or live `SARVAM_API_KEY`.
 
 ```sh
 make -C services/voice check
 ```
 
-Run root `make check` as well. Root checks validate repository metadata and tools; they do not implement or substitute for this component's behavior tests. External provider credentials are optional for local fixture checks.
+Runs lockfile sync, ruff, then pytest (unit + HTTP/client/live-adapter negatives). Observed mode: `fixture`.
 
-## Test and failure requirements
+## Run locally
 
-- Exercise observable acceptance behavior and meaningful invalid, unavailable, malformed and unauthorized boundary cases.
-- Use real PostgreSQL tests for financial locking/transactions, durable checkpoints or other database behavior that an in-memory double cannot establish.
-- Label fixtures/simulated providers/fake or live inference precisely. A real-peer adapter must not silently convert peer failure into fixture success.
-- Confirm the module works with sibling implementations absent and record exactly which local doubles/databases were used.
+```sh
+cp services/voice/.env.example services/voice/.env   # documentation only; no secrets
+make -C services/voice preview
+# listens on VOICE_HOST/VOICE_PORT (default 127.0.0.1:8017)
 
-## Evidence and review
+make -C services/voice client
+# in-process fixture client example (no web app)
+```
 
-- Exact standalone setup/check commands, actual results and pinned contract baseline hash.
-- Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.
-- PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status.
+Synthetic bearer: `voice-demo-token` from `contracts/principals.json`.
 
-Open a PR targeting main with `Refs #<issue>` and the PR template. Update the issue to review. Owner review/merge and accepted standalone evidence close the component issue. Agents never push main, merge or enable auto-merge.
+## Routes
 
-## Assembly limits
+| Method | Path | Auth | Notes |
+| --- | --- | --- | --- |
+| GET | `/healthz` | none | liveness |
+| GET | `/readyz` | none | labels `mode`; fixture readiness includes `fixture_label` |
+| GET | `/v1/capabilities` | none | `contract_version`, `component=voice`, `mode`, `port=voice.v1` |
+| POST | `/v1/transcribe` | voice bearer | `{language, audio_uri\|text, consent}` → `{original_text, language, ambiguous, reason_codes}` |
+| POST | `/v1/speak` | voice bearer | optional TTS; fixture returns labeled `fixture://tts/...` URI |
 
-- A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.
-- Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence.
+Exactly one of `audio_uri` or `text`. `consent=false` → 403. Provider outage/malformed audio fixtures → 503/422 with `TEXT_FALLBACK_AVAILABLE` so callers switch to text.
+
+## Layout
+
+```text
+services/voice/
+  src/sentinel_voice/
+    domain/            # ambiguity, consent/retention, reason codes
+    application/       # TranscribeVoice, SpeakVoice + ports
+    adapters/          # FastAPI, tokens, fixture/live Sarvam, redaction, retention
+    client.py          # typed standalone client
+    examples/          # in-process client example
+    bootstrap.py
+  contracts/           # principals, request/result snapshots, compatibility checklist
+  fixtures/sarvam/     # labeled STT fixtures (evidence_mode=fixture)
+  tests/unit|contract
+```
+
+## Modes
+
+| Mode | How | Notes |
+| --- | --- | --- |
+| `fixture` (default) | local JSON under `fixtures/sarvam/` | used by `make check` |
+| `real-peers` | `VOICE_MODE=real-peers` + `SARVAM_API_KEY` | refuses missing key; never silent fixture fallback |
+
+## Evidence limits
+
+- Standalone fixture check only. Live Sarvam / assembled web-shell slot unverified here.
+- No production credentials, browser secret bundles, real-money authority, or ledger writes.
+- Retention default `none` stores nothing; `ephemeral`/`restricted` are in-process only.
