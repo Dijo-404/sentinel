@@ -1,0 +1,15 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "workflow_name": "duplicate_payment",
+  "workflow_version": "duplicate_payment.v1",
+  "policy_version": "demo-policy-v1",
+  "evidence_mapper_version": "evidence-mapper.v1",
+  "model_adapter_version": "fake-model.v1",
+  "verifier_version": "verifier.v1",
+  "indic_context_version": "indic-context.v1",
+  "schema_version": "1.0",
+  "allowed_action_types": ["REQUEST_REFUND"],
+  "max_model_calls": 4,
+  "max_read_tool_calls": 12,
+  "max_investigation_seconds": 20
+}

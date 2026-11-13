@@ -1,89 +1,63 @@
-# SN-022 — Build an independent shadow and sandbox harness runtime
+# SN-022 — Independent shadow and sandbox harness runtime
 
-**State:** scaffold and task instructions only. No implementation, dependency installation, module check target or product result is claimed.
+**State:** Implemented standalone `finharness-runtime.v1` with local fixture peers. Real-peer assembly unverified.
 
-**Owned root:** `services/finharness-runtime/`
-**Branch:** `feat/sn-022-harness-runtime`
+**Owned root:** `services/finharness-runtime/`  
+**Branch:** `feat/sn-022-harness-runtime`  
 **Lane:** A · **Phase:** 2 · **Priority:** P1 · **Optional for MVP:** yes
 
 ## Outcome
 
-Implement pinned-case runtime and injected SDK-compatible/model/safety ports with local doubles. Add read-only shadow comparison, restart behavior and guarded sandbox routing; no existing application, extracted SDK or Phase 1 merge is required.
+Pinned-case FinHarness runtime with injected SDK-compatible/model/safety ports and local doubles. Supports read-only shadow comparison, restart-safe version pins, guarded sandbox routing, and unknown-action reconciliation without becoming a second ledger.
 
-## Independence
-
-No task-completion prerequisites. This module must install, run its local checks, and be reviewable with every other Sentinel task implementation absent. Use explicit local port doubles rather than another developer's server or an unfinished sibling import. Phase and task number do not establish build order.
-
-Read [root agent rules](../../AGENTS.md), [claim/PR workflow](../../CONTRIBUTING.md), [architecture](../../docs/architecture.md), and [testing](../../docs/testing.md). The [task register](../../docs/task-register.md) links the live issue once published.
-
-## Ownership and interfaces
-
-- `services/finharness-runtime/**`
-
-- Produces: `finharness-runtime.v1`
-- Consumes: `finharness-sdk.v1`, `indic-context.v1`, `evidence.v1`, `policy.v1`, `action-ledger.v1`, `verifier.v1`
-- Optional consumed interfaces: None
-
-Contract input: [baseline](../../docs/independent-task-contracts.md) · `sentinel.task-contracts.v1` · SHA-256 `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`.
-
-Implement the exact supplied routes, request/response types, auth context, canonical digest and state/idempotency behavior for the relevant ports. Keep typed snapshots and compatibility examples in this module. The contract-checker/SDK implementation is not required.
-
-### Required local peer doubles
-
-- `finharness-sdk.v1` under `tests/stubs/`: valid, unavailable, malformed, unauthorized_or_out_of_scope.
-- `indic-context.v1` under `tests/stubs/`: valid, unavailable, malformed, unauthorized_or_out_of_scope.
-- `evidence.v1` under `tests/stubs/`: valid, unavailable, malformed, unauthorized_or_out_of_scope.
-- `policy.v1` under `tests/stubs/`: valid, unavailable, malformed, unauthorized_or_out_of_scope.
-- `action-ledger.v1` under `tests/stubs/`: valid, unavailable, malformed, unauthorized_or_out_of_scope.
-- `verifier.v1` under `tests/stubs/`: valid, unavailable, malformed, unauthorized_or_out_of_scope.
-
-## Implementation layout
-
-Baseline category: Python service/library/tool.
-
-Use module-local dependency declarations and a reproducible lockfile, configuration example, tests, README and changelog. Stateful components own local migrations and a test database. No root application install or shared migration chain is allowed.
-
-Keep deterministic business rules/types separate from application use cases/ports and external adapters. Wire adapters at one composition entry point. Introduce only directories that contain real responsibilities; the repository does not pre-generate empty layers. See the architecture and folder guides for language-specific layouts.
-
-## Deliverables
-
-- [ ] Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.
-- [ ] Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.
-- [ ] Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation.
-- [ ] Update the local README/configuration and CHANGELOG.md with actual behavior and limitations.
-
-## Acceptance criteria
-
-- [ ] Local shadow execution has no write adapter/credentials/notification capability and cannot send a second refund.
-- [ ] Version pinning, new-case rollout/rollback and unknown-action reconciliation tests survive switch changes/restart; real adapters fail closed when peers are absent.
-- [ ] All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required.
-
-## Planned local commands
-
-The owning task must implement and document dependency setup, a local run/preview command where applicable, and this check target. It does not exist yet:
+## Standalone setup
 
 ```sh
-make -C services/finharness-runtime check
+cd services/finharness-runtime
+make setup          # uv sync --frozen
+make check          # ruff + pytest
+make preview        # fixture self-check CLI
 ```
 
-Run root `make check` as well. Root checks validate repository metadata and tools; they do not implement or substitute for this component's behavior tests. External provider credentials are optional for local fixture checks.
+Requires Python ≥3.11 and [uv](https://github.com/astral-sh/uv). No sibling Sentinel services, root lockfile, or PostgreSQL for the local check.
 
-## Test and failure requirements
+Contract baseline: `sentinel.task-contracts.v1` · SHA-256 `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`.
 
-- Exercise observable acceptance behavior and meaningful invalid, unavailable, malformed and unauthorized boundary cases.
-- Use real PostgreSQL tests for financial locking/transactions, durable checkpoints or other database behavior that an in-memory double cannot establish.
-- Label fixtures/simulated providers/fake or live inference precisely. A real-peer adapter must not silently convert peer failure into fixture success.
-- Confirm the module works with sibling implementations absent and record exactly which local doubles/databases were used.
+## Behavior
 
-## Evidence and review
+| Mode | Writes | Notifications | Notes |
+| --- | --- | --- | --- |
+| `legacy` | n/a | n/a | Routing off; new cases not pinned |
+| `shadow` | never | never | Read-only proposal comparison; no write adapter/credentials |
+| `harness` | only if `financial_writes=true` | only if explicitly enabled | Sandbox-tenant gated; SN-009 remains authority |
 
-- Exact standalone setup/check commands, actual results and pinned contract baseline hash.
-- Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.
-- PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status.
+- **Pinning:** `start_case` records `runtime_version` + workflow pin. Survives config switch and process restart (`JsonCaseStore`).
+- **Rollout/rollback:** `rollout_percent` affects **new** cases only. In-flight pins stay.
+- **Shadow:** Compares candidate vs baseline proposal. Probes prove refund write / notify / credential paths are denied. Cannot send a second refund.
+- **Reconcile:** `reconcile_unknown` queries the **original** `provider_ref`. Kill switch does not stop reconciliation; never mints a new refund ID.
 
-Open a PR targeting main with `Refs #<issue>` and the PR template. Update the issue to review. Owner review/merge and accepted standalone evidence close the component issue. Agents never push main, merge or enable auto-merge.
+## Local peer doubles
 
-## Assembly limits
+Under `tests/stubs/` (valid / unavailable / malformed / unauthorized_or_out_of_scope):
 
-- A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.
-- Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence.
+- `finharness-sdk.v1`, `indic-context.v1`, `evidence.v1`, `policy.v1`, `action-ledger.v1`, `verifier.v1`
+
+Real adapters in `adapters/real_peers.py` fail closed when base URLs are absent — no silent fixture fallback. See `contracts/COMPATIBILITY.md`.
+
+## Layout
+
+```text
+src/sentinel_finharness_runtime/
+  domain/          # config, pins, comparison rules
+  application/     # FinHarnessRuntime use cases + ports
+  adapters/        # store, shadow safety, fixture/real peers, composition
+contracts/         # finharness-runtime.v1 snapshot + checklist
+fixtures/          # case manifest + baseline proposal
+tests/stubs/       # required local peer doubles
+```
+
+## Evidence limits
+
+- Local `make check` uses fixture peers only (`evidence_mode: fixture`).
+- Not product release evidence. Real-peer / simulator / live-model / assembly remain unverified.
+- This module owns **no** financial tables; SN-009 `action-ledger.v1` is sole authority.
