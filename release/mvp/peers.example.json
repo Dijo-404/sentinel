@@ -1,0 +1,6 @@
+{
+  "core-assembly.v1": "contracts/peers/core-assembly.valid.json",
+  "evaluation.v1": "contracts/peers/evaluation.valid.json",
+  "replay.v1": "contracts/peers/replay.valid.json",
+  "telemetry.v1": "contracts/peers/telemetry.valid.json"
+}

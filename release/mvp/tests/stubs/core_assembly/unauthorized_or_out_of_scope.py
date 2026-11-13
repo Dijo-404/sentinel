@@ -1,0 +1,3 @@
+from sentinel_release_mvp.adapters.peer_stubs import StubPeerRunner
+
+RUNNER = StubPeerRunner("core-assembly.v1", case="unauthorized_or_out_of_scope")

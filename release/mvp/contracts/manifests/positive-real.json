@@ -1,0 +1,124 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "manifest_id": "mvp-positive-real-1",
+  "observed_at": "2026-11-13T12:00:00Z",
+  "baseline_contract_sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa",
+  "component_under_test": "real",
+  "payment_provider": "simulator",
+  "model": "fake",
+  "components": [
+    {
+      "component": "core-assembly",
+      "port": "core-assembly.v1",
+      "component_version": "0.1.0",
+      "component_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0",
+      "contract_sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa",
+      "check_command": "make -C integration/core check",
+      "check_result": "PASS",
+      "artifact_digest": "002873e4ce607d4233507c762626f4a822efc81868b43b34319ffcb29077bcc5",
+      "artifact_uri": "file://core-assembly.txt",
+      "observed_mode": "real-peers",
+      "evidence_mode": "real-component",
+      "observed_at": "2026-11-13T12:00:00Z"
+    },
+    {
+      "component": "evaluation",
+      "port": "evaluation.v1",
+      "component_version": "0.1.0",
+      "component_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1",
+      "contract_sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa",
+      "check_command": "make -C evals/core check",
+      "check_result": "PASS",
+      "artifact_digest": "ca2695d70e03fe58e059eeffe3fe260a8b672651d374b2243dd1f748bd4cb4b3",
+      "artifact_uri": "file://evaluation.txt",
+      "observed_mode": "real-peers",
+      "evidence_mode": "real-component",
+      "observed_at": "2026-11-13T12:00:00Z"
+    },
+    {
+      "component": "replay",
+      "port": "replay.v1",
+      "component_version": "0.1.0",
+      "component_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2",
+      "contract_sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa",
+      "check_command": "make -C replay/core check",
+      "check_result": "PASS",
+      "artifact_digest": "8502cdf184808ee9a4c55c1b6fcac2088381ae42879e2683cb1e359050e64ec0",
+      "artifact_uri": "file://replay.txt",
+      "observed_mode": "real-peers",
+      "evidence_mode": "real-component",
+      "observed_at": "2026-11-13T12:00:00Z"
+    },
+    {
+      "component": "telemetry",
+      "port": "telemetry.v1",
+      "component_version": "0.1.0",
+      "component_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3",
+      "contract_sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa",
+      "check_command": "make -C packages/telemetry check",
+      "check_result": "PASS",
+      "artifact_digest": "dbf032ffdbc53e9954c293f83691a14d0398cc4e9ef173516fe91080317b2547",
+      "artifact_uri": "file://telemetry.txt",
+      "observed_mode": "real-peers",
+      "evidence_mode": "real-component",
+      "observed_at": "2026-11-13T12:00:00Z"
+    }
+  ],
+  "required_checks": [
+    {
+      "name": "journey_duplicate_payment",
+      "status": "PASS",
+      "reason_code": "OK"
+    },
+    {
+      "name": "journey_partial_fulfillment",
+      "status": "PASS",
+      "reason_code": "OK"
+    },
+    {
+      "name": "journey_wrong_item",
+      "status": "PASS",
+      "reason_code": "OK"
+    },
+    {
+      "name": "journey_cancelled_order",
+      "status": "PASS",
+      "reason_code": "OK"
+    },
+    {
+      "name": "tenant_approval_boundary",
+      "status": "PASS",
+      "reason_code": "OK"
+    },
+    {
+      "name": "postgres_concurrency",
+      "status": "PASS",
+      "reason_code": "OK"
+    },
+    {
+      "name": "timeout_recovery",
+      "status": "PASS",
+      "reason_code": "OK"
+    },
+    {
+      "name": "webhook_recheck",
+      "status": "PASS",
+      "reason_code": "OK"
+    },
+    {
+      "name": "trace_correlation",
+      "status": "PASS",
+      "reason_code": "OK"
+    },
+    {
+      "name": "evaluation_report",
+      "status": "PASS",
+      "reason_code": "OK"
+    },
+    {
+      "name": "replay_promotion",
+      "status": "PASS",
+      "reason_code": "OK"
+    }
+  ]
+}
