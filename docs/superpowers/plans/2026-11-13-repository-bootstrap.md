@@ -47,7 +47,7 @@
 - [x] Obtain one independent review of the whole setup. Correct important findings and rerun focused checks.
 - [ ] Commit the explicitly reviewed initial file set and push the accepted bootstrap to `main` without force-pushing.
 - [ ] Publish missing planning labels and the 26 independent, detailed task issues as ready and unassigned. Checkpoint the issue map and update the task register.
-- [ ] Publish task issue references through a setup PR if further tracked changes are needed. Do not merge that PR automatically.
+- [x] Include real task issue references in the final local bootstrap commit before the first push; no setup PR merge is needed.
 - [ ] Verify actual GitHub issue counts/statuses, main, and CI. Attempt supported/authorized main protection only after the required check exists; record platform limits accurately.
 
 ## Execution record
@@ -58,3 +58,5 @@
 - Ruling: create initial issues in backlog against a reviewed local baseline commit, include the resulting issue map/register in the first main push, then activate ready together. This keeps ready tasks attached to an available main and avoids a later direct push to protected main.
 - Repository tool tests: 19 passing; supplied specifications retain their intentional Markdown hard breaks.
 - Independent review found two publication defects: a supplied commit could differ from rendered inputs, and recorded issue identities were not consulted after title/marker removal. Added committed-content verification, tracked/checkpoint identity reconciliation, and regression tests; the full suite passes.
+
+- Publication: created all 26 stable task issues in backlog against the reviewed local baseline, recorded actual issue URLs, and retained unassigned ownership. Ready activation follows main publication.

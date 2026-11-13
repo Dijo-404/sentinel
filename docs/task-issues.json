@@ -1,4 +1,109 @@
 {
   "repository": "Dijo-404/sentinel",
-  "issues": {}
+  "issues": {
+    "SN-001": {
+      "number": 1,
+      "url": "https://github.com/Dijo-404/sentinel/issues/1"
+    },
+    "SN-002": {
+      "number": 2,
+      "url": "https://github.com/Dijo-404/sentinel/issues/2"
+    },
+    "SN-003": {
+      "number": 3,
+      "url": "https://github.com/Dijo-404/sentinel/issues/3"
+    },
+    "SN-004": {
+      "number": 4,
+      "url": "https://github.com/Dijo-404/sentinel/issues/4"
+    },
+    "SN-005": {
+      "number": 5,
+      "url": "https://github.com/Dijo-404/sentinel/issues/5"
+    },
+    "SN-006": {
+      "number": 6,
+      "url": "https://github.com/Dijo-404/sentinel/issues/6"
+    },
+    "SN-007": {
+      "number": 7,
+      "url": "https://github.com/Dijo-404/sentinel/issues/7"
+    },
+    "SN-008": {
+      "number": 8,
+      "url": "https://github.com/Dijo-404/sentinel/issues/8"
+    },
+    "SN-009": {
+      "number": 9,
+      "url": "https://github.com/Dijo-404/sentinel/issues/9"
+    },
+    "SN-010": {
+      "number": 10,
+      "url": "https://github.com/Dijo-404/sentinel/issues/10"
+    },
+    "SN-011": {
+      "number": 11,
+      "url": "https://github.com/Dijo-404/sentinel/issues/11"
+    },
+    "SN-012": {
+      "number": 12,
+      "url": "https://github.com/Dijo-404/sentinel/issues/12"
+    },
+    "SN-013": {
+      "number": 13,
+      "url": "https://github.com/Dijo-404/sentinel/issues/13"
+    },
+    "SN-014": {
+      "number": 14,
+      "url": "https://github.com/Dijo-404/sentinel/issues/14"
+    },
+    "SN-015": {
+      "number": 15,
+      "url": "https://github.com/Dijo-404/sentinel/issues/15"
+    },
+    "SN-016": {
+      "number": 16,
+      "url": "https://github.com/Dijo-404/sentinel/issues/16"
+    },
+    "SN-017": {
+      "number": 17,
+      "url": "https://github.com/Dijo-404/sentinel/issues/17"
+    },
+    "SN-018": {
+      "number": 18,
+      "url": "https://github.com/Dijo-404/sentinel/issues/18"
+    },
+    "SN-019": {
+      "number": 19,
+      "url": "https://github.com/Dijo-404/sentinel/issues/19"
+    },
+    "SN-020": {
+      "number": 20,
+      "url": "https://github.com/Dijo-404/sentinel/issues/20"
+    },
+    "SN-021": {
+      "number": 21,
+      "url": "https://github.com/Dijo-404/sentinel/issues/21"
+    },
+    "SN-022": {
+      "number": 22,
+      "url": "https://github.com/Dijo-404/sentinel/issues/22"
+    },
+    "SN-023": {
+      "number": 23,
+      "url": "https://github.com/Dijo-404/sentinel/issues/23"
+    },
+    "SN-024": {
+      "number": 24,
+      "url": "https://github.com/Dijo-404/sentinel/issues/24"
+    },
+    "SN-025": {
+      "number": 25,
+      "url": "https://github.com/Dijo-404/sentinel/issues/25"
+    },
+    "SN-026": {
+      "number": 26,
+      "url": "https://github.com/Dijo-404/sentinel/issues/26"
+    }
+  }
 }

@@ -1,39 +1,39 @@
 # Sentinel independent task register
 
-Status: revised proposal, not published. Existing task IDs and branch names are retained.
+Status: published to GitHub on 13 November 2026. Task IDs and branch names remain stable; GitHub owns live assignment and status.
 
 Every task has **zero completion prerequisites** and can start from the same planning baseline. Every task owns its build, contracts, stubs and tests. Phase labels describe product priority, not development order. Phase 2 tasks are optional for MVP release but can be developed now.
 
-See [tasks.json](tasks.json), the [workflow design](agent-workflow-design.md), and the supplied [contract baseline](independent-task-contracts.md). GitHub owns assignment/status after publication; every issue URL below is still unpublished.
+See [tasks.json](tasks.json), the [workflow design](agent-workflow-design.md), and the supplied [contract baseline](independent-task-contracts.md). GitHub owns live assignment/status; the issue URLs below identify the published tasks.
 
 | ID | Independent deliverable | Lane | Phase | Owned root | Prerequisites | Optional | Branch | Issue |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| SN-001 | Build standalone module tooling and CI discovery | D | 1 | `tooling/workspace/` | None | No | `feat/sn-001-workspace` | Unpublished |
-| SN-002 | Build contract conformance tooling from the supplied baseline | A | 1 | `packages/contract-checks/` | None | No | `feat/sn-002-contracts` | Unpublished |
-| SN-003 | Build an independent tenant persistence toolkit | A | 1 | `packages/persistence/` | None | No | `feat/sn-003-persistence` | Unpublished |
-| SN-004 | Build deterministic payment simulator and fault controls | B | 1 | `services/simulator/` | None | No | `feat/sn-004-simulator` | Unpublished |
-| SN-005 | Build a standalone deterministic policy service | B | 1 | `services/policy/` | None | No | `feat/sn-005-policy` | Unpublished |
-| SN-006 | Build an independent evidence and reconciliation service | B | 1 | `services/evidence/` | None | No | `feat/sn-006-evidence` | Unpublished |
-| SN-007 | Build a standalone authenticated case API | A | 1 | `apps/api/` | None | No | `feat/sn-007-case-api` | Unpublished |
-| SN-008 | Build an independent durable workflow worker | A | 1 | `services/workflow/` | None | No | `feat/sn-008-workflow` | Unpublished |
-| SN-009 | Build the authoritative financial action-ledger service | B | 1 | `services/action-ledger/` | None | No | `feat/sn-009-reservations` | Unpublished |
-| SN-010 | Build an independent refund dispatcher and recovery worker | B | 1 | `services/dispatcher/` | None | No | `feat/sn-010-dispatch-recovery` | Unpublished |
-| SN-011 | Build an independent webhook and verification service | B | 1 | `services/verifier/` | None | No | `feat/sn-011-verification` | Unpublished |
-| SN-012 | Build an independent customer and operator web shell | C | 1 | `apps/web/` | None | No | `feat/sn-012-ui-shell` | Unpublished |
-| SN-013 | Build an independently previewable approval UI package | C | 1 | `packages/approval-ui/` | None | No | `feat/sn-013-approval-ui` | Unpublished |
-| SN-014 | Build the four-journey integration harness independently | A | 1 | `integration/core/` | None | No | `feat/sn-014-core-integration` | Unpublished |
-| SN-015 | Build a standalone telemetry package and example stack | D | 1 | `packages/telemetry/` | None | No | `feat/sn-015-observability` | Unpublished |
-| SN-016 | Build an independent safety evaluation runner | D | 1 | `evals/core/` | None | No | `feat/sn-016-evaluation` | Unpublished |
-| SN-017 | Build an independent optional Tamil voice adapter | C | 1 | `services/voice/` | None | Yes | `feat/sn-017-voice` | Unpublished |
-| SN-018 | Build an independent replay and candidate-comparison runner | D | 1 | `replay/core/` | None | No | `feat/sn-018-replay` | Unpublished |
-| SN-019 | Build a standalone MVP release-evidence verification kit | D | 1 | `release/mvp/` | None | No | `feat/sn-019-mvp-acceptance` | Unpublished |
-| SN-020 | Build an independent FinHarness SDK around supplied ports | A | 2 | `packages/finharness-sdk/` | None | Yes | `feat/sn-020-finharness-extraction` | Unpublished |
-| SN-021 | Build independent Sarvam reasoning and Indic context adapters | C | 2 | `packages/indic-context/` | None | Yes | `feat/sn-021-indic-context` | Unpublished |
-| SN-022 | Build an independent shadow and sandbox harness runtime | A | 2 | `services/finharness-runtime/` | None | Yes | `feat/sn-022-harness-runtime` | Unpublished |
-| SN-023 | Build an independent FinBench-Indic dataset and CLI | D | 2 | `benchmarks/finbench_indic/` | None | Yes | `feat/sn-023-finbench` | Unpublished |
-| SN-024 | Build an independent harness telemetry extension | D | 2 | `packages/finharness-telemetry/` | None | Yes | `feat/sn-024-harness-observability` | Unpublished |
-| SN-025 | Build an independent FinHarness replay and promotion gate | B | 2 | `replay/finharness/` | None | Yes | `feat/sn-025-harness-replay` | Unpublished |
-| SN-026 | Build an independent sandbox pilot validation kit | B | 2 | `validation/sandbox-pilot/` | None | Yes | `feat/sn-026-sandbox-pilot` | Unpublished |
+| SN-001 | Build standalone module tooling and CI discovery | D | 1 | `tooling/workspace/` | None | No | `feat/sn-001-workspace` | [#1](https://github.com/Dijo-404/sentinel/issues/1) |
+| SN-002 | Build contract conformance tooling from the supplied baseline | A | 1 | `packages/contract-checks/` | None | No | `feat/sn-002-contracts` | [#2](https://github.com/Dijo-404/sentinel/issues/2) |
+| SN-003 | Build an independent tenant persistence toolkit | A | 1 | `packages/persistence/` | None | No | `feat/sn-003-persistence` | [#3](https://github.com/Dijo-404/sentinel/issues/3) |
+| SN-004 | Build deterministic payment simulator and fault controls | B | 1 | `services/simulator/` | None | No | `feat/sn-004-simulator` | [#4](https://github.com/Dijo-404/sentinel/issues/4) |
+| SN-005 | Build a standalone deterministic policy service | B | 1 | `services/policy/` | None | No | `feat/sn-005-policy` | [#5](https://github.com/Dijo-404/sentinel/issues/5) |
+| SN-006 | Build an independent evidence and reconciliation service | B | 1 | `services/evidence/` | None | No | `feat/sn-006-evidence` | [#6](https://github.com/Dijo-404/sentinel/issues/6) |
+| SN-007 | Build a standalone authenticated case API | A | 1 | `apps/api/` | None | No | `feat/sn-007-case-api` | [#7](https://github.com/Dijo-404/sentinel/issues/7) |
+| SN-008 | Build an independent durable workflow worker | A | 1 | `services/workflow/` | None | No | `feat/sn-008-workflow` | [#8](https://github.com/Dijo-404/sentinel/issues/8) |
+| SN-009 | Build the authoritative financial action-ledger service | B | 1 | `services/action-ledger/` | None | No | `feat/sn-009-reservations` | [#9](https://github.com/Dijo-404/sentinel/issues/9) |
+| SN-010 | Build an independent refund dispatcher and recovery worker | B | 1 | `services/dispatcher/` | None | No | `feat/sn-010-dispatch-recovery` | [#10](https://github.com/Dijo-404/sentinel/issues/10) |
+| SN-011 | Build an independent webhook and verification service | B | 1 | `services/verifier/` | None | No | `feat/sn-011-verification` | [#11](https://github.com/Dijo-404/sentinel/issues/11) |
+| SN-012 | Build an independent customer and operator web shell | C | 1 | `apps/web/` | None | No | `feat/sn-012-ui-shell` | [#12](https://github.com/Dijo-404/sentinel/issues/12) |
+| SN-013 | Build an independently previewable approval UI package | C | 1 | `packages/approval-ui/` | None | No | `feat/sn-013-approval-ui` | [#13](https://github.com/Dijo-404/sentinel/issues/13) |
+| SN-014 | Build the four-journey integration harness independently | A | 1 | `integration/core/` | None | No | `feat/sn-014-core-integration` | [#14](https://github.com/Dijo-404/sentinel/issues/14) |
+| SN-015 | Build a standalone telemetry package and example stack | D | 1 | `packages/telemetry/` | None | No | `feat/sn-015-observability` | [#15](https://github.com/Dijo-404/sentinel/issues/15) |
+| SN-016 | Build an independent safety evaluation runner | D | 1 | `evals/core/` | None | No | `feat/sn-016-evaluation` | [#16](https://github.com/Dijo-404/sentinel/issues/16) |
+| SN-017 | Build an independent optional Tamil voice adapter | C | 1 | `services/voice/` | None | Yes | `feat/sn-017-voice` | [#17](https://github.com/Dijo-404/sentinel/issues/17) |
+| SN-018 | Build an independent replay and candidate-comparison runner | D | 1 | `replay/core/` | None | No | `feat/sn-018-replay` | [#18](https://github.com/Dijo-404/sentinel/issues/18) |
+| SN-019 | Build a standalone MVP release-evidence verification kit | D | 1 | `release/mvp/` | None | No | `feat/sn-019-mvp-acceptance` | [#19](https://github.com/Dijo-404/sentinel/issues/19) |
+| SN-020 | Build an independent FinHarness SDK around supplied ports | A | 2 | `packages/finharness-sdk/` | None | Yes | `feat/sn-020-finharness-extraction` | [#20](https://github.com/Dijo-404/sentinel/issues/20) |
+| SN-021 | Build independent Sarvam reasoning and Indic context adapters | C | 2 | `packages/indic-context/` | None | Yes | `feat/sn-021-indic-context` | [#21](https://github.com/Dijo-404/sentinel/issues/21) |
+| SN-022 | Build an independent shadow and sandbox harness runtime | A | 2 | `services/finharness-runtime/` | None | Yes | `feat/sn-022-harness-runtime` | [#22](https://github.com/Dijo-404/sentinel/issues/22) |
+| SN-023 | Build an independent FinBench-Indic dataset and CLI | D | 2 | `benchmarks/finbench_indic/` | None | Yes | `feat/sn-023-finbench` | [#23](https://github.com/Dijo-404/sentinel/issues/23) |
+| SN-024 | Build an independent harness telemetry extension | D | 2 | `packages/finharness-telemetry/` | None | Yes | `feat/sn-024-harness-observability` | [#24](https://github.com/Dijo-404/sentinel/issues/24) |
+| SN-025 | Build an independent FinHarness replay and promotion gate | B | 2 | `replay/finharness/` | None | Yes | `feat/sn-025-harness-replay` | [#25](https://github.com/Dijo-404/sentinel/issues/25) |
+| SN-026 | Build an independent sandbox pilot validation kit | B | 2 | `validation/sandbox-pilot/` | None | Yes | `feat/sn-026-sandbox-pilot` | [#26](https://github.com/Dijo-404/sentinel/issues/26) |
 
 ## Independence checklist
 
