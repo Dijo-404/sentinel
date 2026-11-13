@@ -1,0 +1,40 @@
+{
+  "port": "evidence.v1",
+  "contract_version": "sentinel.task-contracts.v1",
+  "contract_sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa",
+  "routes": [
+    {
+      "method": "POST",
+      "path": "/v1/evidence/collect",
+      "request": {"case_id": "string", "case_revision": "int", "order_reference": "string"},
+      "response": "EvidenceBundle",
+      "roles": ["workflow", "verifier"]
+    },
+    {
+      "method": "GET",
+      "path": "/v1/cases/{case_id}/evidence",
+      "request": null,
+      "response": "EvidenceBundle",
+      "roles": ["workflow", "verifier", "operator", "supervisor"]
+    }
+  ],
+  "reconciliation_codes": [
+    "EQUAL_AMOUNTS_INSUFFICIENT",
+    "DISTINCT_TRANSACTION_REFS",
+    "MERCHANT_CONFIRMED_DUPLICATE",
+    "ORDER_UNDERFULFILLED",
+    "DUPLICATE_PAYMENT",
+    "REFUND_PENDING",
+    "REFUND_PROVIDER_CONFIRMED",
+    "REFUND_FAILED_FINAL",
+    "STALE_PROVIDER_SNAPSHOT",
+    "CONFLICTING_SUBJECT",
+    "CONFLICTING_PAYMENT_RECORD"
+  ],
+  "notes": [
+    "Equal amount_minor values alone never emit DUPLICATE_PAYMENT.",
+    "DUPLICATE_PAYMENT requires DISTINCT_TRANSACTION_REFS, MERCHANT_CONFIRMED_DUPLICATE, and ORDER_UNDERFULFILLED.",
+    "Digest is SHA-256 of retained original UTF-8 snapshot bytes.",
+    "Real-peer mode rejects unavailable, malformed, unauthorized peers with no fixture fallback."
+  ]
+}
