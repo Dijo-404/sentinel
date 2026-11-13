@@ -7,7 +7,7 @@ This file tracks coordinated repository/release changes. Each independent module
 ### Changed — 14 November 2026
 
 - Refreshed root README, architecture, and repository-structure docs for thirty-four implemented modules (SN-001–034), including merchant-ops ports.
-- Updated module `AGENTS.md` / README / changelog / compatibility notes to the current contract pin `0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb` and to describe implemented `make check` targets.
+- Updated module guides, compatibility notes, embedded pins, and `packages/contract-checks` baseline copy to contract pin `0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb`, and describe implemented `make check` targets.
 - Clarified roadmap: components are on `main`; local MVP wiring, assembled journey evidence, and strict release remain open.
 
 ### Added — 13 November 2026

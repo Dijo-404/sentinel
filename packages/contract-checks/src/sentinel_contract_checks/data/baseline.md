@@ -128,6 +128,14 @@ These are required baseline ports, not installed endpoints. Stateful/service imp
 | `harness-telemetry.v1` | SN-024 `packages/finharness-telemetry/` | Injected sanitized runtime/evaluation/audit correlation records; bounded metrics and versioned export/dashboard examples. |
 | `harness-replay.v1` | SN-025 `replay/finharness/` | Pinned context/runtime runner and synthetic fault schedule; state/effect comparison and mandatory safety promotion gate. |
 | `sandbox-validation.v1` | SN-026 `validation/sandbox-pilot/` | Configured component endpoints and evidence; load/restart/restore/rollback/second-workflow test plan and measured report. Actual external pilot execution requires separate authorization. |
+| `merchant-settlement.v1` | SN-027 `services/merchant-settlement/` | Import synthetic settlement batches; match payments/orders; emit discrepancy findings (missing, duplicate, fee_diff, short_settle). Read-only vs payment/evidence peers; no provider writes. |
+| `merchant-inbox.v1` | SN-028 `services/merchant-inbox/` | Merchant exception queue: paid-unfulfilled, unmatched payment, pending refund; filter, assign, note, escalate. Escalation is not resolution. |
+| `merchant-refunds.v1` | SN-029 `services/merchant-refunds/` | Merchant-staff refund requests with evidence attachments; propose via policy/ledger ports only. No second executor; SN-009 remains sole financial authority. |
+| `merchant-disputes.v1` | SN-030 `services/merchant-disputes/` | Dispute case lifecycle, evidence packet assembly, deadline tracking; no ledger table edits. |
+| `merchant-sla.v1` | SN-031 `services/merchant-sla/` | Response/resolution targets, assignment, overdue highlighting, follow-up scheduling; escalation distinct from verified closure. |
+| `merchant-analytics.v1` | SN-032 `services/merchant-analytics/` | Merchant-scoped aggregate metrics: exception rates, unresolved amounts, refund aging, handling time, recurring causes. Read-only. |
+| `merchant-comms.v1` | SN-033 `packages/merchant-comms/` | English/Tamil/Hindi status draft generation with operator approval gate and simulated delivery history; no financial authority. |
+| `merchant-teams.v1` | SN-034 `services/merchant-teams/` | Merchant-scoped staff accounts, roles, advisory approval limits, activity timeline. Limits never bypass ledger/policy authorization. |
 
 ## Required standalone proof
 
@@ -405,3 +413,56 @@ Use a virtual clock and separately configured synthetic scoped principals to exe
   }
 }
 ```
+
+## Merchant operations ports (synthetic / simulator-backed)
+
+These ports support merchant operations consoles against synthetic settlement and case data. They never move real money, store production credentials, or write SN-009 ledger tables. Refund proposals call `action-ledger.v1` / `policy.v1` through authenticated adapters; advisory merchant approval limits cannot authorize financial actions.
+
+```text
+SettlementBatch = { batch_id: string, tenant_id: string, merchant_ref: string,
+                    period_start: string, period_end: string, currency: string,
+                    rows: SettlementRow[], source_digest: string }
+SettlementRow = { row_id: string, transaction_ref: string, order_ref?: string,
+                  settled_minor: int, fee_minor: int, occurred_at: string }
+SettlementFinding = { finding_id: string, batch_id: string, kind:
+                      "MISSING_PAYMENT" | "MISSING_SETTLEMENT" | "DUPLICATE_ROW" |
+                      "FEE_DIFF" | "SHORT_SETTLE" | "UNMATCHED_ORDER",
+                      transaction_ref?: string, expected_minor?: int,
+                      observed_minor?: int, evidence_ids: string[], status:
+                      "OPEN" | "ASSIGNED" | "ESCALATED" | "CLOSED" }
+ExceptionItem = { item_id: string, tenant_id: string, merchant_ref: string,
+                  kind: "PAID_UNFULFILLED" | "UNMATCHED_PAYMENT" | "PENDING_REFUND",
+                  case_id?: string, transaction_ref?: string, amount_minor: int,
+                  currency: string, assignee?: string, notes: string[],
+                  status: "OPEN" | "ASSIGNED" | "ESCALATED" | "CLOSED" }
+MerchantRefundRequest = { request_id: string, tenant_id: string, merchant_ref: string,
+                          case_id: string, transaction_ref: string, amount_minor: int,
+                          currency: string, evidence_ids: string[], rationale: string,
+                          status: "DRAFT" | "SUBMITTED" | "AWAITING_APPROVAL" |
+                          "RESERVED" | "REJECTED" | "VERIFIED" | "FAILED",
+                          action_id?: string, approval_id?: string }
+DisputeCase = { dispute_id: string, tenant_id: string, merchant_ref: string,
+                case_id: string, reason_code: string, deadline_at: string,
+                evidence_packet_ids: string[], status:
+                "OPEN" | "EVIDENCE_PENDING" | "SUBMITTED" | "WON" | "LOST" | "WITHDRAWN" }
+SlaPolicy = { policy_id: string, tenant_id: string, merchant_ref: string,
+              respond_within_seconds: int, resolve_within_seconds: int }
+SlaTask = { task_id: string, case_id: string, assignee?: string,
+            due_at: string, follow_up_at?: string, overdue: bool,
+            status: "OPEN" | "IN_PROGRESS" | "ESCALATED" | "DONE" }
+MerchantMetrics = { tenant_id: string, merchant_ref: string, window_start: string,
+                    window_end: string, exception_rate: string, unresolved_minor: int,
+                    currency: string, refund_aging_buckets: { [bucket: string]: int },
+                    median_handling_seconds: int, top_causes: string[] }
+CommsDraft = { draft_id: string, case_id: string, language: "en" | "ta" | "hi",
+               body: string, status: "DRAFT" | "APPROVED" | "SIMULATED_SENT" | "REJECTED",
+               delivery_history: { at: string, channel: string, status: string }[] }
+MerchantStaff = { staff_id: string, tenant_id: string, merchant_ref: string,
+                  display_name: string, roles: string[],
+                  approval_limit_minor?: int, currency?: string, active: bool }
+StaffActivity = { event_id: string, staff_id: string, at: string,
+                  kind: string, subject_ref: string, summary: string }
+```
+
+HTTP/library ports accept authenticated merchant-scoped principals. Money fields remain integer minor units. Missing/unauthorized/malformed peers fail closed. Fixture mode is labeled; real-peer mode never falls back to fixtures.
+

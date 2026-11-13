@@ -1,6 +1,6 @@
 {
   "contract_version": "sentinel.task-contracts.v1",
-  "contract_sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa",
+  "contract_sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb",
   "canonical_action_utf8": "{\"action\":\"REQUEST_REFUND\",\"amount_minor\":150000,\"case_id\":\"case-demo-42\",\"case_revision\":1,\"currency\":\"INR\",\"destination\":\"ORIGINAL_PAYMENT_ROUTE\",\"evidence_ids\":[\"evidence-payment-b\",\"evidence-order\"],\"policy_version\":\"demo-policy-v1\",\"transaction_ref\":\"TXN-B\"}",
   "expected_sha256": "d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993"
 }
