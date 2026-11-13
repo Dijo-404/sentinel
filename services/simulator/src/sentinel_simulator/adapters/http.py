@@ -57,7 +57,10 @@ def mount_routes(
     simulator: PaymentSimulator,
     tokens: TokenMap,
     mode: str = "fixture",
+    payment_provider: str = "simulator",
 ) -> None:
+    resolved_mode = mode if mode in {"fixture", "real-peers"} else "fixture"
+
     def principal_from(request: Request):
         return tokens.resolve(request.headers.get("authorization"))
 
@@ -72,14 +75,20 @@ def mount_routes(
 
     @app.get("/readyz")
     def readyz() -> dict[str, str]:
-        return {"status": "ready", "mode": mode, "evidence_mode": "fixture"}
+        # evidence_mode stays fixture/synthetic; never claim live rails.
+        return {
+            "status": "ready",
+            "mode": resolved_mode,
+            "evidence_mode": "fixture",
+            "payment_provider": payment_provider,
+        }
 
     @app.get("/v1/capabilities")
     def capabilities() -> dict[str, str]:
         return {
             "contract_version": CONTRACT_VERSION,
             "component": COMPONENT,
-            "mode": mode if mode in {"fixture", "real-peers"} else "fixture",
+            "mode": resolved_mode,
         }
 
     @app.get("/v1/transactions")
@@ -145,6 +154,16 @@ def mount_routes(
         except DomainError as exc:
             return _map_error(exc, request_id)
 
+    @app.get("/v1/settlements/{provider_ref}")
+    def settlement_by_ref(provider_ref: str, request: Request) -> Any:
+        """ProviderAdapter settlement/credit evidence surface (alias of credits)."""
+        request_id = _request_id(request)
+        try:
+            maybe_delay()
+            return simulator.get_settlement(principal_from(request), provider_ref).to_dict()
+        except DomainError as exc:
+            return _map_error(exc, request_id)
+
     @app.get("/v1/admin/faults")
     def get_faults(request: Request) -> Any:
         request_id = _request_id(request)
@@ -169,6 +188,51 @@ def mount_routes(
         request_id = _request_id(request)
         try:
             return simulator.reset_faults(principal_from(request)).to_dict()
+        except DomainError as exc:
+            return _map_error(exc, request_id)
+
+    @app.post("/v1/admin/faults/schedules/{name}")
+    def apply_fault_schedule(name: str, request: Request) -> Any:
+        request_id = _request_id(request)
+        try:
+            return simulator.apply_fault_schedule(principal_from(request), name).to_dict()
+        except DomainError as exc:
+            return _map_error(exc, request_id)
+
+    @app.post("/v1/admin/seeds/{pack}")
+    def load_seed_pack(pack: str, request: Request) -> Any:
+        request_id = _request_id(request)
+        try:
+            return simulator.load_seed_pack(principal_from(request), pack)
+        except DomainError as exc:
+            return _map_error(exc, request_id)
+
+    @app.post("/v1/admin/demo-reset")
+    def demo_reset(request: Request) -> Any:
+        request_id = _request_id(request)
+        try:
+            return simulator.demo_reset(principal_from(request))
+        except DomainError as exc:
+            return _map_error(exc, request_id)
+
+    @app.post("/v1/admin/webhooks/emit")
+    async def emit_webhook(request: Request) -> Any:
+        request_id = _request_id(request)
+        try:
+            body = await request.json()
+            if not isinstance(body, dict):
+                raise ValidationError("request body must be a JSON object")
+            provider_ref = body.get("provider_ref")
+            if not isinstance(provider_ref, str) or not provider_ref:
+                raise ValidationError("provider_ref must be a nonempty string")
+            event_type = body.get("type", "REFUND_STATUS")
+            if not isinstance(event_type, str):
+                raise ValidationError("type must be a string")
+            return simulator.emit_signed_webhook(
+                principal_from(request),
+                provider_ref=provider_ref,
+                event_type=event_type,
+            )
         except DomainError as exc:
             return _map_error(exc, request_id)
 

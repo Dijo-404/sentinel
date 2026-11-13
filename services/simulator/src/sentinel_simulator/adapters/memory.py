@@ -18,11 +18,15 @@ class InMemoryStore:
         *,
         orders: dict[str, Order] | None = None,
         payments: dict[str, Payment] | None = None,
+        refunds: dict[str, Refund] | None = None,
         clock: SimulatorClock | None = None,
     ) -> None:
-        self._orders = dict(orders or {})
-        self._payments = dict(payments or {})
-        self._refunds: dict[str, Refund] = {}
+        self._seed_orders = dict(orders or {})
+        self._seed_payments = dict(payments or {})
+        self._seed_refunds = dict(refunds or {})
+        self._orders = dict(self._seed_orders)
+        self._payments = dict(self._seed_payments)
+        self._refunds: dict[str, Refund] = dict(self._seed_refunds)
         self._credits: dict[str, Credit] = {}
         self._stats: dict[str, RefundStats] = {}
         self._events: list[ProviderEvent] = []
@@ -76,3 +80,26 @@ class InMemoryStore:
 
     def clock(self) -> SimulatorClock:
         return self._clock
+
+    def replace_seed(
+        self,
+        *,
+        orders: dict[str, Order],
+        payments: dict[str, Payment],
+        refunds: dict[str, Refund] | None = None,
+    ) -> None:
+        self._seed_orders = dict(orders)
+        self._seed_payments = dict(payments)
+        self._seed_refunds = dict(refunds or {})
+        self.reset_runtime()
+
+    def reset_runtime(self) -> None:
+        """Restore seeded fixtures; clear ephemeral refunds/credits/events/faults."""
+        self._orders = dict(self._seed_orders)
+        self._payments = dict(self._seed_payments)
+        self._refunds = dict(self._seed_refunds)
+        self._credits = {}
+        self._stats = {}
+        self._events = []
+        self._faults.reset()
+        self._clock = SimulatorClock()

@@ -8,12 +8,24 @@ def test_capabilities_and_health(client) -> None:
     ready = client.get("/readyz").json()
     assert ready["status"] == "ready"
     assert ready["evidence_mode"] == "fixture"
+    assert ready["payment_provider"] == "simulator"
+    assert ready["mode"] == "fixture"
     caps = client.get("/v1/capabilities").json()
     assert caps == {
         "contract_version": "sentinel.task-contracts.v1",
         "component": "sentinel-simulator",
         "mode": "fixture",
     }
+
+
+def test_real_peers_mode_still_labels_simulator(real_peers_client) -> None:
+    ready = real_peers_client.get("/readyz").json()
+    assert ready["mode"] == "real-peers"
+    assert ready["evidence_mode"] == "fixture"
+    assert ready["payment_provider"] == "simulator"
+    caps = real_peers_client.get("/v1/capabilities").json()
+    assert caps["mode"] == "real-peers"
+    assert "live" not in caps.values()
 
 
 def test_unauthorized_and_wrong_role(client) -> None:

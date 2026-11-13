@@ -2,9 +2,18 @@
 
 ## Unreleased
 
+### Added — 14 November 2026 (Refs #79)
+
+- V1 sandbox hardening: `SIMULATOR_MODE=real-peers` for assembly probes while `readyz` keeps `payment_provider=simulator` and `evidence_mode=fixture` (never live).
+- Journey seed packs: `pending`, `merchant_mismatch`, `duplicate_payment` (₹1500 / 150000), `refund_pending`; fault schedules `timeout-after-accept`, `duplicate-webhook`, `out-of-order`.
+- ProviderAdapter surface docs + `GET /v1/settlements/{provider_ref}` credit alias; signed webhook emit (`SIMULATOR_WEBHOOK_HMAC_KEY` shared with verifier).
+- `demo-reset` CLI/admin gated to `SIMULATOR_SANDBOX=true` and tenant `tenant-demo` only.
+- Default sandbox tenant `tenant-demo`; admin seed/fault CLI helpers.
+
 ### Changed — 14 November 2026
 
-- Default tenant `tenant-demo`; canonical tokens `tok-workflow` / `tok-verifier` / `tok-dispatcher` / `tok-sandbox-admin` (legacy `*-demo` aliases kept). Refs #77.
+- Canonical tokens `tok-workflow` / `tok-verifier` / `tok-dispatcher` / `tok-sandbox-admin` (legacy `*-demo` aliases kept). Refs #77.
+
 
 ### Added — 13 November 2026
 
