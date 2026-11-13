@@ -1,0 +1,40 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "baseline_sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa",
+  "port": "finharness-runtime.v1",
+  "boundary": "optional-service-injected-ports",
+  "consumes": [
+    "finharness-sdk.v1",
+    "indic-context.v1",
+    "evidence.v1",
+    "policy.v1",
+    "action-ledger.v1",
+    "verifier.v1"
+  ],
+  "produces": ["finharness-runtime.v1"],
+  "typed_snapshot": "sentinel_finharness_runtime.domain.models and application.ports",
+  "capabilities": {
+    "execution_modes": ["legacy", "shadow", "harness"],
+    "shadow_write_adapter": false,
+    "shadow_credentials": false,
+    "shadow_notifications": false,
+    "second_refund_from_shadow": false,
+    "case_version_pinning": true,
+    "unknown_action_reconcile_survives_kill_switch": true,
+    "authoritative_ledger": "action-ledger.v1 (SN-009)"
+  },
+  "functions": {
+    "RuntimeConfig.from_mapping": "Pinned switches; writes/notifications off by default",
+    "FinHarnessRuntime.start_case": "Pin runtime version for new eligible cases",
+    "FinHarnessRuntime.inspect_case": "Return durable pin surviving restart/switch",
+    "FinHarnessRuntime.run_shadow": "Read-only proposal comparison; no writes/notifications",
+    "FinHarnessRuntime.route_sandbox": "Guarded sandbox/harness routing for pinned cases",
+    "FinHarnessRuntime.reconcile_unknown": "Query original provider_ref; never mint refund ID",
+    "FinHarnessRuntime.apply_config": "Rollout/rollback without migrating in-flight pins"
+  },
+  "compatibility": {
+    "peer_unavailable_malformed_unauthorized": "explicit-error-no-fallback",
+    "real_peer_absent_url": "PeerError unavailable",
+    "financial_tables": "none; authoritative ownership stays with SN-009"
+  }
+}
