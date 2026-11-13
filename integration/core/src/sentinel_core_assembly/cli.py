@@ -1,0 +1,103 @@
+"""CLI for fixture self-tests and strict real-peer assembly runs."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+import uuid
+
+from sentinel_core_assembly.adapters.composition import build_peers
+from sentinel_core_assembly.adapters.config import AssemblyConfig
+from sentinel_core_assembly.application.assembly import report_to_exit_code, run_assembly
+from sentinel_core_assembly.domain.types import (
+    CONTRACT_SHA256,
+    CONTRACT_VERSION,
+    PORT,
+    ArtifactRef,
+    RunInput,
+)
+
+
+def _parse_args(argv: list[str] | None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(prog="sentinel-core-assembly")
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    check = sub.add_parser("check", help="Run local fixture self-tests (exit 0 on PASS)")
+    check.add_argument("--run-id", default="")
+
+    run = sub.add_parser("run", help="Run assembly in fixture or real-peers mode")
+    run.add_argument("--mode", choices=("fixture", "real-peers"), default="")
+    run.add_argument("--run-id", default="")
+    run.add_argument(
+        "--artifact",
+        action="append",
+        default=[],
+        help="kind,uri,sha256,component_version,evidence_mode",
+    )
+
+    caps = sub.add_parser("capabilities", help="Print core-assembly.v1 capabilities")
+    caps.add_argument("--mode", choices=("fixture", "real-peers"), default="fixture")
+    return parser.parse_args(argv)
+
+
+def _artifacts(raw: list[str]) -> tuple[ArtifactRef, ...]:
+    out: list[ArtifactRef] = []
+    for item in raw:
+        kind, uri, digest, version, evidence = item.split(",", 4)
+        out.append(
+            ArtifactRef(
+                kind=kind,
+                uri=uri,
+                sha256=digest,
+                component_version=version,
+                evidence_mode=evidence,  # type: ignore[arg-type]
+            )
+        )
+    return tuple(out)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = _parse_args(argv)
+    config = AssemblyConfig.from_env()
+
+    if args.command == "capabilities":
+        payload = {
+            "contract_version": CONTRACT_VERSION,
+            "component": "sentinel-core-assembly",
+            "mode": args.mode,
+            "port": PORT,
+            "contract_sha256": CONTRACT_SHA256,
+        }
+        json.dump(payload, sys.stdout, indent=2, sort_keys=True)
+        sys.stdout.write("\n")
+        return 0
+
+    mode = getattr(args, "mode", "") or config.mode
+    if args.command == "check":
+        mode = "fixture"
+    run_id = args.run_id or f"run-{uuid.uuid4().hex[:12]}"
+    artifacts = _artifacts(getattr(args, "artifact", []) or [])
+    run = RunInput(
+        contract_version=CONTRACT_VERSION,
+        run_id=run_id,
+        mode=mode,  # type: ignore[arg-type]
+        input_artifacts=artifacts,
+        parameters={"component_version": "0.1.0"},
+    )
+    peers = build_peers(
+        AssemblyConfig(
+            mode=mode,
+            contract_version=config.contract_version,
+            contract_sha256=config.contract_sha256,
+            peer_endpoints=config.peer_endpoints,
+        )
+    )
+    report = run_assembly(run, peers)
+    json.dump(report.as_dict(), sys.stdout, indent=2, sort_keys=True)
+    sys.stdout.write("\n")
+    return report_to_exit_code(report)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

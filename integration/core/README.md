@@ -1,90 +1,73 @@
-# SN-014 — Build the four-journey integration harness independently
+# SN-014 — Four-journey integration harness (`core-assembly.v1`)
 
-**State:** scaffold and task instructions only. No implementation, dependency installation, module check target or product result is claimed.
+Standalone scenario drivers, version/mode configuration and composition adapters for the four P0 journeys: **pending**, **merchant mismatch**, **duplicate payment**, and **refund-pending**. Local reference peers live in-module; strict `real-peers` mode never treats fixture stand-ins as assembled product evidence.
 
-**Owned root:** `integration/core/`
-**Branch:** `feat/sn-014-core-integration`
-**Lane:** A · **Phase:** 1 · **Priority:** P0 · **Optional for MVP:** no
+**Owned root:** `integration/core/` · **Branch:** `feat/sn-014-core-integration`
 
-## Outcome
+Contract: `sentinel.task-contracts.v1`, SHA-256 `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`.
 
-Create standalone scenario drivers, version/mode configuration and composition adapters for pending, merchant mismatch, duplicate payment and refund-pending journeys. Develop against module-local reference peers; provide a strict real-component mode without changing peers' source.
+Produces: `core-assembly.v1`. Consumes (local doubles only for self-tests): `case-api.v1`, `workflow.v1`, `action-ledger.v1`, `dispatcher.v1`, `verifier.v1`, `payment-provider.v1`, `web-shell.v1`.
 
-## Independence
+## Standalone setup and checks
 
-No task-completion prerequisites. This module must install, run its local checks, and be reviewable with every other Sentinel task implementation absent. Use explicit local port doubles rather than another developer's server or an unfinished sibling import. Phase and task number do not establish build order.
-
-Read [root agent rules](../../AGENTS.md), [claim/PR workflow](../../CONTRIBUTING.md), [architecture](../../docs/architecture.md), and [testing](../../docs/testing.md). The [task register](../../docs/task-register.md) links the live issue once published.
-
-## Ownership and interfaces
-
-- `integration/core/**`
-
-- Produces: `core-assembly.v1`
-- Consumes: `case-api.v1`, `workflow.v1`, `action-ledger.v1`, `dispatcher.v1`, `verifier.v1`, `payment-provider.v1`, `web-shell.v1`
-- Optional consumed interfaces: None
-
-Contract input: [baseline](../../docs/independent-task-contracts.md) · `sentinel.task-contracts.v1` · SHA-256 `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`.
-
-Implement the exact supplied routes, request/response types, auth context, canonical digest and state/idempotency behavior for the relevant ports. Keep typed snapshots and compatibility examples in this module. The contract-checker/SDK implementation is not required.
-
-### Required local peer doubles
-
-- `case-api.v1` under `tests/stubs/`: valid, unavailable, malformed, unauthorized_or_out_of_scope.
-- `workflow.v1` under `tests/stubs/`: valid, unavailable, malformed, unauthorized_or_out_of_scope.
-- `action-ledger.v1` under `tests/stubs/`: valid, unavailable, malformed, unauthorized_or_out_of_scope.
-- `dispatcher.v1` under `tests/stubs/`: valid, unavailable, malformed, unauthorized_or_out_of_scope.
-- `verifier.v1` under `tests/stubs/`: valid, unavailable, malformed, unauthorized_or_out_of_scope.
-- `payment-provider.v1` under `tests/stubs/`: valid, unavailable, malformed, unauthorized_or_out_of_scope.
-- `web-shell.v1` under `tests/stubs/`: valid, unavailable, malformed, unauthorized_or_out_of_scope.
-
-## Implementation layout
-
-Baseline category: Python service/library/tool.
-
-Use module-local dependency declarations and a reproducible lockfile, configuration example, tests, README and changelog. Stateful components own local migrations and a test database. No root application install or shared migration chain is allowed.
-
-Keep deterministic business rules/types separate from application use cases/ports and external adapters. Wire adapters at one composition entry point. Introduce only directories that contain real responsibilities; the repository does not pre-generate empty layers. See the architecture and folder guides for language-specific layouts.
-
-## Deliverables
-
-- [ ] Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.
-- [ ] Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.
-- [ ] Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation.
-- [ ] Update the local README/configuration and CHANGELOG.md with actual behavior and limitations.
-
-## Acceptance criteria
-
-- [ ] The runner exercises all four journeys against local reference peers, including 150000-paise approval/timeout/credit recovery, and tests peer/schema/failure diagnostics.
-- [ ] Strict assembly mode rejects missing/incompatible peers and fixture stand-ins for real component evidence; a passing local harness test never claims an assembled MVP passed.
-- [ ] All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required.
-
-## Planned local commands
-
-The owning task must implement and document dependency setup, a local run/preview command where applicable, and this check target. It does not exist yet:
+Requires Python 3.11+, [uv](https://docs.astral.sh/uv/), and GNU Make. No sibling Sentinel service, shared lockfile, or PostgreSQL is required for the fixture harness.
 
 ```sh
 make -C integration/core check
 ```
 
-Run root `make check` as well. Root checks validate repository metadata and tools; they do not implement or substitute for this component's behavior tests. External provider credentials are optional for local fixture checks.
+Or from this directory:
 
-## Test and failure requirements
+```sh
+make setup
+make check
+```
 
-- Exercise observable acceptance behavior and meaningful invalid, unavailable, malformed and unauthorized boundary cases.
-- Use real PostgreSQL tests for financial locking/transactions, durable checkpoints or other database behavior that an in-memory double cannot establish.
-- Label fixtures/simulated providers/fake or live inference precisely. A real-peer adapter must not silently convert peer failure into fixture success.
-- Confirm the module works with sibling implementations absent and record exactly which local doubles/databases were used.
+`make check` runs Ruff, pytest (journeys, strict assembly negatives, stub matrix), and `sentinel-core-assembly check`. Fixture self-tests exit 0 on PASS. A separate `real-peers` run exits nonzero on FAIL or UNVERIFIED.
 
-## Evidence and review
+Preview fixture journeys:
 
-- Exact standalone setup/check commands, actual results and pinned contract baseline hash.
-- Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.
-- PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status.
+```sh
+make preview
+# or: uv run --frozen sentinel-core-assembly run --mode fixture
+```
 
-Open a PR targeting main with `Refs #<issue>` and the PR template. Update the issue to review. Owner review/merge and accepted standalone evidence close the component issue. Agents never push main, merge or enable auto-merge.
+## Modes
 
-## Assembly limits
+| Mode | Peers | Evidence | MVP claim |
+| --- | --- | --- | --- |
+| `fixture` | In-process reference peers | Labeled `fixture` | Always `assembled_mvp_claimed=false` |
+| `real-peers` | HTTP `/v1/capabilities` probes from env URLs | Rejects missing peers, incompatible contract/mode, and `evidence_mode=fixture` | Never auto-claims product release |
 
-- A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.
-- Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence.
+Configuration: [.env.example](.env.example). Contract snapshot: [contracts/core-assembly.v1.json](contracts/core-assembly.v1.json). Hero fixture: [fixtures/duplicate_payment.json](fixtures/duplicate_payment.json) (150000 paise, approval, timeout-after-accept, credit recovery, single side effect).
+
+## Local peer stubs
+
+Under [tests/stubs/](tests/stubs/), each consumed port exposes `valid`, `unavailable`, `malformed`, and `unauthorized_or_out_of_scope`. Fixture-mode journeys use [ReferenceBundle](src/sentinel_core_assembly/adapters/reference.py); the HTTP adapter never falls back to those stubs on probe failure.
+
+## Layout
+
+```text
+integration/core/
+  src/sentinel_core_assembly/
+    domain/           # journey expectations, RunInput/RunReport
+    application/      # assembly runner + ports
+    adapters/         # config, composition, reference + HTTP peers
+    cli.py
+  contracts/
+  fixtures/
+  tests/stubs/
+```
+
+## Evidence limits
+
+- Passing `make check` proves the harness and local doubles only.
+- It is **not** assembled MVP, pilot, or live-settlement evidence.
+- Owner-run assembly selects real component versions and records results separately (see SN-019).
+
+## Compatibility checklist (real peers)
+
+1. Every required peer URL set; probe `/v1/capabilities`.
+2. `contract_version` matches baseline; peer `mode` is `real-peers`.
+3. Input artifacts use `evidence_mode=real-component` or `live-provider` — never `fixture`.
+4. Absent/malformed/unauthorized peers surface as FAIL; no silent fixture substitution.
