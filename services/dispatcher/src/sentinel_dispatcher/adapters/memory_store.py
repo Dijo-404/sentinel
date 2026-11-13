@@ -16,6 +16,7 @@ class MemoryWorkerStore:
         return self._jobs.get((tenant_id, action_id))
 
     def list_incomplete(self, tenant_id: str) -> list[DispatchJob]:
+        # SUBMITTED / RECONCILING after timeout stay here until reconcile completes.
         return [
             job
             for (tenant, _), job in self._jobs.items()
