@@ -1,0 +1,65 @@
+{
+  "payload": {
+    "action": "REQUEST_REFUND",
+    "case_id": "case-demo-42",
+    "case_revision": 1,
+    "transaction_ref": "TXN-B",
+    "amount_minor": 150000,
+    "currency": "INR",
+    "destination": "ORIGINAL_PAYMENT_ROUTE",
+    "evidence_ids": ["evidence-payment-b", "evidence-order"],
+    "policy_version": "demo-policy-v1"
+  },
+  "evidence": [
+    {
+      "evidence_id": "evidence-payment-b",
+      "case_id": "case-demo-42",
+      "source": "simulator.payment",
+      "subject_ref": "subject-demo-42",
+      "observed_at": "2026-11-13T11:00:00Z",
+      "expires_at": "2026-11-13T18:00:00Z",
+      "digest": "payment-b-digest",
+      "verification_status": "VERIFIED",
+      "facts": {
+        "kind": "PAYMENT",
+        "payment": {
+          "transaction_ref": "TXN-B",
+          "order_reference": "DEMO-ORDER-42",
+          "subject_ref": "subject-demo-42",
+          "status": "CAPTURED",
+          "amount_minor": 150000,
+          "currency": "INR"
+        }
+      }
+    },
+    {
+      "evidence_id": "evidence-order",
+      "case_id": "case-demo-42",
+      "source": "simulator.order",
+      "subject_ref": "subject-demo-42",
+      "observed_at": "2026-11-13T11:00:00Z",
+      "expires_at": "2026-11-13T18:00:00Z",
+      "digest": "order-digest",
+      "verification_status": "VERIFIED",
+      "facts": {
+        "kind": "ORDER",
+        "order": {
+          "order_reference": "DEMO-ORDER-42",
+          "subject_ref": "subject-demo-42",
+          "fulfilled_order_count": 1,
+          "merchant_confirmed_duplicate": true,
+          "paid": true
+        }
+      }
+    }
+  ],
+  "approval": {
+    "approval_id": "approval-demo-1",
+    "action_digest": "d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993",
+    "case_revision": 1,
+    "policy_version": "demo-policy-v1",
+    "decision": "APPROVE",
+    "reviewer_id": "supervisor-demo-1",
+    "expires_at": "2026-11-13T17:00:00Z"
+  }
+}
