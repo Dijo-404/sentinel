@@ -1,0 +1,42 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "baseline_sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa",
+  "port": "finharness-sdk.v1",
+  "boundary": "optional-library-injected-ports",
+  "consumes": [
+    "evidence.v1",
+    "policy.v1",
+    "action-ledger.v1",
+    "verifier.v1",
+    "indic-context.v1"
+  ],
+  "produces": ["finharness-sdk.v1"],
+  "typed_snapshot": "sentinel_finharness.contracts and sentinel_finharness.ports",
+  "capabilities": {
+    "enabled_default": false,
+    "execution_mode_default": "legacy",
+    "financial_writes_default": false,
+    "notifications_default": false,
+    "authoritative_ledger": "action-ledger.v1 (SN-009)",
+    "independent_refund_executor": false,
+    "independent_case_store": false
+  },
+  "functions": {
+    "RuntimeConfig.from_mapping": "Build version-pinned config; routing/writes/notifications off unless explicit",
+    "CaseManifest.validate": "Pin workflow/policy/evidence/model/verifier/context versions",
+    "FinHarnessClient.collect_evidence": "Delegate to evidence.v1 when routing allows read path",
+    "FinHarnessClient.evaluate_policy": "Delegate to policy.v1",
+    "FinHarnessClient.propose": "Delegate to indic-context.v1; never invents financial authority",
+    "FinHarnessClient.create_proposal": "Delegate to action-ledger.v1 proposals; requires financial_writes",
+    "FinHarnessClient.reserve": "Delegate to action-ledger.v1 reservations; requires financial_writes + approval_id",
+    "FinHarnessClient.assess": "Delegate to verifier.v1",
+    "FinHarnessClient.notify": "Blocked unless notifications explicitly enabled",
+    "run_sample_workflow": "Fixture-mode sample against injected local stubs"
+  },
+  "compatibility": {
+    "required_version_mismatch": "configuration-error",
+    "peer_unavailable_malformed_unauthorized": "explicit-error-no-fallback",
+    "bypass_approval_or_ledger": "rejected",
+    "financial_tables": "none; authoritative ownership stays with SN-009"
+  }
+}
