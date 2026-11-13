@@ -1,0 +1,38 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa",
+  "types": {
+    "Command": {
+      "action_id": "string",
+      "provider_ref": "string",
+      "payload": "RefundAction",
+      "action_digest": "string",
+      "lease_id": "string",
+      "lease_expires_at": "string",
+      "provider_capabilities": {"same_key_retry": "bool", "status_lookup": "bool"}
+    },
+    "ClaimResult": {"commands": "Command[]"},
+    "OutcomeRequest": {
+      "event_key": "string",
+      "lease_id": "string?",
+      "status": "ActionState",
+      "evidence": "Evidence[]",
+      "reason_code": "string"
+    },
+    "RefundRequest": {
+      "action_id": "string",
+      "provider_ref": "string",
+      "transaction_ref": "string",
+      "amount_minor": "int",
+      "currency": "INR",
+      "destination": "ORIGINAL_PAYMENT_ROUTE"
+    }
+  },
+  "routes_consumed": [
+    "ledger POST /v1/actions/claims",
+    "ledger POST /v1/actions/{action_id}/outcomes",
+    "ledger GET /v1/actions/{action_id}",
+    "provider POST /v1/refunds",
+    "provider GET /v1/refunds/{provider_ref}"
+  ]
+}
