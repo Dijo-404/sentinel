@@ -5,8 +5,12 @@
 ### Added — 13 November 2026
 
 - Independent module ownership, architecture/interface guide, scoped agent rules and acceptance checklist.
+- `sentinel-api` FastAPI service implementing `case-api.v1` routes with PostgreSQL-backed cases, messages, immutable input snapshots, durable ordered events (JSON + SSE), workflow outbox, and action index.
+- Fixture and real-peer adapters for workflow, evidence, action-ledger, and verifier; local stub matrix under `tests/stubs/`.
+- Decision proxy forwards authenticated supervisor bearer token and exact digest/revision; `VERIFIED_RESOLVED` requires a fresh matching trusted verifier assessment.
+- Standalone `make check` (ruff + pytest against disposable Docker PostgreSQL).
 
 ### Implementation status
 
-- Scaffold only. No module implementation, local dependency manifest/check target or product evidence is supplied yet.
-- Future SN-007 behavior/configuration/contract changes must update this file with observed validation and limits.
+- Standalone module checks exercise fixture peers and local PostgreSQL.
+- Assembled real-peer product evidence remains unverified until owner assembly.

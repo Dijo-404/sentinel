@@ -1,0 +1,38 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa",
+  "port": "case-api.v1",
+  "routes": [
+    "POST /v1/cases",
+    "GET /v1/cases/{case_id}",
+    "POST /v1/cases/{case_id}/messages",
+    "GET /v1/cases/{case_id}/events",
+    "GET /v1/ops/cases",
+    "GET /v1/ops/cases/{case_id}/evidence",
+    "POST /v1/ops/actions/{action_id}/decisions",
+    "POST /v1/ops/cases/{case_id}/escalate",
+    "GET /v1/internal/cases/{case_id}/input",
+    "POST /v1/internal/cases/{case_id}/results"
+  ],
+  "examples": {
+    "case_create": {
+      "message": "I was charged twice",
+      "language": "en-IN",
+      "order_reference": "DEMO-ORDER-42",
+      "channel": "web"
+    },
+    "case_created": {
+      "case_id": "case-demo-42",
+      "status": "RECEIVED",
+      "status_url": "/v1/cases/case-demo-42"
+    },
+    "case_result_request": {
+      "event_key": "result-demo-1",
+      "expected_revision": 1,
+      "status": "WAITING_APPROVAL",
+      "evidence_ids": ["evidence-payment-b", "evidence-order"],
+      "action_id": "action-demo-1",
+      "reason_code": "SUPERVISOR_REQUIRED"
+    }
+  }
+}
