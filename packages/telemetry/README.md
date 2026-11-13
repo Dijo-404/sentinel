@@ -4,7 +4,7 @@
 
 **Owned root:** `packages/telemetry/` · **Branch:** `feat/sn-015-observability`
 
-Contract: `sentinel.task-contracts.v1`, SHA-256 `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`. Local typed snapshot: [contracts.py](src/sentinel_telemetry/contracts.py), [telemetry.v1.json](contracts/telemetry.v1.json), [fixtures](fixtures/).
+Contract: `sentinel.task-contracts.v1`, SHA-256 `0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb`. Local typed snapshot: [contracts.py](src/sentinel_telemetry/contracts.py), [telemetry.v1.json](contracts/telemetry.v1.json), [fixtures](fixtures/).
 
 ## Standalone setup and checks
 

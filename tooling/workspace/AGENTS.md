@@ -12,14 +12,14 @@ Read [repository AGENTS.md](../../AGENTS.md) and this module's [README](README.m
 ## Architecture and contracts
 
 - Business rules and use cases depend on narrow injected ports. Framework/provider/storage details stay in adapters and composition.
-- Consume the pinned `sentinel.task-contracts.v1` input from the task. Record SHA-256 `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`.
+- Consume the pinned `sentinel.task-contracts.v1` input from the task. Record SHA-256 `0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb`.
 - No deep sibling imports, shared root application lockfile, cross-service SQL or unreviewed required contract changes.
 - Real-peer failure must stay visible; never silently enable fixture fallback. Keep optional ports optional in assembled MVP mode.
 - Preserve the single action-ledger authority, authenticated scope and approval, integer money, stable references, financial audit and verified closure rules.
 
 ## Checks and handoff
 
-- Implement `make -C tooling/workspace check` with meaningful behavior/negative tests and standalone setup. It is currently a planned command, not a passing implementation.
+- Run `make -C tooling/workspace check` for module-local evidence. The target is implemented; keep it green on every change.
 - Run root `make check`, update [CHANGELOG.md](CHANGELOG.md), and record exact observed commands/results and fixture/real evidence.
 - Keep progress/claims in the GitHub issue. Move to review with a PR using `Refs #N`; owner merges and accepts component evidence.
 - Do not claim assembled product/pilot success from module or fixture checks.

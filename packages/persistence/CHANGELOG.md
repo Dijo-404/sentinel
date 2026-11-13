@@ -16,5 +16,5 @@
 - `make check`: Ruff lint/format and 34 tests pass against real PostgreSQL and synthetic records, including CLI lifecycle, schema/role/RLS isolation, composite keys, pool cleanup, guarded seed/reset/downgrade and failure/redaction boundaries.
 - Owned-directory-only copy: the same lint/format and 34 tests pass; a non-editable wheel installation also passes all 34 tests with bundled migrations loaded from `site-packages`.
 - Root `make check`: repository metadata validation and 19 repository tests pass; this is separate from database acceptance.
-- Contract baseline: `sentinel.task-contracts.v1`, SHA-256 `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`.
+- Contract baseline: `sentinel.task-contracts.v1`, SHA-256 `0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb`.
 - Checks need Python 3.11+, uv, Make and Docker/image access; no external provider credentials. Tested with Python 3.13.18/PostgreSQL 17; async sessions, other database versions, PgBouncer, real-service assembly and operational restore are unverified. RLS supplements trusted server authentication and subject-scoped authorization.

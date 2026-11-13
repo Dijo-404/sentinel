@@ -17,7 +17,7 @@ def test_sample_respects_disabled_defaults(manifest, valid_peers):
     )
     assert report.routing_enabled is False
     assert report.steps == ("routing-disabled",)
-    assert report.baseline_sha256.startswith("0c728513")
+    assert report.baseline_sha256.startswith("0db3ba2b")
     assert report.evidence_mode == "fixture"
 
 

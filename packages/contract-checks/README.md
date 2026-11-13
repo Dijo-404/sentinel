@@ -3,7 +3,7 @@
 This installable Python tool checks the supplied `sentinel.task-contracts.v1` baseline without another Sentinel package, server, database, provider credential, or model. Its output is local conformance evidence, never payment authority or assembled product evidence.
 
 Owned root: `packages/contract-checks/`. Branch: `feat/sn-002-contracts`.
-Baseline SHA-256: `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`.
+Baseline SHA-256: `0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb`.
 
 ## Standalone setup and check
 

@@ -4,7 +4,7 @@ Optional `persistence-kit.v1` SQLAlchemy/psycopg helpers with an Alembic demonst
 
 **Owned root:** `packages/persistence/` · **Branch:** `feat/sn-003-persistence`
 
-Contract: `sentinel.task-contracts.v1`, SHA-256 `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`. The [typed snapshot](src/sentinel_persistence/contracts.py), [library/CLI contract](contracts/persistence-kit.v1.json) and [synthetic examples](fixtures/demo.json) are local; no sibling package or validator is needed.
+Contract: `sentinel.task-contracts.v1`, SHA-256 `0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb`. The [typed snapshot](src/sentinel_persistence/contracts.py), [library/CLI contract](contracts/persistence-kit.v1.json) and [synthetic examples](fixtures/demo.json) are local; no sibling package or validator is needed.
 
 ## Standalone setup and checks
 

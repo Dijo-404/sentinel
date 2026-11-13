@@ -4,7 +4,7 @@ Standalone scenario drivers, version/mode configuration and composition adapters
 
 **Owned root:** `integration/core/` · **Branch:** `feat/sn-014-core-integration`
 
-Contract: `sentinel.task-contracts.v1`, SHA-256 `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`.
+Contract: `sentinel.task-contracts.v1`, SHA-256 `0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb`.
 
 Produces: `core-assembly.v1`. Consumes (local doubles only for self-tests): `case-api.v1`, `workflow.v1`, `action-ledger.v1`, `dispatcher.v1`, `verifier.v1`, `payment-provider.v1`, `web-shell.v1`.
 

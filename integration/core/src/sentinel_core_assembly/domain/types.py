@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from typing import Any, Literal
 
 CONTRACT_VERSION = "sentinel.task-contracts.v1"
-CONTRACT_SHA256 = "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+CONTRACT_SHA256 = "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
 PORT = "core-assembly.v1"
 
 Mode = Literal["fixture", "real-peers"]

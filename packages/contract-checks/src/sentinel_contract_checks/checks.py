@@ -8,7 +8,7 @@ from typing import Any
 from jsonschema import Draft202012Validator, FormatChecker
 
 VERSION = 'sentinel.task-contracts.v1'
-BASELINE_HASH = '0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa'
+BASELINE_HASH = '0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb'
 Violation = dict[str, str]
 _FORMATS = FormatChecker()
 

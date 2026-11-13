@@ -5,7 +5,7 @@ from typing import Literal
 
 CONTRACT_VERSION = "module-checks.v1"
 BASELINE_VERSION = "sentinel.task-contracts.v1"
-BASELINE_SHA256 = "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+BASELINE_SHA256 = "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
 
 Status = Literal["READY", "ABSENT", "UNIMPLEMENTED", "SKIPPED", "PASS", "FAIL",
                  "TIMEOUT", "OUTPUT_LIMIT", "ERROR"]

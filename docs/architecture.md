@@ -2,9 +2,9 @@
 
 ## Product boundaries
 
-Sentinel investigates payment exceptions, proposes policy-governed remediation, obtains exact human approval, executes through controlled adapters and verifies outcomes. The MVP uses synthetic identities and a deterministic payment simulator. FinHarness and FinBench-Indic are optional extensions, not prerequisites for building the MVP components.
+Sentinel investigates payment exceptions, proposes policy-governed remediation, obtains exact human approval, executes through controlled adapters and verifies outcomes. The intended local MVP uses synthetic identities and a deterministic payment simulator. FinHarness, FinBench-Indic, and merchant-operations modules are optional extensions, not MVP release prerequisites.
 
-The [contract baseline](independent-task-contracts.md) fixes shared wire semantics before implementation. The [task plan](tasks.json) assigns one disjoint root per deliverable. Each module must build, test and be reviewable with all peer implementations absent; local typed peer doubles satisfy development needs. Real-component assembly is tested separately.
+The [contract baseline](independent-task-contracts.md) fixes shared wire semantics. The [task plan](tasks.json) assigns one disjoint root per deliverable. Each module must build, test and be reviewable with all peer implementations absent; local typed peer doubles satisfy development needs. Real-component assembly is tested separately and is not implied by module-local checks.
 
 ## Dependency direction inside a module
 
@@ -54,9 +54,12 @@ flowchart LR
     V --> L
     W --> API
     V --> API
+    M[Merchant ops services] --> API
+    M --> E
+    M --> L
 ```
 
-The arrows are runtime interfaces, not implementation prerequisites. Each component owns local stubs for the arrows it consumes. The workflow has its own Phase 1 structured-model adapter; the optional Indic context package is not required. Voice may remain disabled.
+The arrows are runtime interfaces, not implementation prerequisites. Each component owns local stubs for the arrows it consumes. The workflow has its own Phase 1 structured-model adapter; the optional Indic context package is not required. Voice may remain disabled. Merchant-ops services (settlement, inbox, refunds, disputes, SLA, analytics, teams, communications) call case/evidence/policy/ledger ports only; they never become a second financial executor.
 
 ## State and transaction ownership
 
@@ -69,6 +72,9 @@ The arrows are runtime interfaces, not implementation prerequisites. Each compon
 | Dispatcher | Its delivery/recovery bookkeeping; consumes ledger claims, never owns competing financial balances |
 | Verifier | Durable webhook inbox, recheck jobs, assessments and pending authenticated outcome delivery |
 | Simulator | Synthetic provider records, reference idempotency, credit outcomes and fault schedules |
+| Merchant settlement / inbox / disputes / SLA / teams | Merchant-scoped operational state only (findings, exceptions, dispute packets, SLA tasks, staff). No ledger table ownership |
+| Merchant refunds | Request tracking only; reservations/approvals/actions remain on the action ledger |
+| Merchant analytics / communications | Read-only aggregates and operator-approved draft text; no financial authority |
 
 Each stateful owner has local migrations and a test database. A shared PostgreSQL server is allowed in a development assembly, but schemas/credentials stay separate. No cross-service SQL, shared migration sequence or remote network call inside a financial database transaction.
 
@@ -84,6 +90,6 @@ Real-peer mode never silently selects fixtures on failure. Test doubles are expl
 
 ## Integration and change control
 
-SN-014, SN-019 and SN-026 build independent assembly/release/pilot verification tools using local reference peers. They must also reject incomplete or fixture-only evidence in real-component mode. Their completion does not certify a product release.
+SN-014, SN-019 and SN-026 build independent assembly/release/pilot verification tools using local reference peers. They must also reject incomplete or fixture-only evidence in real-component mode. Their completion does not certify a product release. As of the SN-027–034 admission, components exist on `main`, but a single local simulator-backed MVP process graph and strict assembled release evidence are still owner-run follow-ups.
 
 Consumers continue against the baseline while additive or versioned contract changes are reviewed. Keep compatibility adapters and negative fixtures. Do not hold unrelated tasks hostage to a root lockfile, global refactor, SDK extraction or a contract-checker implementation.

@@ -12,4 +12,4 @@ def test_capabilities(capsys):
     payload = json.loads(capsys.readouterr().out)
     assert payload["component"] == "verifier"
     assert payload["port"] == "verifier.v1"
-    assert payload["contract_sha256"].startswith("0c728513")
+    assert payload["contract_sha256"].startswith("0db3ba2b")

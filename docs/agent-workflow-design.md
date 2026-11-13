@@ -84,7 +84,7 @@ Every issue receives `agents` and exactly one status:
 | `status:review` | Standalone implementation, PR, checks, and evidence are ready for owner review. |
 | `status:done` | PR merged and component acceptance approved; issue closed. Assembly readiness is separate. |
 
-Lane, priority, phase, and optional labels describe planning, not a dependency graph. All 26 tasks can enter `status:ready` together when the reviewed planning baseline and issues exist. There is no post-merge downstream-readiness transition.
+Lane, priority, phase, and optional labels describe planning, not a dependency graph. Admitted tasks can enter `status:ready` together when the reviewed planning baseline and issues exist. There is no post-merge downstream-readiness transition.
 
 Use the existing shared view with this filter, or [the equivalent queue](https://github.com/Dijo-404/sentinel/issues?q=is%3Aissue%20is%3Aopen%20label%3Aagents):
 

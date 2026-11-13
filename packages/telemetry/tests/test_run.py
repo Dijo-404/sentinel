@@ -64,7 +64,7 @@ def test_contract_version_mismatch() -> None:
 
 
 def test_contract_hash_pinned() -> None:
-    assert CONTRACT_SHA256 == ("0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa")
+    assert CONTRACT_SHA256 == ("0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb")
 
 
 def test_contract_snapshot_present() -> None:

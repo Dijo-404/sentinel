@@ -17,15 +17,15 @@
 <br/>
 
 > [!NOTE]
-> **Early development.** Components are implemented on `main`. Assembly into a product runtime and any external pilot remain separate owner decisions. No live payment integration or external pilot acceptance is claimed.
+> **Components on `main`.** Thirty-four independently owned modules (SN-001–034) are implemented with module-local checks. Wiring them into one local simulator-backed MVP runtime, release evidence against that assembly, live models, and any external pilot remain separate owner decisions. No live payment integration is claimed.
 
 ## Overview
 
-Sentinel is a planned AI teammate for payment operations teams handling exceptions such as duplicate payments and uncertain refund outcomes. Its design combines evidence collection, deterministic policy, exact supervisor approval, controlled simulator execution, and outcome verification. This repository supplies the contracts, independent task boundaries, and development workflow for building those components.
+Sentinel is an AI teammate for payment operations teams handling exceptions such as duplicate payments and uncertain refund outcomes. It combines evidence collection, deterministic policy, exact supervisor approval, controlled simulator execution, and outcome verification. Optional merchant-operations modules cover settlement reconciliation, exception inboxes, refund requests, disputes, SLA tasks, analytics, multilingual drafts, and staff roles—still synthetic/simulator-backed only.
 
 ### Features
 
-- **Independent component work.** Twenty-six tasks have disjoint ownership, explicit interfaces, and no task-completion prerequisites.
+- **Independent component work.** Thirty-four tasks have disjoint ownership, explicit interfaces, and no task-completion prerequisites.
 - **Pinned contracts.** Versioned wire types, canonical action digests, and synthetic examples let components develop against local doubles.
 - **Verifiable repository structure.** Standard-library checks validate task metadata, contract hashes, ownership, issue references, and documentation links.
 - **Explicit evidence boundaries.** Component checks, real-component assembly, simulated payments, and live inference have separate acceptance requirements.
@@ -34,7 +34,7 @@ Sentinel is a planned AI teammate for payment operations teams handling exceptio
 
 A provider accepting a refund request does not prove that the customer received credit. Retries after a timeout also need to preserve the original operation identity rather than create another refund.
 
-Sentinel's planned architecture keeps financial authority in one action ledger, limits provider writes to the dispatcher, and requires authoritative postconditions before financial resolution. Models propose actions; deterministic server-side controls authorize them. The [architecture](docs/architecture.md) and [contract baseline](docs/independent-task-contracts.md) define these boundaries for implementation.
+Sentinel keeps financial authority in one action ledger, limits provider writes to the dispatcher, and requires authoritative postconditions before financial resolution. Models propose actions; deterministic server-side controls authorize them. The [architecture](docs/architecture.md) and [contract baseline](docs/independent-task-contracts.md) define these boundaries.
 
 ## Requirements
 
@@ -54,7 +54,7 @@ git clone https://github.com/Dijo-404/sentinel.git
 cd sentinel
 ```
 
-There is no root application manifest or shared application lockfile. Follow the selected module's README when its implementation is available.
+There is no root application manifest or shared application lockfile. Follow the selected module's README for setup, `make check`, and local run/preview commands.
 
 ### Updating
 
@@ -89,7 +89,7 @@ A passing result confirms repository consistency. Application services have thei
 
 Choose a ready issue from the [Agents queue](https://github.com/Dijo-404/sentinel/issues?q=is%3Aissue%20is%3Aopen%20label%3Aagents), read its scope and current comments, and follow the [claim workflow](CONTRIBUTING.md). Use its feature branch and an independent worktree.
 
-Each task delivers its own manifest, lockfile, configuration, fixtures, tests, README, changelog, and module-local `make check`. The scaffold on `main` does not itself provide those module check targets. No component waits for another task's implementation; real-component assembly is a separate owner-run verification step.
+Each task owns its manifest, lockfile, configuration, fixtures, tests, README, changelog, and module-local `make check`. No component waits for another task's implementation. Real-component assembly and end-to-end journey evidence remain separate owner-run steps; fixture peers cannot satisfy product release.
 
 ## Configuration
 
@@ -130,15 +130,15 @@ Each module keeps business rules independent of frameworks and external systems,
 | :--- | :--- |
 | **Repository tooling** | [Python standard library](https://docs.python.org/3/library/) and [GNU Make](https://www.gnu.org/software/make/) |
 | **Repository CI** | [GitHub Actions](https://github.com/Dijo-404/sentinel/actions/workflows/repository.yml) with pinned actions |
-| **Planned application stack** | Module-local Python services/libraries and TypeScript UI; choices and boundaries appear in the [architecture](docs/architecture.md) and [Phase 1 specification](docs/sentinel-p1.md). |
+| **Application stack** | Module-local Python services/libraries and TypeScript UI; boundaries appear in the [architecture](docs/architecture.md). Phase 1/2 specs remain historical product intent. |
 
 ## Project structure
 
 ```text
 .
 ├── apps/           # case API and web shell
-├── services/       # payment, policy, workflow, execution, and verification components
-├── packages/       # independent contracts, persistence, UI, telemetry, and SDK packages
+├── services/       # payment, policy, workflow, execution, verification, and merchant-ops components
+├── packages/       # contracts, persistence, UI, telemetry, SDK, Indic, and merchant-comms packages
 ├── tooling/        # optional module-check discovery and aggregation
 ├── integration/    # core journey and real-component assembly tooling
 ├── evals/          # deterministic safety evaluations
@@ -168,17 +168,20 @@ Keep claims and progress on the assigned GitHub issue. Component PRs target `mai
 ## Limitations
 
 - The root check validates repository metadata and tools, not payment safety, application behavior, or release readiness.
-- Phase 1 and Phase 2 specifications describe planned capabilities. Component scaffolds are not running services.
-- Optional voice and Phase 2 modules are not MVP prerequisites.
-- Fixture checks do not establish real-component assembly, customer credit, live inference quality, or external pilot acceptance.
+- Phase 1 and Phase 2 specifications describe product intent; treat them as historical source material, not proof of assembled behavior.
+- Module `make check` proves the owned component with local stubs. It does not prove a multi-service MVP runtime or customer credit.
+- Optional voice, FinHarness, FinBench, and merchant-ops modules are not MVP release prerequisites.
+- Fixture checks do not establish real-component assembly, live inference quality, or external pilot acceptance.
 
 ## Roadmap
 
 - [x] Repository structure, ownership rules, and independent task definitions.
 - [x] Pinned contract baseline, published issue register, and repository CI.
-- [ ] Review and merge standalone component implementations from the [task register](docs/task-register.md).
-- [ ] Exercise the four payment journeys with compatible real components and the payment simulator.
-- [ ] Complete separate owner decisions for release and any external pilot.
+- [x] Standalone component implementations for SN-001–034 (module-local checks on `main`).
+- [ ] Wire a local simulator-backed MVP across UI/API/workflow/ledger/dispatcher/verifier.
+- [ ] Exercise the four payment journeys and cross-service failure cases against that assembly.
+- [ ] Produce strict release evidence (evaluation, replay, tracing) against assembled components.
+- [ ] Complete separate owner decisions for live models, sandbox provider, and any external pilot.
 
 ## Documentation
 
@@ -188,7 +191,7 @@ Keep claims and progress on the assigned GitHub issue. Component PRs target `mai
 | [Repository structure](docs/repository-structure.md) | Independent module roots and shared maintenance boundaries. |
 | [Configuration](docs/configuration.md) | Module configuration, secrets, modes, and database controls. |
 | [Testing](docs/testing.md) | Standalone, financial, assembly, and release evidence requirements. |
-| [Task register](docs/task-register.md) | All 26 tasks and their GitHub issues. |
+| [Task register](docs/task-register.md) | All 34 tasks and their GitHub issues. |
 | [Contract baseline](docs/independent-task-contracts.md) | Versioned wire types, routes, digest fixtures, and failure semantics. |
 | [GitHub workflow](docs/github-workflow.md) | Claims, labels, review, publication, and platform limits. |
 | [Phase 1 specification](docs/sentinel-p1.md) | Planned MVP payment operations capabilities. |
