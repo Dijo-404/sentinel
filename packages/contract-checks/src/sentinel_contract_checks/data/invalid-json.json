@@ -1,0 +1,30 @@
+[
+  {
+    "name": "float-money",
+    "raw": "{\"amount_minor\":1.0}"
+  },
+  {
+    "name": "fractional-money",
+    "raw": "{\"amount_minor\":0.1}"
+  },
+  {
+    "name": "duplicate-key",
+    "raw": "{\"action\":\"ESCALATE\",\"action\":\"REQUEST_REFUND\"}"
+  },
+  {
+    "name": "nan",
+    "raw": "{\"amount_minor\":NaN}"
+  },
+  {
+    "name": "infinity",
+    "raw": "{\"amount_minor\":Infinity}"
+  },
+  {
+    "name": "malformed",
+    "raw": "{broken"
+  },
+  {
+    "name": "lone-surrogate",
+    "raw": "\"\\ud800\""
+  }
+]

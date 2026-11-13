@@ -1,0 +1,138 @@
+[
+  {
+    "name": "baseline-refund",
+    "payload": {
+      "case_id": "case-demo-42",
+      "case_revision": 1,
+      "evidence_ids": [
+        "evidence-payment-b",
+        "evidence-order"
+      ],
+      "policy_version": "demo-policy-v1",
+      "action": "REQUEST_REFUND",
+      "transaction_ref": "TXN-B",
+      "amount_minor": 150000,
+      "currency": "INR",
+      "destination": "ORIGINAL_PAYMENT_ROUTE"
+    },
+    "canonical_utf8": "{\"action\":\"REQUEST_REFUND\",\"amount_minor\":150000,\"case_id\":\"case-demo-42\",\"case_revision\":1,\"currency\":\"INR\",\"destination\":\"ORIGINAL_PAYMENT_ROUTE\",\"evidence_ids\":[\"evidence-payment-b\",\"evidence-order\"],\"policy_version\":\"demo-policy-v1\",\"transaction_ref\":\"TXN-B\"}",
+    "sha256": "d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993"
+  },
+  {
+    "name": "StatusAction",
+    "payload": {
+      "case_id": "case-demo-42",
+      "case_revision": 1,
+      "evidence_ids": [
+        "synthetic-value"
+      ],
+      "policy_version": "demo-policy-v1",
+      "action": "STATUS_UPDATE",
+      "message_code": "WAITING"
+    },
+    "canonical_utf8": "{\"action\":\"STATUS_UPDATE\",\"case_id\":\"case-demo-42\",\"case_revision\":1,\"evidence_ids\":[\"synthetic-value\"],\"message_code\":\"WAITING\",\"policy_version\":\"demo-policy-v1\"}",
+    "sha256": "71811be4fe0e599801a5bd3cac75ff4d07a76a16a60f1cd473abd0747f8ace93"
+  },
+  {
+    "name": "DisputeAction",
+    "payload": {
+      "case_id": "case-demo-42",
+      "case_revision": 1,
+      "evidence_ids": [
+        "synthetic-value"
+      ],
+      "policy_version": "demo-policy-v1",
+      "action": "OPEN_DISPUTE",
+      "transaction_ref": "TXN-B",
+      "reason_code": "synthetic-reason_code"
+    },
+    "canonical_utf8": "{\"action\":\"OPEN_DISPUTE\",\"case_id\":\"case-demo-42\",\"case_revision\":1,\"evidence_ids\":[\"synthetic-value\"],\"policy_version\":\"demo-policy-v1\",\"reason_code\":\"synthetic-reason_code\",\"transaction_ref\":\"TXN-B\"}",
+    "sha256": "eedc8433dcd783cfdc168a06c93f13fec666521bb5b7ed8777574f66a4c5d9f1"
+  },
+  {
+    "name": "RecheckAction",
+    "payload": {
+      "case_id": "case-demo-42",
+      "case_revision": 1,
+      "evidence_ids": [
+        "synthetic-value"
+      ],
+      "policy_version": "demo-policy-v1",
+      "action": "SCHEDULE_RECHECK",
+      "available_at": "2026-11-13T12:05:00Z",
+      "reason_code": "synthetic-reason_code"
+    },
+    "canonical_utf8": "{\"action\":\"SCHEDULE_RECHECK\",\"available_at\":\"2026-11-13T12:05:00Z\",\"case_id\":\"case-demo-42\",\"case_revision\":1,\"evidence_ids\":[\"synthetic-value\"],\"policy_version\":\"demo-policy-v1\",\"reason_code\":\"synthetic-reason_code\"}",
+    "sha256": "648f28f47b6fa0debc96c44f12ae2bdea0dc8ab5e9cd77b3a5494f4980893ed2"
+  },
+  {
+    "name": "SyncAction",
+    "payload": {
+      "case_id": "case-demo-42",
+      "case_revision": 1,
+      "evidence_ids": [
+        "synthetic-value"
+      ],
+      "policy_version": "demo-policy-v1",
+      "action": "SYNC_ORDER",
+      "transaction_ref": "TXN-B",
+      "order_reference": "DEMO-ORDER-42"
+    },
+    "canonical_utf8": "{\"action\":\"SYNC_ORDER\",\"case_id\":\"case-demo-42\",\"case_revision\":1,\"evidence_ids\":[\"synthetic-value\"],\"order_reference\":\"DEMO-ORDER-42\",\"policy_version\":\"demo-policy-v1\",\"transaction_ref\":\"TXN-B\"}",
+    "sha256": "92ed69288967f8b9e8b0ca4253e6ccc8af28d90194c242dbf71b68c832a680ed"
+  },
+  {
+    "name": "EscalateAction",
+    "payload": {
+      "case_id": "case-demo-42",
+      "case_revision": 1,
+      "evidence_ids": [
+        "synthetic-value"
+      ],
+      "policy_version": "demo-policy-v1",
+      "action": "ESCALATE",
+      "reason_code": "synthetic-reason_code",
+      "owner_queue": "PAYMENTS"
+    },
+    "canonical_utf8": "{\"action\":\"ESCALATE\",\"case_id\":\"case-demo-42\",\"case_revision\":1,\"evidence_ids\":[\"synthetic-value\"],\"owner_queue\":\"PAYMENTS\",\"policy_version\":\"demo-policy-v1\",\"reason_code\":\"synthetic-reason_code\"}",
+    "sha256": "8b01fe91c1eae724b2749d8dd0c404d6a30522d33dac3d7257b2a1a755ac377e"
+  },
+  {
+    "name": "unicode-preserve",
+    "payload": {
+      "case_id": "தமிழ்-é",
+      "case_revision": 1,
+      "evidence_ids": [
+        "evidence-payment-b",
+        "evidence-order"
+      ],
+      "policy_version": "demo-policy-v1",
+      "action": "REQUEST_REFUND",
+      "transaction_ref": "TXN-B",
+      "amount_minor": 150000,
+      "currency": "INR",
+      "destination": "ORIGINAL_PAYMENT_ROUTE"
+    },
+    "canonical_utf8": "{\"action\":\"REQUEST_REFUND\",\"amount_minor\":150000,\"case_id\":\"தமிழ்-é\",\"case_revision\":1,\"currency\":\"INR\",\"destination\":\"ORIGINAL_PAYMENT_ROUTE\",\"evidence_ids\":[\"evidence-payment-b\",\"evidence-order\"],\"policy_version\":\"demo-policy-v1\",\"transaction_ref\":\"TXN-B\"}",
+    "sha256": "78221d523f13947ed512bd86cc6cad09f00d1d8543d6af0882a89c3068d552eb"
+  },
+  {
+    "name": "array-order-preserve",
+    "payload": {
+      "case_id": "case-demo-42",
+      "case_revision": 1,
+      "evidence_ids": [
+        "evidence-order",
+        "evidence-payment-b"
+      ],
+      "policy_version": "demo-policy-v1",
+      "action": "REQUEST_REFUND",
+      "transaction_ref": "TXN-B",
+      "amount_minor": 150000,
+      "currency": "INR",
+      "destination": "ORIGINAL_PAYMENT_ROUTE"
+    },
+    "canonical_utf8": "{\"action\":\"REQUEST_REFUND\",\"amount_minor\":150000,\"case_id\":\"case-demo-42\",\"case_revision\":1,\"currency\":\"INR\",\"destination\":\"ORIGINAL_PAYMENT_ROUTE\",\"evidence_ids\":[\"evidence-order\",\"evidence-payment-b\"],\"policy_version\":\"demo-policy-v1\",\"transaction_ref\":\"TXN-B\"}",
+    "sha256": "46c2c0f55b40dd031f39f65c94e8961cb4a0e726d5db5d258401c7609f933e5e"
+  }
+]

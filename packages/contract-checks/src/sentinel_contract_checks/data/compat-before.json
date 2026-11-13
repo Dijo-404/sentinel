@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "CaseView": {
+      "type": "object",
+      "properties": {
+        "case_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "case_id"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

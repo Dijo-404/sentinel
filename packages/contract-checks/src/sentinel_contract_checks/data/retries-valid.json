@@ -1,0 +1,48 @@
+[
+  {
+    "scope": "synthetic-tenant/case-demo-42/reservation",
+    "key": "operation-demo",
+    "type": "ReservationRequest",
+    "value": {
+      "operation_key": "synthetic-operation_key",
+      "payload": {
+        "case_id": "case-demo-42",
+        "case_revision": 1,
+        "evidence_ids": [
+          "synthetic-value"
+        ],
+        "policy_version": "demo-policy-v1",
+        "action": "REQUEST_REFUND",
+        "transaction_ref": "TXN-B",
+        "amount_minor": 150000,
+        "currency": "INR",
+        "destination": "ORIGINAL_PAYMENT_ROUTE"
+      },
+      "action_digest": "04178c0b41f5b5bc66f62e7ad1977b5e0f629c0453383483fd57a012d7901b31",
+      "approval_id": "synthetic-approval_id"
+    }
+  },
+  {
+    "scope": "synthetic-tenant/case-demo-42/reservation",
+    "key": "operation-demo",
+    "type": "ReservationRequest",
+    "value": {
+      "operation_key": "synthetic-operation_key",
+      "payload": {
+        "case_id": "case-demo-42",
+        "case_revision": 1,
+        "evidence_ids": [
+          "synthetic-value"
+        ],
+        "policy_version": "demo-policy-v1",
+        "action": "REQUEST_REFUND",
+        "transaction_ref": "TXN-B",
+        "amount_minor": 150000,
+        "currency": "INR",
+        "destination": "ORIGINAL_PAYMENT_ROUTE"
+      },
+      "action_digest": "04178c0b41f5b5bc66f62e7ad1977b5e0f629c0453383483fd57a012d7901b31",
+      "approval_id": "synthetic-approval_id"
+    }
+  }
+]

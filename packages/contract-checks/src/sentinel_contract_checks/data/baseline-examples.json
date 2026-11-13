@@ -1,0 +1,166 @@
+[
+  {
+    "contract_version": "sentinel.task-contracts.v1",
+    "case_id": "case-demo-42",
+    "order_reference": "DEMO-ORDER-42",
+    "payments": [
+      {
+        "transaction_ref": "TXN-A",
+        "status": "CAPTURED",
+        "amount_minor": 150000,
+        "currency": "INR"
+      },
+      {
+        "transaction_ref": "TXN-B",
+        "status": "CAPTURED",
+        "amount_minor": 150000,
+        "currency": "INR"
+      }
+    ],
+    "fulfilled_order_count": 1,
+    "merchant_confirmed_duplicate": true,
+    "refunded_minor": 0,
+    "pending_minor": 0,
+    "reserved_minor": 0
+  },
+  {
+    "action": "REQUEST_REFUND",
+    "case_id": "case-demo-42",
+    "case_revision": 1,
+    "transaction_ref": "TXN-B",
+    "amount_minor": 150000,
+    "currency": "INR",
+    "destination": "ORIGINAL_PAYMENT_ROUTE",
+    "evidence_ids": [
+      "evidence-payment-b",
+      "evidence-order"
+    ],
+    "policy_version": "demo-policy-v1"
+  },
+  {
+    "case_result_request": {
+      "event_key": "result-demo-1",
+      "expected_revision": 1,
+      "status": "WAITING_APPROVAL",
+      "evidence_ids": [
+        "evidence-payment-b",
+        "evidence-order"
+      ],
+      "action_id": "action-demo-1",
+      "reason_code": "SUPERVISOR_REQUIRED"
+    },
+    "case_result_response": {
+      "contract_version": "sentinel.task-contracts.v1",
+      "case_id": "case-demo-42",
+      "revision": 2,
+      "status": "WAITING_APPROVAL",
+      "language": "en-IN",
+      "intent": "DUPLICATE_PAYMENT",
+      "evidence_ids": [
+        "evidence-payment-b",
+        "evidence-order"
+      ],
+      "action_id": "action-demo-1"
+    },
+    "claim_request": {
+      "limit": 1
+    },
+    "claim_empty_response": {
+      "commands": []
+    },
+    "workflow_request": {
+      "case_id": "case-demo-42",
+      "case_revision": 2,
+      "job_key": "resume-demo-1",
+      "event": "DECISION"
+    },
+    "workflow_response": {
+      "contract_version": "sentinel.task-contracts.v1",
+      "job_id": "job-demo-1",
+      "accepted": true
+    },
+    "conflicting_retry_response": {
+      "code": "IDEMPOTENCY_CONFLICT",
+      "message": "Key already used with a different payload",
+      "request_id": "request-demo-1"
+    },
+    "missing_peer_response": {
+      "code": "PEER_UNAVAILABLE",
+      "message": "Required peer unavailable",
+      "request_id": "request-demo-2"
+    }
+  },
+  {
+    "canonical_action_utf8": "{\"action\":\"REQUEST_REFUND\",\"amount_minor\":150000,\"case_id\":\"case-demo-42\",\"case_revision\":1,\"currency\":\"INR\",\"destination\":\"ORIGINAL_PAYMENT_ROUTE\",\"evidence_ids\":[\"evidence-payment-b\",\"evidence-order\"],\"policy_version\":\"demo-policy-v1\",\"transaction_ref\":\"TXN-B\"}",
+    "expected_sha256": "d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993",
+    "reservation_request": {
+      "operation_key": "duplicate-demo-42-b",
+      "payload": {
+        "action": "REQUEST_REFUND",
+        "case_id": "case-demo-42",
+        "case_revision": 1,
+        "transaction_ref": "TXN-B",
+        "amount_minor": 150000,
+        "currency": "INR",
+        "destination": "ORIGINAL_PAYMENT_ROUTE",
+        "evidence_ids": [
+          "evidence-payment-b",
+          "evidence-order"
+        ],
+        "policy_version": "demo-policy-v1"
+      },
+      "action_digest": "d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993",
+      "approval_id": "approval-demo-1"
+    },
+    "claim_one_response": {
+      "commands": [
+        {
+          "action_id": "action-demo-1",
+          "provider_ref": "refund-demo-1",
+          "payload": {
+            "action": "REQUEST_REFUND",
+            "case_id": "case-demo-42",
+            "case_revision": 1,
+            "transaction_ref": "TXN-B",
+            "amount_minor": 150000,
+            "currency": "INR",
+            "destination": "ORIGINAL_PAYMENT_ROUTE",
+            "evidence_ids": [
+              "evidence-payment-b",
+              "evidence-order"
+            ],
+            "policy_version": "demo-policy-v1"
+          },
+          "action_digest": "d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993",
+          "lease_id": "lease-demo-1",
+          "lease_expires_at": "2026-11-13T12:05:00Z",
+          "provider_capabilities": {
+            "same_key_retry": true,
+            "status_lookup": true
+          }
+        }
+      ]
+    },
+    "provider_refund_request": {
+      "action_id": "action-demo-1",
+      "provider_ref": "refund-demo-1",
+      "transaction_ref": "TXN-B",
+      "amount_minor": 150000,
+      "currency": "INR",
+      "destination": "ORIGINAL_PAYMENT_ROUTE"
+    },
+    "provider_refund_response": {
+      "action_id": "action-demo-1",
+      "provider_ref": "refund-demo-1",
+      "transaction_ref": "TXN-B",
+      "amount_minor": 150000,
+      "currency": "INR",
+      "status": "PENDING"
+    },
+    "ambiguous_lookup_response": {
+      "code": "NOT_FOUND",
+      "message": "Reference not currently visible; outcome remains unknown",
+      "request_id": "request-demo-3"
+    }
+  }
+]

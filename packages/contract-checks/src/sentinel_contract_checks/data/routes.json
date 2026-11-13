@@ -1,0 +1,188 @@
+[
+  {
+    "route": "provider `GET /v1/transactions?order_reference=...`",
+    "request": "Scoped query",
+    "response": "`{ payments: Payment[] }`",
+    "roles": "workflow, verifier, sandbox-admin"
+  },
+  {
+    "route": "provider `GET /v1/orders/{order_reference}`",
+    "request": "Empty",
+    "response": "`Order`",
+    "roles": "workflow, verifier, sandbox-admin"
+  },
+  {
+    "route": "provider `GET /v1/refunds?transaction_ref=...`",
+    "request": "Scoped query",
+    "response": "`{ refunds: Refund[] }`",
+    "roles": "workflow, verifier, sandbox-admin"
+  },
+  {
+    "route": "provider `POST /v1/refunds`",
+    "request": "`RefundRequest`; `Idempotency-Key` equals provider_ref",
+    "response": "`Refund`, 202",
+    "roles": "dispatcher"
+  },
+  {
+    "route": "provider `GET /v1/refunds/{provider_ref}`",
+    "request": "Empty",
+    "response": "`Refund`; 404 is not proof an ambiguous write failed",
+    "roles": "dispatcher, verifier, workflow"
+  },
+  {
+    "route": "provider `GET /v1/credits/{provider_ref}`",
+    "request": "Empty",
+    "response": "`Credit`",
+    "roles": "verifier, workflow"
+  },
+  {
+    "route": "policy `POST /v1/evaluate`",
+    "request": "`PolicyRequest`",
+    "response": "`PolicyResult`",
+    "roles": "workflow; ledger uses a workflow-scoped service principal"
+  },
+  {
+    "route": "evidence `POST /v1/evidence/collect`",
+    "request": "`{ case_id, case_revision, order_reference }`",
+    "response": "`EvidenceBundle`",
+    "roles": "workflow, verifier"
+  },
+  {
+    "route": "evidence `GET /v1/cases/{case_id}/evidence`",
+    "request": "Empty",
+    "response": "`EvidenceBundle`",
+    "roles": "workflow, verifier, operator, supervisor"
+  },
+  {
+    "route": "cases `POST /v1/cases`",
+    "request": "`CaseCreate`; required `Idempotency-Key`",
+    "response": "`CaseCreated`, 202",
+    "roles": "customer, operator"
+  },
+  {
+    "route": "cases `GET /v1/cases/{case_id}`",
+    "request": "Empty",
+    "response": "`Case`",
+    "roles": "scoped customer, operator, supervisor, workflow, verifier"
+  },
+  {
+    "route": "cases `POST /v1/cases/{case_id}/messages`",
+    "request": "`{ message: string, language: string, expected_revision: int }`",
+    "response": "`Case`, 202",
+    "roles": "scoped customer, operator"
+  },
+  {
+    "route": "cases `GET /v1/cases/{case_id}/events`",
+    "request": "`Last-Event-ID` sequence cursor or `after` query",
+    "response": "SSE `CaseEvent`; `format=json` returns `{ events: CaseEvent[] }`",
+    "roles": "scoped customer, operator, supervisor"
+  },
+  {
+    "route": "cases `GET /v1/ops/cases?status=...&after=...`",
+    "request": "Optional status/cursor",
+    "response": "`{ cases: Case[], next_cursor?: string }`",
+    "roles": "operator, supervisor"
+  },
+  {
+    "route": "cases `GET /v1/ops/cases/{case_id}/evidence`",
+    "request": "Empty",
+    "response": "`EvidenceBundle`",
+    "roles": "operator, supervisor"
+  },
+  {
+    "route": "cases `POST /v1/ops/actions/{action_id}/decisions`",
+    "request": "`DecisionRequest`",
+    "response": "`Approval` from the ledger",
+    "roles": "supervisor"
+  },
+  {
+    "route": "cases `POST /v1/ops/cases/{case_id}/escalate`",
+    "request": "`{ expected_revision: int, reason_code: string, owner_queue: string }`",
+    "response": "`Case`",
+    "roles": "operator, supervisor"
+  },
+  {
+    "route": "cases `GET /v1/internal/cases/{case_id}/input?revision=...`",
+    "request": "Required positive revision query",
+    "response": "`CaseInput` for that immutable revision",
+    "roles": "workflow"
+  },
+  {
+    "route": "cases `POST /v1/internal/cases/{case_id}/results`",
+    "request": "`CaseResult`",
+    "response": "`Case`",
+    "roles": "workflow, verifier"
+  },
+  {
+    "route": "workflow `POST /v1/runs`",
+    "request": "`WorkflowRequest`",
+    "response": "`Ack`, 202",
+    "roles": "workflow-scoped case API service principal, verifier"
+  },
+  {
+    "route": "ledger `POST /v1/actions/proposals`",
+    "request": "`ProposalRequest`",
+    "response": "`ActionRecord`, 201",
+    "roles": "workflow"
+  },
+  {
+    "route": "ledger `POST /v1/actions/{action_id}/decisions`",
+    "request": "`DecisionRequest`",
+    "response": "`Approval`",
+    "roles": "supervisor"
+  },
+  {
+    "route": "ledger `POST /v1/actions/reservations`",
+    "request": "`ReservationRequest`",
+    "response": "`ActionRecord`, 201 or 200 on identical retry",
+    "roles": "workflow"
+  },
+  {
+    "route": "ledger `POST /v1/actions/claims`",
+    "request": "`{ limit: int }`, 1 to 100",
+    "response": "`ClaimResult`; empty commands means no work",
+    "roles": "dispatcher"
+  },
+  {
+    "route": "ledger `GET /v1/actions/{action_id}`",
+    "request": "Empty",
+    "response": "`ActionRecord`",
+    "roles": "workflow, dispatcher, verifier, operator, supervisor"
+  },
+  {
+    "route": "ledger `POST /v1/actions/{action_id}/outcomes`",
+    "request": "`OutcomeRequest`",
+    "response": "`ActionRecord`",
+    "roles": "dispatcher for accepted/unknown; verifier for evidence-confirmed transitions"
+  },
+  {
+    "route": "verifier `POST /v1/rechecks`",
+    "request": "`VerificationRequest`; required `Idempotency-Key`",
+    "response": "`Ack`, 202",
+    "roles": "workflow, verifier"
+  },
+  {
+    "route": "verifier `POST /v1/webhooks/simulator`",
+    "request": "Original provider event bytes",
+    "response": "`{ accepted: true }`, 202 after inbox commit",
+    "roles": "Provider signature; tenant resolved from authenticated signed payload"
+  },
+  {
+    "route": "verifier `POST /v1/assessments`",
+    "request": "`VerificationRequest`",
+    "response": "`VerificationResult`",
+    "roles": "workflow"
+  },
+  {
+    "route": "verifier `GET /v1/assessments/{assessment_id}`",
+    "request": "Empty",
+    "response": "`VerificationResult`",
+    "roles": "workflow-scoped case API service principal, verifier"
+  },
+  {
+    "route": "context `POST /v1/proposals`",
+    "request": "`ModelRequest`",
+    "response": "`ModelResult`",
+    "roles": "workflow"
+  }
+]
