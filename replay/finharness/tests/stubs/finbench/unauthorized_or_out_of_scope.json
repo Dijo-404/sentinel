@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "Principal not authorized for finbench suite",
+    "request_id": "finbench-stub-forbidden"
+  }
+}

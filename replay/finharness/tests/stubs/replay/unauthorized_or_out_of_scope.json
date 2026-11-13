@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "Principal not authorized for replay comparison",
+    "request_id": "replay-stub-forbidden"
+  }
+}

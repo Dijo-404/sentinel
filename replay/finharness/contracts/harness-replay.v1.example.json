@@ -1,0 +1,51 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "run_id": "harness-replay-demo-1",
+  "mode": "fixture",
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "acceptance.recorded_replay_deterministic",
+      "status": "PASS",
+      "reason_code": "RECORDED_OK"
+    },
+    {
+      "name": "acceptance.changed_writes_use_simulation",
+      "status": "PASS",
+      "reason_code": "SIMULATION_PATH"
+    },
+    {
+      "name": "acceptance.safety_blocks_quality_gain",
+      "status": "PASS",
+      "reason_code": "SAFETY_GATE_OK"
+    }
+  ],
+  "output_artifacts": [
+    {
+      "kind": "harness-replay-comparison",
+      "uri": "fixture://dup_refund_timeout_001",
+      "sha256": "placeholder",
+      "component_version": "0.1.0",
+      "evidence_mode": "fixture"
+    }
+  ],
+  "modes": {
+    "run_mode": "fixture",
+    "seed": 42,
+    "model_mode": "fake",
+    "production_writes_blocked": true,
+    "production_notifications_blocked": true,
+    "live_controls_immutable": true,
+    "real_runtime_adapter": "absent",
+    "real_finbench_adapter": "absent",
+    "real_replay_adapter": "absent"
+  },
+  "promotion": {
+    "decision": "PROMOTE",
+    "reason_code": "QUALITY_UP_SAFETY_HELD",
+    "baseline_candidate_id": "conforming-reconcile-v1",
+    "candidate_id": "conforming-reconcile-v1",
+    "quality_improved": true,
+    "safety_regression": false
+  }
+}
