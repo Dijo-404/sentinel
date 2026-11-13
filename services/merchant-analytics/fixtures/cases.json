@@ -1,0 +1,125 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "cases": [
+    {
+      "case_id": "case-m-01",
+      "merchant_ref": "merchant-demo-1",
+      "status": "VERIFIED_RESOLVED",
+      "intent": "DUPLICATE_PAYMENT",
+      "opened_at": "2026-11-02T10:00:00Z",
+      "closed_at": "2026-11-02T11:00:00Z",
+      "evidence_ids": ["ev-m-01"],
+      "currency": "INR"
+    },
+    {
+      "case_id": "case-m-02",
+      "merchant_ref": "merchant-demo-1",
+      "status": "EXECUTING",
+      "intent": "DUPLICATE_PAYMENT",
+      "opened_at": "2026-11-10T08:00:00Z",
+      "closed_at": null,
+      "evidence_ids": ["ev-m-02"],
+      "currency": "INR"
+    },
+    {
+      "case_id": "case-m-03",
+      "merchant_ref": "merchant-demo-1",
+      "status": "ESCALATED",
+      "intent": "PAID_UNFULFILLED",
+      "opened_at": "2026-11-08T12:00:00Z",
+      "closed_at": null,
+      "evidence_ids": ["ev-m-03"],
+      "currency": "INR"
+    },
+    {
+      "case_id": "case-m-04",
+      "merchant_ref": "merchant-demo-1",
+      "status": "WAITING_EXTERNAL",
+      "intent": "UNMATCHED_PAYMENT",
+      "opened_at": "2026-11-05T09:00:00Z",
+      "closed_at": null,
+      "evidence_ids": ["ev-m-04"],
+      "currency": "INR"
+    },
+    {
+      "case_id": "case-m-05",
+      "merchant_ref": "merchant-demo-1",
+      "status": "CLOSED_NO_ACTION",
+      "intent": "STATUS_UPDATE",
+      "opened_at": "2026-11-03T14:00:00Z",
+      "closed_at": "2026-11-03T14:30:00Z",
+      "evidence_ids": ["ev-m-05"],
+      "currency": "INR"
+    },
+    {
+      "case_id": "case-m-06",
+      "merchant_ref": "merchant-demo-1",
+      "status": "VERIFIED_RESOLVED",
+      "intent": "DUPLICATE_PAYMENT",
+      "opened_at": "2026-11-04T10:00:00Z",
+      "closed_at": "2026-11-04T12:00:00Z",
+      "evidence_ids": ["ev-m-06"],
+      "currency": "INR"
+    },
+    {
+      "case_id": "case-m-07",
+      "merchant_ref": "merchant-demo-1",
+      "status": "VERIFIED_RESOLVED",
+      "intent": "PAID_UNFULFILLED",
+      "opened_at": "2026-11-06T10:00:00Z",
+      "closed_at": "2026-11-06T10:45:00Z",
+      "evidence_ids": ["ev-m-07"],
+      "currency": "INR"
+    },
+    {
+      "case_id": "case-m-08",
+      "merchant_ref": "merchant-demo-1",
+      "status": "VERIFIED_RESOLVED",
+      "intent": "STATUS_UPDATE",
+      "opened_at": "2026-11-07T10:00:00Z",
+      "closed_at": "2026-11-07T11:30:00Z",
+      "evidence_ids": ["ev-m-08"],
+      "currency": "INR"
+    },
+    {
+      "case_id": "case-m-09",
+      "merchant_ref": "merchant-demo-1",
+      "status": "VERIFIED_RESOLVED",
+      "intent": "UNMATCHED_PAYMENT",
+      "opened_at": "2026-11-09T10:00:00Z",
+      "closed_at": "2026-11-09T10:20:00Z",
+      "evidence_ids": ["ev-m-09"],
+      "currency": "INR"
+    },
+    {
+      "case_id": "case-m-10",
+      "merchant_ref": "merchant-demo-1",
+      "status": "INVESTIGATING",
+      "intent": "DUPLICATE_PAYMENT",
+      "opened_at": "2026-11-11T15:00:00Z",
+      "closed_at": null,
+      "evidence_ids": ["ev-m-10"],
+      "currency": "INR"
+    },
+    {
+      "case_id": "case-other-01",
+      "merchant_ref": "merchant-other",
+      "status": "EXECUTING",
+      "intent": "DUPLICATE_PAYMENT",
+      "opened_at": "2026-11-10T08:00:00Z",
+      "closed_at": null,
+      "evidence_ids": ["ev-other-01"],
+      "currency": "INR"
+    },
+    {
+      "case_id": "case-outside",
+      "merchant_ref": "merchant-demo-1",
+      "status": "EXECUTING",
+      "intent": "DUPLICATE_PAYMENT",
+      "opened_at": "2026-10-01T08:00:00Z",
+      "closed_at": null,
+      "evidence_ids": ["ev-outside"],
+      "currency": "INR"
+    }
+  ]
+}

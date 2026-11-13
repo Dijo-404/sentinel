@@ -1,19 +1,76 @@
 # SN-032 — merchant analytics aggregates
 
-Scaffold for `merchant-analytics.v1`. Implementation is the owned task deliverable; this guide is not a running service.
+Independent `merchant-analytics.v1` HTTP service: merchant-scoped read-only aggregates
+(exception rate, unresolved minor units, refund aging buckets, median handling time,
+top causes) from `case-api.v1` and `evidence.v1` ports. No peer mutations. No ledger
+writes. No real payments.
 
 **Owned root:** `services/merchant-analytics/` · **Branch:** `feat/sn-032-merchant-analytics`
 
-Contract: `sentinel.task-contracts.v1`, SHA-256 `0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb`.
+Contract: `sentinel.task-contracts.v1`, SHA-256
+`0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb`.
+Typed snapshot: [contracts/merchant-analytics.v1.json](contracts/merchant-analytics.v1.json).
+Expected fixture metrics: [contracts/expected-metrics.json](contracts/expected-metrics.json).
+
+## Routes
+
+| Method | Path | Roles | Response |
+| --- | --- | --- | --- |
+| `GET` | `/v1/merchants/{merchant_ref}/metrics?window_start&window_end` | operator, supervisor | `MerchantMetrics` |
+
+Also: `/healthz`, `/readyz`, `/v1/capabilities` (`mode: fixture|real-peers`).
+`POST`/`PUT`/`PATCH`/`DELETE` on metrics return 405.
 
 ## Standalone setup and checks
 
+Requires Python 3.11+, [uv](https://docs.astral.sh/uv/), GNU Make. From this directory:
+
 ```sh
-make -C services/merchant-analytics check
+make setup
+make check
 ```
 
-The check target is a required deliverable of SN-032. It is not implemented yet. Use local peer stubs only; no sibling Sentinel services or real payment credentials.
+Or from the repository root:
 
-## Scope
+```sh
+make -C services/merchant-analytics check
+make check
+```
 
-See the published GitHub issue for acceptance criteria, consumed ports and independence rules. Financial writes remain on SN-009 / SN-010; this module must not create a second executor or ledger.
+`make check` runs Ruff lint/format and pytest. Checks use only this module, local
+fixtures under `fixtures/`, and stubs under `tests/stubs/`. No sibling Sentinel
+services, shared DB, or payment credentials.
+
+## Local peer doubles
+
+| Port | Location | Behaviors |
+| --- | --- | --- |
+| `case-api.v1` | `tests/stubs/case_api/` | valid, unavailable, malformed, unauthorized_or_out_of_scope |
+| `evidence.v1` | `tests/stubs/evidence/` | valid, unavailable, malformed, unauthorized_or_out_of_scope |
+
+Deterministic fixture window `2026-11-01T00:00:00Z`–`2026-11-14T00:00:00Z` for
+`merchant-demo-1` yields `exception_rate=0.4000`, `unresolved_minor=100000`, aging
+buckets `{0-24h:1,1-3d:1,3-7d:1,7d+:0}`, `median_handling_seconds=2700`, and ranked
+`top_causes`.
+
+## Configuration
+
+See [.env.example](.env.example).
+
+```sh
+export MERCHANT_ANALYTICS_MODE=fixture
+export MERCHANT_ANALYTICS_TOKENS='operator-token=op-1|tenant-demo|operator|subj-demo-1|*|merchant-demo-1'
+make preview
+```
+
+`MERCHANT_ANALYTICS_MODE=real-peers` requires `CASE_API_*` and `EVIDENCE_*` URLs/tokens
+and **fails closed** on unavailable/malformed/unauthorized peers — no silent fixture
+fallback. Real-peer assembly remains unverified until owner-run integration.
+
+## Compatibility checklist
+
+- [x] Task-local contract snapshot, fixtures, and peer stubs
+- [x] Read-only metrics route with bearer principal + merchant scope
+- [x] Integer minor units; exception rate as fixed decimal string
+- [x] Unauthorized merchant scope and unavailable peers fail closed
+- [x] Real-peer HTTP adapters never fall back to fixtures
