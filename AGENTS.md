@@ -10,11 +10,7 @@
 
 ## Local command-output guidance
 
-The workspace owner supplied this optional machine-local include:
-
-@/home/dj/.codex/RTK.md
-
-Read it when the file exists. On another machine, skip the unavailable include and follow these portable rules: use `rg` for search, bound command output, retain decisive errors, and never print credentials. No project check depends on this absolute path or on RTK being installed.
+Use `rg` for search, bound command output, retain decisive errors, and never print credentials. Keep machine-local RTK instructions in each agent's global configuration rather than importing files outside this repository. No project check depends on RTK being installed.
 
 ## Coordinate through GitHub
 
