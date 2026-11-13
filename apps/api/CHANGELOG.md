@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Fixed
+
+- Atomic workflow outbox claim (`PENDING` → `CLAIMED` via `FOR UPDATE SKIP LOCKED`).
+- Decide path binds action to case before calling ledger; unknown action returns 404.
+- Workflow/verifier empty `case_ids` deny by default; fixtures use `"*"` wildcard.
+
 ### Added — 13 November 2026
 
 - Independent module ownership, architecture/interface guide, scoped agent rules and acceptance checklist.

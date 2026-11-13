@@ -39,20 +39,20 @@
     "tenant_id": "tenant-demo",
     "roles": ["workflow"],
     "subject_refs": [],
-    "case_ids": []
+    "case_ids": ["*"]
   },
   "token-verifier": {
     "principal_id": "verifier-1",
     "tenant_id": "tenant-demo",
     "roles": ["verifier"],
     "subject_refs": [],
-    "case_ids": []
+    "case_ids": ["*"]
   },
   "token-case-api-service": {
     "principal_id": "case-api-service",
     "tenant_id": "tenant-demo",
     "roles": ["workflow"],
     "subject_refs": [],
-    "case_ids": []
+    "case_ids": ["*"]
   }
 }

@@ -26,7 +26,8 @@ def can_access_case(
     if principal.has_role("operator", "supervisor"):
         return True
     if principal.has_role("workflow", "verifier"):
-        if principal.case_ids and case_id not in principal.case_ids:
+        # Empty case_ids deny; "*" grants all cases in tenant.
+        if "*" not in principal.case_ids and case_id not in principal.case_ids:
             return False
         if principal.subject_refs and subject_ref not in principal.subject_refs:
             return False

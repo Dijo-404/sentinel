@@ -43,7 +43,7 @@ Uses `SENTINEL_API_*` from the environment (see `.env.example`). Fixture mode wi
 
 ## Auth
 
-Opaque bearer tokens map to `Principal` via `fixtures/auth_tokens.json` (synthetic demo credentials only).
+Opaque bearer tokens map to `Principal` via `fixtures/auth_tokens.json` (synthetic demo credentials only). Workflow/verifier principals deny empty `case_ids`; use explicit ids or `"*"`.
 
 ## Evidence labels
 
