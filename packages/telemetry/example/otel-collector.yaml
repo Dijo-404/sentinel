@@ -1,0 +1,46 @@
+# Module-local OpenTelemetry Collector example for SN-015.
+# Not started by `make check`. Wire OTLP receivers to local Tempo/Prometheus when assembling.
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 127.0.0.1:4318
+      grpc:
+        endpoint: 127.0.0.1:4317
+
+processors:
+  batch:
+    timeout: 5s
+  attributes/sentinel_redact:
+    actions:
+      - key: authorization
+        action: delete
+      - key: complaint
+        action: delete
+      - key: transaction_ref
+        action: delete
+      - key: order_reference
+        action: delete
+      - key: subject_ref
+        action: delete
+
+exporters:
+  logging:
+    verbosity: basic
+  otlp/tempo:
+    endpoint: 127.0.0.1:4317
+    tls:
+      insecure: true
+  prometheus:
+    endpoint: 127.0.0.1:8889
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [attributes/sentinel_redact, batch]
+      exporters: [logging, otlp/tempo]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [logging, prometheus]
