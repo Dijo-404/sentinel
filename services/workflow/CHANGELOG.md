@@ -1,12 +1,16 @@
-# SN-008 changelog
+# Changelog — SN-008 services/workflow
 
-## Unreleased
+## 0.1.0 — 2026-11-13
 
-### Added — 13 November 2026
+### Added
 
-- Independent module ownership, architecture/interface guide, scoped agent rules and acceptance checklist.
+- SN-008 `sentinel-workflow` package implementing `workflow.v1` (`POST /v1/runs` → Ack 202).
+- Typed LangGraph: load input, evidence, plan (fake/HTTP model), policy, approval interrupt, idempotent ledger propose/reserve, verify/wait, durable case-result outbox.
+- Module-owned PostgreSQL schema (`workflow.jobs`, `result_outbox`, `decisions`) plus LangGraph `PostgresSaver` checkpointer.
+- Local peer stubs (`tests/stubs/`) and real-peer HTTP adapters that surface unavailable/unauthorized/malformed failures.
+- Contract snapshots and `make check` (ruff + pytest with disposable Docker Postgres).
 
-### Implementation status
+### Notes
 
-- Scaffold only. No module implementation, local dependency manifest/check target or product evidence is supplied yet.
-- Future SN-008 behavior/configuration/contract changes must update this file with observed validation and limits.
+- Fake model is explicitly labeled; live model remains opt-in via `WORKFLOW_MODEL_MODE=http`.
+- Real assembly against SN-005/006/007/009/011 peers is unverified.

@@ -1,88 +1,68 @@
-# SN-008 — Build an independent durable workflow worker
+# SN-008 — Independent durable workflow worker
 
-**State:** scaffold and task instructions only. No implementation, dependency installation, module check target or product result is claimed.
-
-**Owned root:** `services/workflow/`
-**Branch:** `feat/sn-008-workflow`
-**Lane:** A · **Phase:** 1 · **Priority:** P0 · **Optional for MVP:** no
+**Package:** `sentinel-workflow` · **Port:** `workflow.v1`  
+**Contract:** `sentinel.task-contracts.v1` · SHA-256 `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`
 
 ## Outcome
 
-Implement bounded typed LangGraph investigation/planning/policy/approval/wait/verification with a module-owned PostgreSQL checkpointer. Own a baseline configurable structured-model adapter and fake-model mode using ModelRequest/ModelResult; the Phase 2 context package is not required. Use local evidence/policy/ledger/verifier/case-result stubs. Deliver results through the case API with durable retries and idempotent revision checks. Read the original complaint, scoped order hint and complete per-revision message history through the case-input API snapshot.
+Bounded typed LangGraph worker: investigation → planning → policy → approval interrupt → ledger propose/reserve → verification/wait. Module-owned PostgreSQL checkpointer, jobs, decisions, and case-result outbox. Baseline **fake** structured model (clearly labeled) plus configurable HTTP model adapter. Phase 2 `indic-context` is not required.
 
-## Independence
+## Setup
 
-No task-completion prerequisites. This module must install, run its local checks, and be reviewable with every other Sentinel task implementation absent. Use explicit local port doubles rather than another developer's server or an unfinished sibling import. Phase and task number do not establish build order.
-
-Read [root agent rules](../../AGENTS.md), [claim/PR workflow](../../CONTRIBUTING.md), [architecture](../../docs/architecture.md), and [testing](../../docs/testing.md). The [task register](../../docs/task-register.md) links the live issue once published.
-
-## Ownership and interfaces
-
-- `services/workflow/**`
-
-- Produces: `workflow.v1`
-- Consumes: `evidence.v1`, `policy.v1`, `action-ledger.v1`, `verifier.v1`, `case-api.v1`
-- Optional consumed interfaces: None
-
-Contract input: [baseline](../../docs/independent-task-contracts.md) · `sentinel.task-contracts.v1` · SHA-256 `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`.
-
-Implement the exact supplied routes, request/response types, auth context, canonical digest and state/idempotency behavior for the relevant ports. Keep typed snapshots and compatibility examples in this module. The contract-checker/SDK implementation is not required.
-
-### Required local peer doubles
-
-- `evidence.v1` under `tests/stubs/`: valid, unavailable, malformed, unauthorized_or_out_of_scope.
-- `policy.v1` under `tests/stubs/`: valid, unavailable, malformed, unauthorized_or_out_of_scope.
-- `action-ledger.v1` under `tests/stubs/`: valid, unavailable, malformed, unauthorized_or_out_of_scope.
-- `verifier.v1` under `tests/stubs/`: valid, unavailable, malformed, unauthorized_or_out_of_scope.
-- `case-api.v1` under `tests/stubs/`: valid, unavailable, malformed, unauthorized_or_out_of_scope.
-
-## Implementation layout
-
-Baseline category: Python service/library/tool.
-
-Use module-local dependency declarations and a reproducible lockfile, configuration example, tests, README and changelog. Stateful components own local migrations and a test database. No root application install or shared migration chain is allowed.
-
-Keep deterministic business rules/types separate from application use cases/ports and external adapters. Wire adapters at one composition entry point. Introduce only directories that contain real responsibilities; the repository does not pre-generate empty layers. See the architecture and folder guides for language-specific layouts.
-
-## Deliverables
-
-- [ ] Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.
-- [ ] Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.
-- [ ] Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation.
-- [ ] Update the local README/configuration and CHANGELOG.md with actual behavior and limitations.
-
-## Acceptance criteria
-
-- [ ] Synthetic approval pauses survive restart and authenticated resume; node replay cannot create a duplicate logical financial command.
-- [ ] Missing evidence, malformed/outage model output, exhausted budgets and pending outcomes yield correct clarification/escalation/wait states against local peers.
-- [ ] All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required.
-
-## Planned local commands
-
-The owning task must implement and document dependency setup, a local run/preview command where applicable, and this check target. It does not exist yet:
+Requires Python 3.11+, [uv](https://github.com/astral-sh/uv), and Docker (disposable Postgres for `make check`).
 
 ```sh
-make -C services/workflow check
+cd services/workflow
+cp .env.example .env   # optional local overrides
+uv sync --frozen
+make check
 ```
 
-Run root `make check` as well. Root checks validate repository metadata and tools; they do not implement or substitute for this component's behavior tests. External provider credentials are optional for local fixture checks.
+`make check` runs ruff + pytest. Integration tests start a private `postgres:17-alpine` container (tmpfs, removed after the session). No sibling Sentinel services are required.
 
-## Test and failure requirements
+## Run (local fixture peers + fake model)
 
-- Exercise observable acceptance behavior and meaningful invalid, unavailable, malformed and unauthorized boundary cases.
-- Use real PostgreSQL tests for financial locking/transactions, durable checkpoints or other database behavior that an in-memory double cannot establish.
-- Label fixtures/simulated providers/fake or live inference precisely. A real-peer adapter must not silently convert peer failure into fixture success.
-- Confirm the module works with sibling implementations absent and record exactly which local doubles/databases were used.
+```sh
+# Postgres URL in WORKFLOW_DATABASE_URL, then:
+uv run sentinel-workflow migrate
+uv run sentinel-workflow serve
+```
 
-## Evidence and review
+- `POST /v1/runs` → `Ack` 202 (`WorkflowRequest`)
+- Auth: synthetic bearer tokens from `WORKFLOW_AUTH_TOKENS`
+- DECISION resume may include `X-Sentinel-Approval` JSON for authenticated approval payload in fixture/assembly tests
+- `GET /v1/capabilities` reports `mode: fixture|real-peers`
+- Fake model scenarios via `WORKFLOW_FAKE_MODEL_SCENARIO` (`proposal`, `needs_input`, `escalate`, `malformed`, `outage`)
 
-- Exact standalone setup/check commands, actual results and pinned contract baseline hash.
-- Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.
-- PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status.
+## Layout
 
-Open a PR targeting main with `Refs #<issue>` and the PR template. Update the issue to review. Owner review/merge and accepted standalone evidence close the component issue. Agents never push main, merge or enable auto-merge.
+| Path | Role |
+| --- | --- |
+| `src/sentinel_workflow/domain/` | Wire types, canonical action digest |
+| `src/sentinel_workflow/application/` | Accept/run/outbox use cases and ports |
+| `src/sentinel_workflow/graph/` | LangGraph nodes and compile |
+| `src/sentinel_workflow/adapters/` | HTTP API, Postgres, fake/HTTP model, real-peer HTTP, fixture peers |
+| `contracts/` | Request/ack/digest snapshots + compatibility checklist |
+| `tests/stubs/` | Local doubles for evidence/policy/ledger/verifier/case-api |
+| `migrations/` | Module-owned schema reference |
 
-## Assembly limits
+## Acceptance coverage
 
-- A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.
-- Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence.
+- Approval interrupt survives Postgres restart; authenticated DECISION resume; ledger `operation_key` prevents duplicate logical financial commands on node replay
+- Missing evidence → `NEEDS_INPUT`; malformed/outage model → `ESCALATED`; exhausted investigation budget → `ESCALATED`; pending verification → `WAITING_EXTERNAL`
+- Outbox retries on case-api outage; idempotent `job_key`; unauthorized token rejected
+- Real HTTP peer adapters raise on unavailable/unauthorized/malformed (no fixture fallback)
+
+## Evidence labels
+
+| Dimension | This module's local check |
+| --- | --- |
+| Component under test | Real `sentinel-workflow` |
+| Payment provider | Not called (ledger stub only) |
+| Model | Fake (labeled) |
+| Peers | Local stubs under `tests/stubs/` |
+| Assembly / real peers | Unverified |
+
+## Ownership
+
+Work only in `services/workflow/**`. See [AGENTS.md](AGENTS.md).
