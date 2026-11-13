@@ -1,0 +1,28 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "case_id": "case-for-ORDER-OK",
+  "evidence": [
+    {
+      "evidence_id": "evidence-txn-ok",
+      "case_id": "case-for-ORDER-OK",
+      "source": "payment-provider.v1",
+      "subject_ref": "subj-demo-1",
+      "observed_at": "2026-11-02T10:05:00Z",
+      "expires_at": "2026-11-02T11:05:00Z",
+      "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "verification_status": "VERIFIED",
+      "facts": {
+        "kind": "PAYMENT",
+        "payment": {
+          "transaction_ref": "TXN-OK",
+          "order_reference": "ORDER-OK",
+          "subject_ref": "subj-demo-1",
+          "status": "CAPTURED",
+          "amount_minor": 150000,
+          "currency": "INR"
+        }
+      }
+    }
+  ],
+  "reconciliation_codes": []
+}
