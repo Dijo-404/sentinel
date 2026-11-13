@@ -1,0 +1,7 @@
+{
+  "policy_id": "sla-policy-demo-1",
+  "tenant_id": "demo-tenant-a",
+  "merchant_ref": "merchant-demo-a",
+  "respond_within_seconds": 900,
+  "resolve_within_seconds": 86400
+}

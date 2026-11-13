@@ -1,0 +1,9 @@
+{
+  "task_id": "sla-task-demo-1",
+  "case_id": "case-demo-42",
+  "assignee": "op-merchant-demo",
+  "due_at": "2026-11-13T12:00:00Z",
+  "follow_up_at": "2026-11-13T10:15:00Z",
+  "overdue": false,
+  "status": "OPEN"
+}
