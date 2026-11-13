@@ -1,0 +1,43 @@
+"""Module-local settings."""
+
+from __future__ import annotations
+
+import json
+from typing import Any, Literal
+
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="WORKFLOW_", env_file=".env", extra="ignore")
+
+    database_url: str = "postgresql+psycopg://workflow:workflow@127.0.0.1:5432/workflow"
+    mode: Literal["fixture", "real-peers"] = "fixture"
+    model_mode: Literal["fake", "http"] = "fake"
+    fake_model_scenario: str = "proposal"
+    investigation_budget: int = 8
+    model_retry_budget: int = 2
+    auth_tokens: str = Field(
+        default=(
+            '{"workflow-token":{"principal_id":"svc-workflow","tenant_id":"tenant-demo",'
+            '"roles":["workflow"],"subject_refs":["subject-demo"],"case_ids":["case-demo-42"]},'
+            '"case-api-token":{"principal_id":"svc-case-api","tenant_id":"tenant-demo",'
+            '"roles":["workflow"],"subject_refs":["subject-demo"],"case_ids":["case-demo-42"]},'
+            '"verifier-token":{"principal_id":"svc-verifier","tenant_id":"tenant-demo",'
+            '"roles":["verifier"],"subject_refs":["subject-demo"],"case_ids":["case-demo-42"]}}'
+        )
+    )
+    peer_case_api_url: str = ""
+    peer_evidence_url: str = ""
+    peer_policy_url: str = ""
+    peer_ledger_url: str = ""
+    peer_verifier_url: str = ""
+    peer_model_url: str = ""
+    outbound_bearer: str = "workflow-outbound-token"
+    host: str = "127.0.0.1"
+    port: int = 8088
+    policy_version: str = "demo-policy-v1"
+
+    def token_map_raw(self) -> dict[str, Any]:
+        return json.loads(self.auth_tokens)
