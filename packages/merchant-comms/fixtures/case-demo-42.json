@@ -1,0 +1,10 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "case_id": "case-demo-42",
+  "revision": 2,
+  "status": "WAITING_APPROVAL",
+  "language": "en-IN",
+  "intent": "DUPLICATE_PAYMENT",
+  "evidence_ids": ["evidence-payment-b", "evidence-order"],
+  "action_id": "action-demo-1"
+}

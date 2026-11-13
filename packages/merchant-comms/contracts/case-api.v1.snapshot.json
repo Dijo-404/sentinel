@@ -1,0 +1,15 @@
+{
+  "port": "case-api.v1",
+  "contract_version": "sentinel.task-contracts.v1",
+  "baseline_sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb",
+  "routes_used": [
+    {
+      "method": "GET",
+      "path": "/v1/cases/{case_id}",
+      "request": "Empty",
+      "response": "Case",
+      "role": "scoped operator|supervisor"
+    }
+  ],
+  "failure_cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
+}
