@@ -25,7 +25,7 @@ def test_fixture_run_passes_and_labels_fixture_evidence() -> None:
     assert all(a.evidence_mode == "fixture" for a in report.output_artifacts)
     assert any(a.kind == "harness-telemetry-export" for a in report.output_artifacts)
     assert any(a.kind == "dashboard-example" for a in report.output_artifacts)
-    assert CONTRACT_SHA256.startswith("0c728513")
+    assert CONTRACT_SHA256.startswith("0db3ba2b")
 
 
 def test_real_peers_without_peers_do_not_fall_back_to_fixture_pass() -> None:

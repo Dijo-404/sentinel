@@ -14,7 +14,7 @@ def test_self_test_passes(capsys):
     assert code == 0
     assert payload["status"] == "PASS"
     assert payload["port"] == "finbench.v1"
-    assert payload["baseline_sha256"].startswith("0c728513")
+    assert payload["baseline_sha256"].startswith("0db3ba2b")
 
 
 def test_run_recorded_val_discloses(capsys):

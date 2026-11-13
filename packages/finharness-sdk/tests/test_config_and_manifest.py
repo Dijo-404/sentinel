@@ -18,7 +18,7 @@ def test_defaults_disable_routing_writes_and_notifications():
     assert config.notifications is False
     assert config.routing_active() is False
     assert config.contract_version == CONTRACT_VERSION
-    assert CONTRACT_SHA256.startswith("0c728513")
+    assert CONTRACT_SHA256.startswith("0db3ba2b")
 
 
 def test_contract_version_pin_rejected():

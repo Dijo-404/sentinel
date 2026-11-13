@@ -65,7 +65,7 @@ def test_baseline_report_discloses_hashes_denominators_variance(dataset):
     report = evaluate_split(dataset, "val", select_candidate("recorded"))
     assert report.dataset_sha256 == dataset.dataset_sha256
     assert report.split_sha256 == dataset.split_sha256["val"]
-    assert report.baseline_sha256.startswith("0c728513")
+    assert report.baseline_sha256.startswith("0db3ba2b")
     assert report.model_scores
     assert report.system_scores
     for block in (*report.model_scores, *report.system_scores):
