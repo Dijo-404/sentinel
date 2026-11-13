@@ -4,9 +4,12 @@
 
 ### Added — 13 November 2026
 
-- Independent module ownership, architecture/interface guide, scoped agent rules and acceptance checklist.
+- `finharness-sdk.v1` Python package: injectable evidence/policy/ledger/verifier/indic-context ports, version-pinned `CaseManifest`, `RuntimeConfig` with disabled-by-default routing/writes/notifications, and `FinHarnessClient` composition facade.
+- Local sample workflow (`run_sample_workflow` / `sentinel-finharness sample`) exercising fixture peers with contract validation.
+- Peer stubs under `tests/stubs/` covering valid, unavailable, malformed, and unauthorized_or_out_of_scope for all five consumed ports.
+- Module Makefile `setup`/`check`/`preview`, lockfile, `.env.example`, and contract snapshot `contracts/finharness-sdk.v1.json`.
 
 ### Implementation status
 
-- Scaffold only. No module implementation, local dependency manifest/check target or product evidence is supplied yet.
-- Future SN-020 behavior/configuration/contract changes must update this file with observed validation and limits.
+- Standalone fixture checks only. Real-peer adapters, payment simulator runs, live model calls, and assembled product evidence remain unverified.
+- No independent refund executor or case store; SN-009 remains sole financial authority.
