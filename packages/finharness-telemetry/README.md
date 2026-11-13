@@ -1,86 +1,101 @@
-# SN-024 — Build an independent harness telemetry extension
+# SN-024 — Standalone harness telemetry extension
 
-**State:** scaffold and task instructions only. No implementation, dependency installation, module check target or product result is claimed.
+`harness-telemetry.v1` injectable sanitized runtime/evaluation hooks, audit correlation, and module-local dashboard/export examples. Local emitter/exporter fakes only — does not modify `packages/telemetry` or import sibling implementations.
 
-**Owned root:** `packages/finharness-telemetry/`
-**Branch:** `feat/sn-024-harness-observability`
-**Lane:** D · **Phase:** 2 · **Priority:** P1 · **Optional for MVP:** yes
+**Owned root:** `packages/finharness-telemetry/` · **Branch:** `feat/sn-024-harness-observability`
 
-## Outcome
+Contract: `sentinel.task-contracts.v1`, SHA-256 `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`. Local typed snapshot: [contracts.py](src/sentinel_finharness_telemetry/contracts.py), [harness-telemetry.v1.json](contracts/harness-telemetry.v1.json), [fixtures](fixtures/).
 
-Implement injectable sanitized runtime/evaluation hooks, audit correlation and module-local dashboard/export examples. Use local emitter/exporter fakes instead of modifying another telemetry package or shared infrastructure.
+## Standalone setup and checks
 
-## Independence
+Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/). No database, Docker, sibling packages, or running Sentinel peers.
 
-No task-completion prerequisites. This module must install, run its local checks, and be reviewable with every other Sentinel task implementation absent. Use explicit local port doubles rather than another developer's server or an unfinished sibling import. Phase and task number do not establish build order.
+```sh
+make setup
+make check
+```
 
-Read [root agent rules](../../AGENTS.md), [claim/PR workflow](../../CONTRIBUTING.md), [architecture](../../docs/architecture.md), and [testing](../../docs/testing.md). The [task register](../../docs/task-register.md) links the live issue once published.
-
-## Ownership and interfaces
-
-- `packages/finharness-telemetry/**`
-
-- Produces: `harness-telemetry.v1`
-- Consumes: `telemetry.v1`, `finharness-runtime.v1`, `finbench.v1`
-- Optional consumed interfaces: None
-
-Contract input: [baseline](../../docs/independent-task-contracts.md) · `sentinel.task-contracts.v1` · SHA-256 `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`.
-
-Implement the exact supplied routes, request/response types, auth context, canonical digest and state/idempotency behavior for the relevant ports. Keep typed snapshots and compatibility examples in this module. The contract-checker/SDK implementation is not required.
-
-### Required local peer doubles
-
-- `telemetry.v1` under `tests/stubs/`: valid, unavailable, malformed, unauthorized_or_out_of_scope.
-- `finharness-runtime.v1` under `tests/stubs/`: valid, unavailable, malformed, unauthorized_or_out_of_scope.
-- `finbench.v1` under `tests/stubs/`: valid, unavailable, malformed, unauthorized_or_out_of_scope.
-
-## Implementation layout
-
-Baseline category: Python service/library/tool.
-
-Use module-local dependency declarations and a reproducible lockfile, configuration example, tests, README and changelog. Stateful components own local migrations and a test database. No root application install or shared migration chain is allowed.
-
-Keep deterministic business rules/types separate from application use cases/ports and external adapters. Wire adapters at one composition entry point. Introduce only directories that contain real responsibilities; the repository does not pre-generate empty layers. See the architecture and folder guides for language-specific layouts.
-
-## Deliverables
-
-- [ ] Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.
-- [ ] Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.
-- [ ] Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation.
-- [ ] Update the local README/configuration and CHANGELOG.md with actual behavior and limitations.
-
-## Acceptance criteria
-
-- [ ] Local hooks join case/action/model/evaluation versions through bounded redacted records without sampling financial audit.
-- [ ] Telemetry outage, missing base exporter and malformed input fail safely; fixture reports never imply deployed runtime observations.
-- [ ] All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required.
-
-## Planned local commands
-
-The owning task must implement and document dependency setup, a local run/preview command where applicable, and this check target. It does not exist yet:
+Or from the repository root:
 
 ```sh
 make -C packages/finharness-telemetry check
 ```
 
-Run root `make check` as well. Root checks validate repository metadata and tools; they do not implement or substitute for this component's behavior tests. External provider credentials are optional for local fixture checks.
+`uv sync --frozen` installs only this module's locked dependencies. `make check` runs Ruff lint/format and pytest. Fixture mode uses in-process memory sinks and local peer doubles under [tests/stubs/](tests/stubs/).
 
-## Test and failure requirements
+Preview the `RunReport`:
 
-- Exercise observable acceptance behavior and meaningful invalid, unavailable, malformed and unauthorized boundary cases.
-- Use real PostgreSQL tests for financial locking/transactions, durable checkpoints or other database behavior that an in-memory double cannot establish.
-- Label fixtures/simulated providers/fake or live inference precisely. A real-peer adapter must not silently convert peer failure into fixture success.
-- Confirm the module works with sibling implementations absent and record exactly which local doubles/databases were used.
+```sh
+make preview
+# or
+uv run --frozen sentinel-finharness-telemetry preview
+```
 
-## Evidence and review
+## Public surface
 
-- Exact standalone setup/check commands, actual results and pinned contract baseline hash.
-- Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.
-- PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status.
+```python
+from sentinel_finharness_telemetry import (
+    SafeHarnessHooks,
+    MemoryCollector,
+    MemoryFinancialAudit,
+    produce_harness_journey,
+    sanitize_attributes,
+    sanitize_metric_labels,
+    run,
+)
 
-Open a PR targeting main with `Refs #<issue>` and the PR template. Update the issue to review. Owner review/merge and accepted standalone evidence close the component issue. Agents never push main, merge or enable auto-merge.
+collector = MemoryCollector()
+hooks = SafeHarnessHooks(collector, collector, failure_log=collector)
+audit = MemoryFinancialAudit()
+produce_harness_journey(hooks, audit)
+report = run(
+    {
+        "contract_version": "sentinel.task-contracts.v1",
+        "run_id": "local-1",
+        "mode": "fixture",
+        "input_artifacts": [],
+        "parameters": {},
+    }
+)
+```
 
-## Assembly limits
+- Span/event attributes join `case_id`, `action_id`, `model.version`, and `evaluation.version` (plus optional runtime/dataset/audit keys). Secrets, raw complaints, prompts, and customer/payment identifiers are rejected.
+- Metric labels: bounded allowlist (`service`, `environment`, `outcome`, `scenario`, `tool`, `action_type`, `provider`, `error_type`, `model_class`, `suite`, `event_kind`). Correlation and version IDs are never labels.
+- `SafeHarnessHooks` swallows redaction/exporter/outage/missing-exporter failures so callers continue. It never writes financial audit; `correlate_audit` is a telemetry-side link only.
+- Financial audit remains a separate unsampled port (`MemoryFinancialAudit` / ledger-owned in assembly).
+- Fixture `RunReport` artifacts always use `evidence_mode: fixture` and set `deployed_runtime_observations: false`. They never imply deployed evidence.
+- `mode: real-peers` rejects missing/malformed/unauthorized peers and returns `FAIL`/`UNVERIFIED` with no silent fixture fallback.
 
-- A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.
-- Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence.
+## Consumed local peer doubles
+
+Under [tests/stubs/](tests/stubs/):
+
+| Port | Cases |
+| --- | --- |
+| `telemetry.v1` | valid, unavailable, malformed, unauthorized_or_out_of_scope |
+| `finharness-runtime.v1` | valid, unavailable, malformed, unauthorized_or_out_of_scope |
+| `finbench.v1` | valid, unavailable, malformed, unauthorized_or_out_of_scope |
+
+Real-peer adapters live in [adapters.py](src/sentinel_finharness_telemetry/adapters.py).
+
+## Example export and dashboard
+
+Static examples under [example/](example/):
+
+- `export-schema.json` — joined-version export shape and forbidden metric labels
+- `grafana-dashboard.json` — panels for harness cases, model requests, FinBench score, and audit correlation note
+
+These files are hashed into fixture `RunReport` artifacts. `make check` does not start Collector or Grafana.
+
+## Compatibility checklist and evidence
+
+- [x] Task-local typed `RunInput`/`RunReport` and harness correlation snapshot; pinned contract hash recorded.
+- [x] Injected sanitized runtime/evaluation hooks via local emitter/exporter fakes; no sibling telemetry package edits.
+- [x] Joined case/action/model/evaluation versions on bounded redacted records; audit correlation without sampling financial audit.
+- [x] Telemetry outage, missing base exporter, and malformed input fail safely.
+- [x] Fixture reports labeled `evidence_mode=fixture`; never imply deployed runtime observations.
+- [x] Stub cases for `telemetry.v1`, `finharness-runtime.v1`, `finbench.v1`.
+- [x] `make -C packages/finharness-telemetry check` with module-local uv lock only.
+- [ ] Assembled real telemetry exporter / FinHarness runtime / FinBench peers (owner assembly).
+
+Evidence mode for standalone checks: fixture / synthetic producers. No payment simulator, live model, or sibling service is required or contacted.

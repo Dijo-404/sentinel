@@ -1,0 +1,29 @@
+{
+  "kind": "harness-telemetry-export",
+  "contract_version": "sentinel.task-contracts.v1",
+  "port": "harness-telemetry.v1",
+  "evidence_mode": "fixture",
+  "deployed_runtime_observations": false,
+  "description": "Module-local export example. Joined case/action/model/evaluation versions live on spans. Financial audit remains a separate unsampled ledger.",
+  "required_span_attributes": [
+    "request_id",
+    "case_id",
+    "action_id",
+    "model.version",
+    "evaluation.version"
+  ],
+  "forbidden_metric_labels": [
+    "case_id",
+    "action_id",
+    "request_id",
+    "model.version",
+    "evaluation.version",
+    "transaction_ref",
+    "customer_id"
+  ],
+  "sample_metrics": [
+    "finharness_model_requests_total",
+    "finharness_cases_total",
+    "finbench_score"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "run_id": "harness-telemetry-check-1",
+  "mode": "fixture",
+  "input_artifacts": [],
+  "parameters": {
+    "harness_telemetry.service_name": "sentinel-finharness-telemetry",
+    "harness_telemetry.environment": "sandbox",
+    "harness_telemetry.require_joined_versions": true
+  }
+}
