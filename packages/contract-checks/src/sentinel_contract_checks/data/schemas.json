@@ -1,0 +1,2130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:sentinel:task-contracts:v1",
+  "x-contract-version": "sentinel.task-contracts.v1",
+  "x-baseline-sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa",
+  "$defs": {
+    "Version": {
+      "const": "sentinel.task-contracts.v1"
+    },
+    "Scope": {
+      "type": "object",
+      "properties": {
+        "case_id": {
+          "type": "string"
+        },
+        "case_revision": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "case_id",
+        "case_revision"
+      ],
+      "additionalProperties": false
+    },
+    "Principal": {
+      "type": "object",
+      "properties": {
+        "principal_id": {
+          "type": "string"
+        },
+        "tenant_id": {
+          "type": "string"
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "customer",
+              "operator",
+              "supervisor",
+              "workflow",
+              "dispatcher",
+              "verifier",
+              "sandbox-admin"
+            ]
+          }
+        },
+        "subject_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "case_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "principal_id",
+        "tenant_id",
+        "roles",
+        "subject_refs",
+        "case_ids"
+      ],
+      "additionalProperties": false
+    },
+    "Error": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "request_id"
+      ],
+      "additionalProperties": false
+    },
+    "Ack": {
+      "type": "object",
+      "properties": {
+        "contract_version": {
+          "$ref": "#/$defs/Version"
+        },
+        "job_id": {
+          "type": "string"
+        },
+        "accepted": {
+          "const": true
+        }
+      },
+      "required": [
+        "contract_version",
+        "job_id",
+        "accepted"
+      ],
+      "additionalProperties": false
+    },
+    "Capabilities": {
+      "type": "object",
+      "properties": {
+        "contract_version": {
+          "$ref": "#/$defs/Version"
+        },
+        "component": {
+          "type": "string"
+        },
+        "mode": {
+          "oneOf": [
+            {
+              "const": "fixture"
+            },
+            {
+              "const": "real-peers"
+            }
+          ]
+        }
+      },
+      "required": [
+        "contract_version",
+        "component",
+        "mode"
+      ],
+      "additionalProperties": false
+    },
+    "Case": {
+      "type": "object",
+      "properties": {
+        "contract_version": {
+          "$ref": "#/$defs/Version"
+        },
+        "case_id": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "status": {
+          "$ref": "#/$defs/CaseState"
+        },
+        "language": {
+          "type": "string"
+        },
+        "intent": {
+          "type": "string"
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "action_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "contract_version",
+        "case_id",
+        "revision",
+        "status",
+        "language",
+        "intent",
+        "evidence_ids"
+      ],
+      "additionalProperties": false
+    },
+    "CaseCreate": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "language": {
+          "type": "string"
+        },
+        "order_reference": {
+          "type": "string"
+        },
+        "channel": {
+          "oneOf": [
+            {
+              "const": "web"
+            },
+            {
+              "const": "voice"
+            }
+          ]
+        }
+      },
+      "required": [
+        "message",
+        "language",
+        "order_reference",
+        "channel"
+      ],
+      "additionalProperties": false
+    },
+    "CaseCreated": {
+      "type": "object",
+      "properties": {
+        "case_id": {
+          "type": "string"
+        },
+        "status": {
+          "const": "RECEIVED"
+        },
+        "status_url": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "case_id",
+        "status",
+        "status_url"
+      ],
+      "additionalProperties": false
+    },
+    "CaseMessage": {
+      "type": "object",
+      "properties": {
+        "message_id": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "language": {
+          "type": "string"
+        },
+        "author": {
+          "oneOf": [
+            {
+              "const": "CUSTOMER"
+            },
+            {
+              "const": "OPERATOR"
+            }
+          ]
+        },
+        "occurred_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d+)?Z$"
+        }
+      },
+      "required": [
+        "message_id",
+        "text",
+        "language",
+        "author",
+        "occurred_at"
+      ],
+      "additionalProperties": false
+    },
+    "CaseInput": {
+      "type": "object",
+      "properties": {
+        "case_id": {
+          "type": "string"
+        },
+        "case_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "original_text": {
+          "type": "string"
+        },
+        "language": {
+          "type": "string"
+        },
+        "order_reference": {
+          "type": "string"
+        },
+        "messages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CaseMessage"
+          }
+        }
+      },
+      "required": [
+        "case_id",
+        "case_revision",
+        "original_text",
+        "language",
+        "order_reference",
+        "messages"
+      ],
+      "additionalProperties": false
+    },
+    "CaseEvent": {
+      "type": "object",
+      "properties": {
+        "event_id": {
+          "type": "string"
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "case_id": {
+          "type": "string"
+        },
+        "case_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "type": {
+          "type": "string"
+        },
+        "occurred_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d+)?Z$"
+        },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "$ref": "#/$defs/CaseState"
+            },
+            "evidence_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "action_id": {
+              "type": "string"
+            },
+            "reason_code": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "status",
+            "evidence_ids",
+            "reason_code"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "event_id",
+        "sequence",
+        "case_id",
+        "case_revision",
+        "type",
+        "occurred_at",
+        "payload"
+      ],
+      "additionalProperties": false
+    },
+    "CaseResult": {
+      "type": "object",
+      "properties": {
+        "event_key": {
+          "type": "string"
+        },
+        "expected_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "status": {
+          "$ref": "#/$defs/CaseState"
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "action_id": {
+          "type": "string"
+        },
+        "assessment_id": {
+          "type": "string"
+        },
+        "reason_code": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "event_key",
+        "expected_revision",
+        "status",
+        "evidence_ids",
+        "reason_code"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "VERIFIED_RESOLVED"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "assessment_id"
+            ]
+          }
+        }
+      ]
+    },
+    "Payment": {
+      "type": "object",
+      "properties": {
+        "transaction_ref": {
+          "type": "string"
+        },
+        "order_reference": {
+          "type": "string"
+        },
+        "subject_ref": {
+          "type": "string"
+        },
+        "status": {
+          "oneOf": [
+            {
+              "const": "CAPTURED"
+            },
+            {
+              "const": "PENDING"
+            },
+            {
+              "const": "FAILED"
+            }
+          ]
+        },
+        "amount_minor": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "currency": {
+          "const": "INR"
+        }
+      },
+      "required": [
+        "transaction_ref",
+        "order_reference",
+        "subject_ref",
+        "status",
+        "amount_minor",
+        "currency"
+      ],
+      "additionalProperties": false
+    },
+    "Order": {
+      "type": "object",
+      "properties": {
+        "order_reference": {
+          "type": "string"
+        },
+        "subject_ref": {
+          "type": "string"
+        },
+        "fulfilled_order_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "merchant_confirmed_duplicate": {
+          "type": "boolean"
+        },
+        "paid": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "order_reference",
+        "subject_ref",
+        "fulfilled_order_count",
+        "merchant_confirmed_duplicate",
+        "paid"
+      ],
+      "additionalProperties": false
+    },
+    "RefundRequest": {
+      "type": "object",
+      "properties": {
+        "action_id": {
+          "type": "string"
+        },
+        "provider_ref": {
+          "type": "string"
+        },
+        "transaction_ref": {
+          "type": "string"
+        },
+        "amount_minor": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "currency": {
+          "const": "INR"
+        },
+        "destination": {
+          "const": "ORIGINAL_PAYMENT_ROUTE"
+        }
+      },
+      "required": [
+        "action_id",
+        "provider_ref",
+        "transaction_ref",
+        "amount_minor",
+        "currency",
+        "destination"
+      ],
+      "additionalProperties": false
+    },
+    "Refund": {
+      "type": "object",
+      "properties": {
+        "action_id": {
+          "type": "string"
+        },
+        "provider_ref": {
+          "type": "string"
+        },
+        "transaction_ref": {
+          "type": "string"
+        },
+        "amount_minor": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "currency": {
+          "const": "INR"
+        },
+        "status": {
+          "oneOf": [
+            {
+              "const": "PENDING"
+            },
+            {
+              "const": "PROVIDER_CONFIRMED"
+            },
+            {
+              "const": "FAILED_FINAL"
+            }
+          ]
+        }
+      },
+      "required": [
+        "action_id",
+        "provider_ref",
+        "transaction_ref",
+        "amount_minor",
+        "currency",
+        "status"
+      ],
+      "additionalProperties": false
+    },
+    "Credit": {
+      "type": "object",
+      "properties": {
+        "provider_ref": {
+          "type": "string"
+        },
+        "confirmed": {
+          "type": "boolean"
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d+)?Z$"
+        }
+      },
+      "required": [
+        "provider_ref",
+        "confirmed",
+        "observed_at"
+      ],
+      "additionalProperties": false
+    },
+    "PaymentFacts": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "PAYMENT"
+        },
+        "payment": {
+          "$ref": "#/$defs/Payment"
+        }
+      },
+      "required": [
+        "kind",
+        "payment"
+      ],
+      "additionalProperties": false
+    },
+    "OrderFacts": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "ORDER"
+        },
+        "order": {
+          "$ref": "#/$defs/Order"
+        }
+      },
+      "required": [
+        "kind",
+        "order"
+      ],
+      "additionalProperties": false
+    },
+    "RefundFacts": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "REFUND"
+        },
+        "refund": {
+          "$ref": "#/$defs/Refund"
+        }
+      },
+      "required": [
+        "kind",
+        "refund"
+      ],
+      "additionalProperties": false
+    },
+    "CreditFacts": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "const": "CREDIT"
+        },
+        "credit": {
+          "$ref": "#/$defs/Credit"
+        }
+      },
+      "required": [
+        "kind",
+        "credit"
+      ],
+      "additionalProperties": false
+    },
+    "Evidence": {
+      "type": "object",
+      "properties": {
+        "evidence_id": {
+          "type": "string"
+        },
+        "case_id": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "subject_ref": {
+          "type": "string"
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d+)?Z$"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d+)?Z$"
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "verification_status": {
+          "oneOf": [
+            {
+              "const": "VERIFIED"
+            },
+            {
+              "const": "UNVERIFIED"
+            },
+            {
+              "const": "CONFLICTING"
+            }
+          ]
+        },
+        "facts": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/PaymentFacts"
+            },
+            {
+              "$ref": "#/$defs/OrderFacts"
+            },
+            {
+              "$ref": "#/$defs/RefundFacts"
+            },
+            {
+              "$ref": "#/$defs/CreditFacts"
+            }
+          ]
+        }
+      },
+      "required": [
+        "evidence_id",
+        "case_id",
+        "source",
+        "subject_ref",
+        "observed_at",
+        "expires_at",
+        "digest",
+        "verification_status",
+        "facts"
+      ],
+      "additionalProperties": false
+    },
+    "EvidenceBundle": {
+      "type": "object",
+      "properties": {
+        "contract_version": {
+          "$ref": "#/$defs/Version"
+        },
+        "case_id": {
+          "type": "string"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          }
+        },
+        "reconciliation_codes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "contract_version",
+        "case_id",
+        "evidence",
+        "reconciliation_codes"
+      ],
+      "additionalProperties": false
+    },
+    "ActionBase": {
+      "type": "object",
+      "properties": {
+        "case_id": {
+          "type": "string"
+        },
+        "case_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "policy_version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "case_id",
+        "case_revision",
+        "evidence_ids",
+        "policy_version"
+      ],
+      "additionalProperties": false
+    },
+    "RefundAction": {
+      "type": "object",
+      "properties": {
+        "case_id": {
+          "type": "string"
+        },
+        "case_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "policy_version": {
+          "type": "string"
+        },
+        "action": {
+          "const": "REQUEST_REFUND"
+        },
+        "transaction_ref": {
+          "type": "string"
+        },
+        "amount_minor": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "currency": {
+          "const": "INR"
+        },
+        "destination": {
+          "const": "ORIGINAL_PAYMENT_ROUTE"
+        }
+      },
+      "required": [
+        "case_id",
+        "case_revision",
+        "evidence_ids",
+        "policy_version",
+        "action",
+        "transaction_ref",
+        "amount_minor",
+        "currency",
+        "destination"
+      ],
+      "additionalProperties": false
+    },
+    "StatusAction": {
+      "type": "object",
+      "properties": {
+        "case_id": {
+          "type": "string"
+        },
+        "case_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "policy_version": {
+          "type": "string"
+        },
+        "action": {
+          "const": "STATUS_UPDATE"
+        },
+        "message_code": {
+          "oneOf": [
+            {
+              "const": "WAITING"
+            },
+            {
+              "const": "NEEDS_INPUT"
+            },
+            {
+              "const": "ESCALATED"
+            },
+            {
+              "const": "VERIFIED"
+            }
+          ]
+        }
+      },
+      "required": [
+        "case_id",
+        "case_revision",
+        "evidence_ids",
+        "policy_version",
+        "action",
+        "message_code"
+      ],
+      "additionalProperties": false
+    },
+    "DisputeAction": {
+      "type": "object",
+      "properties": {
+        "case_id": {
+          "type": "string"
+        },
+        "case_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "policy_version": {
+          "type": "string"
+        },
+        "action": {
+          "const": "OPEN_DISPUTE"
+        },
+        "transaction_ref": {
+          "type": "string"
+        },
+        "reason_code": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "case_id",
+        "case_revision",
+        "evidence_ids",
+        "policy_version",
+        "action",
+        "transaction_ref",
+        "reason_code"
+      ],
+      "additionalProperties": false
+    },
+    "RecheckAction": {
+      "type": "object",
+      "properties": {
+        "case_id": {
+          "type": "string"
+        },
+        "case_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "policy_version": {
+          "type": "string"
+        },
+        "action": {
+          "const": "SCHEDULE_RECHECK"
+        },
+        "available_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d+)?Z$"
+        },
+        "reason_code": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "case_id",
+        "case_revision",
+        "evidence_ids",
+        "policy_version",
+        "action",
+        "available_at",
+        "reason_code"
+      ],
+      "additionalProperties": false
+    },
+    "SyncAction": {
+      "type": "object",
+      "properties": {
+        "case_id": {
+          "type": "string"
+        },
+        "case_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "policy_version": {
+          "type": "string"
+        },
+        "action": {
+          "const": "SYNC_ORDER"
+        },
+        "transaction_ref": {
+          "type": "string"
+        },
+        "order_reference": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "case_id",
+        "case_revision",
+        "evidence_ids",
+        "policy_version",
+        "action",
+        "transaction_ref",
+        "order_reference"
+      ],
+      "additionalProperties": false
+    },
+    "EscalateAction": {
+      "type": "object",
+      "properties": {
+        "case_id": {
+          "type": "string"
+        },
+        "case_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "policy_version": {
+          "type": "string"
+        },
+        "action": {
+          "const": "ESCALATE"
+        },
+        "reason_code": {
+          "type": "string"
+        },
+        "owner_queue": {
+          "oneOf": [
+            {
+              "const": "PAYMENTS"
+            },
+            {
+              "const": "FRAUD"
+            },
+            {
+              "const": "SUPERVISOR"
+            }
+          ]
+        }
+      },
+      "required": [
+        "case_id",
+        "case_revision",
+        "evidence_ids",
+        "policy_version",
+        "action",
+        "reason_code",
+        "owner_queue"
+      ],
+      "additionalProperties": false
+    },
+    "Action": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/RefundAction"
+        },
+        {
+          "$ref": "#/$defs/StatusAction"
+        },
+        {
+          "$ref": "#/$defs/DisputeAction"
+        },
+        {
+          "$ref": "#/$defs/RecheckAction"
+        },
+        {
+          "$ref": "#/$defs/SyncAction"
+        },
+        {
+          "$ref": "#/$defs/EscalateAction"
+        }
+      ]
+    },
+    "Approval": {
+      "type": "object",
+      "properties": {
+        "approval_id": {
+          "type": "string"
+        },
+        "action_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "case_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "policy_version": {
+          "type": "string"
+        },
+        "decision": {
+          "oneOf": [
+            {
+              "const": "APPROVE"
+            },
+            {
+              "const": "REJECT"
+            }
+          ]
+        },
+        "reviewer_id": {
+          "type": "string"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d+)?Z$"
+        }
+      },
+      "required": [
+        "approval_id",
+        "action_digest",
+        "case_revision",
+        "policy_version",
+        "decision",
+        "reviewer_id",
+        "expires_at"
+      ],
+      "additionalProperties": false
+    },
+    "DecisionRequest": {
+      "type": "object",
+      "properties": {
+        "decision": {
+          "oneOf": [
+            {
+              "const": "APPROVE"
+            },
+            {
+              "const": "REJECT"
+            }
+          ]
+        },
+        "action_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "case_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "policy_version": {
+          "type": "string"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d+)?Z$"
+        }
+      },
+      "required": [
+        "decision",
+        "action_digest",
+        "case_revision",
+        "policy_version",
+        "expires_at"
+      ],
+      "additionalProperties": false
+    },
+    "PolicyRequest": {
+      "type": "object",
+      "properties": {
+        "payload": {
+          "$ref": "#/$defs/Action"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          }
+        },
+        "approval": {
+          "$ref": "#/$defs/Approval"
+        }
+      },
+      "required": [
+        "payload",
+        "evidence"
+      ],
+      "additionalProperties": false
+    },
+    "PolicyResult": {
+      "type": "object",
+      "properties": {
+        "outcome": {
+          "oneOf": [
+            {
+              "const": "ALLOW"
+            },
+            {
+              "const": "REQUIRE_APPROVAL"
+            },
+            {
+              "const": "DENY"
+            },
+            {
+              "const": "NEED_EVIDENCE"
+            }
+          ]
+        },
+        "reason_codes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "policy_version": {
+          "type": "string"
+        },
+        "action_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "required_evidence": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "outcome",
+        "reason_codes",
+        "policy_version",
+        "action_digest",
+        "required_evidence"
+      ],
+      "additionalProperties": false
+    },
+    "ReservationRequest": {
+      "type": "object",
+      "properties": {
+        "operation_key": {
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/RefundAction"
+        },
+        "action_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "approval_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "operation_key",
+        "payload",
+        "action_digest",
+        "approval_id"
+      ],
+      "additionalProperties": false
+    },
+    "ActionRecord": {
+      "type": "object",
+      "properties": {
+        "action_id": {
+          "type": "string"
+        },
+        "provider_ref": {
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/RefundAction"
+        },
+        "action_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "status": {
+          "$ref": "#/$defs/ActionState"
+        },
+        "approval": {
+          "$ref": "#/$defs/Approval"
+        }
+      },
+      "required": [
+        "action_id",
+        "provider_ref",
+        "payload",
+        "action_digest",
+        "status"
+      ],
+      "additionalProperties": false
+    },
+    "ProposalRequest": {
+      "type": "object",
+      "properties": {
+        "operation_key": {
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/RefundAction"
+        },
+        "action_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "operation_key",
+        "payload",
+        "action_digest"
+      ],
+      "additionalProperties": false
+    },
+    "Command": {
+      "type": "object",
+      "properties": {
+        "action_id": {
+          "type": "string"
+        },
+        "provider_ref": {
+          "type": "string"
+        },
+        "payload": {
+          "$ref": "#/$defs/RefundAction"
+        },
+        "action_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "lease_id": {
+          "type": "string"
+        },
+        "lease_expires_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d+)?Z$"
+        },
+        "provider_capabilities": {
+          "type": "object",
+          "properties": {
+            "same_key_retry": {
+              "type": "boolean"
+            },
+            "status_lookup": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "same_key_retry",
+            "status_lookup"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "action_id",
+        "provider_ref",
+        "payload",
+        "action_digest",
+        "lease_id",
+        "lease_expires_at",
+        "provider_capabilities"
+      ],
+      "additionalProperties": false
+    },
+    "ClaimResult": {
+      "type": "object",
+      "properties": {
+        "commands": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Command"
+          }
+        }
+      },
+      "required": [
+        "commands"
+      ],
+      "additionalProperties": false
+    },
+    "OutcomeRequest": {
+      "type": "object",
+      "properties": {
+        "event_key": {
+          "type": "string"
+        },
+        "lease_id": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/ActionState"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          }
+        },
+        "reason_code": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "event_key",
+        "status",
+        "evidence",
+        "reason_code"
+      ],
+      "additionalProperties": false
+    },
+    "WorkflowRequest": {
+      "type": "object",
+      "properties": {
+        "case_id": {
+          "type": "string"
+        },
+        "case_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "job_key": {
+          "type": "string"
+        },
+        "event": {
+          "oneOf": [
+            {
+              "const": "START"
+            },
+            {
+              "const": "INPUT"
+            },
+            {
+              "const": "DECISION"
+            },
+            {
+              "const": "RECHECK"
+            }
+          ]
+        }
+      },
+      "required": [
+        "case_id",
+        "case_revision",
+        "job_key",
+        "event"
+      ],
+      "additionalProperties": false
+    },
+    "ModelRequest": {
+      "type": "object",
+      "properties": {
+        "case": {
+          "$ref": "#/$defs/Case"
+        },
+        "input": {
+          "$ref": "#/$defs/CaseInput"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          }
+        }
+      },
+      "required": [
+        "case",
+        "input",
+        "evidence"
+      ],
+      "additionalProperties": false
+    },
+    "ModelResult": {
+      "type": "object",
+      "properties": {
+        "outcome": {
+          "oneOf": [
+            {
+              "const": "PROPOSAL"
+            },
+            {
+              "const": "NEEDS_INPUT"
+            },
+            {
+              "const": "ESCALATE"
+            }
+          ]
+        },
+        "proposal": {
+          "$ref": "#/$defs/Action"
+        },
+        "reason_codes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "original_text": {
+          "type": "string"
+        },
+        "language": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "outcome",
+        "reason_codes",
+        "original_text",
+        "language"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "PROPOSAL"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "proposal"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "proposal"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "VerificationRequest": {
+      "type": "object",
+      "properties": {
+        "case_id": {
+          "type": "string"
+        },
+        "case_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "action_id": {
+          "type": "string"
+        },
+        "provider_ref": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "case_id",
+        "case_revision",
+        "action_id",
+        "provider_ref"
+      ],
+      "additionalProperties": false
+    },
+    "VerificationResult": {
+      "type": "object",
+      "properties": {
+        "assessment_id": {
+          "type": "string"
+        },
+        "case_id": {
+          "type": "string"
+        },
+        "case_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "action_id": {
+          "type": "string"
+        },
+        "assessed_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d+)?Z$"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d+)?Z$"
+        },
+        "status": {
+          "oneOf": [
+            {
+              "const": "WAITING"
+            },
+            {
+              "const": "VERIFIED"
+            },
+            {
+              "const": "CONFLICT"
+            },
+            {
+              "const": "ESCALATED"
+            }
+          ]
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          }
+        },
+        "reason_codes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "assessment_id",
+        "case_id",
+        "case_revision",
+        "action_id",
+        "assessed_at",
+        "expires_at",
+        "status",
+        "evidence",
+        "reason_codes"
+      ],
+      "additionalProperties": false
+    },
+    "ArtifactRef": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "component_version": {
+          "type": "string"
+        },
+        "evidence_mode": {
+          "oneOf": [
+            {
+              "const": "fixture"
+            },
+            {
+              "const": "real-component"
+            },
+            {
+              "const": "live-provider"
+            }
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "uri",
+        "sha256",
+        "component_version",
+        "evidence_mode"
+      ],
+      "additionalProperties": false
+    },
+    "CheckResult": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "status": {
+          "oneOf": [
+            {
+              "const": "PASS"
+            },
+            {
+              "const": "FAIL"
+            },
+            {
+              "const": "UNVERIFIED"
+            }
+          ]
+        },
+        "reason_code": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "status",
+        "reason_code"
+      ],
+      "additionalProperties": false
+    },
+    "RunInput": {
+      "type": "object",
+      "properties": {
+        "contract_version": {
+          "$ref": "#/$defs/Version"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "mode": {
+          "oneOf": [
+            {
+              "const": "fixture"
+            },
+            {
+              "const": "real-peers"
+            }
+          ]
+        },
+        "input_artifacts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactRef"
+          }
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "contract_version",
+        "run_id",
+        "mode",
+        "input_artifacts",
+        "parameters"
+      ],
+      "additionalProperties": false
+    },
+    "RunReport": {
+      "type": "object",
+      "properties": {
+        "contract_version": {
+          "$ref": "#/$defs/Version"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "mode": {
+          "oneOf": [
+            {
+              "const": "fixture"
+            },
+            {
+              "const": "real-peers"
+            }
+          ]
+        },
+        "status": {
+          "oneOf": [
+            {
+              "const": "PASS"
+            },
+            {
+              "const": "FAIL"
+            },
+            {
+              "const": "UNVERIFIED"
+            }
+          ]
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CheckResult"
+          }
+        },
+        "output_artifacts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArtifactRef"
+          }
+        }
+      },
+      "required": [
+        "contract_version",
+        "run_id",
+        "mode",
+        "status",
+        "checks",
+        "output_artifacts"
+      ],
+      "additionalProperties": false
+    },
+    "VoiceRequest": {
+      "type": "object",
+      "properties": {
+        "language": {
+          "type": "string"
+        },
+        "audio_uri": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "consent": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "language",
+        "consent"
+      ],
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "audio_uri"
+          ],
+          "not": {
+            "required": [
+              "text"
+            ]
+          }
+        },
+        {
+          "required": [
+            "text"
+          ],
+          "not": {
+            "required": [
+              "audio_uri"
+            ]
+          }
+        }
+      ]
+    },
+    "VoiceResult": {
+      "type": "object",
+      "properties": {
+        "original_text": {
+          "type": "string"
+        },
+        "language": {
+          "type": "string"
+        },
+        "ambiguous": {
+          "type": "boolean"
+        },
+        "reason_codes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "original_text",
+        "language",
+        "ambiguous",
+        "reason_codes"
+      ],
+      "additionalProperties": false
+    },
+    "ApprovalView": {
+      "type": "object",
+      "properties": {
+        "case": {
+          "$ref": "#/$defs/Case"
+        },
+        "action": {
+          "$ref": "#/$defs/ActionRecord"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          }
+        }
+      },
+      "required": [
+        "case",
+        "action",
+        "evidence"
+      ],
+      "additionalProperties": false
+    },
+    "ProviderEvent": {
+      "type": "object",
+      "properties": {
+        "event_id": {
+          "type": "string"
+        },
+        "tenant_id": {
+          "type": "string"
+        },
+        "merchant_ref": {
+          "type": "string"
+        },
+        "provider_ref": {
+          "type": "string"
+        },
+        "type": {
+          "oneOf": [
+            {
+              "const": "REFUND_STATUS"
+            },
+            {
+              "const": "CREDIT_STATUS"
+            }
+          ]
+        },
+        "occurred_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d+)?Z$"
+        }
+      },
+      "required": [
+        "event_id",
+        "tenant_id",
+        "merchant_ref",
+        "provider_ref",
+        "type",
+        "occurred_at"
+      ],
+      "additionalProperties": false
+    },
+    "PaymentList": {
+      "type": "object",
+      "properties": {
+        "payments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Payment"
+          }
+        }
+      },
+      "required": [
+        "payments"
+      ],
+      "additionalProperties": false
+    },
+    "RefundList": {
+      "type": "object",
+      "properties": {
+        "refunds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Refund"
+          }
+        }
+      },
+      "required": [
+        "refunds"
+      ],
+      "additionalProperties": false
+    },
+    "EventList": {
+      "type": "object",
+      "properties": {
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CaseEvent"
+          }
+        }
+      },
+      "required": [
+        "events"
+      ],
+      "additionalProperties": false
+    },
+    "CaseList": {
+      "type": "object",
+      "properties": {
+        "cases": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Case"
+          }
+        },
+        "next_cursor": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "cases"
+      ],
+      "additionalProperties": false
+    },
+    "EvidenceCollect": {
+      "type": "object",
+      "properties": {
+        "case_id": {
+          "type": "string"
+        },
+        "case_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "order_reference": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "case_id",
+        "case_revision",
+        "order_reference"
+      ],
+      "additionalProperties": false
+    },
+    "MessageRequest": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "language": {
+          "type": "string"
+        },
+        "expected_revision": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "message",
+        "language",
+        "expected_revision"
+      ],
+      "additionalProperties": false
+    },
+    "EscalationRequest": {
+      "type": "object",
+      "properties": {
+        "expected_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "reason_code": {
+          "type": "string"
+        },
+        "owner_queue": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "expected_revision",
+        "reason_code",
+        "owner_queue"
+      ],
+      "additionalProperties": false
+    },
+    "ClaimRequest": {
+      "type": "object",
+      "properties": {
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        }
+      },
+      "required": [
+        "limit"
+      ],
+      "additionalProperties": false
+    },
+    "WebhookAccepted": {
+      "type": "object",
+      "properties": {
+        "accepted": {
+          "const": true
+        }
+      },
+      "required": [
+        "accepted"
+      ],
+      "additionalProperties": false
+    },
+    "CaseState": {
+      "type": "string",
+      "enum": [
+        "RECEIVED",
+        "NEEDS_INPUT",
+        "INVESTIGATING",
+        "RECONCILING",
+        "PLANNING",
+        "POLICY_CHECK",
+        "WAITING_APPROVAL",
+        "EXECUTING",
+        "VERIFYING",
+        "WAITING_EXTERNAL",
+        "ESCALATED",
+        "VERIFIED_RESOLVED",
+        "CLOSED_NO_ACTION"
+      ]
+    },
+    "ActionState": {
+      "type": "string",
+      "enum": [
+        "PROPOSED",
+        "RESERVED",
+        "DISPATCHING",
+        "OUTCOME_UNKNOWN",
+        "PENDING",
+        "PROVIDER_CONFIRMED",
+        "CREDIT_CONFIRMED",
+        "FAILED_FINAL",
+        "ESCALATED"
+      ]
+    }
+  }
+}

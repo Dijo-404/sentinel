@@ -1,0 +1,16 @@
+[build-system]
+requires = ["hatchling==1.29.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sentinel-contract-checks"
+version = "0.1.0"
+description = "Portable conformance checks for Sentinel's pinned task contracts"
+requires-python = ">=3.11"
+dependencies = ["jsonschema==4.26.0"]
+
+[project.scripts]
+sentinel-contracts = "sentinel_contract_checks.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sentinel_contract_checks"]

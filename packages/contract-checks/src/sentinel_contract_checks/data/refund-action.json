@@ -1,0 +1,14 @@
+{
+  "case_id": "case-demo-42",
+  "case_revision": 1,
+  "evidence_ids": [
+    "evidence-payment-b",
+    "evidence-order"
+  ],
+  "policy_version": "demo-policy-v1",
+  "action": "REQUEST_REFUND",
+  "transaction_ref": "TXN-B",
+  "amount_minor": 150000,
+  "currency": "INR",
+  "destination": "ORIGINAL_PAYMENT_ROUTE"
+}

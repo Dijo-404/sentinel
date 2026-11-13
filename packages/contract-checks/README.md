@@ -1,80 +1,67 @@
-# SN-002 — Build contract conformance tooling from the supplied baseline
+# SN-002 — Portable contract conformance checks
 
-**State:** scaffold and task instructions only. No implementation, dependency installation, module check target or product result is claimed.
+This installable Python tool checks the supplied `sentinel.task-contracts.v1` baseline without another Sentinel package, server, database, provider credential, or model. Its output is local conformance evidence, never payment authority or assembled product evidence.
 
-**Owned root:** `packages/contract-checks/`
-**Branch:** `feat/sn-002-contracts`
-**Lane:** A · **Phase:** 1 · **Priority:** P0 · **Optional for MVP:** no
+Owned root: `packages/contract-checks/`. Branch: `feat/sn-002-contracts`.
+Baseline SHA-256: `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`.
 
-## Outcome
+## Standalone setup and check
 
-Implement portable schema/digest conformance checks and synthetic valid/invalid fixture bundles against the baseline supplied now. Do not defer initial contract definitions to this task or require consumers to import this implementation.
-
-## Independence
-
-No task-completion prerequisites. This module must install, run its local checks, and be reviewable with every other Sentinel task implementation absent. Use explicit local port doubles rather than another developer's server or an unfinished sibling import. Phase and task number do not establish build order.
-
-Read [root agent rules](../../AGENTS.md), [claim/PR workflow](../../CONTRIBUTING.md), [architecture](../../docs/architecture.md), and [testing](../../docs/testing.md). The [task register](../../docs/task-register.md) links the live issue once published.
-
-## Ownership and interfaces
-
-- `packages/contract-checks/**`
-
-- Produces: `contract-checks.v1`
-- Consumes: None
-- Optional consumed interfaces: None
-
-Contract input: [baseline](../../docs/independent-task-contracts.md) · `sentinel.task-contracts.v1` · SHA-256 `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`.
-
-Implement the exact supplied routes, request/response types, auth context, canonical digest and state/idempotency behavior for the relevant ports. Keep typed snapshots and compatibility examples in this module. The contract-checker/SDK implementation is not required.
-
-## Implementation layout
-
-Baseline category: Python service/library/tool.
-
-Use module-local dependency declarations and a reproducible lockfile, configuration example, tests, README and changelog. Stateful components own local migrations and a test database. No root application install or shared migration chain is allowed.
-
-Keep deterministic business rules/types separate from application use cases/ports and external adapters. Wire adapters at one composition entry point. Introduce only directories that contain real responsibilities; the repository does not pre-generate empty layers. See the architecture and folder guides for language-specific layouts.
-
-## Deliverables
-
-- [ ] Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.
-- [ ] Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.
-- [ ] Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation.
-- [ ] Update the local README/configuration and CHANGELOG.md with actual behavior and limitations.
-
-## Acceptance criteria
-
-- [ ] Canonical action byte/digest fixtures match the baseline; wrong fields, monetary floats, invalid states and payload conflicts fail.
-- [ ] A local CLI validates its own fixtures and reports compatible optional changes versus breaking changes without another Sentinel package.
-- [ ] All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required.
-
-## Planned local commands
-
-The owning task must implement and document dependency setup, a local run/preview command where applicable, and this check target. It does not exist yet:
+Requires Python 3.11+, GNU Make and `uv`. Dependencies are pinned in `pyproject.toml` and `uv.lock`; setup installs only this module. The first setup needs access to the configured Python package index, or an already populated local cache.
 
 ```sh
-make -C packages/contract-checks check
+cd packages/contract-checks
+make setup
+make check
+make run
 ```
 
-Run root `make check` as well. Root checks validate repository metadata and tools; they do not implement or substitute for this component's behavior tests. External provider credentials are optional for local fixture checks.
+`make check` runs 26 unit/CLI tests and a structured fixture report: 97 valid/invalid wire fixtures, 8 canonical byte/digest vectors, 7 malformed JSON cases, 2 compatibility comparisons, 2 retry captures and the pinned baseline hash (117 checks). All data and inference are synthetic/local; no peers, payment writes or model calls occur. `.env.example` documents that no environment configuration or secrets are read. Input paths are explicit CLI arguments.
 
-## Test and failure requirements
+From the repository root, run `make -C packages/contract-checks check` and the separate root `make check`. The root check validates repository metadata only.
 
-- Exercise observable acceptance behavior and meaningful invalid, unavailable, malformed and unauthorized boundary cases.
-- Use real PostgreSQL tests for financial locking/transactions, durable checkpoints or other database behavior that an in-memory double cannot establish.
-- Label fixtures/simulated providers/fake or live inference precisely. A real-peer adapter must not silently convert peer failure into fixture success.
-- Confirm the module works with sibling implementations absent and record exactly which local doubles/databases were used.
+## CLI
 
-## Evidence and review
+Run these commands from this module:
 
-- Exact standalone setup/check commands, actual results and pinned contract baseline hash.
-- Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.
-- PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status.
+```sh
+uv run --locked sentinel-contracts check
+uv run --locked sentinel-contracts digest src/sentinel_contract_checks/data/refund-action.json
+uv run --locked sentinel-contracts validate RefundAction src/sentinel_contract_checks/data/refund-action.json
+uv run --locked sentinel-contracts compare src/sentinel_contract_checks/data/compat-before.json src/sentinel_contract_checks/data/compat-optional.json
+uv run --locked sentinel-contracts compare src/sentinel_contract_checks/data/compat-before.json src/sentinel_contract_checks/data/compat-breaking.json
+uv run --locked sentinel-contracts retries src/sentinel_contract_checks/data/retries-conflict.json
+```
 
-Open a PR targeting main with `Refs #<issue>` and the PR template. Update the issue to review. Owner review/merge and accepted standalone evidence close the component issue. Agents never push main, merge or enable auto-merge.
+The last two commands intentionally exit 1. `compare` returns `IDENTICAL`, `COMPATIBLE_OPTIONAL` or `BREAKING`, with changed schema paths. `validate` and `retries` return structured `path`, `code`, `message` violations. `check` returns a baseline `RunReport` explicitly labeled `mode: fixture`. Every successful command exits 0; invalid inputs, payload conflicts and breaking changes exit 1. `python -m sentinel_contract_checks` offers the same interface. `-` reads JSON from stdin.
 
-## Assembly limits
+`validate Evidence envelope.json --evidence-bytes original-facts.json` additionally checks SHA-256 over the exact supplied bytes and confirms the parsed typed facts match the envelope. It never reserializes the original bytes before hashing. This adapter defines the evidence payload as its typed `facts` object; a producer with a different snapshot wrapper must extract and validate that wrapper explicitly. Digest equality does not authenticate the source or prove freshness.
 
-- A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.
-- Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence.
+`retries` checks an array of `{ "scope": "synthetic capture label", "key": "stable-key", "type": "ReservationRequest", "value": { ... } }`. Repeated scoped keys and types must contain identical JSON values, independent of object-key order. Array order remains significant. Scope labels are capture metadata, never authenticated principals. This is a stateless fixture checker; it creates no idempotency store, reference, reservation or ledger.
+
+## Portable snapshots and exported functions
+
+The installed package includes:
+
+- [schemas.json](src/sentinel_contract_checks/data/schemas.json): JSON Schema 2020-12 definitions for all 66 named baseline types, including six exact action variants, typed evidence facts, policy/approval, ledger commands, cases/events, workflow/model, verification, CLI reports, voice and route wrapper records.
+- [baseline.md](src/sentinel_contract_checks/data/baseline.md): the byte-exact pinned source, checked by SHA-256.
+- [routes.json](src/sentinel_contract_checks/data/routes.json): 31 exact method/path, request/response and role rows. The baseline also records common health/readiness/capabilities routes and authentication/resource-scope obligations.
+- [fixtures.json](src/sentinel_contract_checks/data/fixtures.json), [canonical-vectors.json](src/sentinel_contract_checks/data/canonical-vectors.json) and [baseline-examples.json](src/sentinel_contract_checks/data/baseline-examples.json): synthetic portable inputs, exact canonical strings/digests, and unchanged operation examples.
+
+Public functions are `validate`, `canonical_action`, `action_digest`, `verify_evidence`, `check_retries`, `compare_schemas`, `load_json`, `snapshot` and `fixture_report`. They return JSON-compatible values, bytes or structured violations and use no filesystem/network state outside the installed snapshot resources. CLI filesystem/stream handling lives in `cli.py`.
+
+Actions reject undeclared fields, unknown variants, missing fields, monetary floats, booleans used as integers, invalid destinations and nonpositive amounts/revisions. Canonicalization preserves Unicode without normalization and preserves array order. The supplied refund vector hashes to `d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993`.
+
+Readers enforce the exact declared schemas: optional means omitted, not `null`. The baseline's compatible optional evolution is reported by comparing a candidate schema; it does not silently widen the pinned financial payload. Compatibility classification is conservative: only added optional nonfinancial properties and added definitions qualify. Changed versions, required fields, enums, constraints and financial/action fields require versioned review. Some harmless schema rewrites may therefore report `BREAKING`.
+
+## Integration checklist and limits
+
+Before adopting a peer contract:
+
+- Compare the reviewed candidate schema, preserve exact financial fields and canonical vectors, and version breaking changes.
+- Feed original JSON bytes through `load_json`; generic JSON Schema validators can accept `1.0` as an integer, while this tool deliberately rejects all numeric floats. Duplicate keys, nonfinite numbers and invalid UTF-8/surrogates also fail.
+- Check embedded action digests and matching approval digest/revision/policy fields. Keep original evidence bytes; do not infer their digest from reconstructed JSON.
+- Authenticate the actual peer, enforce tenant/subject/case/role scope, and reject unavailable, unauthorized, malformed or incompatible responses. Missing peers must remain failures; this tool has no network adapter or fallback mode because SN-002 consumes no peer port.
+- Enforce freshness at authorization using the server's clock, financial limits under the ledger transaction, approved state transitions and separate provider/credit evidence before closure. This tool validates state enums, local expiry ordering, model proposal presence and resolved-result assessment presence; it cannot prove these runtime obligations.
+
+No PostgreSQL, migration, peer double or concurrent execution is needed for this stateless module. Services remain responsible for authenticated scope, expiry against current time, durable idempotency, 409 responses, HMAC signatures, atomic reservation and state/closure transitions. The route snapshot documents those boundaries; it does not implement service endpoints. Real-component integration, payment simulation, inference and product assembly are unverified here. The owner reviews and merges the SN-002 PR; this component does not establish release acceptance.
