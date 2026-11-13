@@ -7,13 +7,18 @@ name = "sentinel-finharness-telemetry"
 version = "0.1.0"
 description = "Injected harness runtime/evaluation telemetry hooks, audit correlation, local export examples"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "sentinel-telemetry",
+]
 
 [project.scripts]
 sentinel-finharness-telemetry = "sentinel_finharness_telemetry.cli:main"
 
 [dependency-groups]
 dev = ["pytest>=8.4,<10", "ruff>=0.14,<1"]
+
+[tool.uv.sources]
+sentinel-telemetry = { path = "../telemetry" }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

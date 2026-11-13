@@ -45,7 +45,8 @@ ALLOWED_METRIC_LABELS = frozenset(
     }
 )
 
-_FORBIDDEN_KEY_FRAGMENTS = (
+# Shared with finharness-telemetry (path dep); keep allowlists package-local.
+FORBIDDEN_KEY_FRAGMENTS = (
     "password",
     "secret",
     "token",
@@ -68,6 +69,7 @@ _FORBIDDEN_KEY_FRAGMENTS = (
     "card",
     "audio",
 )
+_FORBIDDEN_KEY_FRAGMENTS = FORBIDDEN_KEY_FRAGMENTS
 
 _FORBIDDEN_METRIC_ONLY = frozenset(
     {
@@ -93,24 +95,28 @@ _SECRET_VALUE = re.compile(
 _RAW_COMPLAINT = re.compile(r"(?i)(i was charged twice|please refund|my card ending)")
 
 
-def _normalize_key(key: str) -> str:
+def normalize_key(key: str) -> str:
     return key.strip().lower().replace("-", "_")
+
+
+_normalize_key = normalize_key
 
 
 def _reject_key(key: str, *, for_metric: bool) -> None:
     if not isinstance(key, str) or not key or len(key) > 64:
         raise RedactionError("Telemetry key must be a nonempty string up to 64 characters")
-    normalized = _normalize_key(key)
+    normalized = normalize_key(key)
     if for_metric and (
         normalized in _FORBIDDEN_METRIC_ONLY or normalized in CORRELATION_ATTRIBUTE_KEYS
     ):
         raise RedactionError("Correlation and customer-payment identifiers are not metric labels")
-    for fragment in _FORBIDDEN_KEY_FRAGMENTS:
+    for fragment in FORBIDDEN_KEY_FRAGMENTS:
         if fragment in normalized:
             raise RedactionError("Forbidden telemetry key rejected")
 
 
-def _reject_value(value: object) -> str | int | bool:
+def reject_value(value: object) -> str | int | bool:
+    """Shared value rejection for product and harness telemetry redaction."""
     if isinstance(value, bool):
         return value
     if isinstance(value, int) and not isinstance(value, bool):
@@ -124,6 +130,9 @@ def _reject_value(value: object) -> str | int | bool:
     return value
 
 
+_reject_value = reject_value
+
+
 def sanitize_attributes(attributes: Mapping[str, object] | None) -> dict[str, str | int | bool]:
     """Allowlisted correlation/operational span attributes; reject secrets and raw text."""
     if attributes is None:
@@ -134,11 +143,11 @@ def sanitize_attributes(attributes: Mapping[str, object] | None) -> dict[str, st
     for key, value in attributes.items():
         _reject_key(key, for_metric=False)
         normalized = key if key in CORRELATION_ATTRIBUTE_KEYS else key
-        if _normalize_key(key) not in {_normalize_key(k) for k in CORRELATION_ATTRIBUTE_KEYS}:
+        if normalize_key(key) not in {normalize_key(k) for k in CORRELATION_ATTRIBUTE_KEYS}:
             # Permit exact allowlist keys only.
             if key not in CORRELATION_ATTRIBUTE_KEYS:
                 raise RedactionError("Attribute key is not on the telemetry allowlist")
-        cleaned[normalized] = _reject_value(value)
+        cleaned[normalized] = reject_value(value)
     return cleaned
 
 
@@ -155,7 +164,7 @@ def sanitize_metric_labels(labels: Mapping[str, object] | None) -> dict[str, str
         _reject_key(key, for_metric=True)
         if key not in ALLOWED_METRIC_LABELS:
             raise RedactionError("Metric label is not on the bounded allowlist")
-        sanitized = _reject_value(value)
+        sanitized = reject_value(value)
         if not isinstance(sanitized, str):
             raise RedactionError("Metric label values must be strings")
         if len(sanitized) > 64:

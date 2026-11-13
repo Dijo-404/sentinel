@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- Redaction wraps `sentinel-telemetry` (path dep `../telemetry`): shared forbidden-key/value rejection; harness keep own allowlists.
+
 ### Added — 13 November 2026
 
 - Independent module ownership, architecture/interface guide, scoped agent rules and acceptance checklist.
