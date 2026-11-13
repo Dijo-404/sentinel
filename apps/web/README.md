@@ -54,10 +54,30 @@ Real-peer failures are visible (`PEER_UNAVAILABLE`, `FORBIDDEN`, `MALFORMED_PEER
 - `tests/stubs/` — case-api, approval-ui, voice doubles (valid / unavailable / malformed / unauthorized)
 - `contracts/` — snapshots, fixtures, compatibility checklist
 
+## Assembly probe
+
+```http
+GET /v1/capabilities
+```
+
+JSON body:
+
+```json
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "component": "web-shell",
+  "port": "web-shell.v1",
+  "mode": "fixture"
+}
+```
+
+`mode` comes from `NEXT_PUBLIC_SHELL_MODE` (`fixture` | `real-peers`). App stays on port **3012**.
+
 ## Pages
 
 | Route | Role |
 | --- | --- |
+| `/v1/capabilities` | Assembly probe (`contract_version`, `component`, `port`, `mode`) |
 | `/intake` | Customer text intake (+ disabled voice slot) |
 | `/cases/[caseId]` | Case timeline |
 | `/ops` | Operator queue |
