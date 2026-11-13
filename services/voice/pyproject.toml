@@ -1,0 +1,50 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sentinel-voice"
+version = "0.1.0"
+description = "Optional Tamil/English voice.v1 speech and transcript adapter"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn[standard]>=0.32,<1",
+  "httpx>=0.28,<1",
+]
+
+[project.scripts]
+sentinel-voice = "sentinel_voice.__main__:main"
+sentinel-voice-client = "sentinel_voice.examples.client_example:main"
+
+[dependency-groups]
+dev = [
+  "pytest>=8.4,<10",
+  "ruff>=0.14,<1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sentinel_voice"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "src/sentinel_voice",
+  "contracts",
+  "fixtures",
+  "tests",
+  "Makefile",
+  "README.md",
+  "CHANGELOG.md",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]

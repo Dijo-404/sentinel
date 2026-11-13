@@ -1,0 +1,6 @@
+{
+  "evidence_mode": "fixture",
+  "provider_label": "sarvam-fixture",
+  "fault": "malformed",
+  "raw": "{\"not\": \"a transcript payload\""
+}

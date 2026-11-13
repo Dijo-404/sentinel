@@ -1,0 +1,6 @@
+{
+  "evidence_mode": "fixture",
+  "provider_label": "sarvam-fixture",
+  "fault": "outage",
+  "message": "Simulated Sarvam STT outage"
+}

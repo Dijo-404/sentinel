@@ -1,0 +1,10 @@
+{
+  "original_text": "I do not want a refund of 1500 rupees for the duplicate payment",
+  "language": "en-IN",
+  "ambiguous": true,
+  "reason_codes": [
+    "AMBIGUOUS_AMOUNT",
+    "AMBIGUOUS_NEGATION",
+    "NO_FINANCIAL_AUTHORITY"
+  ]
+}

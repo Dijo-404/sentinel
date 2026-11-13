@@ -19,7 +19,7 @@ Read [repository AGENTS.md](../../AGENTS.md) and this module's [README](README.m
 
 ## Checks and handoff
 
-- Implement `make -C services/voice check` with meaningful behavior/negative tests and standalone setup. It is currently a planned command, not a passing implementation.
+- Keep `make -C services/voice check` green with meaningful behavior/negative tests and standalone setup. Live Sarvam stays opt-in; never require it for the check.
 - Run root `make check`, update [CHANGELOG.md](CHANGELOG.md), and record exact observed commands/results and fixture/real evidence.
 - Keep progress/claims in the GitHub issue. Move to review with a PR using `Refs #N`; owner merges and accepts component evidence.
 - Do not claim assembled product/pilot success from module or fixture checks.

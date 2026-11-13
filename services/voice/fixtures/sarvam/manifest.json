@@ -1,0 +1,13 @@
+{
+  "evidence_mode": "fixture",
+  "provider_label": "sarvam-fixture",
+  "stt_model": "saaras:v4-fixture",
+  "entries": {
+    "fixture://audio/ta-amount-negation.wav": "ta_amount_negation.json",
+    "fixture://audio/en-amount-negation.wav": "en_amount_negation.json",
+    "fixture://audio/code-mixed-amount.wav": "code_mixed_amount.json",
+    "fixture://audio/clear-status.wav": "clear_status.json",
+    "fixture://audio/malformed": "malformed.json",
+    "fixture://audio/outage": "outage.json"
+  }
+}
