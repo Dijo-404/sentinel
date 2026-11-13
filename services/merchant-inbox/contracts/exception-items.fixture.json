@@ -1,0 +1,49 @@
+[
+  {
+    "item_id": "exc-paid-unfulfilled-1",
+    "tenant_id": "demo-tenant-a",
+    "merchant_ref": "merchant-demo-1",
+    "kind": "PAID_UNFULFILLED",
+    "case_id": "case-demo-42",
+    "transaction_ref": "txn-demo-1500",
+    "amount_minor": 150000,
+    "currency": "INR",
+    "notes": [],
+    "status": "OPEN"
+  },
+  {
+    "item_id": "exc-unmatched-1",
+    "tenant_id": "demo-tenant-a",
+    "merchant_ref": "merchant-demo-1",
+    "kind": "UNMATCHED_PAYMENT",
+    "transaction_ref": "txn-unmatched-9",
+    "amount_minor": 4200,
+    "currency": "INR",
+    "notes": [],
+    "status": "OPEN"
+  },
+  {
+    "item_id": "exc-pending-refund-1",
+    "tenant_id": "demo-tenant-a",
+    "merchant_ref": "merchant-demo-1",
+    "kind": "PENDING_REFUND",
+    "case_id": "case-demo-pending",
+    "transaction_ref": "txn-pending-refund-3",
+    "amount_minor": 99900,
+    "currency": "INR",
+    "notes": [],
+    "status": "OPEN"
+  },
+  {
+    "item_id": "exc-other-merchant",
+    "tenant_id": "demo-tenant-a",
+    "merchant_ref": "merchant-demo-2",
+    "kind": "PAID_UNFULFILLED",
+    "case_id": "case-demo-other-merchant",
+    "transaction_ref": "txn-other-merchant",
+    "amount_minor": 100,
+    "currency": "INR",
+    "notes": [],
+    "status": "OPEN"
+  }
+]
