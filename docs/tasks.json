@@ -1,0 +1,2090 @@
+[
+  {
+    "id": "SN-001",
+    "title": "Build standalone module tooling and CI discovery",
+    "lane": "D",
+    "phase": 1,
+    "priority": "P0",
+    "optional": false,
+    "branch": "feat/sn-001-workspace",
+    "depends_on": [],
+    "root": "tooling/workspace",
+    "paths": [
+      "tooling/workspace/**",
+      ".github/workflows/module-checks.yml"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+    },
+    "produces": [
+      "module-checks.v1"
+    ],
+    "consumes": [],
+    "scope": [
+      "Provide optional module discovery, check aggregation, CI templates, and local environment examples. Own no global dependency graph or sibling manifests. Validate against local sample modules so the tooling can finish before any product module exists."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [],
+      "check_command": "make -C tooling/workspace check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "A miniature local fixture repo runs declared checks for present modules and reports absent modules without failing unrelated component PRs.",
+      "A component can install and check with its own manifest/lockfile without the aggregator; CI templates require no provider secrets.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite.",
+    "optional_consumes": []
+  },
+  {
+    "id": "SN-002",
+    "title": "Build contract conformance tooling from the supplied baseline",
+    "lane": "A",
+    "phase": 1,
+    "priority": "P0",
+    "optional": false,
+    "branch": "feat/sn-002-contracts",
+    "depends_on": [],
+    "root": "packages/contract-checks",
+    "paths": [
+      "packages/contract-checks/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+    },
+    "produces": [
+      "contract-checks.v1"
+    ],
+    "consumes": [],
+    "scope": [
+      "Implement portable schema/digest conformance checks and synthetic valid/invalid fixture bundles against the baseline supplied now. Do not defer initial contract definitions to this task or require consumers to import this implementation."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [],
+      "check_command": "make -C packages/contract-checks check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "Canonical action byte/digest fixtures match the baseline; wrong fields, monetary floats, invalid states and payload conflicts fail.",
+      "A local CLI validates its own fixtures and reports compatible optional changes versus breaking changes without another Sentinel package.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite.",
+    "optional_consumes": []
+  },
+  {
+    "id": "SN-003",
+    "title": "Build an independent tenant persistence toolkit",
+    "lane": "A",
+    "phase": 1,
+    "priority": "P0",
+    "optional": false,
+    "branch": "feat/sn-003-persistence",
+    "depends_on": [],
+    "root": "packages/persistence",
+    "paths": [
+      "packages/persistence/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+    },
+    "produces": [
+      "persistence-kit.v1"
+    ],
+    "consumes": [],
+    "scope": [
+      "Provide optional tenant-aware SQLAlchemy/Alembic patterns, isolated migration/seed utilities, and database checks within this package. Services own their migrations and can use direct local implementations without this toolkit."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [],
+      "check_command": "make -C packages/persistence check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "The toolkit checks migrations, tenant-aware keys and role isolation against its own real PostgreSQL instance and synthetic seed records.",
+      "Its README and fixtures show isolated service schemas without requiring a global migration or owning other services' financial tables.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite.",
+    "optional_consumes": []
+  },
+  {
+    "id": "SN-004",
+    "title": "Build deterministic payment simulator and fault controls",
+    "lane": "B",
+    "phase": 1,
+    "priority": "P0",
+    "optional": false,
+    "branch": "feat/sn-004-simulator",
+    "depends_on": [],
+    "root": "services/simulator",
+    "paths": [
+      "services/simulator/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+    },
+    "produces": [
+      "payment-provider.v1"
+    ],
+    "consumes": [],
+    "scope": [
+      "Implement scoped synthetic payment/order/refund/credit APIs with stable-reference lookup and deterministic timeout-after-accept, delay, duplication, out-of-order and outage controls. Own all simulator fixtures and state locally."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [],
+      "check_command": "make -C services/simulator check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "Two captured payments of 150000 INR minor units map to one fulfilled order; provider outcome and credit are separate events.",
+      "Repeated logical refund references create one side effect; a post-accept timeout remains recoverable by the same reference with inspectable counts.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite.",
+    "optional_consumes": []
+  },
+  {
+    "id": "SN-005",
+    "title": "Build a standalone deterministic policy service",
+    "lane": "B",
+    "phase": 1,
+    "priority": "P0",
+    "optional": false,
+    "branch": "feat/sn-005-policy",
+    "depends_on": [],
+    "root": "services/policy",
+    "paths": [
+      "services/policy/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+    },
+    "produces": [
+      "policy.v1"
+    ],
+    "consumes": [],
+    "scope": [
+      "Validate local proposal/evidence/approval inputs and return ALLOW, REQUIRE_APPROVAL, DENY or NEED_EVIDENCE. Use only versioned local rules and contract fixtures; do not require a live case/evidence/ledger service."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [],
+      "check_command": "make -C services/policy check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "Wrong tenant, pending/failed payment, expired evidence, fraud/chargeback, arbitrary destination and excess amount reject or require evidence with reason codes.",
+      "Missing/expired/mismatched approval cannot authorize a refund; model/customer text cannot override the rules or create an approval.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite.",
+    "optional_consumes": []
+  },
+  {
+    "id": "SN-006",
+    "title": "Build an independent evidence and reconciliation service",
+    "lane": "B",
+    "phase": 1,
+    "priority": "P0",
+    "optional": false,
+    "branch": "feat/sn-006-evidence",
+    "depends_on": [],
+    "root": "services/evidence",
+    "paths": [
+      "services/evidence/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+    },
+    "produces": [
+      "evidence.v1"
+    ],
+    "consumes": [
+      "payment-provider.v1"
+    ],
+    "scope": [
+      "Collect scoped read-only facts through an injected payment-provider port, retain original digest/provenance/freshness, and reconcile duplicate/order/refund facts. Own evidence storage/migrations and a local provider stub."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [
+        {
+          "port": "payment-provider.v1",
+          "location": "services/evidence/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        }
+      ],
+      "check_command": "make -C services/evidence check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "Local valid, stale, conflicting, unauthorized and unavailable provider fixtures produce explicit evidence/reconciliation states.",
+      "Equal amounts alone never prove duplication; independently exercise distinct transaction, scope, merchant confirmation and order evidence without a running simulator.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite.",
+    "optional_consumes": []
+  },
+  {
+    "id": "SN-007",
+    "title": "Build a standalone authenticated case API",
+    "lane": "A",
+    "phase": 1,
+    "priority": "P0",
+    "optional": false,
+    "branch": "feat/sn-007-case-api",
+    "depends_on": [],
+    "root": "apps/api",
+    "paths": [
+      "apps/api/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+    },
+    "produces": [
+      "case-api.v1"
+    ],
+    "consumes": [
+      "workflow.v1",
+      "evidence.v1",
+      "action-ledger.v1",
+      "verifier.v1"
+    ],
+    "scope": [
+      "Implement case intake/query/messages, immutable per-revision input snapshots, operator queue/evidence, decision proxy, escalation, health and durable SSE. Own case/message/event state and migrations; inject local workflow/evidence/ledger/verifier stubs. The ledger owns authoritative approvals and money."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [
+        {
+          "port": "workflow.v1",
+          "location": "apps/api/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "evidence.v1",
+          "location": "apps/api/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "action-ledger.v1",
+          "location": "apps/api/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "verifier.v1",
+          "location": "apps/api/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        }
+      ],
+      "check_command": "make -C apps/api check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "Self-contained API tests exercise 202 creation, idempotent reuse/409 conflict, role/tenant boundaries, restart and cursor-resumable ordered events.",
+      "Decision forwarding preserves authenticated reviewer context and exact digest/revision. Internal case results enforce idempotent event keys and optimistic revision checks; verified resolution requires a fresh matching trusted verifier assessment.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite.",
+    "optional_consumes": []
+  },
+  {
+    "id": "SN-008",
+    "title": "Build an independent durable workflow worker",
+    "lane": "A",
+    "phase": 1,
+    "priority": "P0",
+    "optional": false,
+    "branch": "feat/sn-008-workflow",
+    "depends_on": [],
+    "root": "services/workflow",
+    "paths": [
+      "services/workflow/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+    },
+    "produces": [
+      "workflow.v1"
+    ],
+    "consumes": [
+      "evidence.v1",
+      "policy.v1",
+      "action-ledger.v1",
+      "verifier.v1",
+      "case-api.v1"
+    ],
+    "scope": [
+      "Implement bounded typed LangGraph investigation/planning/policy/approval/wait/verification with a module-owned PostgreSQL checkpointer. Own a baseline configurable structured-model adapter and fake-model mode using ModelRequest/ModelResult; the Phase 2 context package is not required. Use local evidence/policy/ledger/verifier/case-result stubs. Deliver results through the case API with durable retries and idempotent revision checks. Read the original complaint, scoped order hint and complete per-revision message history through the case-input API snapshot."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [
+        {
+          "port": "evidence.v1",
+          "location": "services/workflow/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "policy.v1",
+          "location": "services/workflow/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "action-ledger.v1",
+          "location": "services/workflow/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "verifier.v1",
+          "location": "services/workflow/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "case-api.v1",
+          "location": "services/workflow/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        }
+      ],
+      "check_command": "make -C services/workflow check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "Synthetic approval pauses survive restart and authenticated resume; node replay cannot create a duplicate logical financial command.",
+      "Missing evidence, malformed/outage model output, exhausted budgets and pending outcomes yield correct clarification/escalation/wait states against local peers.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite.",
+    "optional_consumes": []
+  },
+  {
+    "id": "SN-009",
+    "title": "Build the authoritative financial action-ledger service",
+    "lane": "B",
+    "phase": 1,
+    "priority": "P0",
+    "optional": false,
+    "branch": "feat/sn-009-reservations",
+    "depends_on": [],
+    "root": "services/action-ledger",
+    "paths": [
+      "services/action-ledger/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+    },
+    "produces": [
+      "action-ledger.v1"
+    ],
+    "consumes": [
+      "policy.v1",
+      "evidence.v1"
+    ],
+    "scope": [
+      "Own authoritative approvals, eligibility snapshots, reservations, immutable action/operation/provider references, dispatch claims, transactional outbox and financial audit in one service database. Implement authenticated ports with local policy/evidence fixtures and independent migrations."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [
+        {
+          "port": "policy.v1",
+          "location": "services/action-ledger/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "evidence.v1",
+          "location": "services/action-ledger/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        }
+      ],
+      "check_command": "make -C services/action-ledger check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "Real PostgreSQL concurrency tests prove completed/pending/reserved amounts never overrun eligible capture; reservation/action/outbox/audit commit or roll back together.",
+      "Approval/digest/version/role/expiry, operation-key conflicts, lease claims and provenance-bound transitions reject invalid requests; no network call occurs inside the reservation transaction.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite.",
+    "optional_consumes": []
+  },
+  {
+    "id": "SN-010",
+    "title": "Build an independent refund dispatcher and recovery worker",
+    "lane": "B",
+    "phase": 1,
+    "priority": "P0",
+    "optional": false,
+    "branch": "feat/sn-010-dispatch-recovery",
+    "depends_on": [],
+    "root": "services/dispatcher",
+    "paths": [
+      "services/dispatcher/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+    },
+    "produces": [
+      "dispatcher.v1"
+    ],
+    "consumes": [
+      "action-ledger.v1",
+      "payment-provider.v1"
+    ],
+    "scope": [
+      "Consume authenticated ledger-issued commands, dispatch only through the configured provider, and report accepted/unknown outcomes through ledger ports. Supply local ledger/provider stubs and durable worker state; never create a second authoritative ledger."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [
+        {
+          "port": "action-ledger.v1",
+          "location": "services/dispatcher/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "payment-provider.v1",
+          "location": "services/dispatcher/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        }
+      ],
+      "check_command": "make -C services/dispatcher check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "Commit-then-timeout and crash/restart fixtures use the original action/provider references and produce one simulated refund side effect.",
+      "Invalid/expired/mismatched commands fail; unknown/non-idempotent provider ambiguity preserves reservation authority and escalates instead of inventing a new refund reference.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite.",
+    "optional_consumes": []
+  },
+  {
+    "id": "SN-011",
+    "title": "Build an independent webhook and verification service",
+    "lane": "B",
+    "phase": 1,
+    "priority": "P0",
+    "optional": false,
+    "branch": "feat/sn-011-verification",
+    "depends_on": [],
+    "root": "services/verifier",
+    "paths": [
+      "services/verifier/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+    },
+    "produces": [
+      "verifier.v1"
+    ],
+    "consumes": [
+      "payment-provider.v1",
+      "action-ledger.v1",
+      "evidence.v1",
+      "case-api.v1"
+    ],
+    "scope": [
+      "Own verified webhook inbox, scheduled rechecks and closure assessment. Use independent migrations and local provider/ledger/evidence stubs; send authenticated evidence to ledger APIs instead of editing financial tables."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [
+        {
+          "port": "payment-provider.v1",
+          "location": "services/verifier/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "action-ledger.v1",
+          "location": "services/verifier/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "evidence.v1",
+          "location": "services/verifier/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "case-api.v1",
+          "location": "services/verifier/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        }
+      ],
+      "check_command": "make -C services/verifier check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "Original-byte signature, tenant mapping and replay checks reject bad events; durable inbox deduplicates/reorders correctly without creating money movement.",
+      "Local accepted/pending/provider-confirmed/credit-confirmed cases remain distinct, and unknown outcomes retain rechecks/reservations until the required evidence arrives.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite.",
+    "optional_consumes": []
+  },
+  {
+    "id": "SN-012",
+    "title": "Build an independent customer and operator web shell",
+    "lane": "C",
+    "phase": 1,
+    "priority": "P0",
+    "optional": false,
+    "branch": "feat/sn-012-ui-shell",
+    "depends_on": [],
+    "root": "apps/web",
+    "paths": [
+      "apps/web/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+    },
+    "produces": [
+      "web-shell.v1"
+    ],
+    "consumes": [
+      "case-api.v1",
+      "approval-ui.v1",
+      "voice.v1"
+    ],
+    "scope": [
+      "Build text intake, case timeline, operator queue and evidence pages with a local case-client stub and a documented approval/voice component slot. Own its Next.js manifest/lockfile and preview; do not import missing UI/voice packages."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [
+        {
+          "port": "case-api.v1",
+          "location": "apps/web/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "approval-ui.v1",
+          "location": "apps/web/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "voice.v1",
+          "location": "apps/web/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        }
+      ],
+      "check_command": "make -C apps/web check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "Standalone browser checks cover loading/error/empty/permission states, masked references, responsive layout and keyboard use against a local API fixture.",
+      "The component slots render local substitutes; pending/provider/credit/escalation labels stay correct, and real-peer failures are visible rather than silently switching to fixtures.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite.",
+    "optional_consumes": [
+      "voice.v1"
+    ]
+  },
+  {
+    "id": "SN-013",
+    "title": "Build an independently previewable approval UI package",
+    "lane": "C",
+    "phase": 1,
+    "priority": "P0",
+    "optional": false,
+    "branch": "feat/sn-013-approval-ui",
+    "depends_on": [],
+    "root": "packages/approval-ui",
+    "paths": [
+      "packages/approval-ui/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+    },
+    "produces": [
+      "approval-ui.v1"
+    ],
+    "consumes": [
+      "case-api.v1",
+      "action-ledger.v1"
+    ],
+    "scope": [
+      "Build an embeddable typed approval/evidence component with its own preview and injected authorized client. Own its manifest/lockfile, fixtures and browser checks; do not edit or require the web shell."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [
+        {
+          "port": "case-api.v1",
+          "location": "packages/approval-ui/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "action-ledger.v1",
+          "location": "packages/approval-ui/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        }
+      ],
+      "check_command": "make -C packages/approval-ui check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "Preview fixtures show exact amount/transaction, policy version, evidence age, digest, expiry and reviewer identity; approve/reject submits the supplied digest/revision.",
+      "Expired, stale, unauthorized, cross-tenant and 409 decision responses are handled accessibly without a live API or sibling UI package.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite.",
+    "optional_consumes": []
+  },
+  {
+    "id": "SN-014",
+    "title": "Build the four-journey integration harness independently",
+    "lane": "A",
+    "phase": 1,
+    "priority": "P0",
+    "optional": false,
+    "branch": "feat/sn-014-core-integration",
+    "depends_on": [],
+    "root": "integration/core",
+    "paths": [
+      "integration/core/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+    },
+    "produces": [
+      "core-assembly.v1"
+    ],
+    "consumes": [
+      "case-api.v1",
+      "workflow.v1",
+      "action-ledger.v1",
+      "dispatcher.v1",
+      "verifier.v1",
+      "payment-provider.v1",
+      "web-shell.v1"
+    ],
+    "scope": [
+      "Create standalone scenario drivers, version/mode configuration and composition adapters for pending, merchant mismatch, duplicate payment and refund-pending journeys. Develop against module-local reference peers; provide a strict real-component mode without changing peers' source."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [
+        {
+          "port": "case-api.v1",
+          "location": "integration/core/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "workflow.v1",
+          "location": "integration/core/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "action-ledger.v1",
+          "location": "integration/core/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "dispatcher.v1",
+          "location": "integration/core/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "verifier.v1",
+          "location": "integration/core/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "payment-provider.v1",
+          "location": "integration/core/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "web-shell.v1",
+          "location": "integration/core/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        }
+      ],
+      "check_command": "make -C integration/core check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "The runner exercises all four journeys against local reference peers, including 150000-paise approval/timeout/credit recovery, and tests peer/schema/failure diagnostics.",
+      "Strict assembly mode rejects missing/incompatible peers and fixture stand-ins for real component evidence; a passing local harness test never claims an assembled MVP passed.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite.",
+    "optional_consumes": []
+  },
+  {
+    "id": "SN-015",
+    "title": "Build a standalone telemetry package and example stack",
+    "lane": "D",
+    "phase": 1,
+    "priority": "P0",
+    "optional": false,
+    "branch": "feat/sn-015-observability",
+    "depends_on": [],
+    "root": "packages/telemetry",
+    "paths": [
+      "packages/telemetry/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+    },
+    "produces": [
+      "telemetry.v1"
+    ],
+    "consumes": [],
+    "scope": [
+      "Provide injected OTel hooks, redaction, bounded-label metrics and a module-local collector/dashboard example. Use local synthetic span/event producers rather than editing or requiring API/worker implementations."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [],
+      "check_command": "make -C packages/telemetry check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "Local producers and exports demonstrate request/approval/worker/provider correlation and timeout/retry-suppression events.",
+      "Redaction and bounded-label checks reject secrets/raw complaints/customer-payment identifiers; telemetry failures cannot suppress or replace required financial audit.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite.",
+    "optional_consumes": []
+  },
+  {
+    "id": "SN-016",
+    "title": "Build an independent safety evaluation runner",
+    "lane": "D",
+    "phase": 1,
+    "priority": "P0",
+    "optional": false,
+    "branch": "feat/sn-016-evaluation",
+    "depends_on": [],
+    "root": "evals/core",
+    "paths": [
+      "evals/core/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+    },
+    "produces": [
+      "evaluation.v1"
+    ],
+    "consumes": [
+      "core-assembly.v1"
+    ],
+    "scope": [
+      "Implement versioned fixture loading, injected candidate runner/HTTP adapter, deterministic safety/outcome scoring and held-out split reports. Include local conforming and deliberately unsafe candidate doubles; product implementations are not prerequisites."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [
+        {
+          "port": "core-assembly.v1",
+          "location": "evals/core/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        }
+      ],
+      "check_command": "make -C evals/core check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "Local negative candidates trigger unauthorized action, over-refund, cross-tenant, duplicate-effect and false-credit failures; critical safety failure overrides aggregate quality.",
+      "Reports disclose dataset hashes, actual counts/denominators, model mode and holdout membership; a test of the evaluator is not a product safety certification.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite.",
+    "optional_consumes": []
+  },
+  {
+    "id": "SN-017",
+    "title": "Build an independent optional Tamil voice adapter",
+    "lane": "C",
+    "phase": 1,
+    "priority": "P1",
+    "optional": true,
+    "branch": "feat/sn-017-voice",
+    "depends_on": [],
+    "root": "services/voice",
+    "paths": [
+      "services/voice/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+    },
+    "produces": [
+      "voice.v1"
+    ],
+    "consumes": [],
+    "scope": [
+      "Implement opt-in speech/transcript ports with a standalone client example, local Sarvam response fixtures and text fallback. Own all voice assets/tests; avoid edits to the main web app and never require live credentials for local checks."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [],
+      "check_command": "make -C services/voice check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "Tamil/English/code-mixed amount/negation fixtures preserve original input and flag ambiguity rather than authorizing a financial action.",
+      "Provider outage, malformed output, consent and retention controls pass locally; secrets never reach browser bundles or fixtures.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite.",
+    "optional_consumes": []
+  },
+  {
+    "id": "SN-018",
+    "title": "Build an independent replay and candidate-comparison runner",
+    "lane": "D",
+    "phase": 1,
+    "priority": "P0",
+    "optional": false,
+    "branch": "feat/sn-018-replay",
+    "depends_on": [],
+    "root": "replay/core",
+    "paths": [
+      "replay/core/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+    },
+    "produces": [
+      "replay.v1"
+    ],
+    "consumes": [
+      "evaluation.v1",
+      "payment-provider.v1"
+    ],
+    "scope": [
+      "Implement virtual-clock event replay and injected simulator/candidate/scorer ports. Bundle local conforming and defective retry examples with versions/seeds; do not require the evaluator or simulator implementation."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [
+        {
+          "port": "evaluation.v1",
+          "location": "replay/core/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "payment-provider.v1",
+          "location": "replay/core/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        }
+      ],
+      "check_command": "make -C replay/core check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "The local defective retry candidate fails state/effect assertions; the conforming local candidate preserves one simulated financial side effect.",
+      "Replay blocks production write/notification routes and records fixture/seed/model mode; real adapter absence is explicit and never turns a fixture run into product evidence.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite.",
+    "optional_consumes": []
+  },
+  {
+    "id": "SN-019",
+    "title": "Build a standalone MVP release-evidence verification kit",
+    "lane": "D",
+    "phase": 1,
+    "priority": "P0",
+    "optional": false,
+    "branch": "feat/sn-019-mvp-acceptance",
+    "depends_on": [],
+    "root": "release/mvp",
+    "paths": [
+      "release/mvp/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+    },
+    "produces": [
+      "release-evidence.v1"
+    ],
+    "consumes": [
+      "core-assembly.v1",
+      "evaluation.v1",
+      "replay.v1",
+      "telemetry.v1"
+    ],
+    "scope": [
+      "Build evidence-manifest validation, clean-checkout/demo procedures, artifact integrity checks and release-report rendering using local positive/negative manifests. This task delivers the verification kit; actual product release acceptance is a separate owner run."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [
+        {
+          "port": "core-assembly.v1",
+          "location": "release/mvp/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "evaluation.v1",
+          "location": "release/mvp/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "replay.v1",
+          "location": "release/mvp/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "telemetry.v1",
+          "location": "release/mvp/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        }
+      ],
+      "check_command": "make -C release/mvp check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "Local manifests exercise required component versions/contracts, exact checks/results, artifact hashes/timestamps and separate real-component/simulator/model evidence fields.",
+      "Missing, failed, incompatible or fixture-only component evidence blocks a release verdict; self-tests can pass with no product components installed without asserting a release succeeded.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite.",
+    "optional_consumes": []
+  },
+  {
+    "id": "SN-020",
+    "title": "Build an independent FinHarness SDK around supplied ports",
+    "lane": "A",
+    "phase": 2,
+    "priority": "P1",
+    "optional": true,
+    "branch": "feat/sn-020-finharness-extraction",
+    "depends_on": [],
+    "root": "packages/finharness-sdk",
+    "paths": [
+      "packages/finharness-sdk/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+    },
+    "produces": [
+      "finharness-sdk.v1"
+    ],
+    "consumes": [
+      "evidence.v1",
+      "policy.v1",
+      "action-ledger.v1",
+      "verifier.v1",
+      "indic-context.v1"
+    ],
+    "scope": [
+      "Implement optional reusable protocols, configuration, case manifests and injected client/adapters now against local ports. Do not wait to extract a missing MVP implementation; never duplicate the authoritative executor, case store or financial rules."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [
+        {
+          "port": "evidence.v1",
+          "location": "packages/finharness-sdk/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "policy.v1",
+          "location": "packages/finharness-sdk/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "action-ledger.v1",
+          "location": "packages/finharness-sdk/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "verifier.v1",
+          "location": "packages/finharness-sdk/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "indic-context.v1",
+          "location": "packages/finharness-sdk/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        }
+      ],
+      "check_command": "make -C packages/finharness-sdk check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "A local sample workflow uses fake ports through the SDK with contract validation, disabled-by-default routing and version-pinned case configuration.",
+      "The SDK package installs and checks alone; write/notification capabilities stay explicit and no SDK path bypasses approval or ledger authority.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite.",
+    "optional_consumes": []
+  },
+  {
+    "id": "SN-021",
+    "title": "Build independent Sarvam reasoning and Indic context adapters",
+    "lane": "C",
+    "phase": 2,
+    "priority": "P1",
+    "optional": true,
+    "branch": "feat/sn-021-indic-context",
+    "depends_on": [],
+    "root": "packages/indic-context",
+    "paths": [
+      "packages/indic-context/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+    },
+    "produces": [
+      "indic-context.v1"
+    ],
+    "consumes": [],
+    "scope": [
+      "Implement configurable fake/live Sarvam ports, source-preserving normalization, structured proposal parsing and ambiguity checks with module-local evidence fixtures. No FinHarness/voice/workflow implementation is required."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [],
+      "check_command": "make -C packages/indic-context check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "Local malformed proposals, hallucinated references, prompt injection and unsupported actions fail; Tamil/Hindi/English code-mixed amount/negation/count/reference fixtures are explicit.",
+      "Live calls remain opt-in, and reports distinguish fake inference, actual provider observations, measured cost/latency and native-review limits.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite.",
+    "optional_consumes": []
+  },
+  {
+    "id": "SN-022",
+    "title": "Build an independent shadow and sandbox harness runtime",
+    "lane": "A",
+    "phase": 2,
+    "priority": "P1",
+    "optional": true,
+    "branch": "feat/sn-022-harness-runtime",
+    "depends_on": [],
+    "root": "services/finharness-runtime",
+    "paths": [
+      "services/finharness-runtime/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+    },
+    "produces": [
+      "finharness-runtime.v1"
+    ],
+    "consumes": [
+      "finharness-sdk.v1",
+      "indic-context.v1",
+      "evidence.v1",
+      "policy.v1",
+      "action-ledger.v1",
+      "verifier.v1"
+    ],
+    "scope": [
+      "Implement pinned-case runtime and injected SDK-compatible/model/safety ports with local doubles. Add read-only shadow comparison, restart behavior and guarded sandbox routing; no existing application, extracted SDK or Phase 1 merge is required."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [
+        {
+          "port": "finharness-sdk.v1",
+          "location": "services/finharness-runtime/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "indic-context.v1",
+          "location": "services/finharness-runtime/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "evidence.v1",
+          "location": "services/finharness-runtime/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "policy.v1",
+          "location": "services/finharness-runtime/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "action-ledger.v1",
+          "location": "services/finharness-runtime/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "verifier.v1",
+          "location": "services/finharness-runtime/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        }
+      ],
+      "check_command": "make -C services/finharness-runtime check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "Local shadow execution has no write adapter/credentials/notification capability and cannot send a second refund.",
+      "Version pinning, new-case rollout/rollback and unknown-action reconciliation tests survive switch changes/restart; real adapters fail closed when peers are absent.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite.",
+    "optional_consumes": []
+  },
+  {
+    "id": "SN-023",
+    "title": "Build an independent FinBench-Indic dataset and CLI",
+    "lane": "D",
+    "phase": 2,
+    "priority": "P1",
+    "optional": true,
+    "branch": "feat/sn-023-finbench",
+    "depends_on": [],
+    "root": "benchmarks/finbench_indic",
+    "paths": [
+      "benchmarks/finbench_indic/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+    },
+    "produces": [
+      "finbench.v1"
+    ],
+    "consumes": [
+      "finharness-runtime.v1",
+      "indic-context.v1"
+    ],
+    "scope": [
+      "Implement grouped synthetic datasets, version/hash manifests, deterministic scoring and injected candidate adapters with local model/runtime fakes. Own the CLI/report examples and test data without requiring context/runtime packages."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [
+        {
+          "port": "finharness-runtime.v1",
+          "location": "benchmarks/finbench_indic/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "indic-context.v1",
+          "location": "benchmarks/finbench_indic/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        }
+      ],
+      "check_command": "make -C benchmarks/finbench_indic check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "Translations/paraphrases stay within one split; local baseline/candidate examples disclose dataset hashes, denominators, versions and uncertainty.",
+      "Hard safety regressions fail independently of average score; fake/live model and deterministic system scores remain distinct.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite.",
+    "optional_consumes": []
+  },
+  {
+    "id": "SN-024",
+    "title": "Build an independent harness telemetry extension",
+    "lane": "D",
+    "phase": 2,
+    "priority": "P1",
+    "optional": true,
+    "branch": "feat/sn-024-harness-observability",
+    "depends_on": [],
+    "root": "packages/finharness-telemetry",
+    "paths": [
+      "packages/finharness-telemetry/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+    },
+    "produces": [
+      "harness-telemetry.v1"
+    ],
+    "consumes": [
+      "telemetry.v1",
+      "finharness-runtime.v1",
+      "finbench.v1"
+    ],
+    "scope": [
+      "Implement injectable sanitized runtime/evaluation hooks, audit correlation and module-local dashboard/export examples. Use local emitter/exporter fakes instead of modifying another telemetry package or shared infrastructure."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [
+        {
+          "port": "telemetry.v1",
+          "location": "packages/finharness-telemetry/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "finharness-runtime.v1",
+          "location": "packages/finharness-telemetry/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "finbench.v1",
+          "location": "packages/finharness-telemetry/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        }
+      ],
+      "check_command": "make -C packages/finharness-telemetry check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "Local hooks join case/action/model/evaluation versions through bounded redacted records without sampling financial audit.",
+      "Telemetry outage, missing base exporter and malformed input fail safely; fixture reports never imply deployed runtime observations.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite.",
+    "optional_consumes": []
+  },
+  {
+    "id": "SN-025",
+    "title": "Build an independent FinHarness replay and promotion gate",
+    "lane": "B",
+    "phase": 2,
+    "priority": "P1",
+    "optional": true,
+    "branch": "feat/sn-025-harness-replay",
+    "depends_on": [],
+    "root": "replay/finharness",
+    "paths": [
+      "replay/finharness/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+    },
+    "produces": [
+      "harness-replay.v1"
+    ],
+    "consumes": [
+      "finharness-runtime.v1",
+      "finbench.v1",
+      "replay.v1"
+    ],
+    "scope": [
+      "Implement counterfactual replay and reviewed promotion scoring through injected runner/scorer ports with local candidates and fault schedules. Own a separate package; no import from unfinished SDK, replay or benchmark packages."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [
+        {
+          "port": "finharness-runtime.v1",
+          "location": "replay/finharness/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "finbench.v1",
+          "location": "replay/finharness/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "replay.v1",
+          "location": "replay/finharness/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        }
+      ],
+      "check_command": "make -C replay/finharness check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "Local record/replay reproduces deterministic state/effect results; changed write sequences execute against simulation rather than static recordings.",
+      "Critical safety regression blocks promotion despite quality gains; no candidate can modify live financial controls, policies or production code.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite.",
+    "optional_consumes": []
+  },
+  {
+    "id": "SN-026",
+    "title": "Build an independent sandbox pilot validation kit",
+    "lane": "B",
+    "phase": 2,
+    "priority": "P1",
+    "optional": true,
+    "branch": "feat/sn-026-sandbox-pilot",
+    "depends_on": [],
+    "root": "validation/sandbox-pilot",
+    "paths": [
+      "validation/sandbox-pilot/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa"
+    },
+    "produces": [
+      "sandbox-validation.v1"
+    ],
+    "consumes": [
+      "core-assembly.v1",
+      "finharness-runtime.v1",
+      "finbench.v1",
+      "harness-telemetry.v1",
+      "harness-replay.v1"
+    ],
+    "scope": [
+      "Build configurable second-workflow, load/restart/restore/kill-switch/rollback drivers and report validation using module-local service fakes. Deliver the kit independently; running an external pilot is separately authorized and is not a task-completion prerequisite."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [
+        {
+          "port": "core-assembly.v1",
+          "location": "validation/sandbox-pilot/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "finharness-runtime.v1",
+          "location": "validation/sandbox-pilot/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "finbench.v1",
+          "location": "validation/sandbox-pilot/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "harness-telemetry.v1",
+          "location": "validation/sandbox-pilot/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "harness-replay.v1",
+          "location": "validation/sandbox-pilot/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        }
+      ],
+      "check_command": "make -C validation/sandbox-pilot check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other 25 task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "Local reference peers exercise validation drivers and preserve in-flight action identities/reconciliation through restart and routing rollback.",
+      "Missing real peers, failed restore and absent external authorization cannot produce a successful pilot verdict; reports identify fixture runs, measured environment and unresolved limits.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite.",
+    "optional_consumes": []
+  }
+]

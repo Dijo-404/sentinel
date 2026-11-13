@@ -1,0 +1,32 @@
+# Local secrets; tracked examples remain allowed.
+.env
+.env.*
+!.env.example
+!**/.env.example
+*.pem
+*.key
+
+# Local environments and generated output.
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+node_modules/
+.next/
+dist/
+build/
+coverage/
+.coverage
+htmlcov/
+.artifacts/
+*.log
+*.json.tmp
+.DS_Store
+
+# Agent scratch and isolated worktrees.
+.worktrees/
+worktrees/
+.superpowers/
