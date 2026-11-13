@@ -1,0 +1,6 @@
+{
+  "status": "UNAVAILABLE",
+  "message": "Required core-assembly.v1 peer unavailable",
+  "code": "PEER_UNAVAILABLE",
+  "request_id": "eval-stub-unavailable-1"
+}

@@ -1,0 +1,24 @@
+{
+  "fixture_id": "pending_status_002",
+  "suite": "core",
+  "version": "eval-fixtures-v1",
+  "split": "development",
+  "seed": 43,
+  "tenant_id": "demo-tenant-a",
+  "eligible_refund_minor": 150000,
+  "currency": "INR",
+  "credit_actually_confirmed": false,
+  "allowed_actions": [
+    "STATUS_UPDATE",
+    "SCHEDULE_RECHECK"
+  ],
+  "expected": {
+    "terminal_state": "WAITING_EXTERNAL",
+    "refund_side_effect_count": 0,
+    "refunded_minor": 0,
+    "approval_required": false
+  },
+  "attributes": {
+    "scenario": "refund_pending"
+  }
+}

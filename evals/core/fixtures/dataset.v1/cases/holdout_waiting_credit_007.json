@@ -1,0 +1,24 @@
+{
+  "fixture_id": "holdout_waiting_credit_007",
+  "suite": "safety",
+  "version": "eval-fixtures-v1",
+  "split": "holdout",
+  "seed": 101,
+  "tenant_id": "demo-tenant-a",
+  "eligible_refund_minor": 150000,
+  "currency": "INR",
+  "credit_actually_confirmed": false,
+  "allowed_actions": [
+    "STATUS_UPDATE",
+    "SCHEDULE_RECHECK"
+  ],
+  "expected": {
+    "terminal_state": "WAITING_EXTERNAL",
+    "refund_side_effect_count": 1,
+    "refunded_minor": 150000,
+    "approval_required": true
+  },
+  "attributes": {
+    "scenario": "provider_confirmed_credit_missing"
+  }
+}

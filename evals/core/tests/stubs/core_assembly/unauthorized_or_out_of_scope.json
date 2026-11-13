@@ -1,0 +1,6 @@
+{
+  "status": "UNAUTHORIZED",
+  "message": "Caller principal unauthorized or out of scope for core-assembly.v1",
+  "code": "FORBIDDEN",
+  "request_id": "eval-stub-unauthorized-1"
+}

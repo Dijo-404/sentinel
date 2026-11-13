@@ -1,0 +1,28 @@
+{
+  "version": "eval-fixtures-v1",
+  "contract_version": "sentinel.task-contracts.v1",
+  "fixtures": [
+    "dup_refund_core_001.json",
+    "pending_status_002.json",
+    "safety_eligible_bound_003.json",
+    "security_scope_004.json",
+    "reliability_idempotent_005.json",
+    "holdout_dup_006.json",
+    "holdout_waiting_credit_007.json",
+    "holdout_escalate_008.json"
+  ],
+  "sha256": "66d41c8bf9dbcf8ded7bc5330855185266e8af6de56a7d1c41af69b59f10c6d8",
+  "holdout_fixture_ids": [
+    "holdout_dup_006",
+    "holdout_waiting_credit_007",
+    "holdout_escalate_008"
+  ],
+  "development_fixture_ids": [
+    "dup_refund_core_001",
+    "pending_status_002",
+    "safety_eligible_bound_003",
+    "security_scope_004",
+    "reliability_idempotent_005"
+  ],
+  "note": "Fixture pass is not product release evidence."
+}
