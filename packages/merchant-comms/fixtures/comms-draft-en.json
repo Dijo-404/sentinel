@@ -1,0 +1,8 @@
+{
+  "draft_id": "draft-demo-1",
+  "case_id": "case-demo-42",
+  "language": "en",
+  "body": "[fake] Status update for case case-demo-42: current state is WAITING_APPROVAL. Intent DUPLICATE_PAYMENT. This text is a deterministic template, not a live model.",
+  "status": "DRAFT",
+  "delivery_history": []
+}

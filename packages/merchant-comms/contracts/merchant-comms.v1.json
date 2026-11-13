@@ -1,0 +1,54 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "baseline_sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb",
+  "port": "merchant-comms.v1",
+  "boundary": "library-and-http-adapter",
+  "produces": ["merchant-comms.v1"],
+  "consumes": ["case-api.v1", "indic-context.v1"],
+  "optional_consumes": ["indic-context.v1"],
+  "wire_type": "CommsDraft",
+  "languages": ["en", "ta", "hi"],
+  "statuses": ["DRAFT", "APPROVED", "SIMULATED_SENT", "REJECTED"],
+  "routes": [
+    {
+      "method": "POST",
+      "path": "/v1/drafts",
+      "request": "DraftCreateRequest",
+      "response": "CommsDraft",
+      "role": "operator|supervisor"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/drafts/{draft_id}",
+      "request": "Empty",
+      "response": "CommsDraft",
+      "role": "operator|supervisor"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/drafts/{draft_id}/decisions",
+      "request": "DraftDecisionRequest",
+      "response": "CommsDraft",
+      "role": "operator|supervisor"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/drafts/{draft_id}/simulate-send",
+      "request": "SimulateSendRequest",
+      "response": "CommsDraft",
+      "role": "operator|supervisor"
+    }
+  ],
+  "invariants": [
+    "Drafts require explicit operator approval before SIMULATED_SENT",
+    "Rejected drafts are not delivered and gain no delivery_history send event",
+    "Models propose text only; no financial authority or ledger writes",
+    "Missing optional indic-context falls back to deterministic templates labeled [fake]",
+    "Unauthorized case scope fails closed"
+  ],
+  "compatibility": {
+    "required_case_api_failure": "explicit-error-no-fixture-fallback",
+    "optional_indic_unavailable": "labeled-fake-template-fallback",
+    "financial_tables": "none; authoritative ownership stays with SN-009"
+  }
+}
