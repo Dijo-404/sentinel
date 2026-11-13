@@ -11,6 +11,12 @@ This file tracks coordinated repository/release changes. Each independent module
 - Versioned task contracts, zero-prerequisite task metadata, GitHub publication tooling and an issue register.
 - Python-standard-library repository checks and regression tests; pinned-action CI without payment credentials or unfinished services.
 - Source Phase 1/Phase 2 specifications and pitch PDF, preserved as supplied.
+- Apache License 2.0 at the repository root.
+
+### Changed — 13 November 2026
+
+- Reorganized the root README using the supplied project template, with working setup commands, documentation links, repository CI/license badges, and explicit scaffold/runtime limits.
+- Kept machine-local RTK instructions in agent-global configuration instead of importing an absolute path from repository agent rules.
 
 ### Limits
 
