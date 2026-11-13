@@ -1,0 +1,42 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "run_id": "replay-demo-1",
+  "mode": "fixture",
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "acceptance.defective_fails",
+      "status": "PASS",
+      "reason_code": "DEFECTIVE_CAUGHT"
+    },
+    {
+      "name": "acceptance.conforming_single_effect",
+      "status": "PASS",
+      "reason_code": "CONFORMING_OK"
+    }
+  ],
+  "output_artifacts": [
+    {
+      "kind": "replay-comparison",
+      "uri": "fixture://dup_refund_timeout_001",
+      "sha256": "placeholder",
+      "component_version": "0.1.0",
+      "evidence_mode": "fixture"
+    }
+  ],
+  "modes": {
+    "run_mode": "fixture",
+    "seed": 42,
+    "model_mode": "fake",
+    "production_writes_blocked": true,
+    "production_notifications_blocked": true,
+    "real_evaluation_adapter": "absent",
+    "real_payment_provider_adapter": "absent"
+  },
+  "promotion": {
+    "decision": "PROMOTE",
+    "reason_code": "CONFORMING_SINGLE_EFFECT_DEFECTIVE_CAUGHT",
+    "conforming_candidate_id": "conforming-reconcile-v1",
+    "defective_candidate_id": "defective-retry-v0"
+  }
+}

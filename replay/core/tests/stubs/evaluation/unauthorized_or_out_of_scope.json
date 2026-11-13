@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "Principal not authorized for evaluation suite",
+    "request_id": "eval-stub-forbidden"
+  }
+}

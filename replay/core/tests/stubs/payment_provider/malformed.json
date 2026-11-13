@@ -1,0 +1,19 @@
+{
+  "capabilities": {
+    "contract_version": "sentinel.task-contracts.v1",
+    "component": "payment-provider",
+    "mode": "fixture"
+  },
+  "transactions_response": {
+    "payments": [
+      {
+        "transaction_ref": "TXN-B",
+        "amount_minor": "not-an-int"
+      }
+    ]
+  },
+  "refund_response": {
+    "provider_ref": null,
+    "status": "MAYBE"
+  }
+}
