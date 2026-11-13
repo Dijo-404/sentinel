@@ -17,7 +17,7 @@
 <br/>
 
 > [!NOTE]
-> **Early development.** The `main` branch contains repository tooling, specifications, and 26 independent component scaffolds. Component implementations are reviewed in separate pull requests. No assembled product runtime, live payment integration, or benchmark results are claimed.
+> **Early development.** Components are implemented on `main`. Assembly into a product runtime and any external pilot remain separate owner decisions. No live payment integration or external pilot acceptance is claimed.
 
 ## Overview
 
