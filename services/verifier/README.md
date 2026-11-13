@@ -1,87 +1,71 @@
-# SN-011 — Build an independent webhook and verification service
+# SN-011 — Independent webhook and verification service
 
-**State:** scaffold and task instructions only. No implementation, dependency installation, module check target or product result is claimed.
+**State:** implemented. Module-local `make check` is the acceptance command.
 
-**Owned root:** `services/verifier/`
+**Owned root:** `services/verifier/`  
+**Package:** `sentinel-verifier`  
+**Port:** `verifier.v1`  
 **Branch:** `feat/sn-011-verification`
-**Lane:** B · **Phase:** 1 · **Priority:** P0 · **Optional for MVP:** no
+
+Contract input: `sentinel.task-contracts.v1` · SHA-256 `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`.
 
 ## Outcome
 
-Own verified webhook inbox, scheduled rechecks and closure assessment. Use independent migrations and local provider/ledger/evidence stubs; send authenticated evidence to ledger APIs instead of editing financial tables.
+Owns verified webhook inbox, scheduled rechecks, and closure assessment. Uses independent migrations and local provider/ledger/evidence/case-api stubs. Sends authenticated evidence to ledger outcome APIs — never edits ledger tables. Pending refund is not customer credit; provider confirmation and credit confirmation stay distinct.
 
-## Independence
+## Standalone setup and checks
 
-No task-completion prerequisites. This module must install, run its local checks, and be reviewable with every other Sentinel task implementation absent. Use explicit local port doubles rather than another developer's server or an unfinished sibling import. Phase and task number do not establish build order.
-
-Read [root agent rules](../../AGENTS.md), [claim/PR workflow](../../CONTRIBUTING.md), [architecture](../../docs/architecture.md), and [testing](../../docs/testing.md). The [task register](../../docs/task-register.md) links the live issue once published.
-
-## Ownership and interfaces
-
-- `services/verifier/**`
-
-- Produces: `verifier.v1`
-- Consumes: `payment-provider.v1`, `action-ledger.v1`, `evidence.v1`, `case-api.v1`
-- Optional consumed interfaces: None
-
-Contract input: [baseline](../../docs/independent-task-contracts.md) · `sentinel.task-contracts.v1` · SHA-256 `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`.
-
-Implement the exact supplied routes, request/response types, auth context, canonical digest and state/idempotency behavior for the relevant ports. Keep typed snapshots and compatibility examples in this module. The contract-checker/SDK implementation is not required.
-
-### Required local peer doubles
-
-- `payment-provider.v1` under `tests/stubs/`: valid, unavailable, malformed, unauthorized_or_out_of_scope.
-- `action-ledger.v1` under `tests/stubs/`: valid, unavailable, malformed, unauthorized_or_out_of_scope.
-- `evidence.v1` under `tests/stubs/`: valid, unavailable, malformed, unauthorized_or_out_of_scope.
-- `case-api.v1` under `tests/stubs/`: valid, unavailable, malformed, unauthorized_or_out_of_scope.
-
-## Implementation layout
-
-Baseline category: Python service/library/tool.
-
-Use module-local dependency declarations and a reproducible lockfile, configuration example, tests, README and changelog. Stateful components own local migrations and a test database. No root application install or shared migration chain is allowed.
-
-Keep deterministic business rules/types separate from application use cases/ports and external adapters. Wire adapters at one composition entry point. Introduce only directories that contain real responsibilities; the repository does not pre-generate empty layers. See the architecture and folder guides for language-specific layouts.
-
-## Deliverables
-
-- [ ] Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.
-- [ ] Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.
-- [ ] Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation.
-- [ ] Update the local README/configuration and CHANGELOG.md with actual behavior and limitations.
-
-## Acceptance criteria
-
-- [ ] Original-byte signature, tenant mapping and replay checks reject bad events; durable inbox deduplicates/reorders correctly without creating money movement.
-- [ ] Local accepted/pending/provider-confirmed/credit-confirmed cases remain distinct, and unknown outcomes retain rechecks/reservations until the required evidence arrives.
-- [ ] All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required.
-
-## Planned local commands
-
-The owning task must implement and document dependency setup, a local run/preview command where applicable, and this check target. It does not exist yet:
+Requires Python 3.11+, [uv](https://docs.astral.sh/uv/), GNU Make, and Docker permission to run containers (mandatory PostgreSQL acceptance for durable inbox).
 
 ```sh
+make -C services/verifier setup
 make -C services/verifier check
 ```
 
-Run root `make check` as well. Root checks validate repository metadata and tools; they do not implement or substitute for this component's behavior tests. External provider credentials are optional for local fixture checks.
+Or from this directory:
 
-## Test and failure requirements
+```sh
+make setup
+make check
+```
 
-- Exercise observable acceptance behavior and meaningful invalid, unavailable, malformed and unauthorized boundary cases.
-- Use real PostgreSQL tests for financial locking/transactions, durable checkpoints or other database behavior that an in-memory double cannot establish.
-- Label fixtures/simulated providers/fake or live inference precisely. A real-peer adapter must not silently convert peer failure into fixture success.
-- Confirm the module works with sibling implementations absent and record exactly which local doubles/databases were used.
+`uv sync --frozen` installs only this module's locked dependencies. `make check` runs Ruff lint/format checks and pytest. PostgreSQL checks create a private `postgres:17-alpine` container on a random `127.0.0.1` port with tmpfs storage and remove it afterward. Unavailable Docker/PostgreSQL fails the check; durable inbox tests do not substitute an in-memory store for those proofs.
 
-## Evidence and review
+Local peer doubles live under `tests/stubs/`:
 
-- Exact standalone setup/check commands, actual results and pinned contract baseline hash.
-- Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.
-- PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status.
+- `payment-provider.v1`: valid, unavailable, malformed, unauthorized_or_out_of_scope
+- `action-ledger.v1`: valid, unavailable, malformed, unauthorized_or_out_of_scope
+- `evidence.v1`: valid, unavailable, malformed, unauthorized_or_out_of_scope
+- `case-api.v1`: valid, unavailable, malformed, unauthorized_or_out_of_scope
 
-Open a PR targeting main with `Refs #<issue>` and the PR template. Update the issue to review. Owner review/merge and accepted standalone evidence close the component issue. Agents never push main, merge or enable auto-merge.
+Evidence mode for `make check`: peers are local stubs; component-under-test is this package. Sibling Sentinel services are not imported or required.
 
-## Assembly limits
+## Behavior
 
-- A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.
-- Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence.
+1. `POST /v1/webhooks/simulator` verifies `X-Sentinel-Signature` as lowercase hex HMAC-SHA256 over **original bytes**, maps `merchant_ref` → tenant, applies replay/age policy, then commits the durable inbox before 202 `{accepted:true}`.
+2. Duplicate `event_id` per tenant is a no-op for money movement; out-of-order events reconcile **current** provider status by stable `provider_ref` (event type alone never confirms).
+3. `POST /v1/rechecks` schedules a durable job (`Idempotency-Key` required) and binds `provider_ref` → action/case scope.
+4. `POST /v1/assessments` classifies WAITING / VERIFIED / CONFLICT / ESCALATED; posts ledger outcomes only for evidence-backed transitions; announces case results only after credit-confirmed VERIFIED assessments.
+5. Unknown/pending outcomes retain reservations; only authoritative final failure or credit confirmation releases via ledger APIs.
+
+## Layout
+
+| Path | Role |
+| --- | --- |
+| `src/sentinel_verifier/domain/` | Signature, assessment rules, wire types |
+| `src/sentinel_verifier/application/` | `VerifierService` use cases and ports |
+| `src/sentinel_verifier/adapters/` | FastAPI, PostgreSQL store, HTTP peers, auth |
+| `tests/stubs/` | Provider, ledger, evidence, case-api doubles |
+| `contracts/` | `verifier.v1` snapshot and real-peer checklist |
+| `migrations/0001_verifier.sql` | Owned durable schema |
+| `fixtures/` | Demo webhook and verification request |
+
+## CLI / preview
+
+```sh
+uv run --frozen sentinel-verifier capabilities
+uv run --frozen sentinel-verifier migrate   # requires DATABASE_URL
+make preview   # uvicorn on 127.0.0.1:8011 (requires env + peers for real mode)
+```
+
+See [.env.example](.env.example). Real-peer assembly remains unverified until owner-run integration against live SN-004 / SN-005 / SN-008 / SN-009 components.

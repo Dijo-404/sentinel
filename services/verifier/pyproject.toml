@@ -1,0 +1,42 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sentinel-verifier"
+version = "0.1.0"
+description = "Independent webhook inbox, rechecks, and closure assessment (verifier.v1)"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn[standard]>=0.32,<1",
+  "SQLAlchemy>=2.0.44,<2.1",
+  "psycopg[binary]>=3.2,<4",
+  "httpx>=0.28,<1",
+]
+
+[project.scripts]
+sentinel-verifier = "sentinel_verifier.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8.4,<10", "ruff>=0.14,<1"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "."]
+addopts = "-q --strict-markers"
+markers = [
+  "postgres: real PostgreSQL durable inbox / recheck proofs",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["sentinel_verifier"]
+known-third-party = ["tests"]

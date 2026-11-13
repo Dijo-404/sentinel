@@ -1,0 +1,40 @@
+{
+  "port": "verifier.v1",
+  "contract_version": "sentinel.task-contracts.v1",
+  "contract_sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa",
+  "routes": [
+    {
+      "method": "POST",
+      "path": "/v1/rechecks",
+      "request": "VerificationRequest",
+      "headers": ["Idempotency-Key"],
+      "response": "Ack",
+      "status": 202,
+      "roles": ["workflow", "verifier"]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/webhooks/simulator",
+      "request": "original provider event bytes",
+      "headers": ["X-Sentinel-Signature"],
+      "response": {"accepted": true},
+      "status": 202,
+      "auth": "provider signature; tenant from signed payload"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/assessments",
+      "request": "VerificationRequest",
+      "response": "VerificationResult",
+      "status": 200,
+      "roles": ["workflow"]
+    },
+    {
+      "method": "GET",
+      "path": "/v1/assessments/{assessment_id}",
+      "response": "VerificationResult",
+      "status": 200,
+      "roles": ["workflow", "verifier"]
+    }
+  ]
+}

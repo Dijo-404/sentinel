@@ -1,0 +1,39 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "verification_request": {
+    "case_id": "case-demo-42",
+    "case_revision": 1,
+    "action_id": "action-demo-1",
+    "provider_ref": "refund-demo-1"
+  },
+  "ack": {
+    "contract_version": "sentinel.task-contracts.v1",
+    "job_id": "job-demo-1",
+    "accepted": true
+  },
+  "webhook_body": {
+    "event_id": "evt-demo-1",
+    "tenant_id": "tenant-demo-1",
+    "merchant_ref": "merchant-demo-1",
+    "provider_ref": "refund-demo-1",
+    "type": "REFUND_STATUS",
+    "occurred_at": "2026-11-13T11:59:00Z"
+  },
+  "webhook_accepted": {"accepted": true},
+  "verification_result_waiting": {
+    "assessment_id": "assessment-0001",
+    "case_id": "case-demo-42",
+    "case_revision": 1,
+    "action_id": "action-demo-1",
+    "assessed_at": "2026-11-13T12:00:00Z",
+    "expires_at": "2026-11-13T13:00:00Z",
+    "status": "WAITING",
+    "evidence": [],
+    "reason_codes": ["REFUND_PENDING", "CREDIT_NOT_CONFIRMED"]
+  },
+  "missing_peer_response": {
+    "code": "PEER_UNAVAILABLE",
+    "message": "Required peer unavailable",
+    "request_id": "request-demo-2"
+  }
+}
