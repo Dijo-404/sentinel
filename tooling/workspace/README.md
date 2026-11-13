@@ -1,81 +1,132 @@
-# SN-001 — Build standalone module tooling and CI discovery
+# SN-001 — Independent module discovery and checks
 
-**State:** scaffold and task instructions only. No implementation, dependency installation, module check target or product result is claimed.
+Optional Python CLI implementing `module-checks.v1`. It reads declared module
+roots from `docs/tasks.json`, reports absent/scaffold modules separately, and
+runs selected module-local `make check` commands. It installs no sibling
+packages and creates no global dependency graph.
 
-**Owned root:** `tooling/workspace/`
-**Branch:** `feat/sn-001-workspace`
-**Lane:** D · **Phase:** 1 · **Priority:** P0 · **Optional for MVP:** no
+Owned paths: `tooling/workspace/**` and `.github/workflows/module-checks.yml`.
+Branch: `feat/sn-001-workspace`. No task-completion prerequisites.
 
-## Outcome
+## Standalone setup and checks
 
-Provide optional module discovery, check aggregation, CI templates, and local environment examples. Own no global dependency graph or sibling manifests. Validate against local sample modules so the tooling can finish before any product module exists.
+Requires Python 3.11+, GNU Make and a POSIX host for process-group cleanup.
+The CLI and tests use only the standard library. Installation uses uv (tested
+with 0.13.7), the local `pyproject.toml`/`uv.lock`, and a pinned setuptools build
+backend; initial installation may download that backend. No provider secrets,
+Sentinel services, databases, Docker, root install or peer packages are needed.
 
-## Independence
+```sh
+cd tooling/workspace
+uv sync --locked
+make check PYTHON="$PWD/.venv/bin/python"
+.venv/bin/sentinel-modules discover --repo tests/fixtures/mini-repo
+```
 
-No task-completion prerequisites. This module must install, run its local checks, and be reviewable with every other Sentinel task implementation absent. Use explicit local port doubles rather than another developer's server or an unfinished sibling import. Phase and task number do not establish build order.
-
-Read [root agent rules](../../AGENTS.md), [claim/PR workflow](../../CONTRIBUTING.md), [architecture](../../docs/architecture.md), and [testing](../../docs/testing.md). The [task register](../../docs/task-register.md) links the live issue once published.
-
-## Ownership and interfaces
-
-- `tooling/workspace/**`
-- `.github/workflows/module-checks.yml`
-
-- Produces: `module-checks.v1`
-- Consumes: None
-- Optional consumed interfaces: None
-
-Contract input: [baseline](../../docs/independent-task-contracts.md) · `sentinel.task-contracts.v1` · SHA-256 `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`.
-
-Implement the exact supplied routes, request/response types, auth context, canonical digest and state/idempotency behavior for the relevant ports. Keep typed snapshots and compatibility examples in this module. The contract-checker/SDK implementation is not required.
-
-## Implementation layout
-
-Baseline category: Python service/library/tool.
-
-Use module-local dependency declarations and a reproducible lockfile, configuration example, tests, README and changelog. Stateful components own local migrations and a test database. No root application install or shared migration chain is allowed.
-
-Keep deterministic business rules/types separate from application use cases/ports and external adapters. Wire adapters at one composition entry point. Introduce only directories that contain real responsibilities; the repository does not pre-generate empty layers. See the architecture and folder guides for language-specific layouts.
-
-## Deliverables
-
-- [ ] Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.
-- [ ] Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.
-- [ ] Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation.
-- [ ] Update the local README/configuration and CHANGELOG.md with actual behavior and limitations.
-
-## Acceptance criteria
-
-- [ ] A miniature local fixture repo runs declared checks for present modules and reports absent modules without failing unrelated component PRs.
-- [ ] A component can install and check with its own manifest/lockfile without the aggregator; CI templates require no provider secrets.
-- [ ] All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required.
-
-## Planned local commands
-
-The owning task must implement and document dependency setup, a local run/preview command where applicable, and this check target. It does not exist yet:
+The source-tree checks also work without uv, installation or network:
 
 ```sh
 make -C tooling/workspace check
+make -C tooling/workspace preview
 ```
 
-Run root `make check` as well. Root checks validate repository metadata and tools; they do not implement or substitute for this component's behavior tests. External provider credentials are optional for local fixture checks.
+Copy this directory anywhere and run the same commands to prove isolation. The
+`tests/fixtures/mini-repo` repository contains a passing synthetic module with
+its own manifest/lockfile, an intentional failing module, a scaffold, and a
+declared absent module. Tests copy the repository to temporary directories;
+they do not modify fixtures or inspect sibling implementations.
 
-## Test and failure requirements
+The sample component works without the aggregator:
 
-- Exercise observable acceptance behavior and meaningful invalid, unavailable, malformed and unauthorized boundary cases.
-- Use real PostgreSQL tests for financial locking/transactions, durable checkpoints or other database behavior that an in-memory double cannot establish.
-- Label fixtures/simulated providers/fake or live inference precisely. A real-peer adapter must not silently convert peer failure into fixture success.
-- Confirm the module works with sibling implementations absent and record exactly which local doubles/databases were used.
+```sh
+cd tests/fixtures/mini-repo/modules/good
+uv sync --locked
+make check
+```
 
-## Evidence and review
+That manual sample command creates `checked` in the sample directory; remove
+that file afterward. It is synthetic check evidence only.
 
-- Exact standalone setup/check commands, actual results and pinned contract baseline hash.
-- Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.
-- PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status.
+## Discover and run
 
-Open a PR targeting main with `Refs #<issue>` and the PR template. Update the issue to review. Owner review/merge and accepted standalone evidence close the component issue. Agents never push main, merge or enable auto-merge.
+From the repository root after standalone installation:
 
-## Assembly limits
+```sh
+tooling/workspace/.venv/bin/sentinel-modules discover --repo .
+tooling/workspace/.venv/bin/sentinel-modules check --repo . --module SN-001
+# Optional: run every declared module that has a Makefile.
+tooling/workspace/.venv/bin/sentinel-modules check --repo .
+```
 
-- A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.
-- Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence.
+JSON reports preserve module id/root, status, exit code and combined captured
+stdout/stderr. `READY` means a Makefile exists; the check target is validated by
+execution, so a Makefile without `check` produces FAIL. `ABSENT` and
+`UNIMPLEMENTED` are informational, never PASS. `SKIPPED` marks modules outside
+selection. Exit 0 means no executed checks failed, even when nothing ran;
+exit 1 means a check failed; exit 2 means invalid input/configuration.
+
+Defaults are `--tasks docs/tasks.json`, `--timeout 300` seconds per module, and
+`--max-output-bytes 65536`. The output limit counts captured raw bytes; invalid
+UTF-8 is replaced when rendering JSON. A timeout or output-limit violation
+kills the process group, records TIMEOUT/OUTPUT_LIMIT, and continues unrelated
+checks. An unavailable Make executable records ERROR; no fixture fallback
+exists. `.env.example` documents defaults; dotenv files are not loaded.
+
+All task declarations are validated before any check starts: unique ids,
+normalized disjoint roots, repository containment, no symlink escapes/aliases,
+and the fixed module-local `make check` command. Extra task fields are accepted
+for compatibility. Makefiles are trusted repository code, not sandboxed code;
+checks inherit the caller's environment. The aggregator does not print it.
+
+PR selection accepts NUL-separated changed paths (including deleted paths):
+
+```sh
+git diff --no-ext-diff --name-only -z --no-renames main HEAD > /tmp/sentinel-changes.bin
+tooling/workspace/.venv/bin/sentinel-modules check --repo . --changed-paths /tmp/sentinel-changes.bin
+```
+
+`--no-renames` includes both sides of a move. Selection uses each task's root
+and declared extra owned paths. Combine with repeated `--module` flags to take
+the intersection. Unrelated documentation changes execute no component checks.
+
+## CI and component setup
+
+`.github/workflows/module-checks.yml` uses pinned checkout/Python actions,
+read-only permissions and no provider secrets. It installs this module alone,
+runs its self-tests, reports all declarations, and checks changed modules on
+PRs (all runnable modules on main/manual runs). It never edits manifests or
+runs a global install. Each selected module must prepare its own dependencies
+in `make check` or provide a dedicated CI setup step. Initial package downloads
+require network access; product inference and payment access are not used.
+
+For a component with uv-managed dependencies, its dedicated workflow may use:
+
+```yaml
+# After checkout, Python and uv setup; replace <owned-root> with a literal path.
+- run: uv sync --locked --project <owned-root>
+- run: make -C <owned-root> check
+```
+
+This is an example, not a cross-module build graph. Other languages own their
+own locked installation command. This aggregator does not guess setup steps,
+start services, or certify a module's test adequacy.
+
+## Contract, verification and limits
+
+Pinned input: `sentinel.task-contracts.v1`, SHA-256
+`0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`.
+See [typed snapshot and compatibility checklist](contracts/README.md).
+No consumed service ports, auth API, database migrations or peer stubs apply;
+the subprocess adapter runs actual local Makefiles against synthetic inputs.
+
+The 16 acceptance/negative tests cover module execution, absence/scaffolds,
+failure continuation, changed/deleted/extra paths, invalid/unknown input,
+nonstandard commands, duplicate/overlapping/escaped/aliased roots, unavailable
+Make, missing check target, output/time limits and child-process cleanup.
+Root `make check` remains repository metadata validation only.
+
+Standalone tests prove this tool using local fixture modules. Real application
+components, payment simulators, live/fake inference, product assembly, release
+and external pilot behavior are unverified and outside this task. Missing or
+unimplemented modules cannot establish release readiness. The owner reviews
+and merges the PR; this component does not modify root policy or sibling state.

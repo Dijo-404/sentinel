@@ -1,0 +1,46 @@
+name: Independent module checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: modules-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  modules:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Install standalone tooling
+        run: |
+          python -m pip install --disable-pip-version-check uv==0.13.7
+          uv sync --locked --project tooling/workspace
+      - name: Check workspace tooling
+        run: make -C tooling/workspace check PYTHON="$PWD/tooling/workspace/.venv/bin/python"
+      - name: Report all declared module states
+        run: tooling/workspace/.venv/bin/sentinel-modules discover --repo .
+      - name: Check selected modules
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ "$EVENT_NAME" = pull_request ]; then
+            git diff --no-ext-diff --name-only -z --no-renames "$BASE_SHA" HEAD > "$RUNNER_TEMP/sentinel-changes.bin"
+            tooling/workspace/.venv/bin/sentinel-modules check --repo . --changed-paths "$RUNNER_TEMP/sentinel-changes.bin"
+          else
+            tooling/workspace/.venv/bin/sentinel-modules check --repo .
+          fi
