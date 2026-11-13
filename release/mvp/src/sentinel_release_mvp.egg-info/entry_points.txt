@@ -1,2 +1,0 @@
-[console_scripts]
-sentinel-release-mvp = sentinel_release_mvp.__main__:main
