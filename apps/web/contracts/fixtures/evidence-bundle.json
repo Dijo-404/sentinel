@@ -1,0 +1,87 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "case_id": "case-demo-42",
+  "reconciliation_codes": ["DUPLICATE_CAPTURE_CANDIDATE"],
+  "evidence": [
+    {
+      "evidence_id": "evidence-payment-b",
+      "case_id": "case-demo-42",
+      "source": "simulator.payments",
+      "subject_ref": "subject-demo-9",
+      "observed_at": "2026-11-13T12:00:00Z",
+      "expires_at": "2026-11-14T12:00:00Z",
+      "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "verification_status": "VERIFIED",
+      "facts": {
+        "kind": "PAYMENT",
+        "payment": {
+          "transaction_ref": "TXN-B",
+          "order_reference": "DEMO-ORDER-42",
+          "subject_ref": "subject-demo-9",
+          "status": "CAPTURED",
+          "amount_minor": 150000,
+          "currency": "INR"
+        }
+      }
+    },
+    {
+      "evidence_id": "evidence-order",
+      "case_id": "case-demo-42",
+      "source": "simulator.orders",
+      "subject_ref": "subject-demo-9",
+      "observed_at": "2026-11-13T12:00:00Z",
+      "expires_at": "2026-11-14T12:00:00Z",
+      "digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "verification_status": "VERIFIED",
+      "facts": {
+        "kind": "ORDER",
+        "order": {
+          "order_reference": "DEMO-ORDER-42",
+          "subject_ref": "subject-demo-9",
+          "fulfilled_order_count": 1,
+          "merchant_confirmed_duplicate": true,
+          "paid": true
+        }
+      }
+    },
+    {
+      "evidence_id": "evidence-refund-pending",
+      "case_id": "case-demo-42",
+      "source": "simulator.refunds",
+      "subject_ref": "subject-demo-9",
+      "observed_at": "2026-11-13T12:01:00Z",
+      "expires_at": "2026-11-14T12:00:00Z",
+      "digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "verification_status": "UNVERIFIED",
+      "facts": {
+        "kind": "REFUND",
+        "refund": {
+          "action_id": "action-demo-1",
+          "provider_ref": "refund-demo-1",
+          "transaction_ref": "TXN-B",
+          "amount_minor": 150000,
+          "currency": "INR",
+          "status": "PENDING"
+        }
+      }
+    },
+    {
+      "evidence_id": "evidence-credit",
+      "case_id": "case-demo-42",
+      "source": "simulator.credits",
+      "subject_ref": "subject-demo-9",
+      "observed_at": "2026-11-13T12:02:00Z",
+      "expires_at": "2026-11-14T12:00:00Z",
+      "digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "verification_status": "UNVERIFIED",
+      "facts": {
+        "kind": "CREDIT",
+        "credit": {
+          "provider_ref": "refund-demo-1",
+          "confirmed": false,
+          "observed_at": "2026-11-13T12:02:00Z"
+        }
+      }
+    }
+  ]
+}

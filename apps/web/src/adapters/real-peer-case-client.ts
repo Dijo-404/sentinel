@@ -1,0 +1,195 @@
+import type { CaseClient } from "@/application/ports";
+import {
+  PeerError,
+  isApiError,
+  type Approval,
+  type Case,
+  type CaseCreate,
+  type CaseCreated,
+  type CaseEvent,
+  type DecisionRequest,
+  type EvidenceBundle,
+  type OpsCaseList,
+} from "@/domain/types";
+import {
+  validateCase,
+  validateCaseCreated,
+  validateEvidenceBundle,
+  validateOpsList,
+} from "./validate";
+
+export type RealPeerOptions = {
+  baseUrl: string;
+  bearerToken: string;
+  fetchImpl?: typeof fetch;
+};
+
+/**
+ * Real-peer case-api.v1 adapter.
+ * Never falls back to fixtures on failure — errors stay visible.
+ */
+export function createRealPeerCaseClient(options: RealPeerOptions): CaseClient {
+  const base = options.baseUrl.replace(/\/$/, "");
+  const fetchImpl = options.fetchImpl ?? fetch;
+
+  if (!base) {
+    throw new PeerError(
+      "PEER_UNAVAILABLE",
+      "CASE_API_BASE_URL is required in real-peers mode",
+      "cfg-missing-base",
+      503,
+    );
+  }
+  if (!options.bearerToken) {
+    throw new PeerError(
+      "UNAUTHORIZED",
+      "CASE_API_BEARER_TOKEN is required in real-peers mode",
+      "cfg-missing-token",
+      401,
+    );
+  }
+
+  async function request<T>(
+    method: string,
+    path: string,
+    init?: {
+      body?: unknown;
+      headers?: Record<string, string>;
+      validate: (json: unknown, requestId: string) => T;
+    },
+  ): Promise<T> {
+    const requestId = `web-${crypto.randomUUID()}`;
+    let response: Response;
+    try {
+      response = await fetchImpl(`${base}${path}`, {
+        method,
+        headers: {
+          Authorization: `Bearer ${options.bearerToken}`,
+          Accept: "application/json",
+          "X-Request-Id": requestId,
+          ...(init?.body ? { "Content-Type": "application/json" } : {}),
+          ...init?.headers,
+        },
+        body: init?.body ? JSON.stringify(init.body) : undefined,
+      });
+    } catch (err) {
+      throw new PeerError(
+        "PEER_UNAVAILABLE",
+        err instanceof Error ? err.message : "Network failure contacting case API",
+        requestId,
+        503,
+      );
+    }
+
+    let json: unknown = undefined;
+    const text = await response.text();
+    if (text) {
+      try {
+        json = JSON.parse(text);
+      } catch {
+        throw new PeerError(
+          "MALFORMED_PEER_RESPONSE",
+          "Peer returned non-JSON body",
+          requestId,
+          response.status,
+        );
+      }
+    }
+
+    if (!response.ok) {
+      if (isApiError(json)) {
+        throw new PeerError(json.code, json.message, json.request_id, response.status);
+      }
+      throw new PeerError(
+        response.status === 403 || response.status === 401
+          ? "FORBIDDEN"
+          : response.status === 503
+            ? "PEER_UNAVAILABLE"
+            : "PEER_ERROR",
+        `Case API returned HTTP ${response.status}`,
+        requestId,
+        response.status,
+      );
+    }
+
+    return init!.validate(json, requestId);
+  }
+
+  return {
+    createCase(input: CaseCreate, idempotencyKey: string): Promise<CaseCreated> {
+      return request("POST", "/v1/cases", {
+        body: input,
+        headers: { "Idempotency-Key": idempotencyKey },
+        validate: validateCaseCreated,
+      });
+    },
+    getCase(caseId: string): Promise<Case> {
+      return request("GET", `/v1/cases/${encodeURIComponent(caseId)}`, {
+        validate: validateCase,
+      });
+    },
+    postMessage(caseId, body): Promise<Case> {
+      return request("POST", `/v1/cases/${encodeURIComponent(caseId)}/messages`, {
+        body,
+        validate: validateCase,
+      });
+    },
+    listEvents(caseId, after): Promise<{ events: CaseEvent[] }> {
+      const q = after != null ? `?format=json&after=${after}` : "?format=json";
+      return request("GET", `/v1/cases/${encodeURIComponent(caseId)}/events${q}`, {
+        validate: (json, requestId) => {
+          if (!json || typeof json !== "object" || !Array.isArray((json as { events?: unknown }).events)) {
+            throw new PeerError(
+              "MALFORMED_PEER_RESPONSE",
+              "Missing events array",
+              requestId,
+            );
+          }
+          return json as { events: CaseEvent[] };
+        },
+      });
+    },
+    listOpsCases(query): Promise<OpsCaseList> {
+      const params = new URLSearchParams();
+      if (query?.status) params.set("status", query.status);
+      if (query?.after) params.set("after", query.after);
+      const qs = params.toString();
+      return request("GET", `/v1/ops/cases${qs ? `?${qs}` : ""}`, {
+        validate: validateOpsList,
+      });
+    },
+    getOpsEvidence(caseId: string): Promise<EvidenceBundle> {
+      return request(
+        "GET",
+        `/v1/ops/cases/${encodeURIComponent(caseId)}/evidence`,
+        { validate: validateEvidenceBundle },
+      );
+    },
+    decide(actionId: string, decision: DecisionRequest): Promise<Approval> {
+      return request(
+        "POST",
+        `/v1/ops/actions/${encodeURIComponent(actionId)}/decisions`,
+        {
+          body: decision,
+          validate: (json, requestId) => {
+            if (!json || typeof json !== "object") {
+              throw new PeerError(
+                "MALFORMED_PEER_RESPONSE",
+                "Approval is not an object",
+                requestId,
+              );
+            }
+            return json as Approval;
+          },
+        },
+      );
+    },
+    escalate(caseId, body): Promise<Case> {
+      return request(
+        "POST",
+        `/v1/ops/cases/${encodeURIComponent(caseId)}/escalate`,
+        { body, validate: validateCase },
+      );
+    },
+  };
+}

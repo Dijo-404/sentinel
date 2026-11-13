@@ -1,0 +1,17 @@
+{
+  "action_id": "action-demo-1",
+  "provider_ref": "refund-demo-1",
+  "action_digest": "d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993",
+  "status": "PROPOSED",
+  "payload": {
+    "action": "REQUEST_REFUND",
+    "case_id": "case-demo-42",
+    "case_revision": 1,
+    "transaction_ref": "TXN-B",
+    "amount_minor": 150000,
+    "currency": "INR",
+    "destination": "ORIGINAL_PAYMENT_ROUTE",
+    "evidence_ids": ["evidence-payment-b", "evidence-order"],
+    "policy_version": "demo-policy-v1"
+  }
+}
