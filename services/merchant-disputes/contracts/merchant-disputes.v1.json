@@ -1,0 +1,62 @@
+{
+  "port": "merchant-disputes.v1",
+  "contract_version": "sentinel.task-contracts.v1",
+  "contract_sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb",
+  "wire_type": "DisputeCase",
+  "statuses": ["OPEN", "EVIDENCE_PENDING", "SUBMITTED", "WON", "LOST", "WITHDRAWN"],
+  "required_evidence_kinds": ["PAYMENT", "ORDER", "DELIVERY"],
+  "routes": [
+    {
+      "method": "POST",
+      "path": "/v1/disputes",
+      "request": {
+        "case_id": "string",
+        "merchant_ref": "string",
+        "reason_code": "string",
+        "deadline_at?": "string",
+        "order_reference?": "string"
+      },
+      "response": "DisputeCase",
+      "status": 201,
+      "roles": ["operator", "supervisor"]
+    },
+    {
+      "method": "GET",
+      "path": "/v1/disputes/{dispute_id}",
+      "response": "DisputeCase",
+      "roles": ["operator", "supervisor"]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/disputes/{dispute_id}/packets",
+      "response": "DisputeCase",
+      "roles": ["operator", "supervisor"]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/disputes/{dispute_id}/submit",
+      "response": "DisputeCase",
+      "roles": ["operator", "supervisor"]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/disputes/{dispute_id}/resolve",
+      "request": {"outcome": "WON|LOST|WITHDRAWN"},
+      "response": "DisputeCase",
+      "roles": ["operator", "supervisor"]
+    },
+    {
+      "method": "GET",
+      "path": "/v1/disputes/{dispute_id}/deadline",
+      "response": {"dispute_id": "string", "deadline_at": "string", "overdue": "bool", "status": "DisputeStatus"},
+      "roles": ["operator", "supervisor"]
+    }
+  ],
+  "notes": [
+    "Own dispute state only; no ledger table edits or second executor.",
+    "Submission requires PAYMENT (transaction), ORDER, and DELIVERY evidence in assembled packets.",
+    "Missing required evidence returns 422 MISSING_REQUIRED_EVIDENCE.",
+    "Past deadline returns 422 DEADLINE_PASSED on submit.",
+    "Real-peer mode rejects unavailable, malformed, unauthorized peers with no fixture fallback."
+  ]
+}
