@@ -1,85 +1,73 @@
-# SN-009 — Build the authoritative financial action-ledger service
+# SN-009 — Authoritative financial action-ledger
 
-**State:** scaffold and task instructions only. No implementation, dependency installation, module check target or product result is claimed.
+**Produces:** `action-ledger.v1`  
+**Consumes (local stubs):** `policy.v1`, `evidence.v1`  
+**Package:** `sentinel-action-ledger`  
+**Contract:** `sentinel.task-contracts.v1` · SHA-256 `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`
 
-**Owned root:** `services/action-ledger/`
-**Branch:** `feat/sn-009-reservations`
-**Lane:** B · **Phase:** 1 · **Priority:** P0 · **Optional for MVP:** no
+Owns approvals, eligibility snapshots, payment reservations, immutable actions, stable provider references, dispatch leases, transactional outbox, and financial audit in one PostgreSQL database. Integer minor units only. All refunds require supervisor approval. Pending provider acceptance is not customer credit.
 
-## Outcome
-
-Own authoritative approvals, eligibility snapshots, reservations, immutable action/operation/provider references, dispatch claims, transactional outbox and financial audit in one service database. Implement authenticated ports with local policy/evidence fixtures and independent migrations.
-
-## Independence
-
-No task-completion prerequisites. This module must install, run its local checks, and be reviewable with every other Sentinel task implementation absent. Use explicit local port doubles rather than another developer's server or an unfinished sibling import. Phase and task number do not establish build order.
-
-Read [root agent rules](../../AGENTS.md), [claim/PR workflow](../../CONTRIBUTING.md), [architecture](../../docs/architecture.md), and [testing](../../docs/testing.md). The [task register](../../docs/task-register.md) links the live issue once published.
-
-## Ownership and interfaces
-
-- `services/action-ledger/**`
-
-- Produces: `action-ledger.v1`
-- Consumes: `policy.v1`, `evidence.v1`
-- Optional consumed interfaces: None
-
-Contract input: [baseline](../../docs/independent-task-contracts.md) · `sentinel.task-contracts.v1` · SHA-256 `0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa`.
-
-Implement the exact supplied routes, request/response types, auth context, canonical digest and state/idempotency behavior for the relevant ports. Keep typed snapshots and compatibility examples in this module. The contract-checker/SDK implementation is not required.
-
-### Required local peer doubles
-
-- `policy.v1` under `tests/stubs/`: valid, unavailable, malformed, unauthorized_or_out_of_scope.
-- `evidence.v1` under `tests/stubs/`: valid, unavailable, malformed, unauthorized_or_out_of_scope.
-
-## Implementation layout
-
-Baseline category: Python service/library/tool.
-
-Use module-local dependency declarations and a reproducible lockfile, configuration example, tests, README and changelog. Stateful components own local migrations and a test database. No root application install or shared migration chain is allowed.
-
-Keep deterministic business rules/types separate from application use cases/ports and external adapters. Wire adapters at one composition entry point. Introduce only directories that contain real responsibilities; the repository does not pre-generate empty layers. See the architecture and folder guides for language-specific layouts.
-
-## Deliverables
-
-- [ ] Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.
-- [ ] Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.
-- [ ] Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation.
-- [ ] Update the local README/configuration and CHANGELOG.md with actual behavior and limitations.
-
-## Acceptance criteria
-
-- [ ] Real PostgreSQL concurrency tests prove completed/pending/reserved amounts never overrun eligible capture; reservation/action/outbox/audit commit or roll back together.
-- [ ] Approval/digest/version/role/expiry, operation-key conflicts, lease claims and provenance-bound transitions reject invalid requests; no network call occurs inside the reservation transaction.
-- [ ] All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required.
-
-## Planned local commands
-
-The owning task must implement and document dependency setup, a local run/preview command where applicable, and this check target. It does not exist yet:
+## Setup
 
 ```sh
-make -C services/action-ledger check
+cd services/action-ledger
+make setup          # uv sync --frozen
+make check          # ruff + pytest (spins private disposable Postgres via Docker)
 ```
 
-Run root `make check` as well. Root checks validate repository metadata and tools; they do not implement or substitute for this component's behavior tests. External provider credentials are optional for local fixture checks.
+Optional local Postgres (not required for `make check`):
 
-## Test and failure requirements
+```sh
+docker compose up -d
+# set DATABASE_URL from .env.example, then:
+make migrate
+LEDGER_MODE=fixture  # process boot still needs injected peers; use tests or compose wiring
+```
 
-- Exercise observable acceptance behavior and meaningful invalid, unavailable, malformed and unauthorized boundary cases.
-- Use real PostgreSQL tests for financial locking/transactions, durable checkpoints or other database behavior that an in-memory double cannot establish.
-- Label fixtures/simulated providers/fake or live inference precisely. A real-peer adapter must not silently convert peer failure into fixture success.
-- Confirm the module works with sibling implementations absent and record exactly which local doubles/databases were used.
+## Routes
 
-## Evidence and review
+| Method | Path | Role |
+| --- | --- | --- |
+| `POST` | `/v1/actions/proposals` | workflow → `ActionRecord` 201 |
+| `POST` | `/v1/actions/{action_id}/decisions` | supervisor → `Approval` |
+| `POST` | `/v1/actions/reservations` | workflow → `ActionRecord` 201/200 identical retry |
+| `POST` | `/v1/actions/claims` | dispatcher → `ClaimResult` |
+| `GET` | `/v1/actions/{action_id}` | workflow, dispatcher, verifier, operator, supervisor |
+| `POST` | `/v1/actions/{action_id}/outcomes` | dispatcher (accepted/unknown); verifier (evidence-confirmed) |
 
-- Exact standalone setup/check commands, actual results and pinned contract baseline hash.
-- Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.
-- PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status.
+Also: `/healthz`, `/readyz`, `/v1/capabilities`.
 
-Open a PR targeting main with `Refs #<issue>` and the PR template. Update the issue to review. Owner review/merge and accepted standalone evidence close the component issue. Agents never push main, merge or enable auto-merge.
+Synthetic bearer tokens are listed in `.env.example` (`token-*-demo`). Body fields never establish identity.
 
-## Assembly limits
+## Invariants
 
-- A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.
-- Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence.
+- Evidence/policy network calls happen **before** the reservation transaction. A `ReservationNetworkGuard` fails the TX if a peer call is recorded while the TX is open.
+- `reserved + pending + refunded ≤ captured` enforced in domain code and a PostgreSQL check constraint; concurrent reservations use `SELECT … FOR UPDATE`.
+- Same `operation_key` + identical payload reuses the action (200); different payload → 409.
+- Lease expiry does not release money. Only `FAILED_FINAL` with verified evidence releases an allocation.
+- `CREDIT_CONFIRMED` requires separate credit evidence after `PROVIDER_CONFIRMED`.
+
+## Local stubs and real peers
+
+| Port | Fixture | Real-peer adapter |
+| --- | --- | --- |
+| `policy.v1` | `tests/stubs/policy.py` (`valid`, `unavailable`, `malformed`, `unauthorized_or_out_of_scope`) | `HttpPolicyClient` |
+| `evidence.v1` | `tests/stubs/evidence.py` (same cases) | `HttpEvidenceClient` |
+
+`LEDGER_MODE=real-peers` requires `POLICY_BASE_URL` and `EVIDENCE_BASE_URL`. Missing/unauthorized/malformed peers raise visibly; there is no silent fixture fallback.
+
+## Checks and independence
+
+`make check` installs only this module’s lockfile, runs ruff, and pytest against a private Docker Postgres. No sibling Sentinel service source or process is required. Fixture peers cannot satisfy assembled release evidence.
+
+## Layout
+
+```text
+src/sentinel_action_ledger/
+  domain/           # digest, money, transitions (framework-free)
+  application/      # use cases + ports
+  adapters/         # HTTP, Postgres, auth, peer clients
+  migrations/       # Alembic schema owned solely here
+contracts/          # wire snapshots + canonical digest vector
+tests/stubs/        # policy + evidence doubles
+```

@@ -1,0 +1,50 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "component": "action-ledger",
+  "routes": [
+    "POST /v1/actions/proposals",
+    "POST /v1/actions/{action_id}/decisions",
+    "POST /v1/actions/reservations",
+    "POST /v1/actions/claims",
+    "GET /v1/actions/{action_id}",
+    "POST /v1/actions/{action_id}/outcomes"
+  ],
+  "proposal_request": {
+    "operation_key": "duplicate-demo-42-b",
+    "payload": {
+      "action": "REQUEST_REFUND",
+      "case_id": "case-demo-42",
+      "case_revision": 1,
+      "transaction_ref": "TXN-B",
+      "amount_minor": 150000,
+      "currency": "INR",
+      "destination": "ORIGINAL_PAYMENT_ROUTE",
+      "evidence_ids": ["evidence-payment-b", "evidence-order"],
+      "policy_version": "demo-policy-v1"
+    },
+    "action_digest": "d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993"
+  },
+  "reservation_request": {
+    "operation_key": "duplicate-demo-42-b",
+    "payload": {
+      "action": "REQUEST_REFUND",
+      "case_id": "case-demo-42",
+      "case_revision": 1,
+      "transaction_ref": "TXN-B",
+      "amount_minor": 150000,
+      "currency": "INR",
+      "destination": "ORIGINAL_PAYMENT_ROUTE",
+      "evidence_ids": ["evidence-payment-b", "evidence-order"],
+      "policy_version": "demo-policy-v1"
+    },
+    "action_digest": "d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993",
+    "approval_id": "approval-demo-1"
+  },
+  "claim_request": {"limit": 1},
+  "claim_empty_response": {"commands": []},
+  "compatibility_checklist": {
+    "real_peer_policy": "UNVERIFIED — use HttpPolicyClient against assembled policy.v1",
+    "real_peer_evidence": "UNVERIFIED — use HttpEvidenceClient against assembled evidence.v1",
+    "fixture_peers": "tests/stubs/policy.py and tests/stubs/evidence.py"
+  }
+}
