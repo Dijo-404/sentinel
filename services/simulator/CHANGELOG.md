@@ -5,8 +5,12 @@
 ### Added — 13 November 2026
 
 - Independent module ownership, architecture/interface guide, scoped agent rules and acceptance checklist.
+- Standalone `sentinel-simulator` package: FastAPI `payment-provider.v1` routes, seeded DEMO-ORDER-42 dual-capture fixture, bearer principal map, and in-memory store.
+- Deterministic fault controls (outage, delay, timeout-after-accept, duplicate events, out-of-order credit) with inspectable refund stats.
+- Separate provider-confirm and credit-confirm admin paths so provider outcome and credit stay distinct events.
+- Module `make check` (uv sync, ruff, pytest), `.env.example`, contract snapshot, and demo fixture.
 
 ### Implementation status
 
-- Scaffold only. No module implementation, local dependency manifest/check target or product evidence is supplied yet.
-- Future SN-004 behavior/configuration/contract changes must update this file with observed validation and limits.
+- Module-local fixture checks cover acceptance criteria and fault/auth boundaries.
+- Assembled real-peer product wiring and external pilot settlement remain owner-run / unverified.
