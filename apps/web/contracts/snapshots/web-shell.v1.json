@@ -1,0 +1,36 @@
+{
+  "port": "web-shell.v1",
+  "contract_version": "sentinel.task-contracts.v1",
+  "contract_sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa",
+  "component": "apps/web",
+  "produces": "web-shell.v1",
+  "consumes": ["case-api.v1", "approval-ui.v1", "voice.v1"],
+  "optional_consumes": ["voice.v1"],
+  "capabilities": {
+    "contract_version": "sentinel.task-contracts.v1",
+    "component": "web-shell",
+    "mode": "fixture"
+  },
+  "pages": [
+    "intake",
+    "case-timeline",
+    "operator-queue",
+    "evidence"
+  ],
+  "slots": {
+    "approval-ui.v1": "local substitute; real package selected at assembly",
+    "voice.v1": "disabled by default; local substitute when enabled"
+  },
+  "masking": [
+    "subject_ref",
+    "transaction_ref",
+    "provider_ref",
+    "order_reference"
+  ],
+  "status_labels": {
+    "pending": ["Pending", "Pending external", "Waiting approval"],
+    "provider": ["Provider confirmed"],
+    "credit": ["Credit confirmed", "Credit pending"],
+    "escalation": ["Escalated"]
+  }
+}
