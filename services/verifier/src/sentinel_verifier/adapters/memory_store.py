@@ -102,6 +102,41 @@ class MemoryVerifierStore:
     def get_recheck(self, tenant_id: str, job_id: str) -> RecheckJob | None:
         return self.rechecks.get((tenant_id, job_id))
 
+    def claim_due_rechecks(
+        self, *, now: str, lease_expires_at: str, limit: int = 100
+    ) -> list[RecheckJob]:
+        claimed: list[RecheckJob] = []
+        for key, job in sorted(self.rechecks.items(), key=lambda item: item[1].available_at):
+            if len(claimed) >= limit:
+                break
+            due_scheduled = job.status == "SCHEDULED" and job.available_at <= now
+            lease_expired = (
+                job.status == "LEASED"
+                and job.lease_expires_at is not None
+                and job.lease_expires_at <= now
+            )
+            if not due_scheduled and not lease_expired:
+                continue
+            updated = RecheckJob(
+                tenant_id=job.tenant_id,
+                job_id=job.job_id,
+                idempotency_key=job.idempotency_key,
+                case_id=job.case_id,
+                case_revision=job.case_revision,
+                action_id=job.action_id,
+                provider_ref=job.provider_ref,
+                request_digest=job.request_digest,
+                available_at=job.available_at,
+                lease_expires_at=lease_expires_at,
+                attempts=job.attempts + 1,
+                status="LEASED",
+                created_at=job.created_at,
+                updated_at=now,
+            )
+            self.rechecks[key] = updated
+            claimed.append(updated)
+        return claimed
+
     def save_assessment(self, result: VerificationResult, *, tenant_id: str) -> None:
         self.assessments[(tenant_id, result.assessment_id)] = result
 

@@ -21,14 +21,15 @@ class TokenPrincipalMap:
 
 
 def demo_principals(tenant_id: str = "tenant-demo-1") -> dict[str, Principal]:
-    case = ("case-demo-42",)
+    # Explicit "*" — empty case_ids deny by default.
+    cases = ("*",)
     subject = ("subject-demo-1",)
     return {
-        "token-workflow-demo": Principal("workflow-demo", tenant_id, ("workflow",), subject, case),
-        "token-verifier-demo": Principal("verifier-demo", tenant_id, ("verifier",), (), case),
-        "token-case-api-demo": Principal("case-api-demo", tenant_id, ("workflow",), subject, case),
-        "token-operator-demo": Principal("operator-demo", tenant_id, ("operator",), subject, case),
+        "token-workflow-demo": Principal("workflow-demo", tenant_id, ("workflow",), subject, cases),
+        "token-verifier-demo": Principal("verifier-demo", tenant_id, ("verifier",), (), cases),
+        "token-case-api-demo": Principal("case-api-demo", tenant_id, ("workflow",), subject, cases),
+        "token-operator-demo": Principal("operator-demo", tenant_id, ("operator",), subject, cases),
         "token-other-tenant": Principal(
-            "other-tenant", "tenant-other", ("workflow",), subject, case
+            "other-tenant", "tenant-other", ("workflow",), subject, cases
         ),
     }

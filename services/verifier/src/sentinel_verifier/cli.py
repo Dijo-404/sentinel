@@ -26,6 +26,12 @@ def main(argv: list[str] | None = None) -> int:
         default=os.environ.get("VERIFIER_SCHEMA", "verifier"),
     )
 
+    drain = sub.add_parser(
+        "drain-rechecks",
+        help="Claim due SCHEDULED/lease-expired rechecks and reconcile",
+    )
+    drain.add_argument("--limit", type=int, default=100)
+
     args = parser.parse_args(argv)
     if args.command == "capabilities":
         payload = {
@@ -47,6 +53,13 @@ def main(argv: list[str] | None = None) -> int:
         ensure_schema(engine, args.schema)
         engine.dispose()
         sys.stdout.write(f"schema={args.schema} applied\n")
+        return 0
+    if args.command == "drain-rechecks":
+        from sentinel_verifier.bootstrap import build_app
+
+        app = build_app()
+        drained = app.state.service.drain_due_rechecks(limit=args.limit)
+        sys.stdout.write(json.dumps({"drained": drained}) + "\n")
         return 0
     return 1
 

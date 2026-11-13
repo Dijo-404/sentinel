@@ -71,6 +71,12 @@ def create_app(
         )
         return JSONResponse(status_code=202, content=ack.as_dict())
 
+    @app.post("/v1/rechecks/drain")
+    def drain_rechecks(authorization: str | None = Header(default=None)):
+        principal(authorization)  # authenticated internal/operator drain
+        drained = service.drain_due_rechecks()
+        return {"drained": drained}
+
     @app.post("/v1/webhooks/simulator", status_code=202)
     async def webhook_simulator(
         request: Request,

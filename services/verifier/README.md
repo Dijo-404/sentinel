@@ -43,10 +43,11 @@ Evidence mode for `make check`: peers are local stubs; component-under-test is t
 ## Behavior
 
 1. `POST /v1/webhooks/simulator` verifies `X-Sentinel-Signature` as lowercase hex HMAC-SHA256 over **original bytes**, maps `merchant_ref` → tenant, applies replay/age policy, then commits the durable inbox before 202 `{accepted:true}`.
-2. Duplicate `event_id` per tenant is a no-op for money movement; out-of-order events reconcile **current** provider status by stable `provider_ref` (event type alone never confirms).
-3. `POST /v1/rechecks` schedules a durable job (`Idempotency-Key` required) and binds `provider_ref` → action/case scope.
-4. `POST /v1/assessments` classifies WAITING / VERIFIED / CONFLICT / ESCALATED; posts ledger outcomes only for evidence-backed transitions; announces case results only after credit-confirmed VERIFIED assessments.
+2. Duplicate `event_id` per tenant skips only when already `PROCESSED`; an `ACCEPTED` (crash-after-insert) duplicate re-runs reconciliation. Out-of-order events reconcile **current** provider status by stable `provider_ref` (event type alone never confirms).
+3. `POST /v1/rechecks` schedules a durable job (`Idempotency-Key` required) and binds `provider_ref` → action/case scope. `POST /v1/rechecks/drain` (or `sentinel-verifier drain-rechecks` / `VerifierService.drain_due_rechecks`) claims due `SCHEDULED` or lease-expired jobs and reconciles.
+4. `POST /v1/assessments` classifies WAITING / VERIFIED / CONFLICT / ESCALATED; posts ledger outcomes only for evidence-backed transitions; announces case results only after credit-confirmed VERIFIED assessments. PENDING refund evidence is `UNVERIFIED`; terminal provider statuses are `VERIFIED`.
 5. Unknown/pending outcomes retain reservations; only authoritative final failure or credit confirmation releases via ledger APIs.
+6. Real-peers mode refuses demo webhook HMAC (`demo-simulator-hmac-key`) and demo bearer (`token-verifier-demo`). Fixture/test mode may keep demos. Empty `case_ids` deny; `"*"` allows all.
 
 ## Layout
 
@@ -65,6 +66,7 @@ Evidence mode for `make check`: peers are local stubs; component-under-test is t
 ```sh
 uv run --frozen sentinel-verifier capabilities
 uv run --frozen sentinel-verifier migrate   # requires DATABASE_URL
+uv run --frozen sentinel-verifier drain-rechecks   # claim due rechecks (real-peers env)
 make preview   # uvicorn on 127.0.0.1:8011 (requires env + peers for real mode)
 ```
 

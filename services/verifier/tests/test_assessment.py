@@ -18,6 +18,8 @@ def test_pending_refund_is_waiting_not_credit(memory_client, tokens, verificatio
     assert body["status"] == "WAITING"
     assert "REFUND_PENDING" in body["reason_codes"]
     assert "CREDIT_NOT_CONFIRMED" in body["reason_codes"]
+    refund_ev = next(e for e in body["evidence"] if e["facts"]["kind"] == "REFUND")
+    assert refund_ev["verification_status"] == "UNVERIFIED"
     assert memory_client.ledger.get_action(ACTION_ID)["status"] == "PENDING"
     assert memory_client.ledger.reservation_held(ACTION_ID)
     assert memory_client.case_api.results == []
@@ -46,6 +48,8 @@ def test_provider_confirmed_without_credit_stays_waiting(
     assert body["status"] == "WAITING"
     assert "PROVIDER_CONFIRMED" in body["reason_codes"]
     assert "CREDIT_NOT_CONFIRMED" in body["reason_codes"]
+    refund_ev = next(e for e in body["evidence"] if e["facts"]["kind"] == "REFUND")
+    assert refund_ev["verification_status"] == "VERIFIED"
     assert memory_client.ledger.get_action(ACTION_ID)["status"] == "PROVIDER_CONFIRMED"
     assert memory_client.ledger.reservation_held(ACTION_ID)
     assert memory_client.case_api.results == []

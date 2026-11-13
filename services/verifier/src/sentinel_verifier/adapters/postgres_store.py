@@ -267,6 +267,46 @@ class PostgresVerifierStore:
             )
         return _row_to_recheck(row) if row else None
 
+    def claim_due_rechecks(
+        self, *, now: str, lease_expires_at: str, limit: int = 100
+    ) -> list[RecheckJob]:
+        sql = text(
+            f"""
+            WITH picked AS (
+                SELECT tenant_id, job_id FROM "{self._schema}".recheck_jobs
+                WHERE (
+                    (status = 'SCHEDULED' AND available_at <= CAST(:now AS timestamptz))
+                    OR (
+                        status = 'LEASED'
+                        AND lease_expires_at IS NOT NULL
+                        AND lease_expires_at <= CAST(:now AS timestamptz)
+                    )
+                )
+                ORDER BY available_at
+                FOR UPDATE SKIP LOCKED
+                LIMIT :limit
+            )
+            UPDATE "{self._schema}".recheck_jobs AS j
+            SET status = 'LEASED',
+                attempts = j.attempts + 1,
+                lease_expires_at = CAST(:lease_expires_at AS timestamptz),
+                updated_at = CAST(:now AS timestamptz)
+            FROM picked
+            WHERE j.tenant_id = picked.tenant_id AND j.job_id = picked.job_id
+            RETURNING j.*
+            """
+        )
+        with self._engine.begin() as connection:
+            rows = (
+                connection.execute(
+                    sql,
+                    {"now": now, "lease_expires_at": lease_expires_at, "limit": limit},
+                )
+                .mappings()
+                .all()
+            )
+        return [_row_to_recheck(row) for row in rows]
+
     def save_assessment(self, result: VerificationResult, *, tenant_id: str) -> None:
         provider_ref = ""
         for item in result.evidence:

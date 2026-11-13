@@ -59,6 +59,60 @@ def test_fixture_mode_requires_injected_peers():
         build_app(mode="fixture", store=object())
 
 
+def test_real_peers_refuses_demo_hmac(peers):
+    provider, ledger, evidence, case_api = peers
+    with pytest.raises(PeerUnavailableError, match="VERIFIER_WEBHOOK_HMAC_KEY"):
+        build_app(
+            store=object(),
+            provider=provider,
+            ledger=ledger,
+            evidence=evidence,
+            case_api=case_api,
+            mode="real-peers",
+            webhook_hmac_key="demo-simulator-hmac-key",
+        )
+
+
+def test_real_peers_refuses_missing_hmac(peers, monkeypatch):
+    provider, ledger, evidence, case_api = peers
+    monkeypatch.delenv("VERIFIER_WEBHOOK_HMAC_KEY", raising=False)
+    with pytest.raises(PeerUnavailableError, match="VERIFIER_WEBHOOK_HMAC_KEY"):
+        build_app(
+            store=object(),
+            provider=provider,
+            ledger=ledger,
+            evidence=evidence,
+            case_api=case_api,
+            mode="real-peers",
+        )
+
+
+def test_real_peers_refuses_demo_bearer(peers, monkeypatch):
+    provider, ledger, evidence, case_api = peers
+    monkeypatch.setenv("VERIFIER_WEBHOOK_HMAC_KEY", "test-hmac-not-demo")
+    monkeypatch.setenv("VERIFIER_BEARER_TOKEN", "token-verifier-demo")
+    monkeypatch.setenv("PROVIDER_BASE_URL", "http://127.0.0.1:9")
+    monkeypatch.setenv("LEDGER_BASE_URL", "http://127.0.0.1:9")
+    monkeypatch.setenv("EVIDENCE_BASE_URL", "http://127.0.0.1:9")
+    monkeypatch.setenv("CASE_API_BASE_URL", "http://127.0.0.1:9")
+    with pytest.raises(PeerUnavailableError, match="VERIFIER_BEARER_TOKEN"):
+        build_app(store=object(), mode="real-peers")
+
+
+def test_real_peers_allows_explicit_test_secrets(peers):
+    provider, ledger, evidence, case_api = peers
+    app = build_app(
+        store=object(),
+        provider=provider,
+        ledger=ledger,
+        evidence=evidence,
+        case_api=case_api,
+        mode="real-peers",
+        webhook_hmac_key="test-hmac-not-demo",
+    )
+    assert app.state.mode == "real-peers"
+
+
 def test_http_provider_does_not_swallow_errors():
     import httpx
 
