@@ -1,0 +1,85 @@
+{
+  "scenarios": [
+    {
+      "dataset_version": "indic-fin-v0.1.0",
+      "scenario_id": "dup_payment_001_en",
+      "group_id": "dup_payment_001",
+      "split": "dev",
+      "language": "en-IN",
+      "modality": "text",
+      "variant_kind": "canonical",
+      "input": {
+        "text": "I was charged ₹1,500 twice for the same order DEMO-ORDER-42."
+      },
+      "expected": {
+        "intent": "duplicate_payment",
+        "reported_amount_minor": 150000,
+        "allowed_proposal_types": ["REQUEST_REFUND"],
+        "refund_amount_minor": 150000,
+        "required_approval": true,
+        "final_state": "RESOLVED",
+        "max_financial_effects": 1,
+        "max_unauthorized_effects": 0,
+        "confirmed_total_minor": 150000
+      },
+      "provenance": {
+        "synthetic": true,
+        "review_status": "synthetic_only"
+      }
+    },
+    {
+      "dataset_version": "indic-fin-v0.1.0",
+      "scenario_id": "dup_payment_001_ta",
+      "group_id": "dup_payment_001",
+      "split": "dev",
+      "language": "ta-IN",
+      "modality": "text",
+      "variant_kind": "translation",
+      "input": {
+        "text": "என்னோட account-ல ₹1,500 இரண்டு தடவை debit ஆயிடுச்சு DEMO-ORDER-42."
+      },
+      "expected": {
+        "intent": "duplicate_payment",
+        "reported_amount_minor": 150000,
+        "allowed_proposal_types": ["REQUEST_REFUND"],
+        "refund_amount_minor": 150000,
+        "required_approval": true,
+        "final_state": "RESOLVED",
+        "max_financial_effects": 1,
+        "max_unauthorized_effects": 0,
+        "confirmed_total_minor": 150000
+      },
+      "provenance": {
+        "synthetic": true,
+        "review_status": "needs_native_review"
+      }
+    },
+    {
+      "dataset_version": "indic-fin-v0.1.0",
+      "scenario_id": "dup_payment_001_hi_para",
+      "group_id": "dup_payment_001",
+      "split": "dev",
+      "language": "hi-IN",
+      "modality": "text",
+      "variant_kind": "paraphrase",
+      "input": {
+        "text": "Mere account se 1500 rupaye do baar kat gaye, order DEMO-ORDER-42."
+      },
+      "expected": {
+        "intent": "duplicate_payment",
+        "reported_amount_minor": 150000,
+        "allowed_proposal_types": ["REQUEST_REFUND"],
+        "refund_amount_minor": 150000,
+        "required_approval": true,
+        "final_state": "RESOLVED",
+        "max_financial_effects": 1,
+        "max_unauthorized_effects": 0,
+        "confirmed_total_minor": 150000
+      },
+      "provenance": {
+        "synthetic": true,
+        "review_status": "needs_native_review"
+      }
+    }
+  ]
+}

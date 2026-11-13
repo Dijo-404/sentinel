@@ -1,0 +1,14 @@
+{
+  "outcome": "PROPOSAL",
+  "reason_codes": ["SYNTHETIC_FIXTURE"],
+  "original_text": "synthetic probe",
+  "language": "en-IN",
+  "proposal": {
+    "action": "STATUS_UPDATE",
+    "message_code": "NEEDS_INPUT",
+    "case_id": "case-demo-42",
+    "case_revision": 1,
+    "evidence_ids": [],
+    "policy_version": "policy-fixture-1"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "baseline_sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa",
+  "port": "finbench.v1",
+  "boundary": "library-cli-dataset-evaluation",
+  "produces": ["finbench.v1"],
+  "consumes": ["finharness-runtime.v1", "indic-context.v1"],
+  "typed_snapshot": "sentinel_finbench.contracts and sentinel_finbench.application.ports",
+  "capabilities": {
+    "dataset_version_default": "indic-fin-v0.1.0",
+    "synthetic_only": true,
+    "live_model_default": false,
+    "hard_safety_independent_of_average": true,
+    "score_channels": ["model:fake", "model:live", "model:recorded", "system:deterministic"]
+  },
+  "functions": {
+    "load_dataset": "Load hashed grouped synthetic scenarios; reject cross-split group leakage",
+    "evaluate_split": "Injected candidate runner; disclose hashes, denominators, variance",
+    "RecordedBaselineCandidate": "Deterministic recorded-output baseline",
+    "FakeModelCandidate": "Local fake inference labeled model:fake",
+    "LiveModelCandidate": "Opt-in live path; refuses silent fake fallback when disabled",
+    "UnsafeRegressionCandidate": "Fault demo: safety fail despite high model fields",
+    "RealRuntimePeer": "finharness-runtime.v1 adapter; fail closed",
+    "RealContextPeer": "indic-context.v1 adapter; fail closed"
+  },
+  "compatibility": {
+    "peer_unavailable_malformed_unauthorized": "explicit-error-no-fallback",
+    "cross_split_translation_paraphrase": "rejected",
+    "hard_safety_regression": "FAIL regardless of average score",
+    "financial_tables": "none; evaluation only"
+  }
+}

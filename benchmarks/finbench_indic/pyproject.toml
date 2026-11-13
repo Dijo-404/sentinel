@@ -1,0 +1,32 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sentinel-finbench"
+version = "0.1.0"
+description = "FinBench-Indic: grouped synthetic datasets, deterministic scoring, injected candidate adapters"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+sentinel-finbench = "sentinel_finbench.cli:main"
+finbench = "sentinel_finbench.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8.4,<10", "ruff>=0.14,<1"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sentinel_finbench"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "tests"]
+addopts = "-q --strict-markers"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]

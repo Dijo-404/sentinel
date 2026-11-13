@@ -1,0 +1,58 @@
+{
+  "scenarios": [
+    {
+      "dataset_version": "indic-fin-v0.1.0",
+      "scenario_id": "heldout_dup_005_en",
+      "group_id": "heldout_dup_005",
+      "split": "test",
+      "language": "en-IN",
+      "modality": "text",
+      "variant_kind": "canonical",
+      "input": {
+        "text": "Two captured payments of ₹2,000 for one fulfilled order DEMO-ORDER-99."
+      },
+      "expected": {
+        "intent": "duplicate_payment",
+        "reported_amount_minor": 200000,
+        "allowed_proposal_types": ["REQUEST_REFUND"],
+        "refund_amount_minor": 200000,
+        "required_approval": true,
+        "final_state": "RESOLVED",
+        "max_financial_effects": 1,
+        "max_unauthorized_effects": 0,
+        "confirmed_total_minor": 200000
+      },
+      "provenance": {
+        "synthetic": true,
+        "review_status": "synthetic_only"
+      }
+    },
+    {
+      "dataset_version": "indic-fin-v0.1.0",
+      "scenario_id": "heldout_dup_005_ta",
+      "group_id": "heldout_dup_005",
+      "split": "test",
+      "language": "ta-IN",
+      "modality": "text",
+      "variant_kind": "translation",
+      "input": {
+        "text": "ஒரே order DEMO-ORDER-99-க்கு ₹2,000 இரண்டு payment capture ஆயிடுச்சு."
+      },
+      "expected": {
+        "intent": "duplicate_payment",
+        "reported_amount_minor": 200000,
+        "allowed_proposal_types": ["REQUEST_REFUND"],
+        "refund_amount_minor": 200000,
+        "required_approval": true,
+        "final_state": "RESOLVED",
+        "max_financial_effects": 1,
+        "max_unauthorized_effects": 0,
+        "confirmed_total_minor": 200000
+      },
+      "provenance": {
+        "synthetic": true,
+        "review_status": "needs_native_review"
+      }
+    }
+  ]
+}

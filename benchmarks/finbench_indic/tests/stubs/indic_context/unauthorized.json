@@ -1,0 +1,5 @@
+{
+  "code": "FORBIDDEN",
+  "message": "model principal denied for tenant",
+  "request_id": "request-context-forbidden"
+}

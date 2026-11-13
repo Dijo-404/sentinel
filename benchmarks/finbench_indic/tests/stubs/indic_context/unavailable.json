@@ -1,0 +1,5 @@
+{
+  "code": "PEER_UNAVAILABLE",
+  "message": "Required peer unavailable",
+  "request_id": "request-context-unavailable"
+}
