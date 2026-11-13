@@ -1,0 +1,21 @@
+{
+  "capabilities": {
+    "contract_version": "sentinel.task-contracts.v1",
+    "component": "replay",
+    "mode": "fixture"
+  },
+  "compare_response": {
+    "contract_version": "sentinel.task-contracts.v1",
+    "run_id": "replay-stub-1",
+    "mode": "fixture",
+    "status": "PASS",
+    "checks": [
+      {
+        "name": "acceptance.conforming_single_effect",
+        "status": "PASS",
+        "reason_code": "CONFORMING_OK"
+      }
+    ],
+    "output_artifacts": []
+  }
+}

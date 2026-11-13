@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "Principal not authorized for finharness-runtime shadow",
+    "request_id": "runtime-stub-forbidden"
+  }
+}

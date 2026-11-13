@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "PEER_UNAVAILABLE",
+    "message": "Required peer unavailable",
+    "request_id": "runtime-stub-unavailable"
+  }
+}

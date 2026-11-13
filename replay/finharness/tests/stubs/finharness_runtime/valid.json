@@ -1,0 +1,21 @@
+{
+  "capabilities": {
+    "contract_version": "sentinel.task-contracts.v1",
+    "component": "finharness-runtime",
+    "mode": "fixture"
+  },
+  "shadow_response": {
+    "contract_version": "sentinel.task-contracts.v1",
+    "run_id": "runtime-stub-1",
+    "mode": "fixture",
+    "status": "PASS",
+    "checks": [
+      {
+        "name": "shadow.no_writes",
+        "status": "PASS",
+        "reason_code": "READ_ONLY"
+      }
+    ],
+    "output_artifacts": []
+  }
+}

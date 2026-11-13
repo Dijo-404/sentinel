@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sentinel-harness-replay"
+version = "0.1.0"
+description = "FinHarness counterfactual replay and safety promotion gate (harness-replay.v1)"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+sentinel-harness-replay = "sentinel_harness_replay.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8.4,<10", "ruff>=0.14,<1"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sentinel_harness_replay"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "tests"]
+addopts = "-q --strict-markers"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
