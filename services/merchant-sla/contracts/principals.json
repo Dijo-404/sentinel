@@ -1,0 +1,26 @@
+{
+  "merchant-ops-demo-token": {
+    "principal_id": "op-merchant-demo",
+    "tenant_id": "demo-tenant-a",
+    "roles": ["operator", "merchant_ops"],
+    "subject_refs": ["subject-demo-42"],
+    "case_ids": ["case-demo-42", "case-demo-43"],
+    "merchant_refs": ["merchant-demo-a"]
+  },
+  "merchant-ops-other-token": {
+    "principal_id": "op-merchant-other",
+    "tenant_id": "demo-tenant-b",
+    "roles": ["operator", "merchant_ops"],
+    "subject_refs": ["subject-other"],
+    "case_ids": ["case-other"],
+    "merchant_refs": ["merchant-other"]
+  },
+  "star-scope-demo-token": {
+    "principal_id": "op-merchant-star",
+    "tenant_id": "demo-tenant-a",
+    "roles": ["operator", "merchant_ops"],
+    "subject_refs": ["*"],
+    "case_ids": ["*"],
+    "merchant_refs": ["*"]
+  }
+}
