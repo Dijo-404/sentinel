@@ -1,0 +1,49 @@
+{
+  "title": "Sentinel SN-024 Harness Telemetry Example",
+  "uid": "sentinel-sn024-harness-telemetry",
+  "timezone": "utc",
+  "schemaVersion": 39,
+  "version": 1,
+  "description": "Module-local example panels. Case/action/model/evaluation versions belong in traces, not Prometheus labels. Financial audit is a separate unsampled ledger view. Fixture exports never imply deployed observations.",
+  "tags": ["sentinel", "sn-024", "harness-telemetry"],
+  "panels": [
+    {
+      "id": 1,
+      "title": "Harness cases (bounded labels)",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+      "targets": [
+        {
+          "expr": "sum by (scenario, outcome) (rate(finharness_cases_total[5m]))",
+          "legendFormat": "{{scenario}} {{outcome}}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Model requests and FinBench score",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+      "targets": [
+        {
+          "expr": "sum by (model_class, outcome) (rate(finharness_model_requests_total[5m]))",
+          "legendFormat": "model {{model_class}} {{outcome}}"
+        },
+        {
+          "expr": "finbench_score",
+          "legendFormat": "finbench {{suite}}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Audit correlation (Tempo)",
+      "type": "text",
+      "gridPos": {"h": 6, "w": 24, "x": 0, "y": 8},
+      "options": {
+        "mode": "markdown",
+        "content": "Search traces by `case_id`, `action_id`, `model.version`, `evaluation.version`, and `audit.event_key` span attributes. Do not promote those identifiers to metric labels. Open the action-ledger financial audit for unsampled monetary outcomes. Fixture dashboards are not deployed evidence."
+      }
+    }
+  ]
+}

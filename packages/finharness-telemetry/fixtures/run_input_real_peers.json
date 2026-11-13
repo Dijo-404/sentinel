@@ -1,0 +1,10 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "run_id": "harness-telemetry-real-peers-1",
+  "mode": "real-peers",
+  "input_artifacts": [],
+  "parameters": {
+    "harness_telemetry.service_name": "sentinel-finharness-telemetry",
+    "harness_telemetry.environment": "sandbox"
+  }
+}
