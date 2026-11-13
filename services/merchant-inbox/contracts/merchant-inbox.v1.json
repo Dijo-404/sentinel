@@ -1,0 +1,24 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "port": "merchant-inbox.v1",
+  "component": "merchant-inbox",
+  "routes": [
+    "GET /healthz",
+    "GET /readyz",
+    "GET /v1/capabilities",
+    "GET /v1/exceptions",
+    "GET /v1/exceptions/{item_id}",
+    "POST /v1/exceptions/{item_id}/assign",
+    "POST /v1/exceptions/{item_id}/notes",
+    "POST /v1/exceptions/{item_id}/escalate"
+  ],
+  "exception_kinds": ["PAID_UNFULFILLED", "UNMATCHED_PAYMENT", "PENDING_REFUND"],
+  "exception_statuses": ["OPEN", "ASSIGNED", "ESCALATED", "CLOSED"],
+  "invariants": [
+    "Escalation sets status ESCALATED and never CLOSED",
+    "Escalation is not verified financial resolution",
+    "amount_minor is integer minor units",
+    "No ledger write authority",
+    "Unavailable/malformed/unauthorized peers fail closed"
+  ]
+}
