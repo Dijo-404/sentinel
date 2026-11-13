@@ -29,8 +29,8 @@ uv run sentinel-workflow serve
 ```
 
 - `POST /v1/runs` → `Ack` 202 (`WorkflowRequest`)
-- Auth: synthetic bearer tokens from `WORKFLOW_AUTH_TOKENS`
-- DECISION resume may include `X-Sentinel-Approval` JSON for authenticated approval payload in fixture/assembly tests
+- Auth: synthetic bearer tokens from `WORKFLOW_AUTH_TOKENS` (empty `case_ids` deny; `"*"` allows all)
+- DECISION resume reads supervisor approval from `ledger.get_action(...).approval` only (no HTTP forge header)
 - `GET /v1/capabilities` reports `mode: fixture|real-peers`
 - Fake model scenarios via `WORKFLOW_FAKE_MODEL_SCENARIO` (`proposal`, `needs_input`, `escalate`, `malformed`, `outage`)
 

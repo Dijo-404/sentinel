@@ -45,6 +45,7 @@ class FixtureCaseApi:
         self._status = "RECEIVED"
         self._action_id: str | None = None
         self.fail_submit_times = 0
+        self.submit_conflict: str | None = None
 
     def get_input(self, case_id: str, revision: int) -> CaseInput:
         self._guard()
@@ -89,13 +90,17 @@ class FixtureCaseApi:
         if self.fail_submit_times > 0:
             self.fail_submit_times -= 1
             raise PeerUnavailableError("case-api")
+        if self.submit_conflict == "IDEMPOTENCY_CONFLICT":
+            raise PeerError("IDEMPOTENCY_CONFLICT", "event_key conflict", 409)
+        if self.submit_conflict == "REVISION_CONFLICT":
+            raise PeerError("REVISION_CONFLICT", "stale revision", 409)
         for prior in self.results:
             if prior.event_key == result.event_key:
                 if prior.model_dump(exclude_none=True) != result.model_dump(exclude_none=True):
-                    raise PeerError("CONFLICT", "event_key conflict", 409)
+                    raise PeerError("IDEMPOTENCY_CONFLICT", "event_key conflict", 409)
                 return self.get_case(case_id)
         if result.expected_revision != self._revision:
-            raise PeerError("CONFLICT", "stale revision", 409)
+            raise PeerError("REVISION_CONFLICT", "stale revision", 409)
         self.results.append(result)
         self._revision += 1
         self._status = result.status

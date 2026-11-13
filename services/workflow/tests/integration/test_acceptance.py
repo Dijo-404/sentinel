@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-import json
-
 import pytest
 from fastapi.testclient import TestClient
 from langgraph.checkpoint.postgres import PostgresSaver
 
-from sentinel_workflow.domain.types import Approval
+from sentinel_workflow.application.errors import UnauthorizedError
+from sentinel_workflow.application.service import authorize_run
+from sentinel_workflow.domain.types import Approval, Principal
 from tests.helpers import build_test_app
 from tests.stubs import StubLedger, StubVerifier
 
@@ -98,12 +98,10 @@ def test_approval_survives_restart_and_resume_is_idempotent(
     )
     ledger.attach_approval(action_id, approval)
 
+    # Supervisor approval lives on the ledger action; DECISION has no forge header.
     resume = TestClient(app2).post(
         "/v1/runs",
-        headers={
-            "Authorization": "Bearer case-api-token",
-            "X-Sentinel-Approval": json.dumps(approval.model_dump()),
-        },
+        headers={"Authorization": "Bearer case-api-token"},
         json={
             "case_id": "case-demo-42",
             "case_revision": 1,
@@ -118,10 +116,7 @@ def test_approval_survives_restart_and_resume_is_idempotent(
     # Second identical resume job_key is idempotent at accept layer.
     again = TestClient(app2).post(
         "/v1/runs",
-        headers={
-            "Authorization": "Bearer case-api-token",
-            "X-Sentinel-Approval": json.dumps(approval.model_dump()),
-        },
+        headers={"Authorization": "Bearer case-api-token"},
         json={
             "case_id": "case-demo-42",
             "case_revision": 1,
@@ -247,12 +242,10 @@ def test_pending_verification_waits(engine, session_factory):
         reviewer_id="supervisor-demo",
         expires_at="2026-11-14T00:00:00Z",
     )
+    ledger.attach_approval(action_id, approval)
     client.post(
         "/v1/runs",
-        headers={
-            "Authorization": "Bearer case-api-token",
-            "X-Sentinel-Approval": json.dumps(approval.model_dump()),
-        },
+        headers={"Authorization": "Bearer case-api-token"},
         json={
             "case_id": "case-demo-42",
             "case_revision": 1,
@@ -320,3 +313,44 @@ def test_unauthorized_run_rejected(engine, session_factory):
         },
     )
     assert response.status_code == 403
+
+
+def test_outbox_idempotency_conflict_not_delivered(engine, session_factory):
+    app, service, peers = build_test_app(session_factory=session_factory, evidence_missing=True)
+    peers["case_api"].submit_conflict = "IDEMPOTENCY_CONFLICT"
+    client = TestClient(app)
+    client.post(
+        "/v1/runs",
+        headers={"Authorization": "Bearer workflow-token"},
+        json={
+            "case_id": "case-demo-42",
+            "case_revision": 1,
+            "job_key": "start-idem-conflict-1",
+            "event": "START",
+        },
+    )
+    assert service.flush_outbox() == 0
+    assert peers["case_api"].results == []
+    pending = service.outbox.pending()
+    assert len(pending) >= 1
+
+
+def test_empty_case_ids_deny_wildcard_allows():
+    empty = Principal(
+        principal_id="p-empty",
+        tenant_id="tenant-demo",
+        roles=["workflow"],
+        subject_refs=["subject-demo"],
+        case_ids=[],
+    )
+    with pytest.raises(UnauthorizedError):
+        authorize_run(empty, "case-demo-42")
+
+    wild = Principal(
+        principal_id="p-wild",
+        tenant_id="tenant-demo",
+        roles=["workflow"],
+        subject_refs=["subject-demo"],
+        case_ids=["*"],
+    )
+    authorize_run(wild, "case-any-99")

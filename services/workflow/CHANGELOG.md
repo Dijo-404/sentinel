@@ -1,5 +1,13 @@
 # Changelog — SN-008 services/workflow
 
+## Unreleased
+
+### Fixed
+
+- Remove `X-Sentinel-Approval` forge path; DECISION resume uses ledger approval only.
+- Outbox marks retry (not delivered) on `IDEMPOTENCY_CONFLICT`; revision bump only on `REVISION_CONFLICT`.
+- `put_decision` only when job `created`; empty `case_ids` deny, `"*"` allows all.
+
 ## 0.1.0 — 2026-11-13
 
 ### Added

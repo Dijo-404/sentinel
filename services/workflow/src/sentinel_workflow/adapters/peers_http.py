@@ -52,9 +52,28 @@ def _request(
     if response.status_code == 404:
         raise PeerError("NOT_FOUND", f"{peer} resource not found", 404)
     if response.status_code == 409:
-        raise PeerError("CONFLICT", f"{peer} conflict", 409)
+        code = "CONFLICT"
+        message = f"{peer} conflict"
+        try:
+            body = response.json()
+        except Exception:
+            body = None
+        if isinstance(body, dict):
+            if body.get("code"):
+                code = str(body["code"])
+            if body.get("message"):
+                message = str(body["message"])
+        raise PeerError(code, message, 409)
     if response.status_code >= 400:
-        raise PeerError("PEER_ERROR", f"{peer} returned {response.status_code}", 502)
+        code = "PEER_ERROR"
+        message = f"{peer} returned {response.status_code}"
+        try:
+            body = response.json()
+        except Exception:
+            body = None
+        if isinstance(body, dict) and body.get("code"):
+            code = str(body["code"])
+        raise PeerError(code, message, 502)
     return response
 
 
