@@ -1,0 +1,7 @@
+{
+  "case_id": "case-demo-42",
+  "merchant_ref": "merchant-demo",
+  "reason_code": "CHARGEBACK_DUPLICATE",
+  "deadline_at": "2026-11-20T12:30:00Z",
+  "order_reference": "DEMO-ORDER-42"
+}
