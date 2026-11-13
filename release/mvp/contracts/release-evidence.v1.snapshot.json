@@ -1,0 +1,28 @@
+{
+  "port": "release-evidence.v1",
+  "contract_version": "sentinel.task-contracts.v1",
+  "baseline_sha256": "0c728513e8b4ec0f34bcef63faa0207160d45cc7f20f872c1d9136ca7e252ffa",
+  "produces": "RunReport",
+  "consumes": [
+    "core-assembly.v1",
+    "evaluation.v1",
+    "replay.v1",
+    "telemetry.v1"
+  ],
+  "manifest_fields": [
+    "component_commit",
+    "contract_sha256",
+    "check_command",
+    "check_result",
+    "artifact_digest",
+    "observed_mode",
+    "observed_at",
+    "component_under_test",
+    "payment_provider",
+    "model"
+  ],
+  "rules": [
+    "missing/failed/incompatible/fixture-only component evidence blocks release verdict",
+    "kit self-test PASS never sets release_approved"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "run_id": "peer-core-assembly.v1",
+  "mode": "real-peers",
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "core-assembly.v1:ok",
+      "status": "PASS",
+      "reason_code": "OK"
+    }
+  ],
+  "output_artifacts": [
+    {
+      "kind": "core-assembly.v1-report",
+      "uri": "file://peers/core-assembly.valid.json",
+      "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "component_version": "0.1.0",
+      "evidence_mode": "real-component"
+    }
+  ]
+}

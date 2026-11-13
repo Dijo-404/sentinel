@@ -1,0 +1,5 @@
+Metadata-Version: 2.4
+Name: sentinel-release-mvp
+Version: 0.1.0
+Summary: Standalone MVP release-evidence verification kit (release-evidence.v1)
+Requires-Python: >=3.11
