@@ -45,6 +45,34 @@ def validate_case_create(body: dict[str, Any]) -> CaseCreate:
     )
 
 
+def order_bound_to_subject(order_reference: str, subject_ref: str) -> bool:
+    """True when order_reference equals subject_ref or is prefixed by it with a boundary."""
+    if order_reference == subject_ref:
+        return True
+    return order_reference.startswith(f"{subject_ref}/") or order_reference.startswith(
+        f"{subject_ref}:"
+    )
+
+
+def require_order_bound_to_principal(
+    order_reference: str,
+    *,
+    subject_refs: tuple[str, ...],
+    enforce: bool,
+) -> None:
+    """Fail closed: scoped principals may only open cases on their own orders.
+
+    Call with enforce=True for customers, or whenever subject_refs is non-empty.
+    Operators with empty subject_refs skip (enforce=False).
+    """
+    if not enforce:
+        return
+    if not subject_refs:
+        raise DomainError("FORBIDDEN", "order_reference not bound to principal", 403)
+    if not any(order_bound_to_subject(order_reference, ref) for ref in subject_refs):
+        raise DomainError("FORBIDDEN", "order_reference not bound to principal", 403)
+
+
 def validate_message(body: dict[str, Any]) -> tuple[str, str, int]:
     if set(body) - {"message", "language", "expected_revision"}:
         raise DomainError("INVALID_INPUT", "Undeclared message fields", 422)
