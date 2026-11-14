@@ -21,6 +21,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "recharts": "^3.10.1",
+    "sentinel-approval-ui": "file:../../packages/approval-ui",
     "three": "0.186.1"
   },
   "devDependencies": {

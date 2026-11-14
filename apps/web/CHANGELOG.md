@@ -2,6 +2,50 @@
 
 ## Unreleased
 
+### Fixed — 15 November 2026 (evidence ApprovalSlot real-peers mode)
+
+- Supervisor case evidence passes `config.mode` + `reviewerId` into
+  `EvidencePanel` → `ApprovalSlot`. Slot also inherits ShellProvider mode when
+  prop omitted so real-peers cannot silently mount `LocalApprovalSubstitute`.
+- Test: evidence real-peers path asserts no `approval-ui.v1-local` data-slot.
+
+### Added — 15 November 2026 (voice peer slot)
+
+- BFF session proxy `/api/bff/voice` → `VOICE_BASE_URL` (default `:8017`).
+- Real-peer voice client (`createBffVoiceClient`); composition wires it when
+  `NEXT_PUBLIC_VOICE_ENABLED=true` in real-peers (fixture keeps stub).
+- Intake voice slot labels `evidence_mode` recorded vs live; peer down stays
+  visible (`PEER_UNAVAILABLE`). `.env.example` enables voice for product demo.
+- Tests: `tests/bff-voice-route.test.ts`, `tests/voice-peer-client.test.ts`
+  (no SARVAM key).
+
+### Added — 15 November 2026 (SN-013 approval-ui in real-peers)
+
+- `approval-slot` mounts `ApprovalPanel` from `sentinel-approval-ui` when
+  `mode=real-peers`; fixture keeps `LocalApprovalSubstitute`.
+- Decide stays on case-api BFF via injected `CaseClient.decide` (wrapped to
+  `DecisionClientError`); package holds no money authority.
+- Dependency: `sentinel-approval-ui` (`file:../../packages/approval-ui`);
+  Makefile builds the package before `npm ci`.
+- Tests: `tests/browser/approval-slot.test.tsx`; supervisor real-peers path
+  asserts no local `data-slot` substitute.
+
+### Added — 15 November 2026 (assistant / knowledge / ops-activity intel)
+
+- BFF session proxies: `/api/bff/assistant`, `/api/bff/knowledge`,
+  `/api/bff/ops-activity` (mirror merchant-teams `_session-proxy`).
+- Replaced operator Activity / Knowledge / Assistant and customer Assistant
+  stubs with peer-backed panels. Env: `ASSISTANT_BASE_URL` (:8026),
+  `KNOWLEDGE_BASE_URL` (:8035), `OPS_ACTIVITY_BASE_URL` (:8029).
+- `data-testid`: `operator-activity`, `operator-activity-list`,
+  `operator-knowledge`, `operator-knowledge-list`, `operator-assistant`,
+  `operator-assistant-threads`, `operator-assistant-messages`,
+  `customer-assistant`, `customer-assistant-threads`, `peer-error`.
+  Never “Not available yet”; real-peers fail closed.
+- Browser tests: `tests/browser/operator-activity-page.test.tsx`,
+  `operator-knowledge-page.test.tsx`, `operator-assistant-page.test.tsx`,
+  `customer-assistant-page.test.tsx`; BFF: `tests/bff-intel-routes.test.ts`.
+
 ### Fixed — fetch sandbox codes for auth challenge UI
 
 - After verify/MFA/forgot, server actions call identity sandbox inbox GETs when

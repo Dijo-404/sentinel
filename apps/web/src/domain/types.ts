@@ -197,6 +197,8 @@ export type VoiceResult = {
   language: string;
   ambiguous: boolean;
   reason_codes: string[];
+  /** recorded = fixture/Sarvam fixtures; live = live-provider. Never invent. */
+  evidence_mode?: string;
 };
 
 export type OpsCaseList = {

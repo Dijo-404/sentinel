@@ -38,19 +38,25 @@ export function createPeerJsonFetcher(options: PeerJsonOptions) {
     method: string,
     path: string,
     validate: (json: unknown, requestId: string) => T,
+    body?: unknown,
   ): Promise<T> {
     const requestId = `web-${crypto.randomUUID()}`;
     let response: Response;
     try {
+      const headers: Record<string, string> = {
+        ...(authMode === "bearer"
+          ? { Authorization: `Bearer ${options.bearerToken}` }
+          : {}),
+        Accept: "application/json",
+        "X-Request-Id": requestId,
+      };
+      if (body !== undefined) {
+        headers["Content-Type"] = "application/json";
+      }
       response = await fetchImpl(`${base}${path}`, {
         method,
-        headers: {
-          ...(authMode === "bearer"
-            ? { Authorization: `Bearer ${options.bearerToken}` }
-            : {}),
-          Accept: "application/json",
-          "X-Request-Id": requestId,
-        },
+        headers,
+        body: body !== undefined ? JSON.stringify(body) : undefined,
         credentials: options.credentials,
       });
     } catch (err) {

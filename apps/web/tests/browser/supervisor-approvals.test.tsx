@@ -145,7 +145,7 @@ describe("supervisor approvals", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("real-peers uses getAction digest and evidence expiry", async () => {
+  it("real-peers mounts SN-013 ApprovalPanel not local substitute", async () => {
     const client = createCaseApiStub("valid");
     const getAction = vi.fn(client.getAction.bind(client));
     client.getAction = getAction;
@@ -154,6 +154,7 @@ describe("supervisor approvals", () => {
         actionId="action-demo-1"
         caseClient={client}
         mode="real-peers"
+        reviewerId="supervisor-demo-1"
       />,
     );
     await waitFor(() => {
@@ -162,12 +163,57 @@ describe("supervisor approvals", () => {
       ).toBeInTheDocument();
     });
     expect(getAction).toHaveBeenCalledWith("action-demo-1");
+    expect(screen.queryByTestId("approval-slot")).not.toBeInTheDocument();
     expect(
-      screen.getByTestId("approval-decision-expires-at"),
-    ).toHaveTextContent("2026-11-14T12:00:00Z");
-    expect(
-      screen.getByTestId("approval-decision-expires-at"),
-    ).not.toHaveTextContent("2026-12-31T23:59:59Z");
+      screen.queryByText(/local substitute/i),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Approval required" })).toBeInTheDocument();
+    expect(screen.getByTestId("decision-expires-at")).toHaveTextContent(
+      "2026-11-14T12:00:00Z",
+    );
+    expect(screen.getByTestId("decision-expires-at")).not.toHaveTextContent(
+      "2026-12-31T23:59:59Z",
+    );
+    expect(screen.getByTestId("action-digest")).toHaveTextContent(
+      "d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993",
+    );
+    expect(screen.getByTestId("approve")).toBeInTheDocument();
+    expect(screen.getByTestId("reject")).toBeInTheDocument();
+  });
+
+  it("real-peers ApprovalPanel decide posts via case-api client", async () => {
+    const user = userEvent.setup();
+    const client = createCaseApiStub("valid", {
+      reviewerRole: "supervisor",
+    });
+    const decide = vi.fn(client.decide.bind(client));
+    client.decide = decide;
+    render(
+      <SupervisorDecisionWorkspace
+        actionId="action-demo-1"
+        caseClient={client}
+        mode="real-peers"
+        reviewerId="supervisor-demo-1"
+        now={() => new Date("2026-11-13T12:00:00Z")}
+      />,
+    );
+    await waitFor(() => {
+      expect(screen.getByTestId("approve")).toBeInTheDocument();
+    });
+    await user.click(screen.getByTestId("approve"));
+    await waitFor(() => {
+      expect(decide).toHaveBeenCalledWith("action-demo-1", {
+        decision: "APPROVE",
+        action_digest:
+          "d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993",
+        case_revision: 1,
+        policy_version: "demo-policy-v1",
+        expires_at: "2026-11-14T12:00:00Z",
+      });
+    });
+    expect(await screen.findByTestId("decision-result")).toHaveTextContent(
+      "Recorded APPROVE",
+    );
   });
 
   it("operator view withholds decide controls", async () => {

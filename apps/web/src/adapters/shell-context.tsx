@@ -25,8 +25,8 @@ export function ShellProvider({
 }) {
   const value = useMemo(() => {
     const runtime = createShellRuntime(config ?? loadShellConfig(), {
-      caseClient,
-      voiceClient,
+      ...(caseClient !== undefined ? { caseClient } : {}),
+      ...(voiceClient !== undefined ? { voiceClient } : {}),
     });
     return {
       config: runtime.config,

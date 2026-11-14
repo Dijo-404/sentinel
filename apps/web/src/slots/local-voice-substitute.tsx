@@ -19,6 +19,7 @@ export function LocalVoiceSubstitute({ enabled, client, onTranscript }: Props) {
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<string | null>(null);
+  const [evidenceMode, setEvidenceMode] = useState<string | null>(null);
 
   if (!enabled) {
     return (
@@ -37,6 +38,7 @@ export function LocalVoiceSubstitute({ enabled, client, onTranscript }: Props) {
   async function run() {
     setError(null);
     setResult(null);
+    setEvidenceMode(null);
     if (!client) {
       setError("PEER_UNAVAILABLE: voice client not configured");
       return;
@@ -48,6 +50,7 @@ export function LocalVoiceSubstitute({ enabled, client, onTranscript }: Props) {
         consent,
       });
       setResult(out.original_text);
+      setEvidenceMode(out.evidence_mode ?? null);
       onTranscript?.(out.original_text, out.language);
     } catch (err) {
       setError(
@@ -64,10 +67,14 @@ export function LocalVoiceSubstitute({ enabled, client, onTranscript }: Props) {
     <section
       className="slot-box"
       data-testid="voice-slot"
-      data-slot="voice.v1-local"
+      data-slot="voice.v1-peer"
       aria-labelledby="voice-slot-title"
     >
-      <h2 id="voice-slot-title">Voice slot (local substitute)</h2>
+      <h2 id="voice-slot-title">Voice input</h2>
+      <p className="muted">
+        Optional voice.v1 peer. Text fallback stays when peer is down. Never
+        grants financial authority.
+      </p>
       <label>
         <span>Consent to process audio/text</span>
         <input
@@ -87,7 +94,19 @@ export function LocalVoiceSubstitute({ enabled, client, onTranscript }: Props) {
       <button type="button" onClick={() => void run()}>
         Transcribe
       </button>
-      {result ? <p role="status">Transcript: {result}</p> : null}
+      {result ? (
+        <p role="status" data-testid="voice-slot-result">
+          Transcript: {result}
+          {evidenceMode ? (
+            <>
+              {" "}
+              <span data-testid="voice-evidence-mode">
+                (evidence_mode={evidenceMode})
+              </span>
+            </>
+          ) : null}
+        </p>
+      ) : null}
       {error ? (
         <p role="alert" data-testid="voice-slot-error">
           {error}

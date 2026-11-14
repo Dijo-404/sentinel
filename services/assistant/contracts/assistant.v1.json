@@ -1,0 +1,72 @@
+{
+  "port": "assistant.v1",
+  "contract_version": "sentinel.task-contracts.v1",
+  "component": "assistant",
+  "financial_authority": false,
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/v1/health",
+      "response": { "status": "ok" }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/capabilities",
+      "response": {
+        "contract_version": "string",
+        "component": "assistant",
+        "mode": "fixture|real-peers",
+        "port": "assistant.v1",
+        "financial_authority": false
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/threads",
+      "query": { "role": "customer|operator" },
+      "response": {
+        "threads": [{ "thread_id": "string", "title": "string", "updated_at": "string" }]
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/v1/threads",
+      "request": { "title?": "string" },
+      "response": { "thread_id": "string", "title": "string", "updated_at": "string" }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/threads/{id}/messages",
+      "response": {
+        "messages": [
+          {
+            "message_id": "string",
+            "role": "user|assistant|system",
+            "text": "string",
+            "evidence_mode": "sandbox",
+            "created_at": "string"
+          }
+        ]
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/v1/threads/{id}/messages",
+      "request": { "text": "string" },
+      "response": {
+        "message_id": "string",
+        "role": "user",
+        "text": "string",
+        "evidence_mode": "sandbox",
+        "created_at": "string"
+      },
+      "notes": "Optional stub assistant reply also labeled evidence_mode=sandbox; no model money authority"
+    }
+  ],
+  "invariants": [
+    "No ledger write authority",
+    "Messages labeled evidence_mode=sandbox in fixture/seed",
+    "Tenant scoped from bearer token map",
+    "real-peers requires ASSISTANT_DATABASE_URL (no silent memory fallback)"
+  ]
+}

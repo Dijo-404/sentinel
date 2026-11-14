@@ -1,0 +1,47 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "component": "ops-activity",
+  "port": "ops-activity.v1",
+  "sha256_baseline": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb",
+  "produces": "ActivityFeed",
+  "consumes": [],
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/v1/activity",
+      "roles": ["operator", "supervisor"],
+      "response": "ActivityFeed",
+      "read_only": true,
+      "notes": "Newest first, max 50. Local rows; case-api projection not wired."
+    },
+    {
+      "method": "GET",
+      "path": "/healthz"
+    },
+    {
+      "method": "GET",
+      "path": "/readyz"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/capabilities"
+    }
+  ],
+  "ActivityItem": {
+    "activity_id": "string",
+    "kind": "string",
+    "summary": "string",
+    "occurred_at": "string",
+    "case_id": "string?"
+  },
+  "ActivityFeed": {
+    "items": "ActivityItem[]"
+  },
+  "compatibility_checklist": [
+    "Fixture mode labeled; real-peers never falls back to fixtures",
+    "Seed refuses non-tenant-demo sandbox rows",
+    "Unauthorized missing/unknown token returns 403 FORBIDDEN",
+    "Customer role denied; operator/supervisor allowed",
+    "Financial authority always false"
+  ]
+}

@@ -292,6 +292,80 @@ export interface OpsTeamClient {
   }>;
 }
 
+/** ops-activity.v1 feed row. */
+export type ActivityItem = {
+  activity_id: string;
+  kind: string;
+  summary: string;
+  occurred_at: string;
+  case_id?: string;
+};
+
+/** Optional ops-activity.v1 client via BFF `/api/bff/ops-activity`. */
+export interface OpsActivityClient {
+  listActivity(): Promise<{
+    items: ActivityItem[];
+    source: "live" | "fixture" | string;
+  }>;
+}
+
+/** knowledge.v1 article summary. */
+export type KnowledgeArticleSummary = {
+  article_id: string;
+  title: string;
+  summary: string;
+  updated_at: string;
+};
+
+/** knowledge.v1 full article. */
+export type KnowledgeArticle = KnowledgeArticleSummary & {
+  body: string;
+};
+
+/** Optional knowledge.v1 client via BFF `/api/bff/knowledge`. */
+export interface KnowledgeClient {
+  listArticles(): Promise<{
+    articles: KnowledgeArticleSummary[];
+    source: "live" | "fixture" | string;
+  }>;
+  getArticle(articleId: string): Promise<KnowledgeArticle>;
+  search(q: string): Promise<{
+    hits: KnowledgeArticleSummary[];
+    source: "live" | "fixture" | string;
+  }>;
+}
+
+export type AssistantRole = "customer" | "operator";
+
+/** assistant.v1 thread summary. */
+export type AssistantThread = {
+  thread_id: string;
+  title: string;
+  updated_at: string;
+};
+
+/** assistant.v1 message row. */
+export type AssistantMessage = {
+  message_id: string;
+  role: "user" | "assistant" | "system";
+  text: string;
+  evidence_mode: string;
+  created_at: string;
+};
+
+/** Optional assistant.v1 client via BFF `/api/bff/assistant`. */
+export interface AssistantClient {
+  listThreads(role: AssistantRole): Promise<{
+    threads: AssistantThread[];
+    source: "live" | "fixture" | string;
+  }>;
+  listMessages(threadId: string): Promise<{
+    messages: AssistantMessage[];
+    source: "live" | "fixture" | string;
+  }>;
+  postMessage(threadId: string, text: string): Promise<AssistantMessage>;
+}
+
 /** Optional voice.v1 port. Disabled by default in composition. */
 export interface VoiceClient {
   transcribe(request: VoiceRequest): Promise<VoiceResult>;

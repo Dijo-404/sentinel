@@ -1,6 +1,6 @@
 UV ?= uv
 
-.PHONY: setup check run
+.PHONY: setup check run preview-http seed
 setup:
 	$(UV) sync --frozen
 
@@ -12,3 +12,9 @@ check: setup
 
 run: setup
 	$(UV) run --frozen sentinel-evaluation run --candidate conforming --mode fixture
+
+preview-http: setup
+	$(UV) run --frozen sentinel-evaluation serve
+
+seed: setup
+	$(UV) run --frozen sentinel-evaluation seed

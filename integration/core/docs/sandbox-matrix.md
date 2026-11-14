@@ -31,12 +31,23 @@ Use this matrix so local `mode=real-peers` services share one tenant, case, port
 | verifier | 8011 |
 | identity (`services/identity`) | 8012 |
 | risk (`services/risk`) | 8013 |
+| voice (`services/voice`) | 8017 |
+| assistant (`services/assistant`) | 8026 |
+| merchant-inbox | 8028 |
+| ops-activity (`services/ops-activity`) | 8029 |
 | merchant-disputes | 8030 |
+| evals HTTP (`evals/core`) | 8031 |
 | merchant-analytics | 8032 |
+| observability (`services/observability`) | 8033 |
+| merchant-teams | 8034 |
+| knowledge (`services/knowledge`) | 8035 |
+| platform-ai (`services/platform-ai`) | 8036 |
 | payment simulator | 8094 |
 | web shell | 3012 |
 
 `identity` / `risk` are optional RBAC peers (not `REQUIRED_PEERS`). Fixture AUTH probes use path `rbac-fixture`.
+Knowledge on **8035** (8034 = merchant-teams; 8028 = merchant-inbox).
+platform-ai on **8036** (8030 stays merchant-disputes).
 
 ## Shared opaque tokens
 
@@ -78,11 +89,13 @@ make seed-sandbox
 # or: SENTINEL_V1_SANDBOX=1 uv run --frozen sentinel-core-assembly seed-sandbox
 ```
 
-Wave peers (`merchant-analytics`, `merchant-disputes`, `risk`, `case-api`, `identity`)
-run that module’s `make seed` when the matching `*_DATABASE_URL` /
-`SENTINEL_API_DATABASE_URL` / `IDENTITY_DATABASE_URL` env is set; otherwise
-`SKIPPED` with the manual `make -C <peer> seed` hint. Other peers stay `SKIPPED`
-until hooked. Non-`tenant-demo` → `SANDBOX_TENANT_REQUIRED`. Missing sandbox flag →
+Wave peers (`merchant-analytics`, `merchant-disputes`, `risk`, `case-api`,
+`identity`, `assistant`, `knowledge`, `ops-activity`, `platform-ai`, `evals`,
+`observability`) run that module’s `make seed` when the matching `*_DATABASE_URL`
+/ `SENTINEL_API_DATABASE_URL` / `IDENTITY_DATABASE_URL` /
+`EVALUATION_DATABASE_URL` env is set; otherwise `SKIPPED` with the manual
+`make -C <peer> seed` hint. Other peers stay `SKIPPED` until hooked.
+Non-`tenant-demo` → `SANDBOX_TENANT_REQUIRED`. Missing sandbox flag →
 `SANDBOX_FLAG_REQUIRED`. After seed + serve, `make verify-wave0-1` /
 `./scripts/verify_wave0_1.sh` asserts HTTP 200 + seeded JSON (fails without seed).
 Case-api seed leaves `case-seed-ops-escalated` (`ESCALATED`) and
@@ -92,7 +105,12 @@ asserts those ops surfaces (case-api fixtures `token-operator` / `token-supervis
 optional `VERIFY_IDENTITY_TOKEN` hits identity `GET /v1/ops/team`. After identity
 serve + seed, `make verify-wave3` / `./scripts/verify_wave3.sh` asserts me /
 notifications / workspaces + forgot 202 (session from login or
-`VERIFY_IDENTITY_TOKEN` — not matrix `tok-*`).
+`VERIFY_IDENTITY_TOKEN` — not matrix `tok-*`). After intel peers + voice serve +
+seed, `make verify-wave4` / `./scripts/verify_wave4.sh` asserts assistant /
+knowledge / ops-activity health+list, voice `/v1/capabilities`, and offline
+`packages/approval-ui` export smoke (`ApprovalPanel`). Live approval UI check:
+`make -C packages/approval-ui check`. Voice smoke without Sarvam key:
+`make -C services/voice check` or hit `:8017/v1/capabilities`.
 Compose DB names: see [compose/init-databases.sql](../compose/init-databases.sql).
 
 ## Path honesty

@@ -16,6 +16,7 @@ export function DecisionView({
       actionId={actionId}
       caseClient={caseClient}
       mode={config.mode}
+      reviewerId={config.principal.principal_id}
       canDecide={canDecide}
     />
   );

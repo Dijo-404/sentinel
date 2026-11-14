@@ -38,7 +38,8 @@ See `.env.example`.
 | Variable | Purpose |
 | --- | --- |
 | `NEXT_PUBLIC_SHELL_MODE` | `fixture` (default) or `real-peers` |
-| `NEXT_PUBLIC_VOICE_ENABLED` | `false` by default |
+| `NEXT_PUBLIC_VOICE_ENABLED` | `true` in `.env.example` for product demo; off unless set |
+| `VOICE_BASE_URL` | Real-peers voice peer (default `http://127.0.0.1:8017`); BFF `/api/bff/voice` |
 | `CASE_API_BASE_URL` | Required in real-peers mode |
 | `CASE_API_BEARER_TOKEN` | Optional service-only fallback (server); portals use session cookie |
 | `IDENTITY_BASE_URL` | Required in real-peers mode (default `http://127.0.0.1:8012`) |
@@ -142,9 +143,10 @@ Root `make check` validates repository metadata only.
 | Component under test | Real web-shell + Mercury portal scaffold |
 | Case API peer | Local fixture stub (+ real-peer adapter unit doubles) |
 | Identity peer | Local fixture stub (+ real-peer HTTP adapter with fetch doubles) |
-| Approval UI / voice | Local substitutes |
+| Approval UI | Local substitute / package (Task 8) |
+| Voice | BFF peer client when enabled; fixture stub in fixture mode |
 | Payment provider | N/A (UI only) |
-| Model/voice live | Off |
+| Model/voice live Sarvam | Off for `make check` |
 | Money-path assembly | **Not claimed** |
 
 Assembled live identity + case-api integration remains **unverified** until owner assembly.

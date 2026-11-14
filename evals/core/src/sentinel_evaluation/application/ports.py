@@ -23,3 +23,13 @@ class AssemblyPeer(Protocol):
     """core-assembly.v1 probe. Real-peer mode must not silently fall back."""
 
     def probe(self) -> dict[str, Any]: ...
+
+
+class ReportStore(Protocol):
+    """Durable evaluation.v1 RunReport rows for HTTP serve/query."""
+
+    def put_report(self, report: dict[str, Any]) -> dict[str, Any]: ...
+
+    def get_report(self, run_id: str) -> dict[str, Any] | None: ...
+
+    def list_reports(self) -> tuple[dict[str, Any], ...]: ...

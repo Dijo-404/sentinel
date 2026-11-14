@@ -18,7 +18,7 @@ export type ApprovalUiStubResult =
 
 /**
  * Local approval-ui.v1 double. Supplies slot props or explicit failure.
- * Shell never deep-imports packages/approval-ui.
+ * Fixture mode uses LocalApprovalSubstitute; real-peers mounts SN-013 ApprovalPanel.
  */
 export function createApprovalUiStub(
   scenario: StubApprovalUi = "valid",

@@ -65,6 +65,7 @@ export function createVoiceStub(scenario: StubVoice = "valid"): VoiceClient {
         language: request.language,
         ambiguous: false,
         reason_codes: [],
+        evidence_mode: "recorded",
       };
     },
   };

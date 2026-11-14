@@ -58,6 +58,36 @@ _PEER_MAKE_SEEDS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         "services/identity",
         ("IDENTITY_DATABASE_URL",),
     ),
+    (
+        "assistant",
+        "services/assistant",
+        ("ASSISTANT_DATABASE_URL",),
+    ),
+    (
+        "knowledge",
+        "services/knowledge",
+        ("KNOWLEDGE_DATABASE_URL",),
+    ),
+    (
+        "ops-activity",
+        "services/ops-activity",
+        ("OPS_ACTIVITY_DATABASE_URL",),
+    ),
+    (
+        "platform-ai",
+        "services/platform-ai",
+        ("PLATFORM_AI_DATABASE_URL",),
+    ),
+    (
+        "evals",
+        "evals/core",
+        ("EVALUATION_DATABASE_URL",),
+    ),
+    (
+        "observability",
+        "services/observability",
+        ("OBSERVABILITY_DATABASE_URL",),
+    ),
 )
 
 
@@ -155,9 +185,9 @@ def seed_sandbox(
     """Seed sandbox DBs for assembly peers.
 
     Gate: CORE_ASSEMBLY_TENANT_ID must be tenant-demo and SENTINEL_V1_SANDBOX must be truthy.
-    Peers (merchant-analytics, merchant-disputes, risk, case-api, identity) run `make seed`
-    when their DATABASE_URL env var is set; otherwise SKIPPED with run-order docs. Other
-    peers SKIP.
+    Peers (merchant-analytics, merchant-disputes, risk, case-api, identity, assistant,
+    knowledge, ops-activity, platform-ai, evals, observability) run `make seed` when their
+    DATABASE_URL env var is set; otherwise SKIPPED with run-order docs. Other peers SKIP.
     """
     tenant = (env.get("CORE_ASSEMBLY_TENANT_ID") or "tenant-demo").strip()
     if tenant != "tenant-demo":

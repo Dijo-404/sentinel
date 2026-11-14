@@ -3,27 +3,36 @@
  * Kept out of composition.ts so case-stub agents can edit that file safely.
  */
 import type {
+  AssistantClient,
+  KnowledgeClient,
   MerchantAnalyticsClient,
   MerchantDisputesClient,
   MerchantInboxClient,
   MerchantSettlementClient,
   MerchantTeamsClient,
+  OpsActivityClient,
   OpsTeamClient,
   RiskClient,
   ShellMode,
 } from "@/application/ports";
+import { createBffAssistantClient } from "./real-peer-assistant-client";
+import { createBffKnowledgeClient } from "./real-peer-knowledge-client";
 import { createBffMerchantAnalyticsClient } from "./real-peer-merchant-analytics-client";
 import { createBffMerchantDisputesClient } from "./real-peer-merchant-disputes-client";
 import { createBffMerchantInboxClient } from "./real-peer-merchant-inbox-client";
 import { createBffMerchantSettlementClient } from "./real-peer-merchant-settlement-client";
 import { createBffMerchantTeamsClient } from "./real-peer-merchant-teams-client";
+import { createBffOpsActivityClient } from "./real-peer-ops-activity-client";
 import { createBffOpsTeamClient } from "./real-peer-ops-team-client";
 import { createBffRiskClient } from "./real-peer-risk-client";
+import { createAssistantStub } from "../../tests/stubs/assistant";
+import { createKnowledgeStub } from "../../tests/stubs/knowledge";
 import { createMerchantAnalyticsStub } from "../../tests/stubs/merchant-analytics";
 import { createMerchantDisputesStub } from "../../tests/stubs/merchant-disputes";
 import { createMerchantInboxStub } from "../../tests/stubs/merchant-inbox";
 import { createMerchantSettlementStub } from "../../tests/stubs/merchant-settlement";
 import { createMerchantTeamsStub } from "../../tests/stubs/merchant-teams";
+import { createOpsActivityStub } from "../../tests/stubs/ops-activity";
 import { createOpsTeamStub } from "../../tests/stubs/ops-team";
 import { createRiskStub } from "../../tests/stubs/risk";
 
@@ -109,4 +118,40 @@ export function createMerchantInboxClientForMode(
   if (overrides?.client) return overrides.client;
   if (mode === "fixture") return createMerchantInboxStub("valid");
   return createBffMerchantInboxClient({ fetchImpl: overrides?.fetchImpl });
+}
+
+export function createOpsActivityClientForMode(
+  mode: ShellMode,
+  overrides?: {
+    client?: OpsActivityClient;
+    fetchImpl?: typeof fetch;
+  },
+): OpsActivityClient {
+  if (overrides?.client) return overrides.client;
+  if (mode === "fixture") return createOpsActivityStub("valid");
+  return createBffOpsActivityClient({ fetchImpl: overrides?.fetchImpl });
+}
+
+export function createKnowledgeClientForMode(
+  mode: ShellMode,
+  overrides?: {
+    client?: KnowledgeClient;
+    fetchImpl?: typeof fetch;
+  },
+): KnowledgeClient {
+  if (overrides?.client) return overrides.client;
+  if (mode === "fixture") return createKnowledgeStub("valid");
+  return createBffKnowledgeClient({ fetchImpl: overrides?.fetchImpl });
+}
+
+export function createAssistantClientForMode(
+  mode: ShellMode,
+  overrides?: {
+    client?: AssistantClient;
+    fetchImpl?: typeof fetch;
+  },
+): AssistantClient {
+  if (overrides?.client) return overrides.client;
+  if (mode === "fixture") return createAssistantStub("valid");
+  return createBffAssistantClient({ fetchImpl: overrides?.fetchImpl });
 }

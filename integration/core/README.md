@@ -56,7 +56,7 @@ Bring-up (Postgres compose + peer order + assembly command): [docs/sandbox-runbo
 ```sh
 docker compose -f compose.yaml up -d
 # start peers per runbook (simulator :8094, … web :3012)
-make seed-sandbox   # tenant-demo + SENTINEL_V1_SANDBOX; wave0-1 peers seed when DB URLs set
+make seed-sandbox   # tenant-demo + SENTINEL_V1_SANDBOX; wave0–4 peers seed when DB URLs set
 ./scripts/run_sandbox_journeys.sh
 ```
 
@@ -214,6 +214,80 @@ Asserts HTTP 200 + seeded JSON for:
 
 Session: login with `customer@example.test` + `IDENTITY_DEMO_PASSWORD` (default `x`), or set `VERIFY_IDENTITY_TOKEN` to a hashed **session** from login. Not assembly matrix `tok-customer`. Web BFF/pages not required — script hits identity directly.
 
+### Wave 4 portal peers (intel + voice + approval-ui) — run order
+
+DB-backed intel checks need assistant / knowledge / ops-activity seeded before verify.
+Voice capabilities + offline approval-ui package smoke run in the same command.
+
+1. Export sandbox flags + peer DSNs (synthetic only; see each module `.env.example`):
+
+```sh
+export SENTINEL_V1_SANDBOX=1 CORE_ASSEMBLY_TENANT_ID=tenant-demo
+export ASSISTANT_DATABASE_URL=…
+export KNOWLEDGE_DATABASE_URL=…
+export OPS_ACTIVITY_DATABASE_URL=…
+# optional also: PLATFORM_AI_DATABASE_URL, EVALUATION_DATABASE_URL, OBSERVABILITY_DATABASE_URL
+```
+
+2. Seed:
+
+```sh
+make -C integration/core seed-sandbox
+# or: make -C services/assistant seed && make -C services/knowledge seed && \
+#     make -C services/ops-activity seed
+```
+
+3. Serve peers (loopback defaults): assistant `:8026`, knowledge `:8035`,
+   ops-activity `:8029`, voice `:8017`.
+
+4. Verify (nonzero if peers down, HTTP ≠ 200, or seed rows missing):
+
+```sh
+make -C integration/core verify-wave4
+# or: ./scripts/verify_wave4.sh
+```
+
+Asserts HTTP 200 + seeded JSON for:
+
+| Check | Peer URL | Seed marker |
+| --- | --- | --- |
+| assistant health | `GET /healthz` | `status=ok` |
+| assistant threads | `GET /v1/threads?role=customer` | `thr-seed-tenant-demo` |
+| knowledge health | `GET /healthz` | `status=ok` |
+| knowledge articles | `GET /v1/articles` | `article-demo-refund-policy` |
+| ops-activity health | `GET /healthz` | `status=ok` |
+| ops-activity feed | `GET /v1/activity` | `act-seed-case-demo-42` |
+| voice capabilities | `GET /v1/capabilities` | `component=voice`, `port=voice.v1` |
+| approval-ui package | offline | `packages/approval-ui` exports `ApprovalPanel` |
+
+Tokens default to peer demo maps: `tok-customer` (assistant), `operator-token`
+(knowledge + ops-activity). Override with `VERIFY_*_TOKEN` / `VERIFY_*_URL`.
+
+**Documented smoke (module-local, not part of assembly exit):**
+
+```sh
+make -C packages/approval-ui check   # Vitest ApprovalPanel
+make -C services/voice check         # no Sarvam key required
+```
+
+#### Curl checklist (wave 4)
+
+```sh
+curl -sS http://127.0.0.1:8026/healthz
+curl -sS -H "Authorization: Bearer tok-customer" \
+  "http://127.0.0.1:8026/v1/threads?role=customer"
+
+curl -sS http://127.0.0.1:8035/healthz
+curl -sS -H "Authorization: Bearer operator-token" \
+  http://127.0.0.1:8035/v1/articles
+
+curl -sS http://127.0.0.1:8029/healthz
+curl -sS -H "Authorization: Bearer operator-token" \
+  http://127.0.0.1:8029/v1/activity
+
+curl -sS http://127.0.0.1:8017/v1/capabilities
+```
+
 #### Curl checklist (wave 3)
 
 ```sh
@@ -267,6 +341,7 @@ integration/core/
   scripts/verify_wave0_1.sh
   scripts/verify_wave2.sh
   scripts/verify_wave3.sh
+  scripts/verify_wave4.sh
   tests/stubs/
 ```
 

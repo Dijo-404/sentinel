@@ -1,0 +1,64 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "component": "knowledge",
+  "port": "knowledge.v1",
+  "sha256_baseline": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb",
+  "produces": "Article",
+  "consumes": [],
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/v1/articles",
+      "roles": ["operator", "supervisor"],
+      "response": "{ articles: ArticleSummary[] }",
+      "read_only": true
+    },
+    {
+      "method": "GET",
+      "path": "/v1/articles/{article_id}",
+      "roles": ["operator", "supervisor"],
+      "response": "Article",
+      "read_only": true
+    },
+    {
+      "method": "GET",
+      "path": "/v1/search",
+      "query": ["q"],
+      "roles": ["operator", "supervisor"],
+      "response": "{ hits: ArticleSummary[] }",
+      "read_only": true
+    },
+    {
+      "method": "GET",
+      "path": "/healthz"
+    },
+    {
+      "method": "GET",
+      "path": "/readyz"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/capabilities"
+    }
+  ],
+  "ArticleSummary": {
+    "article_id": "string",
+    "title": "string",
+    "summary": "string",
+    "updated_at": "string"
+  },
+  "Article": {
+    "article_id": "string",
+    "title": "string",
+    "summary": "string",
+    "body": "string",
+    "updated_at": "string"
+  },
+  "compatibility_checklist": [
+    "Fixture mode labeled; real-peers never falls back to fixtures",
+    "Tenant scope enforced on list/get/search",
+    "financial_authority always false",
+    "Seed refuses non tenant-demo rows",
+    "No ledger decide or refund mint surfaces"
+  ]
+}

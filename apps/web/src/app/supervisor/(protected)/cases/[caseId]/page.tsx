@@ -23,7 +23,13 @@ export default function SupervisorCaseDetailPage({
         </p>
         <Link href="/supervisor/approvals">Back to approvals</Link>
       </div>
-      <EvidencePanel caseId={caseId} caseClient={caseClient} enableApproval />
+      <EvidencePanel
+        caseId={caseId}
+        caseClient={caseClient}
+        enableApproval
+        mode={config.mode}
+        reviewerId={config.principal.principal_id}
+      />
       <CaseTimeline caseId={caseId} caseClient={caseClient} />
       {config.mode === "fixture" ? (
         <p className="fixture-banner" role="status">
