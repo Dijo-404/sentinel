@@ -84,6 +84,26 @@ class CaseRepository(Protocol):
         occurred_at: str,
     ) -> Case: ...
 
+    def claim_case(
+        self,
+        *,
+        principal: Principal,
+        case_id: str,
+        event_id: str,
+        occurred_at: str,
+    ) -> Case:
+        """Atomic assignment. Raises DomainError CONFLICT (409) if owned by another."""
+        ...
+
+    def list_case_rows(
+        self,
+        *,
+        tenant_id: str,
+        subject_refs: tuple[str, ...] | None = None,
+    ) -> list[dict]:
+        """Case rows for dashboard/list projections (tenant-scoped; optional subject filter)."""
+        ...
+
     def get_input(self, *, tenant_id: str, case_id: str, revision: int) -> CaseInput | None: ...
 
     def apply_result(

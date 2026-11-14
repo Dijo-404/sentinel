@@ -1,6 +1,21 @@
 # SN-007 changelog
 
 ## Unreleased
+
+### Fixed — 14 November 2026 (SN-037 review)
+
+- Fixture identity sessions wire only in `fixture` mode; `real-peers` uses opaque token map (future BFF). Refs #101.
+- Bind safety treats `sess-*` fixture session credentials as demo offenders. Refs #101.
+- `apply_result` preserves `assigned_principal_id` through updates and idempotent replay. Refs #101.
+
+### Added — 14 November 2026 (SN-037)
+
+- Identity principal adapter port with fixture session/BFF projection double (`fixtures/identity_sessions.json`); composite resolver prefers identity projection then opaque token map for service peers. Refs #101.
+- `POST /v1/ops/cases/{caseId}/claim` atomic assignment (`assigned_principal_id`); conflict → `ASSIGNMENT_CONFLICT` 409. Refs #101.
+- Portal aggregate/list projections: `GET /v1/customer/dashboard`, `GET /v1/customer/cases`, `GET /v1/operator/dashboard`, `GET /v1/supervisor/dashboard` (supervisor pending approvals remain ledger-owned stub). Refs #101.
+- AUTH-06/AUTH-08 + claim concurrency coverage; subject_refs binding on create unchanged. Refs #101.
+
+### Unreleased (prior)
 - Refuse non-loopback HTTP bind while demo/sandbox bearer tokens remain configured.
 
 ### Changed — 14 November 2026

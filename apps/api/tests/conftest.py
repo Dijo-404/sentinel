@@ -18,7 +18,8 @@ from sqlalchemy.exc import OperationalError
 from sentinel_api.adapters.db.repository import SqlCaseRepository
 from sentinel_api.adapters.db.schema import metadata
 from sentinel_api.adapters.http.app import create_app
-from sentinel_api.adapters.http.auth import TokenMap
+from sentinel_api.adapters.http.auth import CompositePrincipalResolver, TokenMap
+from sentinel_api.adapters.identity.fixture import FixtureIdentityPrincipalAdapter
 from sentinel_api.adapters.peers.fixture_clients import (
     FixtureEvidenceClient,
     FixtureLedgerClient,
@@ -30,6 +31,7 @@ from sentinel_api.bootstrap import SecureIds, SystemClock
 
 IMAGE = "postgres:17-alpine@sha256:d3244e8ce3f165ee3c93d9c4a4b1d0fe48b3a89e2287b717fdcbbde92d405065"
 TOKENS_PATH = Path(__file__).resolve().parents[1] / "fixtures" / "auth_tokens.json"
+IDENTITY_PATH = Path(__file__).resolve().parents[1] / "fixtures" / "identity_sessions.json"
 
 
 def docker(*args: str) -> str:
@@ -131,12 +133,14 @@ def app(engine, peers):
         service_authorization="Bearer token-case-api-service",
     )
     tokens = TokenMap.from_path(TOKENS_PATH)
+    identity = FixtureIdentityPrincipalAdapter.from_path(IDENTITY_PATH)
+    resolver = CompositePrincipalResolver(identity=identity, tokens=tokens)
 
     def readiness():
         repo.ping()
         return {"ready": True, "mode": "fixture", "label": "fixture-local"}
 
-    application = create_app(service=service, tokens=tokens, mode="fixture", readiness=readiness)
+    application = create_app(service=service, tokens=resolver, mode="fixture", readiness=readiness)
     application.state.engine = engine
     application.state.repo = repo
     application.state.peers = peers
