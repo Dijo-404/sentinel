@@ -30,3 +30,8 @@ htmlcov/
 .worktrees/
 worktrees/
 .superpowers/
+
+# Playwright output (MCP browser snapshots, test reports).
+.playwright-mcp/
+playwright-report/
+test-results/
