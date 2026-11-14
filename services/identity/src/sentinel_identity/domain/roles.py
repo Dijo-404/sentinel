@@ -43,6 +43,9 @@ STAFF_INVITABLE_ROLES = frozenset(
 
 PRIVILEGED_ROLES = frozenset({"supervisor", "risk_officer", "platform_admin"})
 
+# Merchant-teams peer subroles only (never platform roles in membership.subroles).
+MERCHANT_SUBROLES = frozenset({"viewer", "operator", "approver", "admin"})
+
 # roles.md §9.1 + service-only money path. Never grant to merchant/risk/platform_admin.
 MONEY_PATH_PERMISSIONS = frozenset(
     {

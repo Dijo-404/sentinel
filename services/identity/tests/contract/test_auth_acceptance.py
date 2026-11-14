@@ -6,10 +6,12 @@ from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 
 from fastapi.testclient import TestClient
-from tests.conftest import auth_header, login
+from tests.conftest import NEW_PASSWORD, auth_header, login
 
 from sentinel_identity.adapters.seed import DEMO_PASSWORD
 from sentinel_identity.adapters.storage_memory import MemoryIdentityStore
+from sentinel_identity.domain.models import RoleAssignment
+from sentinel_identity.domain.roles import CONTRACT_VERSION
 
 
 def test_auth01_register_rejects_privileged_role(client: TestClient) -> None:
@@ -17,7 +19,7 @@ def test_auth01_register_rejects_privileged_role(client: TestClient) -> None:
         "/v1/auth/customer/register",
         json={
             "email": "new-customer@example.test",
-            "password": DEMO_PASSWORD,
+            "password": NEW_PASSWORD,
             "display_name": "New Customer",
             "role": "admin",
         },
@@ -25,7 +27,7 @@ def test_auth01_register_rejects_privileged_role(client: TestClient) -> None:
     assert response.status_code == 422
     users = client.post(
         "/v1/auth/login",
-        json={"email": "new-customer@example.test", "password": DEMO_PASSWORD},
+        json={"email": "new-customer@example.test", "password": NEW_PASSWORD},
     )
     assert users.status_code == 401
 
@@ -35,7 +37,7 @@ def test_auth01_clean_register_is_customer_only(client: TestClient) -> None:
         "/v1/auth/customer/register",
         json={
             "email": "clean@example.test",
-            "password": DEMO_PASSWORD,
+            "password": NEW_PASSWORD,
             "display_name": "Clean Customer",
         },
     )
@@ -45,12 +47,25 @@ def test_auth01_clean_register_is_customer_only(client: TestClient) -> None:
     assert body["assignment"]["role_id"] == "customer"
 
 
+def test_auth01_register_rejects_short_password(client: TestClient) -> None:
+    response = client.post(
+        "/v1/auth/customer/register",
+        json={
+            "email": "short-pass@example.test",
+            "password": "short",
+            "display_name": "Short Pass",
+        },
+    )
+    assert response.status_code == 422
+    assert "password" in response.json()["message"].lower()
+
+
 def test_auth02_public_staff_signup_absent(client: TestClient) -> None:
     response = client.post(
         "/v1/auth/customer/register",
         json={
             "email": "wannabe-staff@example.test",
-            "password": DEMO_PASSWORD,
+            "password": NEW_PASSWORD,
             "display_name": "Wannabe",
             "account_type": "staff",
             "role_id": "operator",
@@ -85,7 +100,7 @@ def test_auth03_invite_accept_replay(
         json={
             "token": token,
             "email": "fresh-op@example.test",
-            "password": DEMO_PASSWORD,
+            "password": NEW_PASSWORD,
             "display_name": "Fresh Operator",
         },
     )
@@ -95,7 +110,7 @@ def test_auth03_invite_accept_replay(
         json={
             "token": token,
             "email": "fresh-op@example.test",
-            "password": DEMO_PASSWORD,
+            "password": NEW_PASSWORD,
         },
     )
     assert second.status_code == 409
@@ -248,7 +263,7 @@ def test_auth12_privileged_invite_needs_independent_review(
         json={
             "token": token,
             "email": "new-sup@example.test",
-            "password": DEMO_PASSWORD,
+            "password": NEW_PASSWORD,
             "display_name": "New Supervisor",
         },
     )
@@ -276,12 +291,104 @@ def test_auth12_privileged_invite_needs_independent_review(
         json={
             "token": token,
             "email": "new-sup@example.test",
-            "password": DEMO_PASSWORD,
+            "password": NEW_PASSWORD,
             "display_name": "New Supervisor",
         },
     )
     assert accepted.status_code == 201
     assert accepted.json()["assignment"]["role_id"] == "supervisor"
+
+
+def test_accept_invitation_rejects_short_password(
+    client: TestClient, demo_password: str, store: MemoryIdentityStore
+) -> None:
+    admin = login(client, "admin@example.test", demo_password, requested_role="platform_admin")
+    invite = client.post(
+        "/v1/admin/invitations",
+        headers=auth_header(admin["session_token"]),
+        json={
+            "display_name": "Short Pass Op",
+            "work_email": "short-op@example.test",
+            "tenant_id": "tenant-demo",
+            "role_id": "operator",
+            "idempotency_key": "invite-short-pass-001",
+        },
+    )
+    assert invite.status_code == 201
+    token = store.peek_delivery_secret(invite.json()["invitation"]["invitation_id"])
+    response = client.post(
+        "/v1/auth/accept-invitation",
+        json={
+            "token": token,
+            "email": "short-op@example.test",
+            "password": "tiny",
+            "display_name": "Short Pass Op",
+        },
+    )
+    assert response.status_code == 422
+    assert "password" in response.json()["message"].lower()
+
+
+def test_merchant_memberships_lists_seeded_merchant(client: TestClient, demo_password: str) -> None:
+    admin = login(client, "admin@example.test", demo_password, requested_role="platform_admin")
+    response = client.get(
+        "/v1/merchant-memberships",
+        params={"tenant_id": "tenant-demo", "merchant_ref": "merchant-demo-1"},
+        headers=auth_header(admin["session_token"]),
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["contract_version"] == CONTRACT_VERSION
+    assert len(body["memberships"]) == 1
+    row = body["memberships"][0]
+    assert row["merchant_ref"] == "merchant-demo-1"
+    assert row["tenant_id"] == "tenant-demo"
+    assert row["display_name"] == "Demo Merchant"
+    assert row["subroles"] == ["admin"]
+    assert row["status"] == "active"
+    assert row["membership_id"] == row["assignment_id"]
+
+
+def test_merchant_memberships_forbidden_for_operator(
+    client: TestClient, demo_password: str
+) -> None:
+    op = login(client, "operator@example.test", demo_password, requested_role="operator")
+    response = client.get(
+        "/v1/merchant-memberships",
+        params={"tenant_id": "tenant-demo", "merchant_ref": "merchant-demo-1"},
+        headers=auth_header(op["session_token"]),
+    )
+    assert response.status_code == 403
+
+
+def test_login_multi_assignment_requires_requested_role(
+    client: TestClient, demo_password: str, store: MemoryIdentityStore
+) -> None:
+    user = store.get_user_by_email("operator@example.test")
+    assert user is not None
+    existing = store.list_assignments(user.user_id)[0]
+    store.create_assignment(
+        RoleAssignment(
+            assignment_id="aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1",
+            user_id=user.user_id,
+            tenant_id=existing.tenant_id,
+            role_id="merchant",
+            scope_key=f"tenant:{existing.tenant_id}|merchant:merchant-demo-1",
+            status="active",
+            granted_by=None,
+            granted_at=existing.granted_at,
+            merchant_ref="merchant-demo-1",
+        )
+    )
+    response = client.post(
+        "/v1/auth/login",
+        json={"email": "operator@example.test", "password": demo_password},
+    )
+    assert response.status_code == 409
+    assert "session_token" not in response.json()
+    ok = login(client, "operator@example.test", demo_password, requested_role="operator")
+    assert ok["session_token"]
+    assert ok["active_assignment"]["role_id"] == "operator"
 
 
 def test_auth12_privileged_grant_not_immediately_effective(

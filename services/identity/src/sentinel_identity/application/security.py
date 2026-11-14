@@ -6,9 +6,17 @@ import hashlib
 import hmac
 import secrets
 
+MIN_PASSWORD_LENGTH = 8
+
 
 def normalize_email(email: str) -> str:
     return email.strip().lower()
+
+
+def assert_password_acceptable(password: str) -> None:
+    """Reject empty or short passwords on register / new-invite accept."""
+    if not password or len(password) < MIN_PASSWORD_LENGTH:
+        raise ValueError(f"password must be at least {MIN_PASSWORD_LENGTH} characters")
 
 
 def hash_password(password: str, *, iterations: int = 210_000) -> str:
