@@ -1,6 +1,7 @@
 # SN-032 changelog
 
 ## Unreleased
+- Refuse non-loopback HTTP bind while demo/sandbox bearer tokens remain configured.
 
 ### Added
 

@@ -8,6 +8,10 @@ import sys
 
 import uvicorn
 
+from sentinel_merchant_comms.adapters.bind_safety import (
+    UnsafeBindError,
+    assert_loopback_or_non_demo,
+)
 from sentinel_merchant_comms.adapters.settings import Settings
 from sentinel_merchant_comms.bootstrap import build_app, build_service
 from sentinel_merchant_comms.domain.types import Principal
@@ -30,10 +34,20 @@ def main(argv: list[str] | None = None) -> int:
     settings = Settings()
 
     if args.command == "serve":
+        host = args.host or settings.host
+        tokens = list(settings.token_map_raw().keys())
+        for value in (settings.case_api_token, settings.indic_context_token):
+            if value:
+                tokens.append(value)
+        try:
+            assert_loopback_or_non_demo(host, tokens)
+        except UnsafeBindError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
         app = build_app(settings)
         uvicorn.run(
             app,
-            host=args.host or settings.host,
+            host=host,
             port=args.port or settings.port,
         )
         return 0
