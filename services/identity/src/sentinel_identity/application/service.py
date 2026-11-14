@@ -424,7 +424,8 @@ class IdentityService:
             assert_staff_role_grantable(role_id)
         except ValueError as exc:
             raise ValidationError(str(exc)) from exc
-        if not display_name.strip() or not work_email.strip() or not tenant_id.strip():
+        email_n = normalize_email(work_email)
+        if not display_name.strip() or not email_n or not tenant_id.strip():
             raise ValidationError("display_name, work_email and tenant_id are required")
         key = idempotency_key or str(uuid.uuid4())
         existing = self._store.get_invitation_by_idempotency(key)
@@ -434,6 +435,9 @@ class IdentityService:
                 "delivery_hint": "idempotent_replay",
                 "idempotent_replay": True,
             }
+        existing_user = self._store.get_user_by_email(email_n)
+        if existing_user is not None and existing_user.status == "active":
+            raise ConflictError("Account already exists")
         scope = scope or {}
         team_id = scope.get("team_id")
         merchant_ref = scope.get("merchant_ref")
@@ -448,7 +452,7 @@ class IdentityService:
         change_id = str(uuid.uuid4()) if privileged else None
         invitation = Invitation(
             invitation_id=str(uuid.uuid4()),
-            work_email=normalize_email(work_email),
+            work_email=email_n,
             display_name=display_name.strip(),
             tenant_id=tenant_id,
             role_id=role_id,

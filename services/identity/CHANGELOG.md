@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Fixed — admin invite duplicate active email (#129)
+
+- `admin_invite` rejects when `work_email` already belongs to an active user
+  (`ConflictError` / HTTP 409, same message as customer register:
+  `Account already exists`). No PENDING invitation is created for seeded
+  emails such as `operator@example.test`.
+
 ### Fixed — staff invitation delivery (finding #11)
 
 - Durable `invitation_delivery_outbox` (Postgres migration `0002` + memory stub):

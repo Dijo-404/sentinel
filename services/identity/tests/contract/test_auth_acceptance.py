@@ -210,6 +210,27 @@ def test_auth05_operator_supervisor_role_mismatch(client: TestClient, demo_passw
     assert me.json()["active_assignment"]["role_id"] == "operator"
 
 
+def test_admin_invite_rejects_active_user_email(client: TestClient, demo_password: str) -> None:
+    admin = login(client, "admin@example.test", demo_password, requested_role="platform_admin")
+    response = client.post(
+        "/v1/admin/invitations",
+        headers=auth_header(admin["session_token"]),
+        json={
+            "display_name": "Duplicate Operator",
+            "work_email": "operator@example.test",
+            "tenant_id": "tenant-demo",
+            "role_id": "operator",
+            "idempotency_key": "invite-duplicate-operator-001",
+            "reason": "should-conflict",
+        },
+    )
+    assert response.status_code == 409
+    body = response.json()
+    assert body["code"] == "CONFLICT"
+    assert "invitation" not in body
+    assert body["message"] == "Account already exists"
+
+
 def test_auth11_admin_cannot_invite_customer(client: TestClient, demo_password: str) -> None:
     admin = login(client, "admin@example.test", demo_password, requested_role="platform_admin")
     response = client.post(
