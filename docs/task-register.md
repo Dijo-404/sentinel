@@ -1,6 +1,6 @@
 # Sentinel independent task register
 
-Status: SN-001–026 published 13 November 2026; SN-027–034 published 14 November 2026. Task IDs and branch names remain stable; GitHub owns live assignment and status.
+Status: SN-001–026 published 13 November 2026; SN-027–034 published 14 November 2026; SN-035–036 published 14 November 2026 (identity/risk owned roots). SN-037–042 are tracked as role-portal follow-ons below (coord or open; not disjoint `tasks.json` roots). Task IDs and branch names remain stable; GitHub owns live assignment and status.
 
 Every task has **zero completion prerequisites** and owns its build, contracts, stubs and tests. Phase labels describe product priority, not development order. Phase 2 and merchant-ops tasks are optional for MVP release.
 
@@ -42,6 +42,19 @@ See [tasks.json](tasks.json), the [workflow design](agent-workflow-design.md), a
 | SN-032 | Build independent merchant analytics aggregates | D | 2 | `services/merchant-analytics/` | None | Yes | `feat/sn-032-merchant-analytics` | [#61](https://github.com/Dijo-404/sentinel/issues/61) |
 | SN-033 | Build independent multilingual merchant communications | C | 2 | `packages/merchant-comms/` | None | Yes | `feat/sn-033-merchant-comms` | [#62](https://github.com/Dijo-404/sentinel/issues/62) |
 | SN-034 | Build independent merchant team and role management | A | 2 | `services/merchant-teams/` | None | Yes | `feat/sn-034-merchant-teams` | [#63](https://github.com/Dijo-404/sentinel/issues/63) |
+| SN-035 | Build a standalone identity and access service | A | 1 | `services/identity/` | None | No | `feat/sn-035-identity` | [#98](https://github.com/Dijo-404/sentinel/issues/98) |
+| SN-036 | Build an independent risk and fraud service | B | 1 | `services/risk/` | None | No | `feat/sn-036-risk` | [#99](https://github.com/Dijo-404/sentinel/issues/99) |
+
+## Role-portal follow-ons (SN-037–042)
+
+Not listed in the ordered plan table above: SN-037/038 coordinate on existing SN-007/SN-012 roots (ownership overlap forbids separate `tasks.json` rows); SN-039–042 are published issues whose component merges are not claimed here. Spec: [roles.md](roles.md); plan: [2026-11-14-role-portals-identity.md](superpowers/plans/2026-11-14-role-portals-identity.md).
+
+- **SN-037** — Case API identity projections and claim; coord root `apps/api/` (SN-007). Merged component work: [#101](https://github.com/Dijo-404/sentinel/issues/101).
+- **SN-038** — Six role portals + BFF; coord root `apps/web/` (SN-012). Merged component work: [#100](https://github.com/Dijo-404/sentinel/issues/100).
+- **SN-039** — Merchant membership identity projection; issue [#102](https://github.com/Dijo-404/sentinel/issues/102) (open; do not treat as merged completion).
+- **SN-040** — Peer principal catalog extensions; issue [#103](https://github.com/Dijo-404/sentinel/issues/103) (open).
+- **SN-041** — RBAC assembly journeys; issue [#104](https://github.com/Dijo-404/sentinel/issues/104) (open / in progress).
+- **SN-042** — Identity observability and admin eval surfaces; issue [#105](https://github.com/Dijo-404/sentinel/issues/105) (open).
 
 ## Independence checklist
 

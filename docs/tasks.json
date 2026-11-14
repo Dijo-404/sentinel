@@ -2704,5 +2704,135 @@
       "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
     ],
     "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite."
+  },
+  {
+    "id": "SN-035",
+    "title": "Build a standalone identity and access service",
+    "lane": "A",
+    "phase": 1,
+    "priority": "P0",
+    "optional": false,
+    "branch": "feat/sn-035-identity",
+    "depends_on": [],
+    "root": "services/identity",
+    "paths": [
+      "services/identity/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
+    },
+    "produces": [
+      "identity.v1"
+    ],
+    "consumes": [],
+    "optional_consumes": [],
+    "scope": [
+      "Own users, sessions, invitations, role grants, authz_version, identity audit/outbox and merchant membership projection sources under services/identity. Browser sessions live here; no ledger table ownership. Synthetic sandbox accounts only unless separately authorized."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [],
+      "check_command": "make -C services/identity check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "Register/login/invite/grant/revoke/session resolve enforce account_type split, deny staff grant of customer, deny service roles as human assignments, and bump authz_version on grant/revoke/suspend.",
+      "Unauthorized tenant/subject scope and revoked sessions fail closed; fixture mode needs no sibling Sentinel peers.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite."
+  },
+  {
+    "id": "SN-036",
+    "title": "Build an independent risk and fraud service",
+    "lane": "B",
+    "phase": 1,
+    "priority": "P0",
+    "optional": false,
+    "branch": "feat/sn-036-risk",
+    "depends_on": [],
+    "root": "services/risk",
+    "paths": [
+      "services/risk/**"
+    ],
+    "contract_baseline": {
+      "version": "sentinel.task-contracts.v1",
+      "document": "docs/independent-task-contracts.md",
+      "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
+    },
+    "produces": [
+      "risk.v1"
+    ],
+    "consumes": [
+      "case-api.v1",
+      "workflow.v1"
+    ],
+    "optional_consumes": [],
+    "scope": [
+      "Own fraud investigations, structured findings and authorized financial-action restrictions under services/risk. Restriction clearance never grants ledger approval or provider write. Inject local case-api and workflow stubs for independent development."
+    ],
+    "standalone": {
+      "deliverables": [
+        "Local dependency manifest and lockfile; configuration example; Makefile check target; README with standalone setup and run/preview when applicable.",
+        "Task-owned typed contract snapshots, fixtures, peer stubs, implementation, tests, and migrations/state setup where applicable.",
+        "Real-peer adapter and compatibility checklist; no direct import of an unfinished sibling implementation."
+      ],
+      "peer_stubs": [
+        {
+          "port": "case-api.v1",
+          "location": "services/risk/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        },
+        {
+          "port": "workflow.v1",
+          "location": "services/risk/tests/stubs/",
+          "cases": [
+            "valid",
+            "unavailable",
+            "malformed",
+            "unauthorized_or_out_of_scope"
+          ]
+        }
+      ],
+      "check_command": "make -C services/risk check",
+      "command_status": "Required deliverable; not currently implemented or executed.",
+      "independence_proof": "Run with none of the other task implementations or services present. Standard tools and this module's own database/container dependencies are allowed."
+    },
+    "acceptance": [
+      "Investigation/findings/restriction lifecycle persists with synthetic fixtures; clearing a restriction does not mint ledger approval.",
+      "Unauthorized tenant/case/queue scope and unavailable peers fail closed; real-peer mode never silently falls back to fixtures.",
+      "All standalone checks pass using only the owned module, supplied baseline inputs, and local fixtures/stubs; no predecessor merge or root workspace tool is required."
+    ],
+    "assembly_acceptance": [
+      "A separate owner-run assembly selects compatible real component versions and exercises the declared interfaces; record exact version, mode, checks and results.",
+      "Missing real peers do not block this component PR. Mark real-peer integration unverified until exercised; fixture peers cannot satisfy product release evidence."
+    ],
+    "evidence": [
+      "Exact standalone setup/check commands, actual results and pinned contract baseline hash.",
+      "Proof the check uses no sibling source or running Sentinel peer; identify all local stubs and database dependencies.",
+      "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
+    ],
+    "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite."
   }
 ]
