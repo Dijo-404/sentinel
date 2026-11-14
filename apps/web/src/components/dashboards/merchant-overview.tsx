@@ -1,28 +1,102 @@
 "use client";
 
-import { FixtureBanner } from "@/components/viz/fixture-banner";
-import { UiState } from "@/components/ui-states";
+import { useEffect, useMemo, useState } from "react";
+import { useShell } from "@/adapters/shell-context";
+import { createMerchantAnalyticsClientForMode } from "@/adapters/composition-peers";
+import type {
+  MerchantAnalyticsClient,
+  MerchantMetrics,
+} from "@/application/ports";
+import { PeerError } from "@/domain/types";
+import { formatAmountMinor } from "@/domain/mask";
 import type { AuthSession } from "@/lib/server/auth";
 import { PORTAL_META } from "@/lib/permissions";
+import { FixtureBanner } from "@/components/viz/fixture-banner";
+import { StatBlock } from "@/components/viz/stat-block";
+import { UiState } from "@/components/ui-states";
+import { FIXTURE_MERCHANT_METRICS } from "../../../tests/stubs/merchant-analytics";
 
 type Props = {
   session: AuthSession;
-  /**
-   * Merchant settlement/analytics projections are not on case-api.
-   * Until a merchant BFF exists, metrics stay unavailable (no fake numbers).
-   */
-  metricsAvailable?: boolean;
+  /** Test override; defaults to mode-wired merchant-analytics client. */
+  analyticsClient?: MerchantAnalyticsClient | null;
 };
 
+type LoadState =
+  | { status: "loading" }
+  | { status: "unavailable"; detail: string }
+  | { status: "ready"; metrics: MerchantMetrics; source: "live" | "fixture" };
+
+function merchantRefFromSession(session: AuthSession): string {
+  const scope = session.assignment.scope;
+  return (
+    scope?.merchant_id ??
+    scope?.merchant_ref ??
+    FIXTURE_MERCHANT_METRICS.merchant_ref
+  );
+}
+
 /**
- * Merchant dashboard: no synthetic volume/refund KPIs presented as live data.
- * Fixture banner labels the portal; metrics panel is explicit unavailable.
+ * Merchant dashboard KPIs from merchant-analytics.v1 when available.
+ * Real-peer failure stays visible — never silent fixture fill.
  */
-export function MerchantOverview({
-  session,
-  metricsAvailable = false,
-}: Props) {
+export function MerchantOverview({ session, analyticsClient }: Props) {
   const meta = PORTAL_META.merchant;
+  const { config } = useShell();
+  const client = useMemo(() => {
+    if (analyticsClient === null) return null;
+    if (analyticsClient) return analyticsClient;
+    return createMerchantAnalyticsClientForMode(config.mode);
+  }, [analyticsClient, config.mode]);
+
+  const [load, setLoad] = useState<LoadState>({ status: "loading" });
+
+  useEffect(() => {
+    let cancelled = false;
+    async function run() {
+      if (!client) {
+        if (!cancelled) {
+          setLoad({
+            status: "unavailable",
+            detail: "Merchant analytics client not configured",
+          });
+        }
+        return;
+      }
+      const merchantRef = merchantRefFromSession(session);
+      const window = {
+        window_start: FIXTURE_MERCHANT_METRICS.window_start,
+        window_end: FIXTURE_MERCHANT_METRICS.window_end,
+      };
+      try {
+        const metrics = await client.getMetrics(merchantRef, window);
+        if (cancelled) return;
+        setLoad({
+          status: "ready",
+          metrics,
+          source: config.mode === "fixture" ? "fixture" : "live",
+        });
+      } catch (err) {
+        if (cancelled) return;
+        const detail =
+          err instanceof PeerError
+            ? `${err.code}: ${err.message}`
+            : err instanceof Error
+              ? err.message
+              : "Load failed";
+        setLoad({ status: "unavailable", detail });
+      }
+    }
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, [client, config.mode, session]);
+
+  const caption =
+    load.status === "ready" && load.source === "live"
+      ? "merchant-analytics projection"
+      : "Fixture peer";
 
   return (
     <div className="stack" data-testid="merchant-dashboard">
@@ -32,16 +106,57 @@ export function MerchantOverview({
         <p className="muted">
           Signed in as {session.user.email} · {session.assignment.label}
         </p>
-        <FixtureBanner />
+        {config.mode === "fixture" ||
+        (load.status === "ready" && load.source === "fixture") ? (
+          <FixtureBanner />
+        ) : null}
       </div>
 
-      {metricsAvailable ? null : (
+      {load.status === "loading" ? (
+        <UiState tone="loading" title="Loading merchant metrics…" />
+      ) : null}
+      {load.status === "unavailable" ? (
         <UiState
           tone="empty"
           title="Merchant metrics unavailable"
-          detail="No scoped merchant projection API is wired in this shell. Charts and KPIs are withheld — not synthetic stand-ins for live volume, exceptions, or settlements."
+          detail={load.detail}
         />
-      )}
+      ) : null}
+      {load.status === "ready" ? (
+        <div
+          className="stack"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(9.5rem, 1fr))",
+            gap: "0.85rem",
+          }}
+          data-testid="merchant-kpi-row"
+        >
+          <StatBlock
+            label="Unresolved"
+            value={formatAmountMinor(
+              load.metrics.unresolved_minor,
+              load.metrics.currency,
+            )}
+            caption={caption}
+          />
+          <StatBlock
+            label="Exception rate"
+            value={load.metrics.exception_rate}
+            caption={caption}
+          />
+          <StatBlock
+            label="Median handling"
+            value={`${load.metrics.median_handling_seconds}s`}
+            caption={caption}
+          />
+          <StatBlock
+            label="Top cause"
+            value={load.metrics.top_causes[0] ?? "—"}
+            caption={caption}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

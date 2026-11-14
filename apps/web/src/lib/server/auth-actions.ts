@@ -10,6 +10,7 @@ import {
   portalPath,
   registerCustomerAccount,
   safePortalRedirect,
+  switchActiveAssignment,
 } from "./auth";
 import { requireRole } from "./authorization";
 
@@ -141,4 +142,15 @@ export async function inviteStaffAction(
     return { ok: false, message: result.message };
   }
   redirect("/admin/users");
+}
+
+/** Switch active workspace assignment without signing out. */
+export async function switchWorkspaceAction(formData: FormData): Promise<void> {
+  const result = await switchActiveAssignment(
+    String(formData.get("assignment_id") ?? ""),
+  );
+  if (!result.ok) {
+    redirect("/unauthorized");
+  }
+  redirect(result.redirectTo);
 }

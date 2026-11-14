@@ -35,6 +35,7 @@ import {
   registerCustomerAccount,
   safePortalRedirect,
   isSafeInternalPath,
+  switchActiveAssignment,
 } from "@/lib/server/auth";
 import { requireRole } from "@/lib/server/authorization";
 
@@ -160,6 +161,36 @@ describe("requireRole active assignment only", () => {
 
     await expect(requireRole("supervisor")).rejects.toThrow(
       "REDIRECT:/unauthorized?portal=supervisor",
+    );
+  });
+
+  it("switches dual-role workspace in-session without logout", async () => {
+    const login = await loginWithCredentials(
+      "dual@example.test",
+      "demo-dual",
+      "operator",
+    );
+    expect(login.ok).toBe(true);
+    if (!login.ok) return;
+    const supervisorAsg = login.session.workspaces.find(
+      (w) => w.role === "supervisor",
+    );
+    expect(supervisorAsg).toBeDefined();
+
+    const switched = await switchActiveAssignment(
+      supervisorAsg!.assignment_id,
+    );
+    expect(switched).toEqual({
+      ok: true,
+      role: "supervisor",
+      redirectTo: "/supervisor/dashboard",
+    });
+    expect(cookieStore.value).toBeTruthy();
+
+    const session = await requireRole("supervisor");
+    expect(session.assignment.role).toBe("supervisor");
+    expect(session.assignment.assignment_id).toBe(
+      supervisorAsg!.assignment_id,
     );
   });
 

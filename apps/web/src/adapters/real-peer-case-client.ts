@@ -321,5 +321,52 @@ export function createRealPeerCaseClient(options: RealPeerOptions): CaseClient {
         },
       });
     },
+    listCustomerCases() {
+      return request("GET", "/v1/customer/cases", {
+        validate: (json, requestId) => {
+          if (
+            !json ||
+            typeof json !== "object" ||
+            !Array.isArray((json as { cases?: unknown }).cases)
+          ) {
+            throw new PeerError(
+              "MALFORMED_PEER_RESPONSE",
+              "Missing cases array",
+              requestId,
+            );
+          }
+          const cases = (json as { cases: unknown[] }).cases.map((row, i) => {
+            if (!row || typeof row !== "object") {
+              throw new PeerError(
+                "MALFORMED_PEER_RESPONSE",
+                `Customer case[${i}] is not an object`,
+                requestId,
+              );
+            }
+            const o = row as Record<string, unknown>;
+            if (
+              typeof o.case_id !== "string" ||
+              typeof o.status !== "string" ||
+              typeof o.revision !== "number" ||
+              !Number.isInteger(o.revision) ||
+              typeof o.language !== "string"
+            ) {
+              throw new PeerError(
+                "MALFORMED_PEER_RESPONSE",
+                `Customer case[${i}] missing required fields`,
+                requestId,
+              );
+            }
+            return {
+              case_id: o.case_id,
+              status: o.status as Case["status"],
+              revision: o.revision,
+              language: o.language,
+            };
+          });
+          return { cases };
+        },
+      });
+    },
   };
 }

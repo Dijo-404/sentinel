@@ -5,6 +5,7 @@ import type {
   CaseCreate,
   CaseCreated,
   CaseEvent,
+  CaseState,
   DecisionRequest,
   Evidence,
   EvidenceBundle,
@@ -13,6 +14,51 @@ import type {
   VoiceRequest,
   VoiceResult,
 } from "@/domain/types";
+
+/** Customer-scoped case list row from GET /v1/customer/cases. */
+export type CustomerCaseSummary = {
+  case_id: string;
+  status: CaseState;
+  revision: number;
+  language: string;
+};
+
+export type CustomerCaseList = { cases: CustomerCaseSummary[] };
+
+/** merchant-analytics.v1 MerchantMetrics wire shape. */
+export type MerchantMetrics = {
+  tenant_id: string;
+  merchant_ref: string;
+  window_start: string;
+  window_end: string;
+  exception_rate: string;
+  unresolved_minor: number;
+  currency: string;
+  refund_aging_buckets: Record<string, number>;
+  median_handling_seconds: number;
+  top_causes: string[];
+};
+
+/** risk.v1 DashboardView wire shape (counts only for KPI row). */
+export type RiskDashboard = {
+  open_investigations: number;
+  active_restrictions: number;
+  awaiting_evidence: number;
+  aging_investigations: number;
+  blocked_actions: number;
+};
+
+/** merchant-settlement.v1 findings list item (display fields). */
+export type SettlementFinding = {
+  finding_id: string;
+  batch_id?: string;
+  status: string;
+  kind?: string;
+  /** Wire uses expected_minor / observed_minor — not payment authority. */
+  expected_minor?: number;
+  observed_minor?: number;
+  currency?: string;
+};
 
 /** Injected case-api.v1 client used by the shell. */
 export interface CaseClient {
@@ -43,6 +89,8 @@ export interface CaseClient {
       owner_queue: string;
     },
   ): Promise<Case>;
+  /** Customer-scoped list — GET /v1/customer/cases. */
+  listCustomerCases?(): Promise<CustomerCaseList>;
   /** Scoped case-api dashboard projection when available. */
   getOperatorDashboard?(): Promise<{
     assigned_to_me: number;
@@ -63,6 +111,27 @@ export interface CaseClient {
     waiting_approval: number;
     verified_resolved: number;
   }>;
+}
+
+/** Optional merchant-analytics.v1 client. */
+export interface MerchantAnalyticsClient {
+  getMetrics(
+    merchantRef: string,
+    window: { window_start: string; window_end: string },
+  ): Promise<MerchantMetrics>;
+}
+
+/** Optional risk.v1 dashboard client. */
+export interface RiskClient {
+  getDashboard(): Promise<RiskDashboard>;
+}
+
+/** Optional merchant-settlement.v1 findings client. */
+export interface MerchantSettlementClient {
+  listFindings(query?: {
+    batch_id?: string;
+    status?: string;
+  }): Promise<{ findings: SettlementFinding[] }>;
 }
 
 /** Optional voice.v1 port. Disabled by default in composition. */

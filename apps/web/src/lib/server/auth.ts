@@ -310,12 +310,59 @@ export async function logoutCurrentSession(): Promise<void> {
   await clearSessionCookie();
 }
 
+/**
+ * Bind the current session to another assignment the user already holds.
+ * Updates the httpOnly cookie (real-peer may mint a new session_token).
+ */
+export async function switchActiveAssignment(
+  assignmentId: string,
+): Promise<
+  | { ok: true; role: PortalRole; redirectTo: string }
+  | { ok: false; message: string }
+> {
+  const trimmed = assignmentId?.trim() ?? "";
+  if (!trimmed) {
+    return { ok: false, message: "Workspace assignment is required." };
+  }
+  const current = await getAuthSession();
+  if (!current) {
+    return { ok: false, message: "Sign in to switch workspace." };
+  }
+  const target = current.workspaces.find((w) => w.assignment_id === trimmed);
+  if (!target) {
+    return { ok: false, message: "That workspace is not available." };
+  }
+  if (current.assignment.assignment_id === trimmed) {
+    return {
+      ok: true,
+      role: target.role,
+      redirectTo: portalPath(target.role),
+    };
+  }
+  const identity = getIdentityClient();
+  const activated = await identity.selectAssignment(
+    current.session.session_id,
+    trimmed,
+  );
+  if (!activated) {
+    return { ok: false, message: "Could not switch workspace." };
+  }
+  await setSessionCookie(activated.session_id, activated.expires_at);
+  return {
+    ok: true,
+    role: target.role,
+    redirectTo: portalPath(target.role),
+  };
+}
+
 export function workspaceChoices(workspaces: WorkspaceAssignment[]): Array<{
+  assignment_id: string;
   role: PortalRole;
   href: string;
   label: string;
 }> {
   return workspaces.map((w) => ({
+    assignment_id: w.assignment_id,
     role: w.role,
     href: portalPath(w.role),
     label: `${ROLE_LABELS[w.role]} — ${w.label}`,

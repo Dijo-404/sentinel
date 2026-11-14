@@ -8,6 +8,7 @@ import {
   type CaseCreate,
   type CaseCreated,
   type CaseEvent,
+  type CaseState,
   type DecisionRequest,
   type EvidenceBundle,
   type OpsCaseList,
@@ -23,11 +24,16 @@ export type StubCase =
   | "malformed"
   | "unauthorized_or_out_of_scope";
 
+export type CaseApiStubOptions = {
+  /** Role used for decide authorization. Default: deny unless `"supervisor"`. */
+  reviewerRole?: string;
+};
+
 const demoCase = caseDemo as Case;
 const demoEvidence = evidenceBundle as EvidenceBundle;
 export const demoAction = actionRecord as ActionRecord;
 
-const events: CaseEvent[] = [
+const DEMO_CASE_EVENTS: CaseEvent[] = [
   {
     event_id: "evt-1",
     sequence: 1,
@@ -67,7 +73,10 @@ function fail(
 }
 
 /** Local case-api.v1 double. Never silently succeeds when configured to fail. */
-export function createCaseApiStub(scenario: StubCase = "valid"): CaseClient {
+export function createCaseApiStub(
+  scenario: StubCase = "valid",
+  options?: CaseApiStubOptions,
+): CaseClient {
   if (scenario === "unavailable") {
     return unavailableClient();
   }
@@ -77,13 +86,73 @@ export function createCaseApiStub(scenario: StubCase = "valid"): CaseClient {
   if (scenario === "unauthorized_or_out_of_scope") {
     return unauthorizedClient();
   }
-  return validClient();
+  return validClient(options);
 }
 
-function validClient(): CaseClient {
+function validClient(options?: CaseApiStubOptions): CaseClient {
+  const reviewerRole = options?.reviewerRole;
+  const cases = new Map<string, Case>([
+    [demoCase.case_id, { ...demoCase }],
+  ]);
+  const eventsByCase = new Map<string, CaseEvent[]>([
+    [demoCase.case_id, DEMO_CASE_EVENTS.map((e) => ({ ...e, payload: { ...e.payload } }))],
+  ]);
+  let nextCaseNum = 1;
+  let nextEventSeq = 100;
+
+  function allocateCaseId(): string {
+    while (cases.has(`case-demo-${nextCaseNum}`)) {
+      nextCaseNum += 1;
+    }
+    const id = `case-demo-${nextCaseNum}`;
+    nextCaseNum += 1;
+    return id;
+  }
+
+  function requireCase(caseId: string): Case {
+    const current = cases.get(caseId);
+    if (!current) {
+      fail("NOT_FOUND", "Case not found", "req-get-404", 404);
+    }
+    return current;
+  }
+
+  function appendEvent(
+    caseId: string,
+    type: string,
+    status: CaseState,
+    reason_code: string,
+    revision: number,
+  ): void {
+    const list = eventsByCase.get(caseId) ?? [];
+    const sequence =
+      list.length === 0
+        ? 1
+        : Math.max(...list.map((e) => e.sequence)) + 1;
+    nextEventSeq += 1;
+    list.push({
+      event_id: `evt-${nextEventSeq}`,
+      sequence,
+      case_id: caseId,
+      case_revision: revision,
+      type,
+      occurred_at: new Date().toISOString(),
+      payload: {
+        status,
+        evidence_ids: [...(cases.get(caseId)?.evidence_ids ?? [])],
+        action_id: cases.get(caseId)?.action_id,
+        reason_code,
+      },
+    });
+    eventsByCase.set(caseId, list);
+  }
+
   return {
-    async createCase(input: CaseCreate): Promise<CaseCreated> {
-      if (!input.message || !input.order_reference) {
+    async createCase(
+      input: CaseCreate,
+      _idempotencyKey: string,
+    ): Promise<CaseCreated> {
+      if (!input.message?.trim() || !input.order_reference?.trim()) {
         fail(
           "INVALID_INPUT",
           "message and order_reference required",
@@ -91,41 +160,64 @@ function validClient(): CaseClient {
           422,
         );
       }
-      return {
-        case_id: "case-demo-42",
+      const caseId = allocateCaseId();
+      const created: Case = {
+        contract_version: CONTRACT_VERSION,
+        case_id: caseId,
+        revision: 1,
         status: "RECEIVED",
-        status_url: "/cases/case-demo-42",
+        language: input.language || "en-IN",
+        intent: "UNKNOWN",
+        evidence_ids: [],
+      };
+      cases.set(caseId, created);
+      eventsByCase.set(caseId, []);
+      appendEvent(caseId, "CASE_CREATED", "RECEIVED", "INTAKE", 1);
+      return {
+        case_id: caseId,
+        status: "RECEIVED",
+        status_url: `/cases/${caseId}`,
       };
     },
     async getCase(caseId: string): Promise<Case> {
-      if (caseId !== demoCase.case_id) {
-        fail("NOT_FOUND", "Case not found", "req-get-404", 404);
-      }
-      return { ...demoCase };
+      return { ...requireCase(caseId) };
     },
     async postMessage(caseId, body) {
-      const current = await this.getCase(caseId);
+      const current = requireCase(caseId);
       if (body.expected_revision !== current.revision) {
         fail("REVISION_CONFLICT", "Stale case revision", "req-msg-409", 409);
       }
-      return {
+      const updated: Case = {
         ...current,
         revision: current.revision + 1,
         status: "NEEDS_INPUT",
       };
+      cases.set(caseId, updated);
+      appendEvent(
+        caseId,
+        "MESSAGE_ADDED",
+        updated.status,
+        "OPERATOR_MESSAGE",
+        updated.revision,
+      );
+      return { ...updated };
     },
     async listEvents(caseId, after = 0) {
-      await this.getCase(caseId);
-      return { events: events.filter((e) => e.sequence > after) };
+      requireCase(caseId);
+      const list = eventsByCase.get(caseId) ?? [];
+      return { events: list.filter((e) => e.sequence > after) };
     },
     async listOpsCases(query): Promise<OpsCaseList> {
       if (query?.after) {
         return { cases: [], next_cursor: undefined };
       }
-      return { cases: [{ ...demoCase }], next_cursor: undefined };
+      return {
+        cases: [...cases.values()].map((c) => ({ ...c })),
+        next_cursor: undefined,
+      };
     },
     async getOpsEvidence(caseId: string): Promise<EvidenceBundle> {
-      await this.getCase(caseId);
+      requireCase(caseId);
       return structuredClone(demoEvidence);
     },
     async getAction(actionId: string): Promise<ActionRecord> {
@@ -138,6 +230,14 @@ function validClient(): CaseClient {
       actionId: string,
       request: DecisionRequest,
     ): Promise<Approval> {
+      if (reviewerRole !== "supervisor") {
+        fail(
+          "FORBIDDEN",
+          "Supervisor role required to decide",
+          "req-decide-403",
+          403,
+        );
+      }
       if (actionId !== demoAction.action_id) {
         fail("NOT_FOUND", "Action not found", "req-decide-404", 404);
       }
@@ -160,16 +260,25 @@ function validClient(): CaseClient {
       };
     },
     async escalate(caseId, body) {
-      const current = await this.getCase(caseId);
+      const current = requireCase(caseId);
       if (body.expected_revision !== current.revision) {
         fail("REVISION_CONFLICT", "Stale case revision", "req-esc-409", 409);
       }
-      return {
+      const updated: Case = {
         ...current,
         revision: current.revision + 1,
         status: "ESCALATED",
         contract_version: CONTRACT_VERSION,
       };
+      cases.set(caseId, updated);
+      appendEvent(
+        caseId,
+        "ESCALATED",
+        updated.status,
+        "OPERATOR_ESCALATION",
+        updated.revision,
+      );
+      return { ...updated };
     },
     async getOperatorDashboard() {
       return {

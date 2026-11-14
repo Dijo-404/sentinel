@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { WorkspaceSwitcher } from "@/components/identity/workspace-switcher";
 import { getAuthSession, workspaceChoices } from "@/lib/server/auth";
 
 export default async function UnauthorizedPage({
@@ -22,14 +23,11 @@ export default async function UnauthorizedPage({
         </p>
         {workspaces.length > 0 ? (
           <div>
-            <p>Your authorized workspaces:</p>
-            <ul data-testid="authorized-workspaces">
-              {workspaces.map((w) => (
-                <li key={w.href}>
-                  <Link href={w.href}>{w.label}</Link>
-                </li>
-              ))}
-            </ul>
+            <p>Switch to an authorized workspace:</p>
+            <WorkspaceSwitcher
+              activeAssignmentId={session?.assignment.assignment_id}
+              workspaces={workspaces}
+            />
           </div>
         ) : (
           <p>

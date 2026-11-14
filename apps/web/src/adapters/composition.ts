@@ -84,7 +84,9 @@ export function createShellRuntime(
   if (overrides?.caseClient) {
     caseClient = overrides.caseClient;
   } else if (config.mode === "fixture") {
-    caseClient = createCaseApiStub("valid");
+    caseClient = createCaseApiStub("valid", {
+      reviewerRole: config.principal.roles[0],
+    });
   } else if (
     overrides?.fetchImpl &&
     config.caseApiBaseUrl &&

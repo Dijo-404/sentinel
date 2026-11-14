@@ -467,6 +467,15 @@ export function createIdentityStub(): StubIdentity {
         }
       }
       if (
+        users.some((u) => u.email === work_email && u.account_status === "ACTIVE")
+      ) {
+        return {
+          ok: false,
+          code: "DUPLICATE",
+          message: "An active user already exists for this email",
+        };
+      }
+      if (
         invitations.some(
           (i) =>
             i.work_email === work_email &&
