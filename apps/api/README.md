@@ -43,7 +43,7 @@ Uses `SENTINEL_API_*` from the environment (see `.env.example`). Fixture mode wi
 
 ## Auth
 
-`fixture` mode: composite principal resolution prefers fixture identity session/BFF projections (`fixtures/identity_sessions.json`), then opaque bearer map (`fixtures/auth_tokens.json`). `real-peers` mode: opaque token map only (future BFF mint; no fixture identity wire). No live `services/identity` dependency. Workflow/verifier principals deny empty `case_ids`; use explicit ids or `"*"`. Customer case create still requires `order_reference` bound to principal `subject_refs`.
+`fixture` mode: composite principal resolution uses fixture identity session/BFF projections (`fixtures/identity_sessions.json`) for unknown bearers, with opaque service tokens from `fixtures/auth_tokens.json` taking precedence when present. `real-peers` mode: opaque TokenMap for workflow/dispatcher/verifier/`tok-*` service principals; when `IDENTITY_BASE_URL` (or `SENTINEL_API_IDENTITY_BASE_URL`) is set, unknown bearers are projected via identity `GET /v1/auth/me` (`active_assignment.role_id` → roles). Fail closed on identity unavailable/malformed responses; identity 401 falls through to TokenMap then denies. Non-loopback bind refuses identity session projection. Workflow/verifier principals deny empty `case_ids`; use explicit ids or `"*"`. Customer case create still requires `order_reference` bound to principal `subject_refs`.
 
 ## Evidence labels
 

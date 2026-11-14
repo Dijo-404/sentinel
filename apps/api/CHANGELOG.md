@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Fixed — real-peers identity session projection
+
+- `real-peers` + `IDENTITY_BASE_URL` / `SENTINEL_API_IDENTITY_BASE_URL`: resolve human
+  bearers via identity `GET /v1/auth/me`, mapping `active_assignment` → `Principal`.
+  Opaque TokenMap remains for service tokens (`tok-*`). Fail closed on unavailable /
+  malformed identity responses. Bind safety refuses non-loopback while identity
+  session projection is enabled.
+
 ### Added — SN-040 peer principal catalog
 
 - Fixture principals for `merchant` / `risk_officer` / `platform_admin` (opaque

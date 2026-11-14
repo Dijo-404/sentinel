@@ -50,9 +50,19 @@ def is_demo_bearer_token(token: str) -> bool:
 TokenValues = list[str] | set[str] | tuple[str, ...]
 
 
-def assert_loopback_or_non_demo(host: str, token_values: TokenValues) -> None:
+def assert_loopback_or_non_demo(
+    host: str,
+    token_values: TokenValues,
+    *,
+    identity_sessions: bool = False,
+) -> None:
     if is_loopback_host(host):
         return
+    if identity_sessions:
+        raise UnsafeBindError(
+            f"Refusing non-loopback bind host={host!r} while identity session "
+            f"projection is enabled. Use 127.0.0.1 or disable IDENTITY_BASE_URL."
+        )
     offenders = sorted({t for t in token_values if is_demo_bearer_token(t)})
     if not offenders:
         return

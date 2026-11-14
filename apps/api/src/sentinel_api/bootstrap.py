@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import secrets
 from datetime import UTC, datetime
 from pathlib import Path
@@ -12,8 +13,13 @@ from sentinel_api.adapters.bind_safety import assert_loopback_or_non_demo
 from sentinel_api.adapters.db.repository import SqlCaseRepository
 from sentinel_api.adapters.db.schema import metadata
 from sentinel_api.adapters.http.app import create_app
-from sentinel_api.adapters.http.auth import CompositePrincipalResolver, TokenMap
+from sentinel_api.adapters.http.auth import (
+    CompositePrincipalResolver,
+    IdentityPrincipalPort,
+    TokenMap,
+)
 from sentinel_api.adapters.identity.fixture import FixtureIdentityPrincipalAdapter
+from sentinel_api.adapters.identity.http import HttpIdentityPrincipalAdapter
 from sentinel_api.adapters.peers.fixture_clients import (
     FixtureEvidenceClient,
     FixtureLedgerClient,
@@ -40,6 +46,11 @@ class SecureIds:
         return f"{prefix}-{secrets.token_hex(8)}"
 
 
+def _identity_base_url(settings: Settings) -> str:
+    """SENTINEL_API_IDENTITY_BASE_URL, else shared IDENTITY_BASE_URL (web/merchant-teams)."""
+    return (settings.identity_base_url or os.environ.get("IDENTITY_BASE_URL", "")).strip()
+
+
 def build_app(settings: Settings | None = None, *, engine=None, tokens: TokenMap | None = None):
     settings = settings or Settings()
     if settings.mode not in {"fixture", "real-peers"}:
@@ -47,20 +58,30 @@ def build_app(settings: Settings | None = None, *, engine=None, tokens: TokenMap
 
     module_root = Path(__file__).resolve().parents[2]
     token_map = tokens or TokenMap.from_path(settings.token_path(module_root))
-    # Fixture identity sessions are demo-only. real-peers uses opaque tokens / future BFF.
+    # Fixture: local session catalog. real-peers: optional identity HTTP /me projection.
     session_keys: list[str] = []
+    identity_sessions = False
     if settings.mode == "fixture":
-        identity: FixtureIdentityPrincipalAdapter | None = (
-            FixtureIdentityPrincipalAdapter.from_path(settings.identity_path(module_root))
+        fixture_identity = FixtureIdentityPrincipalAdapter.from_path(
+            settings.identity_path(module_root)
         )
-        session_keys = list(identity.session_credentials())
+        session_keys = list(fixture_identity.session_credentials())
         resolver: TokenMap | CompositePrincipalResolver = CompositePrincipalResolver(
-            identity=identity, tokens=token_map
+            identity=fixture_identity, tokens=token_map
         )
     else:
-        resolver = token_map
+        identity_url = _identity_base_url(settings)
+        identity: IdentityPrincipalPort | None = None
+        if identity_url:
+            identity = HttpIdentityPrincipalAdapter(identity_url)
+            identity_sessions = True
+            resolver = CompositePrincipalResolver(identity=identity, tokens=token_map)
+        else:
+            resolver = token_map
     demo_credentials = [*token_map.tokens.keys(), *session_keys, settings.service_token]
-    assert_loopback_or_non_demo(settings.host, demo_credentials)
+    assert_loopback_or_non_demo(
+        settings.host, demo_credentials, identity_sessions=identity_sessions
+    )
 
     if engine is None:
         engine = create_engine(settings.database_url, pool_pre_ping=True, hide_parameters=True)

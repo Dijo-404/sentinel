@@ -81,11 +81,12 @@ class CompositePrincipalResolver:
         if not authorization or not authorization.startswith("Bearer "):
             raise DomainError("UNAUTHORIZED", "Bearer token required", 401)
         credential = authorization.removeprefix("Bearer ").strip()
+        # Opaque service tokens (tok-*) resolve without a peer call when present.
+        mapped = self._tokens.tokens.get(credential)
+        if mapped is not None:
+            return mapped
         if self._identity is not None:
             projected = self._identity.project(credential)
             if projected is not None:
                 return projected
-        principal = self._tokens.tokens.get(credential)
-        if principal is None:
-            raise DomainError("UNAUTHORIZED", "Unknown bearer token", 401)
-        return principal
+        raise DomainError("UNAUTHORIZED", "Unknown bearer token", 401)
