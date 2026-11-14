@@ -65,7 +65,9 @@ export function AppSidebar({ role, session, nav }: Props) {
           </Link>
           <p className="app-sidebar__role">
             {meta.title}
-            <span className="app-sidebar__user">{session.user.display_name}</span>
+            <span className="app-sidebar__user">
+              {session.user.display_name}
+            </span>
           </p>
         </div>
         <nav className="app-sidebar__nav" aria-label={`${role} navigation`}>

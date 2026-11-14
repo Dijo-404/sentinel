@@ -48,7 +48,8 @@ export const PORTAL_META: Record<
   },
   merchant: {
     title: "Merchant portal",
-    description: "Settlements, exceptions and refund requests for your business.",
+    description:
+      "Settlements, exceptions and refund requests for your business.",
   },
   operator: {
     title: "Support Operator",

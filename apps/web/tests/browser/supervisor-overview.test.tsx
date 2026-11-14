@@ -54,7 +54,9 @@ describe("supervisor overview", () => {
     expect(await screen.findByTestId("state-error")).toHaveTextContent(
       "Overview unavailable",
     );
-    expect(screen.getByTestId("state-error")).toHaveTextContent("PEER_UNAVAILABLE");
+    expect(screen.getByTestId("state-error")).toHaveTextContent(
+      "PEER_UNAVAILABLE",
+    );
     expect(screen.queryByTestId("fixture-banner")).not.toBeInTheDocument();
     expect(screen.queryByTestId("supervisor-kpi-row")).not.toBeInTheDocument();
     expect(screen.queryByTestId("supervisor-pipeline")).not.toBeInTheDocument();
@@ -70,7 +72,9 @@ describe("supervisor overview", () => {
     expect(await screen.findByTestId("state-error")).toHaveTextContent(
       "Overview unavailable",
     );
-    expect(screen.getByTestId("state-error")).toHaveTextContent("PEER_UNAVAILABLE");
+    expect(screen.getByTestId("state-error")).toHaveTextContent(
+      "PEER_UNAVAILABLE",
+    );
     expect(screen.queryByTestId("fixture-banner")).not.toBeInTheDocument();
     expect(screen.queryByTestId("supervisor-kpi-row")).not.toBeInTheDocument();
   });

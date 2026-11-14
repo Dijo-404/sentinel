@@ -69,10 +69,9 @@ describe("operator dashboard overview", () => {
     expect(screen.getByText("Interventions")).toBeInTheDocument();
     expect(screen.getByTestId("chart-card")).toBeInTheDocument();
     expect(screen.getByTestId("operator-status-chart")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /open full queue/i })).toHaveAttribute(
-      "href",
-      "/operator/queue",
-    );
+    expect(
+      screen.getByRole("link", { name: /open full queue/i }),
+    ).toHaveAttribute("href", "/operator/queue");
     expect(screen.queryByTestId("approval-slot")).not.toBeInTheDocument();
   });
 
@@ -129,9 +128,13 @@ describe("operator dashboard overview", () => {
     expect(await screen.findByTestId("state-error")).toHaveTextContent(
       "Overview unavailable",
     );
-    expect(screen.getByTestId("state-error")).toHaveTextContent("PEER_UNAVAILABLE");
+    expect(screen.getByTestId("state-error")).toHaveTextContent(
+      "PEER_UNAVAILABLE",
+    );
     expect(screen.queryByTestId("fixture-banner")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("operator-status-chart")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("operator-status-chart"),
+    ).not.toBeInTheDocument();
     expect(screen.queryByText("Simulator")).not.toBeInTheDocument();
   });
 
@@ -149,8 +152,12 @@ describe("operator dashboard overview", () => {
     expect(await screen.findByTestId("operator-dashboard")).toBeInTheDocument();
     expect(screen.queryByTestId("fixture-banner")).not.toBeInTheDocument();
     expect(screen.getByText("Case status (scoped queue)")).toBeInTheDocument();
-    expect(screen.queryByText("Case status (simulator)")).not.toBeInTheDocument();
-    const overdue = screen.getByText("Overdue").closest("[data-testid=stat-block]");
+    expect(
+      screen.queryByText("Case status (simulator)"),
+    ).not.toBeInTheDocument();
+    const overdue = screen
+      .getByText("Overdue")
+      .closest("[data-testid=stat-block]");
     expect(overdue).toHaveTextContent("—");
     expect(overdue).toHaveTextContent("No due times");
     const open = screen.getByText("Open").closest("[data-testid=stat-block]");
@@ -162,8 +169,12 @@ describe("operator dashboard overview", () => {
 describe("operator queue wire", () => {
   it("renders queue without approval-slot", async () => {
     render(<OperatorQueue caseClient={createCaseApiStub("valid")} />);
-    expect(await screen.findByRole("table", { name: "Operator cases" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("table", { name: "Operator cases" }),
+    ).toBeInTheDocument();
     expect(screen.queryByTestId("approval-slot")).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /approve|reject/i })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: /approve|reject/i }),
+    ).toBeNull();
   });
 });

@@ -28,10 +28,7 @@ export interface CaseClient {
     after?: string;
   }): Promise<OpsCaseList>;
   getOpsEvidence(caseId: string): Promise<EvidenceBundle>;
-  decide(
-    actionId: string,
-    request: DecisionRequest,
-  ): Promise<Approval>;
+  decide(actionId: string, request: DecisionRequest): Promise<Approval>;
   escalate(
     caseId: string,
     body: {

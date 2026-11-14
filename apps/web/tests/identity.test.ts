@@ -76,7 +76,9 @@ describe("identity stub", () => {
   });
 
   it("assignable roles never include customer", () => {
-    const roles = createIdentityStub().assignableRoles().map((r) => r.role_id);
+    const roles = createIdentityStub()
+      .assignableRoles()
+      .map((r) => r.role_id);
     expect(roles).not.toContain("customer");
   });
 });
@@ -103,7 +105,10 @@ describe("auth helpers", () => {
     expect(login.ok).toBe(true);
     if (!login.ok) return;
     const asg = login.workspaces[0]!;
-    const selected = id.selectAssignment(login.session.session_id, asg.assignment_id);
+    const selected = id.selectAssignment(
+      login.session.session_id,
+      asg.assignment_id,
+    );
     expect(selected?.active_assignment_id).toBe(asg.assignment_id);
   });
 

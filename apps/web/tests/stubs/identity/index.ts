@@ -52,22 +52,26 @@ export type Invitation = {
 };
 
 export type LoginResult =
-  | { ok: true; session: SessionRecord; user: IdentityUser; workspaces: WorkspaceAssignment[] }
+  | {
+      ok: true;
+      session: SessionRecord;
+      user: IdentityUser;
+      workspaces: WorkspaceAssignment[];
+    }
   | { ok: false; code: "INVALID_CREDENTIALS" | "SUSPENDED" | "PENDING" };
 
 export type RegisterResult =
   | { ok: true; session: SessionRecord; user: IdentityUser }
-  | { ok: false; code: "INVALID_INPUT" | "ALREADY_EXISTS" | "PRIVILEGED_FIELDS_REJECTED" };
+  | {
+      ok: false;
+      code: "INVALID_INPUT" | "ALREADY_EXISTS" | "PRIVILEGED_FIELDS_REJECTED";
+    };
 
 export type InviteResult =
   | { ok: true; invitation: Invitation }
   | {
       ok: false;
-      code:
-        | "FORBIDDEN"
-        | "INVALID_ROLE"
-        | "DUPLICATE"
-        | "INVALID_INPUT";
+      code: "FORBIDDEN" | "INVALID_ROLE" | "DUPLICATE" | "INVALID_INPUT";
       message: string;
     };
 
@@ -89,7 +93,10 @@ export type StubIdentity = {
     assignment: WorkspaceAssignment;
   } | null;
   /** Bind session to an assignment the user already holds. */
-  selectAssignment(sessionId: string, assignmentId: string): SessionRecord | null;
+  selectAssignment(
+    sessionId: string,
+    assignmentId: string,
+  ): SessionRecord | null;
   logout(sessionId: string): void;
   listStaffUsers(actorUserId: string): IdentityUser[] | { error: "FORBIDDEN" };
   listInvitations(actorUserId: string): Invitation[] | { error: "FORBIDDEN" };
@@ -118,7 +125,10 @@ export type StubIdentity = {
         assignment: WorkspaceAssignment;
       }
     | { ok: false; code: string; message: string };
-  assignableRoles(): Array<{ role_id: Exclude<PortalRole, "customer">; label: string }>;
+  assignableRoles(): Array<{
+    role_id: Exclude<PortalRole, "customer">;
+    label: string;
+  }>;
   reset(): void;
 };
 
@@ -287,7 +297,10 @@ export function createIdentityStub(): StubIdentity {
     return user;
   }
 
-  function issueSession(user: IdentityUser, assignment: WorkspaceAssignment): SessionRecord {
+  function issueSession(
+    user: IdentityUser,
+    assignment: WorkspaceAssignment,
+  ): SessionRecord {
     const session: SessionRecord = {
       session_id: newId("sess"),
       user_id: user.user_id,
@@ -413,7 +426,11 @@ export function createIdentityStub(): StubIdentity {
     inviteStaff(actorUserId, input) {
       const admin = findAdmin(actorUserId);
       if (!admin) {
-        return { ok: false, code: "FORBIDDEN", message: "Admin assignment required" };
+        return {
+          ok: false,
+          code: "FORBIDDEN",
+          message: "Admin assignment required",
+        };
       }
       const role_id = input.role_id?.trim();
       if (!role_id || role_id === "customer") {
@@ -434,12 +451,18 @@ export function createIdentityStub(): StubIdentity {
       const display_name = input.display_name?.trim() ?? "";
       const tenant_id = input.tenant_id?.trim() ?? "";
       if (!work_email || !display_name || !tenant_id) {
-        return { ok: false, code: "INVALID_INPUT", message: "Missing required fields" };
+        return {
+          ok: false,
+          code: "INVALID_INPUT",
+          message: "Missing required fields",
+        };
       }
       if (input.idempotency_key) {
         const existingId = inviteIdempotency.get(input.idempotency_key);
         if (existingId) {
-          const existing = invitations.find((i) => i.invitation_id === existingId);
+          const existing = invitations.find(
+            (i) => i.invitation_id === existingId,
+          );
           if (existing) return { ok: true, invitation: existing };
         }
       }
@@ -485,7 +508,9 @@ export function createIdentityStub(): StubIdentity {
       if (!invitationId) {
         return { ok: false, code: "FORBIDDEN", message: "Invitation denied" };
       }
-      const invitation = invitations.find((i) => i.invitation_id === invitationId);
+      const invitation = invitations.find(
+        (i) => i.invitation_id === invitationId,
+      );
       if (!invitation || invitation.status !== "PENDING") {
         return { ok: false, code: "FORBIDDEN", message: "Invitation denied" };
       }
@@ -494,10 +519,18 @@ export function createIdentityStub(): StubIdentity {
         return { ok: false, code: "FORBIDDEN", message: "Invitation expired" };
       }
       if (email !== invitation.work_email) {
-        return { ok: false, code: "FORBIDDEN", message: "Invitation email mismatch" };
+        return {
+          ok: false,
+          code: "FORBIDDEN",
+          message: "Invitation email mismatch",
+        };
       }
       if (password.length < 8) {
-        return { ok: false, code: "INVALID_INPUT", message: "Password too short" };
+        return {
+          ok: false,
+          code: "INVALID_INPUT",
+          message: "Password too short",
+        };
       }
       let user = users.find((u) => u.email === email);
       if (user?.account_class === "customer") {
@@ -518,8 +551,7 @@ export function createIdentityStub(): StubIdentity {
         user = {
           user_id: newId("user"),
           email,
-          display_name:
-            input.display_name?.trim() || invitation.display_name,
+          display_name: input.display_name?.trim() || invitation.display_name,
           password,
           account_status: "ACTIVE",
           account_class: "staff",
@@ -528,7 +560,11 @@ export function createIdentityStub(): StubIdentity {
         users = [...users, user];
       } else {
         if (user.password !== password) {
-          return { ok: false, code: "UNAUTHORIZED", message: "Invalid credentials" };
+          return {
+            ok: false,
+            code: "UNAUTHORIZED",
+            message: "Invalid credentials",
+          };
         }
         user.assignments = [...user.assignments, assignment];
       }

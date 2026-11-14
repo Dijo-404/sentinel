@@ -5,7 +5,9 @@ export default function AuthVerifyPage() {
         <p className="brand auth-brand">Sentinel</p>
         <h1>Verify contact</h1>
         <p className="muted">Scaffold — identity peer wires this flow later.</p>
-        <p className="fixture-banner" role="status">Fixture placeholder</p>
+        <p className="fixture-banner" role="status">
+          Fixture placeholder
+        </p>
       </div>
     </div>
   );

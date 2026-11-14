@@ -6,7 +6,11 @@ import {
   type OpsCaseList,
 } from "@/domain/types";
 
-function requireString(value: unknown, field: string, requestId: string): string {
+function requireString(
+  value: unknown,
+  field: string,
+  requestId: string,
+): string {
   if (typeof value !== "string" || value.length === 0) {
     throw new PeerError(
       "MALFORMED_PEER_RESPONSE",
@@ -17,7 +21,11 @@ function requireString(value: unknown, field: string, requestId: string): string
   return value;
 }
 
-function requireNumber(value: unknown, field: string, requestId: string): number {
+function requireNumber(
+  value: unknown,
+  field: string,
+  requestId: string,
+): number {
   if (typeof value !== "number" || !Number.isInteger(value)) {
     throw new PeerError(
       "MALFORMED_PEER_RESPONSE",
@@ -30,11 +38,19 @@ function requireNumber(value: unknown, field: string, requestId: string): number
 
 export function validateCase(value: unknown, requestId: string): Case {
   if (!value || typeof value !== "object") {
-    throw new PeerError("MALFORMED_PEER_RESPONSE", "Case is not an object", requestId);
+    throw new PeerError(
+      "MALFORMED_PEER_RESPONSE",
+      "Case is not an object",
+      requestId,
+    );
   }
   const v = value as Record<string, unknown>;
   return {
-    contract_version: requireString(v.contract_version, "contract_version", requestId) as Case["contract_version"],
+    contract_version: requireString(
+      v.contract_version,
+      "contract_version",
+      requestId,
+    ) as Case["contract_version"],
     case_id: requireString(v.case_id, "case_id", requestId),
     revision: requireNumber(v.revision, "revision", requestId),
     status: requireString(v.status, "status", requestId) as Case["status"],
@@ -53,7 +69,10 @@ export function validateCase(value: unknown, requestId: string): Case {
   };
 }
 
-export function validateCaseCreated(value: unknown, requestId: string): CaseCreated {
+export function validateCaseCreated(
+  value: unknown,
+  requestId: string,
+): CaseCreated {
   if (!value || typeof value !== "object") {
     throw new PeerError(
       "MALFORMED_PEER_RESPONSE",
@@ -77,7 +96,10 @@ export function validateCaseCreated(value: unknown, requestId: string): CaseCrea
   };
 }
 
-export function validateOpsList(value: unknown, requestId: string): OpsCaseList {
+export function validateOpsList(
+  value: unknown,
+  requestId: string,
+): OpsCaseList {
   if (!value || typeof value !== "object") {
     throw new PeerError(
       "MALFORMED_PEER_RESPONSE",
@@ -95,7 +117,9 @@ export function validateOpsList(value: unknown, requestId: string): OpsCaseList 
   }
   return {
     cases: v.cases.map((c, i) => validateCase(c, `${requestId}-${i}`)),
-    ...(typeof v.next_cursor === "string" ? { next_cursor: v.next_cursor } : {}),
+    ...(typeof v.next_cursor === "string"
+      ? { next_cursor: v.next_cursor }
+      : {}),
   };
 }
 

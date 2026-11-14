@@ -97,7 +97,10 @@ function fixtureReady(): Extract<LoadState, { status: "ready" }> {
   };
 }
 
-export function SupervisorOverview({ session, caseClient: caseClientProp }: Props) {
+export function SupervisorOverview({
+  session,
+  caseClient: caseClientProp,
+}: Props) {
   const { caseClient: shellClient, config } = useShell();
   const caseClient =
     caseClientProp === undefined ? shellClient : caseClientProp;
@@ -228,11 +231,12 @@ export function SupervisorOverview({ session, caseClient: caseClientProp }: Prop
               )}
               caption="Visible case states"
             />
-            <div className="stack" style={{ gap: "0.5rem", justifyContent: "center" }}>
+            <div
+              className="stack"
+              style={{ gap: "0.5rem", justifyContent: "center" }}
+            >
               <TrendPill
-                value={
-                  load.waitingCount > 0 ? "Queue active" : "Queue clear"
-                }
+                value={load.waitingCount > 0 ? "Queue active" : "Queue clear"}
                 direction={load.waitingCount > 0 ? "up" : "flat"}
               />
               <Link

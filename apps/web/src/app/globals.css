@@ -339,8 +339,7 @@ button:disabled {
   display: grid;
   place-items: center;
   padding: 1.5rem;
-  background:
-    linear-gradient(180deg, #e8eaee 0%, var(--bg) 45%, #ffffff 100%);
+  background: linear-gradient(180deg, #e8eaee 0%, var(--bg) 45%, #ffffff 100%);
 }
 
 .auth-card {

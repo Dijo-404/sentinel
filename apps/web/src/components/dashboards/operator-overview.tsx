@@ -2,13 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import {
-  Cell,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-} from "recharts";
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import type { CaseClient, ShellMode } from "@/application/ports";
 import type { Case, CaseState } from "@/domain/types";
 import { PeerError } from "@/domain/types";
@@ -78,7 +72,10 @@ function fixtureStatusSlices(): StatusSlice[] {
 }
 
 /** Derive open / waiting / interventions from ops cases. Overdue needs due times — fixture only. */
-export function deriveOperatorKpis(cases: Case[]): Omit<Kpis, "overdue" | "source"> & {
+export function deriveOperatorKpis(cases: Case[]): Omit<
+  Kpis,
+  "overdue" | "source"
+> & {
   overdue: number | null;
 } {
   let open = 0;
@@ -162,8 +159,7 @@ export function OperatorOverview({
     };
   }, [cases]);
 
-  const showFixtureBanner =
-    mode === "fixture" || kpis.source === "fixture";
+  const showFixtureBanner = mode === "fixture" || kpis.source === "fixture";
 
   if (loading) {
     return (
@@ -219,7 +215,9 @@ export function OperatorOverview({
           label="Waiting"
           value={String(kpis.waiting)}
           caption={
-            kpis.source === "cases" ? "Needs input / approval / external" : SIMULATOR_CAPTION
+            kpis.source === "cases"
+              ? "Needs input / approval / external"
+              : SIMULATOR_CAPTION
           }
         />
         <StatBlock
@@ -236,14 +234,15 @@ export function OperatorOverview({
         <StatBlock
           label="Interventions"
           value={String(kpis.interventions)}
-          caption={
-            kpis.source === "cases" ? "Escalated" : SIMULATOR_CAPTION
-          }
+          caption={kpis.source === "cases" ? "Escalated" : SIMULATOR_CAPTION}
         />
       </div>
 
       <ChartCard title={chartTitle}>
-        <div style={{ width: "100%", height: 260 }} data-testid="operator-status-chart">
+        <div
+          style={{ width: "100%", height: 260 }}
+          data-testid="operator-status-chart"
+        >
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie

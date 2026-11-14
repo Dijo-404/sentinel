@@ -91,7 +91,11 @@ export function RoleLogin({ role = "customer", next }: Props) {
         {showRegister ? (
           <label>
             Preferred language
-            <select name="language" defaultValue="en" aria-label="Preferred language">
+            <select
+              name="language"
+              defaultValue="en"
+              aria-label="Preferred language"
+            >
               <option value="en">English</option>
               <option value="hi">Hindi</option>
               <option value="ta">Tamil</option>
@@ -135,8 +139,8 @@ export function RoleLogin({ role = "customer", next }: Props) {
         </p>
       ) : (
         <p className="muted" data-testid="no-signup">
-          Staff accounts are invitation-only. There is no public sign-up for this
-          portal.
+          Staff accounts are invitation-only. There is no public sign-up for
+          this portal.
         </p>
       )}
 

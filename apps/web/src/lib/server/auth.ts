@@ -171,7 +171,11 @@ export async function loginWithCredentials(
   if (!activated) {
     await identity.logout(result.session.session_id);
     await clearSessionCookie();
-    return { ok: false, code: "INVALID_CREDENTIALS", message: GENERIC_AUTH_FAILURE };
+    return {
+      ok: false,
+      code: "INVALID_CREDENTIALS",
+      message: GENERIC_AUTH_FAILURE,
+    };
   }
 
   await setSessionCookie(activated.session_id, activated.expires_at);

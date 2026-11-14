@@ -46,9 +46,9 @@ describe("peer stubs cover required scenarios", () => {
   });
 
   it("malformed stub fails validation", () => {
-    expect(() =>
-      validateCase({ case_id: "x" }, "req-malformed"),
-    ).toThrow(PeerError);
+    expect(() => validateCase({ case_id: "x" }, "req-malformed")).toThrow(
+      PeerError,
+    );
   });
 
   it("approval and voice stubs expose failure modes", async () => {
@@ -132,7 +132,9 @@ describe("real-peer adapter", () => {
         },
       },
     );
-    await expect(runtime.caseClient.getCase("case-demo-42")).rejects.toMatchObject({
+    await expect(
+      runtime.caseClient.getCase("case-demo-42"),
+    ).rejects.toMatchObject({
       code: "PEER_UNAVAILABLE",
     });
   });

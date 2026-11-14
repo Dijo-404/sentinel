@@ -9,7 +9,11 @@ type Props = {
 export function PermissionPreview({ role }: Props) {
   const items = previewPermissions(role);
   return (
-    <div className="panel stack" data-testid="permission-preview" data-role={role}>
+    <div
+      className="panel stack"
+      data-testid="permission-preview"
+      data-role={role}
+    >
       <h2>Permission preview</h2>
       <p className="muted">
         Advisory summary for reviewers. Authorization is enforced server-side.

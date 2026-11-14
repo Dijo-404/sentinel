@@ -41,7 +41,10 @@ export function IntakeForm({ caseClient, voiceEnabled, voiceClient }: Props) {
       );
       setCreatedId(created.case_id);
     } catch (err) {
-      if (err instanceof PeerError && (err.httpStatus === 403 || err.code === "FORBIDDEN")) {
+      if (
+        err instanceof PeerError &&
+        (err.httpStatus === 403 || err.code === "FORBIDDEN")
+      ) {
         setPermission(`${err.code}: ${err.message}`);
       } else if (err instanceof PeerError) {
         setError(`${err.code}: ${err.message}`);
@@ -57,15 +60,19 @@ export function IntakeForm({ caseClient, voiceEnabled, voiceClient }: Props) {
     <div className="stack">
       <h1>Text intake</h1>
       <p className="muted">
-        Authenticated customer complaint. Identity comes from the session; this form
-        never asserts authority.
+        Authenticated customer complaint. Identity comes from the session; this
+        form never asserts authority.
       </p>
       <LocalVoiceSubstitute
         enabled={voiceEnabled}
         client={voiceClient}
         onTranscript={(text) => setMessage(text)}
       />
-      <form className="panel stack" onSubmit={onSubmit} aria-labelledby={`${formId}-title`}>
+      <form
+        className="panel stack"
+        onSubmit={onSubmit}
+        aria-labelledby={`${formId}-title`}
+      >
         <h2 id={`${formId}-title`} className="sr-only">
           Create case
         </h2>
@@ -106,9 +113,15 @@ export function IntakeForm({ caseClient, voiceEnabled, voiceClient }: Props) {
         </button>
       </form>
       {loading ? <UiState tone="loading" title="Submitting case…" /> : null}
-      {error ? <UiState tone="error" title="Intake failed" detail={error} /> : null}
+      {error ? (
+        <UiState tone="error" title="Intake failed" detail={error} />
+      ) : null}
       {permission ? (
-        <UiState tone="permission" title="Permission denied" detail={permission} />
+        <UiState
+          tone="permission"
+          title="Permission denied"
+          detail={permission}
+        />
       ) : null}
       {createdId ? (
         <UiState

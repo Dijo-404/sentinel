@@ -70,7 +70,10 @@ export function EvidencePanel({
         setBundle(e);
       } catch (err) {
         if (cancelled) return;
-        if (err instanceof PeerError && (err.httpStatus === 403 || err.code === "FORBIDDEN")) {
+        if (
+          err instanceof PeerError &&
+          (err.httpStatus === 403 || err.code === "FORBIDDEN")
+        ) {
           setPermission(`${err.code}: ${err.message}`);
         } else if (err instanceof PeerError) {
           setError(`${err.code}: ${err.message}`);
@@ -95,7 +98,8 @@ export function EvidencePanel({
       caseRecord,
       action: {
         ...demoAction,
-        status: caseRecord.status === "ESCALATED" ? "ESCALATED" : demoAction.status,
+        status:
+          caseRecord.status === "ESCALATED" ? "ESCALATED" : demoAction.status,
       },
       evidence: bundle.evidence,
       decisionExpiresAt,
@@ -108,14 +112,29 @@ export function EvidencePanel({
 
   if (loading) return <UiState tone="loading" title="Loading evidence…" />;
   if (permission) {
-    return <UiState tone="permission" title="Permission denied" detail={permission} />;
+    return (
+      <UiState
+        tone="permission"
+        title="Permission denied"
+        detail={permission}
+      />
+    );
   }
-  if (error) return <UiState tone="error" title="Evidence unavailable" detail={error} />;
+  if (error)
+    return <UiState tone="error" title="Evidence unavailable" detail={error} />;
   if (!caseRecord || !bundle) {
-    return <UiState tone="empty" title="No evidence" detail="Nothing to show." />;
+    return (
+      <UiState tone="empty" title="No evidence" detail="Nothing to show." />
+    );
   }
   if (bundle.evidence.length === 0) {
-    return <UiState tone="empty" title="Evidence empty" detail="No evidence records." />;
+    return (
+      <UiState
+        tone="empty"
+        title="Evidence empty"
+        detail="No evidence records."
+      />
+    );
   }
 
   return (
@@ -148,7 +167,10 @@ function EvidenceCard({ evidence }: { evidence: Evidence }) {
       </div>
       <p className="muted">
         subject{" "}
-        <MaskedRef label="subject" masked={maskSubjectRef(evidence.subject_ref)} />
+        <MaskedRef
+          label="subject"
+          masked={maskSubjectRef(evidence.subject_ref)}
+        />
       </p>
       {facts.kind === "PAYMENT" ? (
         <div className="stack" style={{ gap: "0.35rem" }}>
@@ -161,7 +183,10 @@ function EvidenceCard({ evidence }: { evidence: Evidence }) {
             masked={maskOrderReference(facts.payment.order_reference)}
           />
           <span className="mono">
-            {formatAmountMinor(facts.payment.amount_minor, facts.payment.currency)}
+            {formatAmountMinor(
+              facts.payment.amount_minor,
+              facts.payment.currency,
+            )}
           </span>
         </div>
       ) : null}

@@ -25,7 +25,12 @@ type Props = {
 const RECENT_EXCEPTIONS = [
   { id: "exc_••••a3f2", txn: "txn_••••91bc", status: "Open", age: "2h" },
   { id: "exc_••••c8e1", txn: "txn_••••44d0", status: "Open", age: "5h" },
-  { id: "exc_••••12ab", txn: "txn_••••7f9e", status: "Investigating", age: "1d" },
+  {
+    id: "exc_••••12ab",
+    txn: "txn_••••7f9e",
+    status: "Investigating",
+    age: "1d",
+  },
 ] as const;
 
 const SIMULATOR_CAPTION = "Simulator";
@@ -88,8 +93,14 @@ export function MerchantOverview({ session }: Props) {
       <ChartCard title="Volume vs refund requests (simulator)">
         <div style={{ width: "100%", height: 260 }}>
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-              <CartesianGrid stroke="rgba(195,195,204,0.25)" strokeDasharray="3 3" />
+            <AreaChart
+              data={chartData}
+              margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+            >
+              <CartesianGrid
+                stroke="rgba(195,195,204,0.25)"
+                strokeDasharray="3 3"
+              />
               <XAxis dataKey="day" tick={{ fill: "#c3c3cc", fontSize: 11 }} />
               <YAxis tick={{ fill: "#c3c3cc", fontSize: 11 }} />
               <Tooltip />
@@ -117,8 +128,16 @@ export function MerchantOverview({ session }: Props) {
 
       <div className="panel stack">
         <h2>Recent exceptions</h2>
-        <p className="muted">Simulator stubs — masked synthetic ids; advisory only.</p>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem" }}>
+        <p className="muted">
+          Simulator stubs — masked synthetic ids; advisory only.
+        </p>
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            fontSize: "0.9rem",
+          }}
+        >
           <thead>
             <tr>
               <th align="left">Exception</th>

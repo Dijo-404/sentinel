@@ -10,13 +10,11 @@ type Props = {
 
 export function PortalDashboard({ role, session, highlights }: Props) {
   const meta = PORTAL_META[role];
-  const items =
-    highlights ??
-    [
-      "Fixture-mode scaffold — domain peers not assembled",
-      `Signed in as ${session.user.email}`,
-      `Active assignment: ${session.assignment.label}`,
-    ];
+  const items = highlights ?? [
+    "Fixture-mode scaffold — domain peers not assembled",
+    `Signed in as ${session.user.email}`,
+    `Active assignment: ${session.assignment.label}`,
+  ];
 
   return (
     <div className="stack" data-testid={`${role}-dashboard`}>

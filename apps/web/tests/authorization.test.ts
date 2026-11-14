@@ -109,11 +109,15 @@ describe("safePortalRedirect", () => {
     expect(safePortalRedirect("/operator/../admin", "operator")).toBe(
       "/operator/dashboard",
     );
-    expect(safePortalRedirect("//evil", "operator")).toBe("/operator/dashboard");
+    expect(safePortalRedirect("//evil", "operator")).toBe(
+      "/operator/dashboard",
+    );
     expect(safePortalRedirect("/customer/dashboard", "operator")).toBe(
       "/operator/dashboard",
     );
-    expect(isSafeInternalPath("/operator/%2e%2e/admin", "operator")).toBe(false);
+    expect(isSafeInternalPath("/operator/%2e%2e/admin", "operator")).toBe(
+      false,
+    );
   });
 });
 

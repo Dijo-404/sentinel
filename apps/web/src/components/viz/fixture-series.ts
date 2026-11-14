@@ -5,11 +5,7 @@ function clamp(n: number, min: number, max: number): number {
 }
 
 /** Synthetic daily values for KPI sparklines / area charts. */
-export function dailySeries(
-  days = 14,
-  seed = 42,
-  base = 100,
-): number[] {
+export function dailySeries(days = 14, seed = 42, base = 100): number[] {
   const out: number[] = [];
   let cursor = seed;
   for (let i = 0; i < days; i += 1) {
@@ -22,11 +18,7 @@ export function dailySeries(
 }
 
 /** Labeled {x,y} points for Recharts-style series. */
-export function labeledSeries(
-  days = 14,
-  seed = 7,
-  base = 80,
-): Point[] {
+export function labeledSeries(days = 14, seed = 7, base = 80): Point[] {
   const values = dailySeries(days, seed, base);
   return values.map((y, i) => ({
     x: `D${String(i + 1).padStart(2, "0")}`,

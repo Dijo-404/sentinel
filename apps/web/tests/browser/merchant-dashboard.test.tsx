@@ -45,6 +45,8 @@ describe("merchant dashboard viz", () => {
     expect(screen.getByTestId("chart-card")).toHaveTextContent(
       "Volume vs refund requests",
     );
-    expect(screen.queryByRole("button", { name: /approve|execute/i })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: /approve|execute/i }),
+    ).toBeNull();
   });
 });

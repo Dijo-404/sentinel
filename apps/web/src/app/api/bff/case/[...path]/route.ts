@@ -74,7 +74,9 @@ async function proxy(
       {
         code: "PEER_UNAVAILABLE",
         message:
-          err instanceof Error ? err.message : "Network failure contacting case API",
+          err instanceof Error
+            ? err.message
+            : "Network failure contacting case API",
         request_id: requestId,
       },
       { status: 503 },
@@ -87,8 +89,7 @@ async function proxy(
     headers: {
       "Content-Type":
         upstream.headers.get("content-type") ?? "application/json",
-      "X-Request-Id":
-        upstream.headers.get("x-request-id") ?? requestId,
+      "X-Request-Id": upstream.headers.get("x-request-id") ?? requestId,
     },
   });
 }

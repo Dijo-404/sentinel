@@ -9,7 +9,11 @@ export default async function SupervisorProtectedLayout({
 }) {
   const session = await requireRole("supervisor");
   return (
-    <ProtectedShell role="supervisor" session={session} nav={PORTAL_NAV.supervisor}>
+    <ProtectedShell
+      role="supervisor"
+      session={session}
+      nav={PORTAL_NAV.supervisor}
+    >
       {children}
     </ProtectedShell>
   );

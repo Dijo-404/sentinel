@@ -74,7 +74,13 @@ export type IdentityClient = {
     | { ok: false; code: string; message: string }
   >;
   assignableRoles(): Promise<
-    Array<{ role_id: Exclude<import("../../../tests/stubs/identity").PortalRole, "customer">; label: string }>
+    Array<{
+      role_id: Exclude<
+        import("../../../tests/stubs/identity").PortalRole,
+        "customer"
+      >;
+      label: string;
+    }>
   >;
 };
 

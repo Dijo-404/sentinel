@@ -79,12 +79,12 @@ export function LandingPage({ dashboardHref }: Props) {
       <motion.section
         className="landing-hero"
         {...fade}
-        transition={reduceMotion ? undefined : { duration: 0.45, ease: "easeOut" }}
+        transition={
+          reduceMotion ? undefined : { duration: 0.45, ease: "easeOut" }
+        }
       >
         <div className="landing-hero__copy">
-          <h1>
-            Payment ops from investigate to approve, dispatch, and verify
-          </h1>
+          <h1>Payment ops from investigate to approve, dispatch, and verify</h1>
           <p className="landing-lead">
             Sentinel keeps models advisory and money paths server-owned — so
             queues, approvals, and outcomes stay auditable.
@@ -159,7 +159,9 @@ export function LandingPage({ dashboardHref }: Props) {
       <footer className="landing-footer">
         <div>
           <p className="landing-wordmark">Sentinel</p>
-          <p className="muted">Fixture demos only — not live production money.</p>
+          <p className="muted">
+            Fixture demos only — not live production money.
+          </p>
         </div>
         <div>
           <p>Product</p>

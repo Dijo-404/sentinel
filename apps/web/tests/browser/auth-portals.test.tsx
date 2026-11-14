@@ -11,9 +11,7 @@ vi.mock("@/lib/server/auth-actions", () => ({
   loginAction: vi.fn(async () => ({
     ok: false,
     message: "This account does not have the operator workspace.",
-    workspaces: [
-      { label: "Customer workspace", href: "/customer/dashboard" },
-    ],
+    workspaces: [{ label: "Customer workspace", href: "/customer/dashboard" }],
   })),
   inviteStaffAction: vi.fn(async () => ({
     ok: false,
@@ -69,7 +67,9 @@ describe("portal auth UI", () => {
       "href",
       "/operator/dashboard",
     );
-    expect(screen.queryByRole("link", { name: "Get started" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Get started" }),
+    ).not.toBeInTheDocument();
   });
 
   it("shared login has workspace select and role-login testid", () => {

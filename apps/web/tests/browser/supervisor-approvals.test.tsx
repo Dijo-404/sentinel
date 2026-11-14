@@ -17,7 +17,9 @@ describe("supervisor approvals", () => {
         mode="fixture"
       />,
     );
-    expect(await screen.findByTestId("supervisor-approvals")).toBeInTheDocument();
+    expect(
+      await screen.findByTestId("supervisor-approvals"),
+    ).toBeInTheDocument();
     expect(screen.getByTestId("open-approval-action-demo-1")).toHaveAttribute(
       "href",
       "/supervisor/approvals/action-demo-1",
@@ -29,7 +31,9 @@ describe("supervisor approvals", () => {
     const empty = createCaseApiStub("valid");
     empty.listOpsCases = async () => ({ cases: [] });
     render(<SupervisorApprovalsQueue caseClient={empty} mode="fixture" />);
-    expect(await screen.findByTestId("state-empty")).toHaveTextContent("Queue empty");
+    expect(await screen.findByTestId("state-empty")).toHaveTextContent(
+      "Queue empty",
+    );
 
     render(
       <SupervisorApprovalsQueue
@@ -57,7 +61,9 @@ describe("supervisor approvals", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByTestId("supervisor-decision-workspace")).toBeInTheDocument();
+      expect(
+        screen.getByTestId("supervisor-decision-workspace"),
+      ).toBeInTheDocument();
     });
     expect(screen.getByTestId("approval-slot")).toHaveAttribute(
       "data-slot",
@@ -67,9 +73,9 @@ describe("supervisor approvals", () => {
       "d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993",
     );
     expect(screen.getByTestId("approval-case-revision")).toHaveTextContent("2");
-    expect(screen.getByTestId("approval-decision-expires-at")).toHaveTextContent(
-      FIXTURE_DECISION_EXPIRES_AT,
-    );
+    expect(
+      screen.getByTestId("approval-decision-expires-at"),
+    ).toHaveTextContent(FIXTURE_DECISION_EXPIRES_AT);
 
     await user.click(screen.getByTestId("approval-approve"));
     await waitFor(() => {
@@ -99,7 +105,9 @@ describe("supervisor approvals", () => {
         approvalSlot={{ state: "error", error: fail.error }}
       />,
     );
-    expect(await screen.findByTestId("supervisor-decision-workspace")).toBeInTheDocument();
+    expect(
+      await screen.findByTestId("supervisor-decision-workspace"),
+    ).toBeInTheDocument();
     expect(screen.getByRole("alert")).toHaveTextContent("PEER_UNAVAILABLE");
     expect(screen.getByRole("alert")).toHaveTextContent(
       "fixture fallback is not used",

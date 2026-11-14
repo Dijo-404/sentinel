@@ -19,10 +19,16 @@ export function ShellLayout({
       <header className="shell-header">
         <div className="brand">Sentinel</div>
         <nav className="nav" aria-label="Primary">
-          <Link href="/intake" aria-current={current === "intake" ? "page" : undefined}>
+          <Link
+            href="/intake"
+            aria-current={current === "intake" ? "page" : undefined}
+          >
             Text intake
           </Link>
-          <Link href="/ops" aria-current={current === "ops" ? "page" : undefined}>
+          <Link
+            href="/ops"
+            aria-current={current === "ops" ? "page" : undefined}
+          >
             Operator queue
           </Link>
         </nav>

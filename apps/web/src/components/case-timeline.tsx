@@ -38,7 +38,10 @@ export function CaseTimeline({ caseId, caseClient }: Props) {
         setEvents(ev.events);
       } catch (err) {
         if (cancelled) return;
-        if (err instanceof PeerError && (err.httpStatus === 403 || err.code === "FORBIDDEN")) {
+        if (
+          err instanceof PeerError &&
+          (err.httpStatus === 403 || err.code === "FORBIDDEN")
+        ) {
           setPermission(`${err.code}: ${err.message}`);
         } else if (err instanceof PeerError) {
           setError(`${err.code}: ${err.message}`);
@@ -57,10 +60,18 @@ export function CaseTimeline({ caseId, caseClient }: Props) {
 
   if (loading) return <UiState tone="loading" title="Loading case timeline…" />;
   if (permission) {
-    return <UiState tone="permission" title="Permission denied" detail={permission} />;
+    return (
+      <UiState
+        tone="permission"
+        title="Permission denied"
+        detail={permission}
+      />
+    );
   }
-  if (error) return <UiState tone="error" title="Timeline unavailable" detail={error} />;
-  if (!caseRecord) return <UiState tone="empty" title="No case" detail="Case not found." />;
+  if (error)
+    return <UiState tone="error" title="Timeline unavailable" detail={error} />;
+  if (!caseRecord)
+    return <UiState tone="empty" title="No case" detail="Case not found." />;
 
   return (
     <div className="stack">
@@ -70,11 +81,18 @@ export function CaseTimeline({ caseId, caseClient }: Props) {
       </div>
       <p className="muted">
         Case{" "}
-        <MaskedRef label="case_id" masked={maskReference(caseRecord.case_id, "case-…")} />{" "}
+        <MaskedRef
+          label="case_id"
+          masked={maskReference(caseRecord.case_id, "case-…")}
+        />{" "}
         · revision {caseRecord.revision} · intent {caseRecord.intent}
       </p>
       {events.length === 0 ? (
-        <UiState tone="empty" title="No events yet" detail="Timeline is empty." />
+        <UiState
+          tone="empty"
+          title="No events yet"
+          detail="Timeline is empty."
+        />
       ) : (
         <ol className="timeline panel" aria-label="Case events">
           {events.map((event) => (

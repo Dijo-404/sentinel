@@ -15,7 +15,11 @@ import { requireRole } from "./authorization";
 
 export type ActionResult =
   | { ok: true; redirectTo?: string }
-  | { ok: false; message: string; workspaces?: Array<{ label: string; href: string }> };
+  | {
+      ok: false;
+      message: string;
+      workspaces?: Array<{ label: string; href: string }>;
+    };
 
 export async function loginAction(
   _prev: ActionResult | null,

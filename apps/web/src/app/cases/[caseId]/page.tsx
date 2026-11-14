@@ -13,7 +13,11 @@ export default function CasePage({
   const { caseId } = use(params);
   const { caseClient, config } = useShell();
   return (
-    <ShellLayout current="home" mode={config.mode} voiceEnabled={config.voiceEnabled}>
+    <ShellLayout
+      current="home"
+      mode={config.mode}
+      voiceEnabled={config.voiceEnabled}
+    >
       <CaseTimeline caseId={caseId} caseClient={caseClient} />
     </ShellLayout>
   );

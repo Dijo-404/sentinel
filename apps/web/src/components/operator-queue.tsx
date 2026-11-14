@@ -33,7 +33,10 @@ export function OperatorQueue({ caseClient }: Props) {
         setCases(result.cases);
       } catch (err) {
         if (cancelled) return;
-        if (err instanceof PeerError && (err.httpStatus === 403 || err.code === "FORBIDDEN")) {
+        if (
+          err instanceof PeerError &&
+          (err.httpStatus === 403 || err.code === "FORBIDDEN")
+        ) {
           setPermission(`${err.code}: ${err.message}`);
         } else if (err instanceof PeerError) {
           setError(`${err.code}: ${err.message}`);
@@ -50,19 +53,31 @@ export function OperatorQueue({ caseClient }: Props) {
     };
   }, [caseClient]);
 
-  if (loading) return <UiState tone="loading" title="Loading operator queue…" />;
+  if (loading)
+    return <UiState tone="loading" title="Loading operator queue…" />;
   if (permission) {
-    return <UiState tone="permission" title="Permission denied" detail={permission} />;
+    return (
+      <UiState
+        tone="permission"
+        title="Permission denied"
+        detail={permission}
+      />
+    );
   }
-  if (error) return <UiState tone="error" title="Queue unavailable" detail={error} />;
+  if (error)
+    return <UiState tone="error" title="Queue unavailable" detail={error} />;
   if (cases.length === 0) {
-    return <UiState tone="empty" title="Queue empty" detail="No cases in scope." />;
+    return (
+      <UiState tone="empty" title="Queue empty" detail="No cases in scope." />
+    );
   }
 
   return (
     <div className="stack">
       <h1>Operator queue</h1>
-      <p className="muted">Tenant-scoped cases. Escalation is a handoff, not resolution.</p>
+      <p className="muted">
+        Tenant-scoped cases. Escalation is a handoff, not resolution.
+      </p>
       <div className="panel" style={{ overflowX: "auto" }}>
         <table className="table" aria-label="Operator cases">
           <thead>
@@ -91,7 +106,9 @@ export function OperatorQueue({ caseClient }: Props) {
                 <td>{c.intent}</td>
                 <td className="mono">{c.revision}</td>
                 <td>
-                  <Link href={`/ops/cases/${c.case_id}/evidence`}>Open evidence</Link>
+                  <Link href={`/ops/cases/${c.case_id}/evidence`}>
+                    Open evidence
+                  </Link>
                   {" · "}
                   <Link href={`/cases/${c.case_id}`}>Timeline</Link>
                 </td>

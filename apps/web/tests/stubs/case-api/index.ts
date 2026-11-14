@@ -17,7 +17,11 @@ import caseDemo from "../../../contracts/fixtures/case-demo.json";
 import evidenceBundle from "../../../contracts/fixtures/evidence-bundle.json";
 import actionRecord from "../../../contracts/fixtures/action-record.json";
 
-export type StubCase = "valid" | "unavailable" | "malformed" | "unauthorized_or_out_of_scope";
+export type StubCase =
+  | "valid"
+  | "unavailable"
+  | "malformed"
+  | "unauthorized_or_out_of_scope";
 
 const demoCase = caseDemo as Case;
 const demoEvidence = evidenceBundle as EvidenceBundle;
@@ -80,7 +84,12 @@ function validClient(): CaseClient {
   return {
     async createCase(input: CaseCreate): Promise<CaseCreated> {
       if (!input.message || !input.order_reference) {
-        fail("INVALID_INPUT", "message and order_reference required", "req-create-422", 422);
+        fail(
+          "INVALID_INPUT",
+          "message and order_reference required",
+          "req-create-422",
+          422,
+        );
       }
       return {
         case_id: "case-demo-42",
@@ -116,12 +125,20 @@ function validClient(): CaseClient {
       await this.getCase(caseId);
       return structuredClone(demoEvidence);
     },
-    async decide(actionId: string, request: DecisionRequest): Promise<Approval> {
+    async decide(
+      actionId: string,
+      request: DecisionRequest,
+    ): Promise<Approval> {
       if (actionId !== demoAction.action_id) {
         fail("NOT_FOUND", "Action not found", "req-decide-404", 404);
       }
       if (request.action_digest !== demoAction.action_digest) {
-        fail("DIGEST_MISMATCH", "Action digest mismatch", "req-decide-409", 409);
+        fail(
+          "DIGEST_MISMATCH",
+          "Action digest mismatch",
+          "req-decide-409",
+          409,
+        );
       }
       return {
         approval_id: "approval-demo-1",
@@ -150,7 +167,12 @@ function validClient(): CaseClient {
 
 function unavailableClient(): CaseClient {
   const boom = async () =>
-    fail("PEER_UNAVAILABLE", "Required peer unavailable", "req-unavailable", 503);
+    fail(
+      "PEER_UNAVAILABLE",
+      "Required peer unavailable",
+      "req-unavailable",
+      503,
+    );
   return {
     createCase: boom,
     getCase: boom,
