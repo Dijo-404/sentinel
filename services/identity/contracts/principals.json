@@ -1,0 +1,66 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "contract_sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb",
+  "seed_password_env": "IDENTITY_DEMO_PASSWORD",
+  "seed_password_default": "x",
+  "users": {
+    "customer@example.test": {
+      "principal_id": "11111111-1111-1111-1111-111111111101",
+      "tenant_id": "tenant-demo",
+      "roles": ["customer"],
+      "subject_refs": [],
+      "case_ids": []
+    },
+    "merchant@example.test": {
+      "principal_id": "11111111-1111-1111-1111-111111111102",
+      "tenant_id": "tenant-demo",
+      "roles": ["merchant"],
+      "subject_refs": ["merchant-demo-1"],
+      "case_ids": []
+    },
+    "operator@example.test": {
+      "principal_id": "11111111-1111-1111-1111-111111111103",
+      "tenant_id": "tenant-demo",
+      "roles": ["operator"],
+      "subject_refs": [],
+      "case_ids": []
+    },
+    "supervisor@example.test": {
+      "principal_id": "11111111-1111-1111-1111-111111111104",
+      "tenant_id": "tenant-demo",
+      "roles": ["supervisor"],
+      "subject_refs": ["*"],
+      "case_ids": []
+    },
+    "risk@example.test": {
+      "principal_id": "11111111-1111-1111-1111-111111111105",
+      "tenant_id": "tenant-demo",
+      "roles": ["risk_officer"],
+      "subject_refs": [],
+      "case_ids": []
+    },
+    "admin@example.test": {
+      "principal_id": "11111111-1111-1111-1111-111111111106",
+      "tenant_id": "tenant-demo",
+      "roles": ["platform_admin"],
+      "subject_refs": ["*"],
+      "case_ids": []
+    },
+    "admin-reviewer@example.test": {
+      "principal_id": "11111111-1111-1111-1111-111111111107",
+      "tenant_id": "tenant-demo",
+      "roles": ["platform_admin"],
+      "subject_refs": ["*"],
+      "case_ids": [],
+      "note": "independent privileged-change reviewer"
+    },
+    "outsider@other.test": {
+      "principal_id": "22222222-2222-2222-2222-222222222201",
+      "tenant_id": "tenant-other",
+      "roles": ["operator"],
+      "subject_refs": [],
+      "case_ids": [],
+      "note": "negative cross-tenant"
+    }
+  }
+}
