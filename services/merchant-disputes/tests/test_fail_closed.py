@@ -110,6 +110,22 @@ def test_real_peers_requires_config():
         )
 
 
+def test_real_peers_refuses_default_memory_store():
+    with pytest.raises(PeerUnavailableError, match="injected durable store"):
+        build_app(
+            Settings(
+                mode="real-peers",
+                tokens="t=p|tenant|operator|s|c|m",
+                case_api_base_url="http://127.0.0.1:9",
+                case_api_token="tok",
+                evidence_base_url="http://127.0.0.1:9",
+                evidence_token="tok",
+                default_deadline_seconds=60,
+                contract_version="sentinel.task-contracts.v1",
+            )
+        )
+
+
 def test_http_case_api_unavailable():
     def handler(request: httpx.Request) -> httpx.Response:
         raise httpx.ConnectError("down", request=request)

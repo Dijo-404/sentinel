@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- Real-peers bootstrap refuses default `MemoryRequestStore`; requires an injected
+  durable store so worker processes cannot wipe or split state.
+
 ### Added
 
 - Installable `merchant-refunds.v1` HTTP service with draft/submit/decision/sync

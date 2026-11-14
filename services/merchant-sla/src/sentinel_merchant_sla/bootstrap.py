@@ -12,9 +12,21 @@ from sentinel_merchant_sla.adapters.case_api_http import HttpCaseApi
 from sentinel_merchant_sla.adapters.clock import SystemClock
 from sentinel_merchant_sla.adapters.http_api import create_app
 from sentinel_merchant_sla.adapters.memory_store import MemorySlaStore
-from sentinel_merchant_sla.application.errors import ConfigurationError
+from sentinel_merchant_sla.application.errors import ConfigurationError, PeerUnavailableError
 from sentinel_merchant_sla.application.ports import CaseApiPort, Clock
 from sentinel_merchant_sla.application.service import MerchantSlaService
+
+
+def _resolve_store(mode: str, store: MemorySlaStore | None):
+    if store is not None:
+        return store
+    if mode == "real-peers":
+        raise PeerUnavailableError(
+            "real-peers requires an injected durable store; "
+            "MemorySlaStore defaults are not allowed across workers"
+        )
+    return MemorySlaStore()
+
 
 MODULE_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_PRINCIPALS = MODULE_ROOT / "contracts" / "principals.json"
@@ -75,7 +87,7 @@ def build_app(
     tokens = TokenMap.from_path(cfg.principals_path)
     peer = build_case_api(cfg, case_api=case_api)
     service = MerchantSlaService(
-        store=store or MemorySlaStore(),
+        store=_resolve_store(cfg.mode, store),
         clock=clock or SystemClock(),
         case_api=peer,
     )
