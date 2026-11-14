@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any, TypedDict
 
 DEFAULT_ASSISTANT_URL = "http://127.0.0.1:8026"
-DEFAULT_KNOWLEDGE_URL = "http://127.0.0.1:8034"
+DEFAULT_KNOWLEDGE_URL = "http://127.0.0.1:8035"
 DEFAULT_OPS_ACTIVITY_URL = "http://127.0.0.1:8029"
 DEFAULT_VOICE_URL = "http://127.0.0.1:8017"
 

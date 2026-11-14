@@ -4,7 +4,8 @@
 
 ### Added
 
-- Independent `platform-ai.v1` HTTP+Postgres peer on port `8030`.
+- Independent `platform-ai.v1` HTTP+Postgres peer on port `8036`
+  (8030 stays merchant-disputes).
 - `GET /v1/config` → `{ models, kill_switch, updated_at }` (metadata only).
 - `GET /v1/runs` → `{ runs: [{ run_id, model_id, status, started_at }] }`.
 - Schema `platform_ai.ai_configs` / `ai_runs`; `make seed` writes one synthetic

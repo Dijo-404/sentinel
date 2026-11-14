@@ -5,7 +5,7 @@ metadata for admin surfaces. **No money authority.** Never calls ledger decide
 or stores amount/refund/payment fields.
 
 **Owned root:** `services/platform-ai/`  
-**Default port:** `8030`  
+**Default port:** `8036`  
 **Branch:** `feat/portal-wave4-intel-voice-approval`
 
 Contract: `sentinel.task-contracts.v1`, SHA-256
@@ -39,7 +39,7 @@ seed proofs). Observed mode for unit HTTP tests: `fixture`.
 ```sh
 cp services/platform-ai/.env.example services/platform-ai/.env
 make -C services/platform-ai preview
-# listens on PLATFORM_AI_HOST/PLATFORM_AI_PORT (default 127.0.0.1:8030)
+# listens on PLATFORM_AI_HOST/PLATFORM_AI_PORT (default 127.0.0.1:8036)
 
 make -C services/platform-ai seed
 # requires PLATFORM_AI_DATABASE_URL; writes tenant-demo config + run-demo-1

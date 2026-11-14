@@ -32,7 +32,7 @@ verify-wave2: setup
 verify-wave3: setup
 	./scripts/verify_wave3.sh
 
-# assistant :8026, knowledge :8034, ops-activity :8029 seeded; voice :8017 caps;
+# assistant :8026, knowledge :8035, ops-activity :8029 seeded; voice :8017 caps;
 # offline approval-ui package smoke.
 verify-wave4: setup
 	./scripts/verify_wave4.sh

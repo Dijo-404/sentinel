@@ -36,18 +36,18 @@ Use this matrix so local `mode=real-peers` services share one tenant, case, port
 | merchant-inbox | 8028 |
 | ops-activity (`services/ops-activity`) | 8029 |
 | merchant-disputes | 8030 |
-| platform-ai (`services/platform-ai`) | 8030 |
 | evals HTTP (`evals/core`) | 8031 |
 | merchant-analytics | 8032 |
 | observability (`services/observability`) | 8033 |
-| knowledge (`services/knowledge`) | 8034 |
+| merchant-teams | 8034 |
+| knowledge (`services/knowledge`) | 8035 |
+| platform-ai (`services/platform-ai`) | 8036 |
 | payment simulator | 8094 |
 | web shell | 3012 |
 
 `identity` / `risk` are optional RBAC peers (not `REQUIRED_PEERS`). Fixture AUTH probes use path `rbac-fixture`.
-Knowledge moved to **8034** (8028 stays merchant-inbox). `merchant-disputes` and
-`platform-ai` both default to **8030** — remap one (`DISPUTES_PORT` /
-`PLATFORM_AI_PORT`) when co-running on the same host.
+Knowledge on **8035** (8034 = merchant-teams; 8028 = merchant-inbox).
+platform-ai on **8036** (8030 stays merchant-disputes).
 
 ## Shared opaque tokens
 

@@ -237,7 +237,7 @@ make -C integration/core seed-sandbox
 #     make -C services/ops-activity seed
 ```
 
-3. Serve peers (loopback defaults): assistant `:8026`, knowledge `:8034`,
+3. Serve peers (loopback defaults): assistant `:8026`, knowledge `:8035`,
    ops-activity `:8029`, voice `:8017`.
 
 4. Verify (nonzero if peers down, HTTP ≠ 200, or seed rows missing):
@@ -277,9 +277,9 @@ curl -sS http://127.0.0.1:8026/healthz
 curl -sS -H "Authorization: Bearer tok-customer" \
   "http://127.0.0.1:8026/v1/threads?role=customer"
 
-curl -sS http://127.0.0.1:8034/healthz
+curl -sS http://127.0.0.1:8035/healthz
 curl -sS -H "Authorization: Bearer operator-token" \
-  http://127.0.0.1:8034/v1/articles
+  http://127.0.0.1:8035/v1/articles
 
 curl -sS http://127.0.0.1:8029/healthz
 curl -sS -H "Authorization: Bearer operator-token" \

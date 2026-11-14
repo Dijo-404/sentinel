@@ -25,7 +25,7 @@ def main(argv: list[str] | None = None) -> int:
     serve.add_argument(
         "--port",
         type=int,
-        default=int(os.environ.get("PLATFORM_AI_PORT", "8030")),
+        default=int(os.environ.get("PLATFORM_AI_PORT", "8036")),
     )
 
     sub.add_parser(

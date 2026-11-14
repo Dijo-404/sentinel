@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Changed — 15 November 2026 (port remap)
+
+- Knowledge verify default `:8035` (was `:8034`; merchant-teams owns 8034).
+- Matrix: platform-ai `:8036` (was colliding with merchant-disputes `:8030`).
+
 ### Added — 15 November 2026 (portal wave 4 verify)
 
 - `verify_wave4` + `scripts/verify_wave4.sh` / `make verify-wave4` /
@@ -10,7 +15,7 @@
   (`article-demo-refund-policy`), ops-activity feed (`act-seed-case-demo-42`);
   voice `GET /v1/capabilities` (`port=voice.v1`); offline
   `packages/approval-ui` package export smoke (`ApprovalPanel`).
-- Defaults: assistant `:8026`, knowledge `:8034`, ops-activity `:8029`,
+- Defaults: assistant `:8026`, knowledge `:8035`, ops-activity `:8029`,
   voice `:8017`. Tokens: `tok-customer` / `operator-token`.
 - `seed_sandbox` invokes `make seed` for assistant / knowledge / ops-activity /
   platform-ai / evals / observability when matching `*_DATABASE_URL` /
