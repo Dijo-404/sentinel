@@ -18,7 +18,7 @@ Installs only this module's `uv` dependencies (`pyproject.toml` / `uv.lock`). No
 Sentinel services required. PostgreSQL via `KNOWLEDGE_DATABASE_URL` (required for
 `make seed` and real-peers durable state).
 
-Preview (fixture mode, port **8028**):
+Preview (fixture mode, port **8034**):
 
 ```sh
 cp services/knowledge/.env.example services/knowledge/.env

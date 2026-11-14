@@ -29,7 +29,7 @@
   `/api/bff/ops-activity` (mirror merchant-teams `_session-proxy`).
 - Replaced operator Activity / Knowledge / Assistant and customer Assistant
   stubs with peer-backed panels. Env: `ASSISTANT_BASE_URL` (:8026),
-  `KNOWLEDGE_BASE_URL` (:8028), `OPS_ACTIVITY_BASE_URL` (:8029).
+  `KNOWLEDGE_BASE_URL` (:8034), `OPS_ACTIVITY_BASE_URL` (:8029).
 - `data-testid`: `operator-activity`, `operator-activity-list`,
   `operator-knowledge`, `operator-knowledge-list`, `operator-assistant`,
   `operator-assistant-threads`, `operator-assistant-messages`,

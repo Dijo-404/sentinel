@@ -24,7 +24,7 @@ def main(argv: list[str] | None = None) -> int:
     serve.add_argument(
         "--port",
         type=int,
-        default=int(os.environ.get("KNOWLEDGE_PORT", "8028")),
+        default=int(os.environ.get("KNOWLEDGE_PORT", "8034")),
     )
     sub.add_parser(
         "seed",

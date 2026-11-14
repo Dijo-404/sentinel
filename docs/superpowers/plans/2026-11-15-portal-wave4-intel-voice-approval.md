@@ -14,7 +14,7 @@
 
 - Contract: `sentinel.task-contracts.v1` / SHA-256 `0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb`
 - Product: `NEXT_PUBLIC_SHELL_MODE=real-peers`; no silent fixture rows
-- Ports: assistant `8026`, knowledge `8028`, ops-activity `8029`, platform-ai `8030`, evals HTTP `8031`, observability `8033`, voice `8017` (existing)
+- Ports: assistant `8026`, knowledge `8034` (8028 = merchant-inbox), ops-activity `8029`, platform-ai `8030`, evals HTTP `8031`, analytics `8032`, observability `8033`, voice `8017` (existing)
 - Assistants/knowledge/voice/platform-ai **never** call ledger decide or mint refunds
 - Sarvam secrets only in ignored `services/voice/.env`; `make check` credential-free
 - Worktree: `/home/dj/projects/sentinel-portal-wave0-1` · branch `feat/portal-wave4-intel-voice-approval`
@@ -60,7 +60,7 @@
 - `GET /v1/articles` → `{ articles: [{ article_id, title, summary, updated_at }] }`
 - `GET /v1/articles/{id}` → article body
 - `GET /v1/search?q=` → `{ hits: [...] }` (simple ILIKE/title match OK)
-- Port `8028`; seed ≥1 article for sandbox
+- Port `8034`; seed ≥1 article for sandbox
 
 - [ ] **Steps: TDD, check, commit** `feat(knowledge): http+postgres articles`
 
