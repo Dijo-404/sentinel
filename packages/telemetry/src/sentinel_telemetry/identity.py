@@ -91,18 +91,20 @@ BOUNDED_AUTHZ_REASONS: frozenset[str] = frozenset(
         "other",
     }
 )
-# Permission IDs stay short catalog tokens (docs/roles.md §9.1 style), not free text.
-_PERMISSION_RE = re.compile(r"^[a-z][a-z0-9_]{0,63}$")
+BOUNDED_ENVIRONMENTS: frozenset[str] = frozenset({"sandbox", "fixture", "prod", "unknown"})
+# Permission IDs: dotted catalog tokens (docs/roles.md §9.1), not free text.
+_PERMISSION_RE = re.compile(r"^[a-z][a-z0-9_.]{0,63}$")
+
+# Keys whose *values* are bounded only via sanitize_identity_metric_labels / emit_*.
+IDENTITY_VALUE_BOUNDED_LABEL_KEYS: frozenset[str] = frozenset(
+    {"role", "result", "operation", "permission", "reason"}
+)
 
 IDENTITY_METRIC_LABEL_KEYS: frozenset[str] = frozenset(
     {
         "service",
         "environment",
-        "role",
-        "result",
-        "operation",
-        "permission",
-        "reason",
+        *IDENTITY_VALUE_BOUNDED_LABEL_KEYS,
     }
 )
 
@@ -132,8 +134,65 @@ def _require_permission(permission: str) -> str:
     return permission
 
 
+def _require_environment(environment: str) -> str:
+    return _require_bound(environment, BOUNDED_ENVIRONMENTS, "environment")
+
+
 def _base_labels(environment: str) -> dict[str, str]:
-    return {"service": "identity", "environment": environment}
+    return {"service": "identity", "environment": _require_environment(environment)}
+
+
+def sanitize_identity_metric_labels(labels: dict[str, object] | None) -> dict[str, str]:
+    """
+    Bound identity metric label values (role/result/operation/permission/reason/environment).
+
+    Free-form callers must use this (or emit_* helpers), not sanitize_metric_labels alone:
+    general sanitize_metric_labels rejects identity value-bounded keys.
+    """
+    from .redaction import sanitize_metric_labels
+
+    if labels is None:
+        return {}
+    cleaned_keys = {
+        key: value for key, value in labels.items() if key not in IDENTITY_VALUE_BOUNDED_LABEL_KEYS
+    }
+    # Validate identity-specific values before merging into key allowlist sanitize.
+    role = labels.get("role")
+    result = labels.get("result")
+    operation = labels.get("operation")
+    permission = labels.get("permission")
+    reason = labels.get("reason")
+    environment = labels.get("environment")
+
+    bounded: dict[str, str] = {}
+    if "role" in labels:
+        if not isinstance(role, str):
+            raise RedactionError("identity role label must be a string")
+        bounded["role"] = _require_bound(role, BOUNDED_ROLES, "role")
+    if "result" in labels:
+        if not isinstance(result, str):
+            raise RedactionError("identity result label must be a string")
+        bounded["result"] = _require_bound(result, BOUNDED_RESULTS, "result")
+    if "operation" in labels:
+        if not isinstance(operation, str):
+            raise RedactionError("identity operation label must be a string")
+        bounded["operation"] = _require_bound(operation, BOUNDED_ROLE_OPERATIONS, "operation")
+    if "permission" in labels:
+        if not isinstance(permission, str):
+            raise RedactionError("identity permission label must be a string")
+        bounded["permission"] = _require_permission(permission)
+    if "reason" in labels:
+        if not isinstance(reason, str):
+            raise RedactionError("identity reason label must be a string")
+        bounded["reason"] = _require_bound(reason, BOUNDED_AUTHZ_REASONS, "reason")
+    if "environment" in labels:
+        if not isinstance(environment, str):
+            raise RedactionError("identity environment label must be a string")
+        cleaned_keys = {**cleaned_keys, "environment": _require_environment(environment)}
+
+    # Key/secret checks for remaining labels (service, environment, …).
+    base = sanitize_metric_labels(cleaned_keys)
+    return {**base, **bounded}
 
 
 @dataclass(frozen=True)
@@ -162,15 +221,12 @@ def emit_session_authenticate(
     """Span `identity.session.authenticate` + `identity_login_attempts_total`."""
     role = _require_bound(role, BOUNDED_ROLES, "role")
     result = _require_bound(result, BOUNDED_RESULTS, "result")
+    labels = {**_base_labels(environment), "role": role, "result": result}
     corr = identity_request_correlation(request_id)
     span = hooks.start_span(SPAN_SESSION_AUTHENTICATE, corr, {"event.kind": "identity"})
     hooks.add_event(span, "identity.session.authenticate.finished", {"event.kind": "identity"})
     hooks.end_span(span)
-    hooks.record_metric(
-        METRIC_LOGIN_ATTEMPTS_TOTAL,
-        1.0,
-        {**_base_labels(environment), "role": role, "result": result},
-    )
+    hooks.record_metric(METRIC_LOGIN_ATTEMPTS_TOTAL, 1.0, labels)
     return span
 
 
@@ -183,14 +239,11 @@ def emit_staff_invite(
 ) -> RecordedSpan:
     """Span `identity.staff.invite` + `identity_staff_invitations_total`."""
     result = _require_bound(result, BOUNDED_RESULTS, "result")
+    labels = {**_base_labels(environment), "result": result}
     corr = identity_request_correlation(request_id)
     span = hooks.start_span(SPAN_STAFF_INVITE, corr, {"event.kind": "identity"})
     hooks.end_span(span)
-    hooks.record_metric(
-        METRIC_STAFF_INVITATIONS_TOTAL,
-        1.0,
-        {**_base_labels(environment), "result": result},
-    )
+    hooks.record_metric(METRIC_STAFF_INVITATIONS_TOTAL, 1.0, labels)
     return span
 
 
@@ -205,15 +258,12 @@ def emit_role_change(
     """Span assign/revoke + `identity_role_changes_total`."""
     role = _require_bound(role, BOUNDED_ROLES, "role")
     operation = _require_bound(operation, BOUNDED_ROLE_OPERATIONS, "operation")
+    labels = {**_base_labels(environment), "role": role, "operation": operation}
     span_name = SPAN_ROLE_ASSIGN if operation == "assign" else SPAN_ROLE_REVOKE
     corr = identity_request_correlation(request_id)
     span = hooks.start_span(span_name, corr, {"event.kind": "identity", "action.type": operation})
     hooks.end_span(span)
-    hooks.record_metric(
-        METRIC_ROLE_CHANGES_TOTAL,
-        1.0,
-        {**_base_labels(environment), "role": role, "operation": operation},
-    )
+    hooks.record_metric(METRIC_ROLE_CHANGES_TOTAL, 1.0, labels)
     return span
 
 
@@ -227,13 +277,14 @@ def emit_session_revoke(
     """Span `identity.session.revoke` + revocation latency histogram sample."""
     if latency_seconds < 0 or latency_seconds > 86_400:
         raise RedactionError("identity revocation latency_seconds out of bound")
+    labels = _base_labels(environment)
     corr = identity_request_correlation(request_id)
     span = hooks.start_span(SPAN_SESSION_REVOKE, corr, {"event.kind": "identity"})
     hooks.end_span(span)
     hooks.record_metric(
         METRIC_SESSION_REVOCATION_LATENCY_SECONDS,
         float(latency_seconds),
-        _base_labels(environment),
+        labels,
     )
     return span
 
@@ -248,15 +299,12 @@ def emit_authz_denied(
     """Counter `identity_authz_denied_total` with bounded permission/reason labels."""
     permission = _require_permission(permission)
     reason = _require_bound(reason, BOUNDED_AUTHZ_REASONS, "reason")
-    hooks.record_metric(
-        METRIC_AUTHZ_DENIED_TOTAL,
-        1.0,
-        {
-            **_base_labels(environment),
-            "permission": permission,
-            "reason": reason,
-        },
-    )
+    labels = {
+        **_base_labels(environment),
+        "permission": permission,
+        "reason": reason,
+    }
+    hooks.record_metric(METRIC_AUTHZ_DENIED_TOTAL, 1.0, labels)
 
 
 AdminEvidenceMode = Literal["fixture", "recorded"]

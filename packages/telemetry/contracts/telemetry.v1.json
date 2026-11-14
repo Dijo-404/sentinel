@@ -16,6 +16,7 @@
     "emit_role_change": "identity.role.assign|revoke + identity_role_changes_total",
     "emit_session_revoke": "identity.session.revoke + identity_session_revocation_latency_seconds",
     "emit_authz_denied": "identity_authz_denied_total",
+    "sanitize_identity_metric_labels": "bounded identity label values; required for role/result/operation/permission/reason",
     "project_admin_observability_health": "gated redacted admin projection; no fake live stats"
   },
   "compatibility": {
@@ -25,6 +26,7 @@
     "financial_audit": "separate-unsampled; telemetry never replaces or suppresses it",
     "identity_audit": "separate authoritative family in identity.v1; not financial audit; not sampled telemetry",
     "metric_labels": "bounded allowlist; no case/payment/customer identifiers or PII",
+    "identity_metric_labels": "role/result/operation/permission/reason via sanitize_identity_metric_labels or emit_* only",
     "finharness_finbench": "independently gated; not claimed complete by telemetry helpers"
   }
 }

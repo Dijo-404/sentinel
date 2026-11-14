@@ -64,7 +64,7 @@ report = run(
 ```
 
 - Span/event attributes: allowlisted correlation and operational keys only. Secrets, raw complaints, prompts, and customer/payment identifiers are rejected.
-- Metric labels: bounded allowlist (`service`, `environment`, `outcome`, `scenario`, `tool`, `action_type`, `provider`, `error_type`, `queue`, `event_kind`, plus identity `role` / `result` / `operation` / `permission` / `reason`). Correlation IDs and PII are never labels.
+- Metric labels: bounded allowlist (`service`, `environment`, `outcome`, `scenario`, `tool`, `action_type`, `provider`, `error_type`, `queue`, `event_kind`). Identity keys `role` / `result` / `operation` / `permission` / `reason` are **not** free-form via `sanitize_metric_labels` — use `sanitize_identity_metric_labels` or `emit_*` helpers (bounded values only). `environment` for identity metrics is `sandbox` / `fixture` / `prod` / `unknown`. Correlation IDs and PII are never labels.
 - `SafeTelemetryHooks` swallows redaction/exporter failures so callers continue. It never writes financial audit or identity audit.
 - `mode: real-peers` returns `UNVERIFIED` until an assembled collector is wired; there is no silent fixture fallback.
 
@@ -81,6 +81,8 @@ Helpers in [`identity.py`](src/sentinel_telemetry/identity.py) name spans and me
 | (metric only) | `identity_authz_denied_total{permission,reason}` |
 
 **Financial audit ≠ identity audit ≠ telemetry.** Action-ledger financial audit stays unsampled and authoritative for money. Identity audit events (`identity_audit_events`) stay authoritative inside identity.v1. Telemetry export failure must never suppress either audit family. Do not put emails, user IDs, tokens, or invitation secrets in metric labels.
+
+Permission label values follow §9.1 dotted catalog IDs (e.g. `financial.approval.decide`, `identity.staff.invite`). Free-form `sanitize_metric_labels({"role": ...})` is rejected; call `sanitize_identity_metric_labels` or the emit helpers.
 
 ### Identity service adoption (optional path dep)
 

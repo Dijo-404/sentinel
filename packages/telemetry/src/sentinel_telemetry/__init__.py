@@ -25,6 +25,7 @@ from .identity import (
     emit_session_revoke,
     emit_staff_invite,
     project_admin_observability_health,
+    sanitize_identity_metric_labels,
 )
 from .memory import MemoryCollector, MemoryFinancialAudit
 from .producers import produce_correlated_journey, produce_with_failing_telemetry
@@ -61,5 +62,6 @@ __all__ = [
     "project_admin_observability_health",
     "run",
     "sanitize_attributes",
+    "sanitize_identity_metric_labels",
     "sanitize_metric_labels",
 ]

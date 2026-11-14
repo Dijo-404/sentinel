@@ -42,13 +42,13 @@ ALLOWED_METRIC_LABELS = frozenset(
         "error_type",
         "queue",
         "event_kind",
-        # Identity §15.2 — bounded role/result/operation/permission/reason only.
-        "role",
-        "result",
-        "operation",
-        "permission",
-        "reason",
     }
+)
+
+# Identity §15.2 keys: values must pass sanitize_identity_metric_labels / emit_* helpers.
+# Not accepted by sanitize_metric_labels alone (avoids free-form cardinality).
+IDENTITY_VALUE_BOUNDED_METRIC_LABELS = frozenset(
+    {"role", "result", "operation", "permission", "reason"}
 )
 
 # Shared with finharness-telemetry (path dep); keep allowlists package-local.
@@ -168,6 +168,11 @@ def sanitize_metric_labels(labels: Mapping[str, object] | None) -> dict[str, str
     cleaned: dict[str, str] = {}
     for key, value in labels.items():
         _reject_key(key, for_metric=True)
+        if key in IDENTITY_VALUE_BOUNDED_METRIC_LABELS:
+            raise RedactionError(
+                "Identity metric labels role/result/operation/permission/reason "
+                "require sanitize_identity_metric_labels or emit_* helpers"
+            )
         if key not in ALLOWED_METRIC_LABELS:
             raise RedactionError("Metric label is not on the bounded allowlist")
         sanitized = reject_value(value)
