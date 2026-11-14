@@ -1,6 +1,6 @@
 UV ?= uv
 
-.PHONY: setup check preview
+.PHONY: setup check preview seed
 setup:
 	$(UV) sync --frozen
 
@@ -11,3 +11,8 @@ check: setup
 
 preview: setup
 	$(UV) run --frozen sentinel-identity serve
+
+# Sandbox-only: principals + ≥1 notification for tenant-demo (profile fields).
+# Requires IDENTITY_DATABASE_URL. Challenge OTP fixtures stay test-only.
+seed: setup
+	$(UV) run --frozen sentinel-identity seed

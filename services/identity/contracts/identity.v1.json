@@ -49,7 +49,32 @@
       "method": "GET",
       "path": "/v1/auth/me",
       "auth": "Bearer session",
-      "response": "{ user, workspaces, active_assignment?, permissions }"
+      "response": "{ user{display_name,email,preferred_language,...}, workspaces, active_assignment?, permissions }"
+    },
+    {
+      "method": "PATCH",
+      "path": "/v1/auth/me",
+      "auth": "Bearer session",
+      "request": {
+        "display_name?": "string",
+        "preferred_language?": "string"
+      },
+      "response": "{ user }",
+      "notes": "Self-service profile only; reject unknown/role/tenant/permission keys with 422"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/auth/notifications",
+      "auth": "Bearer session",
+      "response": "{ notifications[{notification_id,title,body,created_at,read_at|null}] }",
+      "notes": "Own inbox only; newest first; max 50"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/auth/notifications/{id}/read",
+      "auth": "Bearer session",
+      "response": "{ notification_id, read_at }",
+      "notes": "404 when notification missing or owned by another user"
     },
     {
       "method": "GET",
@@ -63,6 +88,71 @@
       "auth": "Bearer session",
       "request": { "assignment_id": "string" },
       "response": "{ active_assignment, session_token, expires_at }"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/auth/verify/request",
+      "auth": "Bearer session",
+      "request": {},
+      "response": "{ status: accepted, sandbox_code? }",
+      "notes": "Creates email_verify challenge; sandbox_code only when IDENTITY_EXPOSE_SANDBOX_CODES=true"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/auth/verify/confirm",
+      "auth": "Bearer session",
+      "request": { "code": "string" },
+      "response": "{ user, email_verified: true }",
+      "notes": "Marks email_verified_at; invalid code → 400 INVALID_CHALLENGE"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/auth/mfa/challenge",
+      "auth": "Bearer session",
+      "response": "{ status: accepted, sandbox_code? }",
+      "notes": "Sandbox 8+ alphanumeric loopback code (not production TOTP); lock after 5 failed attempts"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/auth/mfa/verify",
+      "auth": "Bearer session",
+      "request": { "code": "string" },
+      "response": "{ mfa_verified: true, mfa_verified_at }",
+      "notes": "Sets session.mfa_verified_at"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/auth/password/forgot",
+      "request": { "email": "string" },
+      "response": "{ status: accepted, sandbox_code?, sandbox_hint? }",
+      "notes": "Always 202; never enumerates whether email exists; sandbox_code only for known active users when expose flag on; sandbox_hint identical for all emails when IDENTITY_SANDBOX/SENTINEL_V1_SANDBOX on"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/auth/sandbox/latest-code",
+      "auth": "Bearer session",
+      "query": { "purpose": "email_verify|mfa" },
+      "response": "{ code }",
+      "notes": "Sandbox product-demo inbox; 404 when sandbox flag off or no open challenge"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/auth/sandbox/password-reset-code",
+      "headers": { "X-Identity-Sandbox-Token": "IDENTITY_SANDBOX_TOKEN" },
+      "query": { "email": "string" },
+      "response": "{ code }",
+      "notes": "Sandbox-only; constant-time token compare; identical 404 for bad token / unknown email / missing challenge"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/auth/password/reset",
+      "request": {
+        "email": "string",
+        "code": "string",
+        "new_password": "string"
+      },
+      "response": "{ status: reset }",
+      "notes": "200 on success; 400 INVALID_CHALLENGE for unknown email / bad code (same message); revokes sessions"
     },
     {
       "method": "POST",

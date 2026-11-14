@@ -1,14 +1,9 @@
+import { MfaChallengeForm } from "@/components/auth/mfa-challenge-form";
+
 export default function AuthMfaPage() {
   return (
     <div className="auth-page">
-      <div className="auth-card panel stack">
-        <p className="brand auth-brand">Sentinel</p>
-        <h1>Multi-factor authentication</h1>
-        <p className="muted">Scaffold — identity peer wires this flow later.</p>
-        <p className="fixture-banner" role="status">
-          Fixture placeholder
-        </p>
-      </div>
+      <MfaChallengeForm />
     </div>
   );
 }

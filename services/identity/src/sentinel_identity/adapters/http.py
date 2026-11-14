@@ -51,11 +51,11 @@ def create_app(services: AppServices) -> FastAPI:
             body = await _json_object(request)
             allowed = {"email", "password", "display_name", "preferred_language"}
             extra = {k: v for k, v in body.items() if k not in allowed}
-            # Keep preferred_language as non-privileged optional; strip before domain.
             result = services.identity.register_customer(
                 email=str(body.get("email", "")),
                 password=str(body.get("password", "")),
                 display_name=str(body.get("display_name", "")),
+                preferred_language=str(body.get("preferred_language", "")),
                 extra=extra,
                 request_id=request_id,
             )
@@ -104,6 +104,51 @@ def create_app(services: AppServices) -> FastAPI:
         except IdentityError as exc:
             return _error(exc, request_id)
 
+    @app.patch("/v1/auth/me")
+    async def patch_me(request: Request) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            body = await _json_object(request)
+            allowed = {"display_name", "preferred_language"}
+            extra = {k: v for k, v in body.items() if k not in allowed}
+            return JSONResponse(
+                services.identity.update_profile(
+                    session_token=_bearer(request),
+                    display_name=body.get("display_name") if "display_name" in body else None,
+                    preferred_language=(
+                        body.get("preferred_language") if "preferred_language" in body else None
+                    ),
+                    extra=extra,
+                    request_id=request_id,
+                )
+            )
+        except IdentityError as exc:
+            return _error(exc, request_id)
+
+    @app.get("/v1/auth/notifications")
+    def list_notifications(request: Request) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            return JSONResponse(
+                services.identity.list_notifications(session_token=_bearer(request))
+            )
+        except IdentityError as exc:
+            return _error(exc, request_id)
+
+    @app.post("/v1/auth/notifications/{notification_id}/read")
+    def mark_notification_read(request: Request, notification_id: str) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            return JSONResponse(
+                services.identity.mark_notification_read(
+                    session_token=_bearer(request),
+                    notification_id=notification_id,
+                    request_id=request_id,
+                )
+            )
+        except IdentityError as exc:
+            return _error(exc, request_id)
+
     @app.get("/v1/auth/workspaces")
     def workspaces(request: Request) -> JSONResponse:
         request_id = _request_id(request)
@@ -124,6 +169,123 @@ def create_app(services: AppServices) -> FastAPI:
                 services.identity.select_workspace(
                     session_token=_bearer(request),
                     assignment_id=str(assignment_id),
+                    request_id=request_id,
+                )
+            )
+        except IdentityError as exc:
+            return _error(exc, request_id)
+
+    @app.post("/v1/auth/verify/request")
+    async def verify_request(request: Request) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            await _json_object(request)
+            return JSONResponse(
+                services.identity.request_email_verify(
+                    session_token=_bearer(request), request_id=request_id
+                ),
+                status_code=202,
+            )
+        except IdentityError as exc:
+            return _error(exc, request_id)
+
+    @app.post("/v1/auth/verify/confirm")
+    async def verify_confirm(request: Request) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            body = await _json_object(request)
+            return JSONResponse(
+                services.identity.confirm_email_verify(
+                    session_token=_bearer(request),
+                    code=str(body.get("code", "")),
+                    request_id=request_id,
+                )
+            )
+        except IdentityError as exc:
+            return _error(exc, request_id)
+
+    @app.post("/v1/auth/mfa/challenge")
+    def mfa_challenge(request: Request) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            return JSONResponse(
+                services.identity.request_mfa_challenge(
+                    session_token=_bearer(request), request_id=request_id
+                ),
+                status_code=202,
+            )
+        except IdentityError as exc:
+            return _error(exc, request_id)
+
+    @app.post("/v1/auth/mfa/verify")
+    async def mfa_verify(request: Request) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            body = await _json_object(request)
+            return JSONResponse(
+                services.identity.verify_mfa(
+                    session_token=_bearer(request),
+                    code=str(body.get("code", "")),
+                    request_id=request_id,
+                )
+            )
+        except IdentityError as exc:
+            return _error(exc, request_id)
+
+    @app.post("/v1/auth/password/forgot")
+    async def password_forgot(request: Request) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            body = await _json_object(request)
+            return JSONResponse(
+                services.identity.forgot_password(
+                    email=str(body.get("email", "")),
+                    request_id=request_id,
+                ),
+                status_code=202,
+            )
+        except IdentityError as exc:
+            return _error(exc, request_id)
+
+    @app.get("/v1/auth/sandbox/latest-code")
+    def sandbox_latest_code(request: Request) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            purpose = str(request.query_params.get("purpose", ""))
+            return JSONResponse(
+                services.identity.sandbox_latest_code(
+                    session_token=_bearer(request),
+                    purpose=purpose,
+                )
+            )
+        except IdentityError as exc:
+            return _error(exc, request_id)
+
+    @app.get("/v1/auth/sandbox/password-reset-code")
+    def sandbox_password_reset_code(request: Request) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            email = str(request.query_params.get("email", ""))
+            token = request.headers.get("x-identity-sandbox-token") or ""
+            return JSONResponse(
+                services.identity.sandbox_password_reset_code(
+                    email=email,
+                    sandbox_token=token,
+                )
+            )
+        except IdentityError as exc:
+            return _error(exc, request_id)
+
+    @app.post("/v1/auth/password/reset")
+    async def password_reset(request: Request) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            body = await _json_object(request)
+            return JSONResponse(
+                services.identity.reset_password(
+                    email=str(body.get("email", "")),
+                    code=str(body.get("code", "")),
+                    new_password=str(body.get("new_password", "")),
                     request_id=request_id,
                 )
             )

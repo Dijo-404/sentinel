@@ -14,8 +14,11 @@ from sqlalchemy import Engine, create_engine, text
 from ..application.errors import ConflictError, ForbiddenError
 from ..domain.models import (
     AuditEvent,
+    AuthChallenge,
+    AuthDeliveryLogEntry,
     DeliveryOutboxItem,
     Invitation,
+    Notification,
     PrivilegedChangeRequest,
     RoleAssignment,
     SessionRecord,
@@ -72,10 +75,12 @@ class PostgresIdentityStore:
                     """
                     INSERT INTO identity.users (
                         user_id, account_type, email, display_name, status,
-                        authz_version, password_hash, tenant_id, created_at, updated_at
+                        authz_version, password_hash, tenant_id, created_at, updated_at,
+                        preferred_language, email_verified_at
                     ) VALUES (
                         :user_id, :account_type, :email, :display_name, :status,
-                        :authz_version, :password_hash, :tenant_id, :created_at, :updated_at
+                        :authz_version, :password_hash, :tenant_id, :created_at, :updated_at,
+                        :preferred_language, :email_verified_at
                     )
                     """
                 ),
@@ -116,7 +121,9 @@ class PostgresIdentityStore:
                         account_type=:account_type, email=:email,
                         display_name=:display_name, status=:status,
                         authz_version=:authz_version, password_hash=:password_hash,
-                        tenant_id=:tenant_id, updated_at=:updated_at
+                        tenant_id=:tenant_id, updated_at=:updated_at,
+                        preferred_language=:preferred_language,
+                        email_verified_at=:email_verified_at
                     WHERE user_id=:user_id
                     """
                 ),
@@ -356,10 +363,12 @@ class PostgresIdentityStore:
                         """
                         INSERT INTO identity.users (
                             user_id, account_type, email, display_name, status,
-                            authz_version, password_hash, tenant_id, created_at, updated_at
+                            authz_version, password_hash, tenant_id, created_at, updated_at,
+                            preferred_language, email_verified_at
                         ) VALUES (
                             :user_id, :account_type, :email, :display_name, :status,
-                            :authz_version, :password_hash, :tenant_id, :created_at, :updated_at
+                            :authz_version, :password_hash, :tenant_id, :created_at, :updated_at,
+                            :preferred_language, :email_verified_at
                         )
                         """
                     ),
@@ -372,7 +381,8 @@ class PostgresIdentityStore:
                         UPDATE identity.users SET
                             authz_version=:authz_version, updated_at=:updated_at,
                             password_hash=:password_hash, display_name=:display_name,
-                            status=:status
+                            status=:status, preferred_language=:preferred_language,
+                            email_verified_at=:email_verified_at
                         WHERE user_id=:user_id
                         """
                     ),
@@ -440,7 +450,9 @@ class PostgresIdentityStore:
                         account_type=:account_type, email=:email,
                         display_name=:display_name, status=:status,
                         authz_version=:authz_version, password_hash=:password_hash,
-                        tenant_id=:tenant_id, updated_at=:updated_at
+                        tenant_id=:tenant_id, updated_at=:updated_at,
+                        preferred_language=:preferred_language,
+                        email_verified_at=:email_verified_at
                     WHERE user_id=:user_id
                     """
                 ),
@@ -577,6 +589,281 @@ class PostgresIdentityStore:
         with self._engine.connect() as conn:
             rows = conn.execute(text(sql), params).mappings().all()
         return tuple(_delivery_from_row(r) for r in rows)
+
+    def create_notification(self, notification: Notification) -> Notification:
+        with self._engine.begin() as conn:
+            conn.execute(
+                text(
+                    """
+                    INSERT INTO identity.notifications (
+                        notification_id, user_id, title, body, created_at, read_at
+                    ) VALUES (
+                        :notification_id, :user_id, :title, :body, :created_at, :read_at
+                    )
+                    """
+                ),
+                {
+                    "notification_id": notification.notification_id,
+                    "user_id": notification.user_id,
+                    "title": notification.title,
+                    "body": notification.body,
+                    "created_at": notification.created_at,
+                    "read_at": notification.read_at,
+                },
+            )
+        return notification
+
+    def get_notification(self, notification_id: str) -> Notification | None:
+        with self._engine.connect() as conn:
+            row = (
+                conn.execute(
+                    text(
+                        """
+                        SELECT * FROM identity.notifications
+                        WHERE notification_id = :notification_id
+                        """
+                    ),
+                    {"notification_id": notification_id},
+                )
+                .mappings()
+                .first()
+            )
+        return _notification_from_row(row) if row else None
+
+    def save_notification(self, notification: Notification) -> Notification:
+        with self._engine.begin() as conn:
+            conn.execute(
+                text(
+                    """
+                    UPDATE identity.notifications SET
+                        title=:title, body=:body, read_at=:read_at
+                    WHERE notification_id = :notification_id
+                    """
+                ),
+                {
+                    "notification_id": notification.notification_id,
+                    "title": notification.title,
+                    "body": notification.body,
+                    "read_at": notification.read_at,
+                },
+            )
+        return notification
+
+    def list_notifications(self, user_id: str, *, limit: int = 50) -> tuple[Notification, ...]:
+        with self._engine.connect() as conn:
+            rows = (
+                conn.execute(
+                    text(
+                        """
+                        SELECT * FROM identity.notifications
+                        WHERE user_id = :user_id
+                        ORDER BY created_at DESC
+                        LIMIT :limit
+                        """
+                    ),
+                    {"user_id": user_id, "limit": limit},
+                )
+                .mappings()
+                .all()
+            )
+        return tuple(_notification_from_row(r) for r in rows)
+
+    def create_auth_challenge(self, challenge: AuthChallenge) -> AuthChallenge:
+        with self._engine.begin() as conn:
+            conn.execute(
+                text(
+                    """
+                    INSERT INTO identity.auth_challenges (
+                        challenge_id, user_id, challenge_type, code_hash,
+                        expires_at, consumed_at, attempt_count, created_at
+                    ) VALUES (
+                        :challenge_id, :user_id, :challenge_type, :code_hash,
+                        :expires_at, :consumed_at, :attempt_count, :created_at
+                    )
+                    """
+                ),
+                challenge.__dict__,
+            )
+        return challenge
+
+    def save_auth_challenge(self, challenge: AuthChallenge) -> AuthChallenge:
+        with self._engine.begin() as conn:
+            conn.execute(
+                text(
+                    """
+                    UPDATE identity.auth_challenges SET
+                        code_hash=:code_hash, expires_at=:expires_at,
+                        consumed_at=:consumed_at, attempt_count=:attempt_count
+                    WHERE challenge_id=:challenge_id
+                    """
+                ),
+                challenge.__dict__,
+            )
+        return challenge
+
+    def get_active_auth_challenge(
+        self, *, user_id: str, challenge_type: str, at: datetime
+    ) -> AuthChallenge | None:
+        with self._engine.connect() as conn:
+            row = (
+                conn.execute(
+                    text(
+                        """
+                        SELECT * FROM identity.auth_challenges
+                        WHERE user_id = :user_id
+                          AND challenge_type = :challenge_type
+                          AND consumed_at IS NULL
+                          AND expires_at > :at
+                        ORDER BY created_at DESC
+                        LIMIT 1
+                        """
+                    ),
+                    {
+                        "user_id": user_id,
+                        "challenge_type": challenge_type,
+                        "at": at,
+                    },
+                )
+                .mappings()
+                .first()
+            )
+        return _auth_challenge_from_row(row) if row else None
+
+    def try_consume_auth_challenge(
+        self, challenge_id: str, *, at: datetime
+    ) -> AuthChallenge | None:
+        with self._engine.begin() as conn:
+            row = (
+                conn.execute(
+                    text(
+                        """
+                        UPDATE identity.auth_challenges
+                        SET consumed_at = :at
+                        WHERE challenge_id = :challenge_id
+                          AND consumed_at IS NULL
+                          AND expires_at > :at
+                        RETURNING *
+                        """
+                    ),
+                    {"challenge_id": challenge_id, "at": at},
+                )
+                .mappings()
+                .first()
+            )
+        return _auth_challenge_from_row(row) if row else None
+
+    def record_auth_challenge_failure(
+        self, challenge_id: str, *, at: datetime, max_attempts: int
+    ) -> AuthChallenge | None:
+        with self._engine.begin() as conn:
+            row = (
+                conn.execute(
+                    text(
+                        """
+                        UPDATE identity.auth_challenges
+                        SET attempt_count = attempt_count + 1,
+                            consumed_at = CASE
+                                WHEN attempt_count + 1 >= :max_attempts THEN :at
+                                ELSE consumed_at
+                            END
+                        WHERE challenge_id = :challenge_id
+                          AND consumed_at IS NULL
+                          AND expires_at > :at
+                        RETURNING *
+                        """
+                    ),
+                    {
+                        "challenge_id": challenge_id,
+                        "at": at,
+                        "max_attempts": max_attempts,
+                    },
+                )
+                .mappings()
+                .first()
+            )
+        return _auth_challenge_from_row(row) if row else None
+
+    def append_auth_delivery(
+        self,
+        *,
+        challenge_id: str,
+        user_id: str,
+        destination: str,
+        purpose: str,
+        at: datetime,
+        raw_code: str = "",
+    ) -> AuthDeliveryLogEntry:
+        # Persist plaintext only when caller passes raw_code (sandbox-gated at service).
+        entry = AuthDeliveryLogEntry(
+            log_id=str(uuid.uuid4()),
+            channel="loopback",
+            destination=destination,
+            purpose=purpose,
+            challenge_id=challenge_id,
+            user_id=user_id,
+            created_at=at,
+        )
+        with self._engine.begin() as conn:
+            conn.execute(
+                text(
+                    """
+                    INSERT INTO identity.auth_delivery_log (
+                        log_id, channel, destination, purpose, challenge_id,
+                        user_id, created_at, sandbox_code
+                    ) VALUES (
+                        :log_id, :channel, :destination, :purpose, :challenge_id,
+                        :user_id, :created_at, :sandbox_code
+                    )
+                    """
+                ),
+                {
+                    **entry.__dict__,
+                    "sandbox_code": raw_code or None,
+                },
+            )
+        return entry
+
+    def peek_auth_sandbox_code(self, *, user_id: str, purpose: str) -> str | None:
+        with self._engine.connect() as conn:
+            row = (
+                conn.execute(
+                    text(
+                        """
+                        SELECT d.sandbox_code
+                        FROM identity.auth_delivery_log d
+                        JOIN identity.auth_challenges c
+                          ON c.challenge_id = d.challenge_id
+                        WHERE d.user_id = :user_id
+                          AND d.purpose = :purpose
+                          AND d.sandbox_code IS NOT NULL
+                          AND c.consumed_at IS NULL
+                          AND c.expires_at > now()
+                        ORDER BY d.created_at DESC
+                        LIMIT 1
+                        """
+                    ),
+                    {"user_id": user_id, "purpose": purpose},
+                )
+                .mappings()
+                .first()
+            )
+        if row is None:
+            return None
+        code = row.get("sandbox_code")
+        return str(code) if code else None
+
+    def list_auth_delivery_log(
+        self, *, user_id: str | None = None, limit: int = 50
+    ) -> tuple[AuthDeliveryLogEntry, ...]:
+        sql = "SELECT * FROM identity.auth_delivery_log"
+        params: dict[str, Any] = {"limit": limit}
+        if user_id is not None:
+            sql += " WHERE user_id = :user_id"
+            params["user_id"] = user_id
+        sql += " ORDER BY created_at DESC LIMIT :limit"
+        with self._engine.connect() as conn:
+            rows = conn.execute(text(sql), params).mappings().all()
+        return tuple(_auth_delivery_from_row(r) for r in rows)
 
     def append_audit(self, event: AuditEvent) -> AuditEvent:
         with self._engine.begin() as conn:
@@ -745,6 +1032,44 @@ def _user_from_row(row: Any) -> User:
         created_at=_dt(row["created_at"]),
         updated_at=_dt(row["updated_at"]),
         tenant_id=row["tenant_id"],
+        preferred_language=str(row["preferred_language"]) if row.get("preferred_language") else "",
+        email_verified_at=(_dt(row["email_verified_at"]) if row.get("email_verified_at") else None),
+    )
+
+
+def _auth_challenge_from_row(row: Any) -> AuthChallenge:
+    return AuthChallenge(
+        challenge_id=str(row["challenge_id"]),
+        user_id=str(row["user_id"]),
+        challenge_type=row["challenge_type"],
+        code_hash=row["code_hash"],
+        expires_at=_dt(row["expires_at"]),
+        created_at=_dt(row["created_at"]),
+        consumed_at=_dt(row["consumed_at"]) if row["consumed_at"] else None,
+        attempt_count=int(row["attempt_count"]) if row.get("attempt_count") is not None else 0,
+    )
+
+
+def _auth_delivery_from_row(row: Any) -> AuthDeliveryLogEntry:
+    return AuthDeliveryLogEntry(
+        log_id=str(row["log_id"]),
+        channel=row["channel"],
+        destination=row["destination"],
+        purpose=row["purpose"],
+        challenge_id=str(row["challenge_id"]),
+        user_id=str(row["user_id"]),
+        created_at=_dt(row["created_at"]),
+    )
+
+
+def _notification_from_row(row: Any) -> Notification:
+    return Notification(
+        notification_id=str(row["notification_id"]),
+        user_id=str(row["user_id"]),
+        title=row["title"],
+        body=row["body"],
+        created_at=_dt(row["created_at"]),
+        read_at=_dt(row["read_at"]) if row["read_at"] else None,
     )
 
 

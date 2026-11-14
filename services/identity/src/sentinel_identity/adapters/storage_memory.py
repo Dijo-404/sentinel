@@ -11,8 +11,11 @@ from threading import RLock
 from ..application.errors import ConflictError, ForbiddenError
 from ..domain.models import (
     AuditEvent,
+    AuthChallenge,
+    AuthDeliveryLogEntry,
     DeliveryOutboxItem,
     Invitation,
+    Notification,
     PrivilegedChangeRequest,
     RoleAssignment,
     SessionRecord,
@@ -33,6 +36,11 @@ class MemoryIdentityStore:
         self.invitations_by_hash: dict[str, str] = {}
         self.privileged_changes: dict[str, PrivilegedChangeRequest] = {}
         self.audit: list[AuditEvent] = []
+        self.notifications: dict[str, Notification] = {}
+        self.auth_challenges: dict[str, AuthChallenge] = {}
+        self.auth_delivery_log: dict[str, AuthDeliveryLogEntry] = {}
+        # In-process only; never written to durable delivery log rows.
+        self._sandbox_codes: dict[str, str] = {}
         self._delivery_outbox: dict[str, DeliveryOutboxItem] = {}
         self._delivery_by_invitation: dict[str, str] = {}
 
@@ -306,6 +314,135 @@ class MemoryIdentityStore:
             rows = [i for i in rows if i.work_email.lower() == needle]
         rows.sort(key=lambda i: i.delivered_at or i.created_at, reverse=True)
         return tuple(rows)
+
+    def create_notification(self, notification: Notification) -> Notification:
+        with self._lock:
+            if notification.notification_id in self.notifications:
+                raise ValueError("notification_id already exists")
+            self.notifications[notification.notification_id] = notification
+            return notification
+
+    def get_notification(self, notification_id: str) -> Notification | None:
+        return self.notifications.get(notification_id)
+
+    def save_notification(self, notification: Notification) -> Notification:
+        with self._lock:
+            self.notifications[notification.notification_id] = notification
+            return notification
+
+    def list_notifications(self, user_id: str, *, limit: int = 50) -> tuple[Notification, ...]:
+        rows = [n for n in self.notifications.values() if n.user_id == user_id]
+        rows.sort(key=lambda n: n.created_at.isoformat(), reverse=True)
+        return tuple(rows[:limit])
+
+    def create_auth_challenge(self, challenge: AuthChallenge) -> AuthChallenge:
+        with self._lock:
+            if challenge.challenge_id in self.auth_challenges:
+                raise ValueError("challenge_id already exists")
+            self.auth_challenges[challenge.challenge_id] = challenge
+            return challenge
+
+    def save_auth_challenge(self, challenge: AuthChallenge) -> AuthChallenge:
+        with self._lock:
+            self.auth_challenges[challenge.challenge_id] = challenge
+            return challenge
+
+    def get_active_auth_challenge(
+        self, *, user_id: str, challenge_type: str, at: datetime
+    ) -> AuthChallenge | None:
+        rows = [
+            c
+            for c in self.auth_challenges.values()
+            if c.user_id == user_id
+            and c.challenge_type == challenge_type
+            and c.consumed_at is None
+            and c.expires_at > at
+        ]
+        if not rows:
+            return None
+        rows.sort(key=lambda c: c.created_at.isoformat(), reverse=True)
+        return rows[0]
+
+    def try_consume_auth_challenge(
+        self, challenge_id: str, *, at: datetime
+    ) -> AuthChallenge | None:
+        with self._lock:
+            challenge = self.auth_challenges.get(challenge_id)
+            if challenge is None or challenge.consumed_at is not None or challenge.expires_at <= at:
+                return None
+            updated = replace(challenge, consumed_at=at)
+            self.auth_challenges[challenge_id] = updated
+            return updated
+
+    def record_auth_challenge_failure(
+        self, challenge_id: str, *, at: datetime, max_attempts: int
+    ) -> AuthChallenge | None:
+        with self._lock:
+            challenge = self.auth_challenges.get(challenge_id)
+            if challenge is None or challenge.consumed_at is not None or challenge.expires_at <= at:
+                return None
+            attempts = challenge.attempt_count + 1
+            consumed_at = at if attempts >= max_attempts else None
+            updated = replace(challenge, attempt_count=attempts, consumed_at=consumed_at)
+            self.auth_challenges[challenge_id] = updated
+            return updated
+
+    def append_auth_delivery(
+        self,
+        *,
+        challenge_id: str,
+        user_id: str,
+        destination: str,
+        purpose: str,
+        at: datetime,
+        raw_code: str = "",
+    ) -> AuthDeliveryLogEntry:
+        with self._lock:
+            entry = AuthDeliveryLogEntry(
+                log_id=str(uuid.uuid4()),
+                channel="loopback",
+                destination=destination,
+                purpose=purpose,
+                challenge_id=challenge_id,
+                user_id=user_id,
+                created_at=at,
+            )
+            self.auth_delivery_log[entry.log_id] = entry
+            if raw_code:
+                self._sandbox_codes[challenge_id] = raw_code
+            return entry
+
+    def peek_auth_sandbox_code(self, *, user_id: str, purpose: str) -> str | None:
+        from datetime import UTC, datetime
+
+        now = datetime.now(UTC)
+        with self._lock:
+            rows = [
+                e
+                for e in self.auth_delivery_log.values()
+                if e.user_id == user_id and e.purpose == purpose
+            ]
+            rows.sort(key=lambda e: e.created_at.isoformat(), reverse=True)
+            for entry in rows:
+                code = self._sandbox_codes.get(entry.challenge_id)
+                if not code:
+                    continue
+                challenge = self.auth_challenges.get(entry.challenge_id)
+                if challenge is None:
+                    continue
+                if challenge.consumed_at is not None or challenge.expires_at <= now:
+                    continue
+                return code
+            return None
+
+    def list_auth_delivery_log(
+        self, *, user_id: str | None = None, limit: int = 50
+    ) -> tuple[AuthDeliveryLogEntry, ...]:
+        rows = list(self.auth_delivery_log.values())
+        if user_id is not None:
+            rows = [e for e in rows if e.user_id == user_id]
+        rows.sort(key=lambda e: e.created_at.isoformat(), reverse=True)
+        return tuple(rows[:limit])
 
     def append_audit(self, event: AuditEvent) -> AuditEvent:
         with self._lock:

@@ -1,6 +1,6 @@
 UV ?= uv
 
-.PHONY: setup check preview seed-sandbox verify-wave0-1 verify-wave2
+.PHONY: setup check preview seed-sandbox verify-wave0-1 verify-wave2 verify-wave3
 setup:
 	$(UV) sync --frozen
 
@@ -14,7 +14,7 @@ preview: setup
 	$(UV) run --frozen sentinel-core-assembly run --mode fixture
 
 # Requires CORE_ASSEMBLY_TENANT_ID=tenant-demo and SENTINEL_V1_SANDBOX=1.
-# Wave 0–1 peers run `make seed` when DATABASE_URL env is set; others SKIP.
+# Wave 0–1 / 2 / 3 peers run `make seed` when DATABASE_URL env is set; others SKIP.
 seed-sandbox: setup
 	SENTINEL_V1_SANDBOX=$${SENTINEL_V1_SANDBOX:-1} \
 	CORE_ASSEMBLY_TENANT_ID=$${CORE_ASSEMBLY_TENANT_ID:-tenant-demo} \
@@ -27,3 +27,7 @@ verify-wave0-1: setup
 # case-api :8080 seeded. Optional VERIFY_IDENTITY_TOKEN for identity :8012 team.
 verify-wave2: setup
 	./scripts/verify_wave2.sh
+
+# identity :8012 seeded. Session via login or VERIFY_IDENTITY_TOKEN (not tok-*).
+verify-wave3: setup
+	./scripts/verify_wave3.sh

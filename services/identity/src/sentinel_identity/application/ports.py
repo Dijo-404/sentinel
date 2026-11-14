@@ -7,8 +7,11 @@ from typing import Protocol
 
 from ..domain.models import (
     AuditEvent,
+    AuthChallenge,
+    AuthDeliveryLogEntry,
     DeliveryOutboxItem,
     Invitation,
+    Notification,
     PrivilegedChangeRequest,
     RoleAssignment,
     SessionRecord,
@@ -115,6 +118,55 @@ class IdentityStore(Protocol):
     def list_sandbox_inbox(
         self, *, work_email: str | None = None
     ) -> tuple[DeliveryOutboxItem, ...]: ...
+
+    def create_notification(self, notification: Notification) -> Notification: ...
+
+    def get_notification(self, notification_id: str) -> Notification | None: ...
+
+    def save_notification(self, notification: Notification) -> Notification: ...
+
+    def list_notifications(self, user_id: str, *, limit: int = 50) -> tuple[Notification, ...]: ...
+
+    def create_auth_challenge(self, challenge: AuthChallenge) -> AuthChallenge: ...
+
+    def save_auth_challenge(self, challenge: AuthChallenge) -> AuthChallenge: ...
+
+    def get_active_auth_challenge(
+        self, *, user_id: str, challenge_type: str, at: datetime
+    ) -> AuthChallenge | None: ...
+
+    def try_consume_auth_challenge(
+        self, challenge_id: str, *, at: datetime
+    ) -> AuthChallenge | None:
+        """Atomic consume: UPDATE … WHERE consumed_at IS NULL AND expires_at > at."""
+        ...
+
+    def record_auth_challenge_failure(
+        self, challenge_id: str, *, at: datetime, max_attempts: int
+    ) -> AuthChallenge | None:
+        """Increment attempt_count; consume/lock when attempts reach max_attempts."""
+        ...
+
+    def append_auth_delivery(
+        self,
+        *,
+        challenge_id: str,
+        user_id: str,
+        destination: str,
+        purpose: str,
+        at: datetime,
+        raw_code: str = "",
+    ) -> AuthDeliveryLogEntry:
+        """Append loopback delivery. raw_code persists only when caller passes it (sandbox)."""
+        ...
+
+    def peek_auth_sandbox_code(self, *, user_id: str, purpose: str) -> str | None:
+        """Latest open challenge sandbox_code for user+purpose, or None."""
+        ...
+
+    def list_auth_delivery_log(
+        self, *, user_id: str | None = None, limit: int = 50
+    ) -> tuple[AuthDeliveryLogEntry, ...]: ...
 
     def append_audit(self, event: AuditEvent) -> AuditEvent: ...
 

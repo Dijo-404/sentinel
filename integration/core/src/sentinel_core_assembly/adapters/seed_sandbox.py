@@ -27,12 +27,11 @@ class SeedReport(TypedDict, total=False):
 _PENDING_PEER_SEEDS: tuple[str, ...] = (
     "merchant-teams",
     "merchant-inbox",
-    "identity",
     "action-ledger",
     "workflow",
 )
 
-# Wave 0–1 / wave 2 peers: invoke module `make seed` when DATABASE_URL env is present.
+# Wave 0–1 / wave 2 / wave 3 peers: invoke module `make seed` when DATABASE_URL env is present.
 _PEER_MAKE_SEEDS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
     (
         "merchant-analytics",
@@ -53,6 +52,11 @@ _PEER_MAKE_SEEDS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         "case-api",
         "apps/api",
         ("SENTINEL_API_DATABASE_URL",),
+    ),
+    (
+        "identity",
+        "services/identity",
+        ("IDENTITY_DATABASE_URL",),
     ),
 )
 
@@ -151,8 +155,9 @@ def seed_sandbox(
     """Seed sandbox DBs for assembly peers.
 
     Gate: CORE_ASSEMBLY_TENANT_ID must be tenant-demo and SENTINEL_V1_SANDBOX must be truthy.
-    Peers (merchant-analytics, merchant-disputes, risk, case-api) run `make seed` when their
-    DATABASE_URL env var is set; otherwise SKIPPED with run-order docs. Other peers SKIP.
+    Peers (merchant-analytics, merchant-disputes, risk, case-api, identity) run `make seed`
+    when their DATABASE_URL env var is set; otherwise SKIPPED with run-order docs. Other
+    peers SKIP.
     """
     tenant = (env.get("CORE_ASSEMBLY_TENANT_ID") or "tenant-demo").strip()
     if tenant != "tenant-demo":

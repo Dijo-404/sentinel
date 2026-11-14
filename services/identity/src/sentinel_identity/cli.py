@@ -1,8 +1,9 @@
-"""Module CLI: serve identity.v1."""
+"""Module CLI: serve and seed identity.v1."""
 
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import sys
 
@@ -10,8 +11,9 @@ import uvicorn
 
 from .adapters.bind_safety import DEMO_BEARER_TOKENS, UnsafeBindError, assert_loopback_or_non_demo
 from .adapters.seed import DEMO_PASSWORD
-from .application.errors import IdentityError
+from .application.errors import ConfigurationError, IdentityError
 from .bootstrap import Settings, build_app
+from .seed import seed_demo_principals
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -20,6 +22,12 @@ def main(argv: list[str] | None = None) -> int:
     serve = sub.add_parser("serve", help="Run identity.v1 HTTP service")
     serve.add_argument("--host", default=os.environ.get("IDENTITY_HOST", "127.0.0.1"))
     serve.add_argument("--port", type=int, default=int(os.environ.get("IDENTITY_PORT", "8012")))
+    sub.add_parser(
+        "seed",
+        help=(
+            "Load sandbox principals + notification into Postgres (requires IDENTITY_DATABASE_URL)"
+        ),
+    )
 
     args = parser.parse_args(argv)
     try:
@@ -34,7 +42,14 @@ def main(argv: list[str] | None = None) -> int:
             app = build_app(settings)
             uvicorn.run(app, host=args.host, port=args.port, log_level="info")
             return 0
+        if args.command == "seed":
+            report = seed_demo_principals(settings.database_url)
+            print(json.dumps(report))
+            return 0 if report.get("status") == "PASS" else 1
     except IdentityError as exc:
+        print(f'{{"code":"{exc.code}","message":"{exc.message}"}}', file=sys.stderr)
+        return 2
+    except ConfigurationError as exc:
         print(f'{{"code":"{exc.code}","message":"{exc.message}"}}', file=sys.stderr)
         return 2
     return 1

@@ -2,6 +2,62 @@
 
 ## Unreleased
 
+### Fixed — fetch sandbox codes for auth challenge UI
+
+- After verify/MFA/forgot, server actions call identity sandbox inbox GETs when
+  `IDENTITY_SANDBOX` or `SENTINEL_V1_SANDBOX` is set (server-only;
+  `IDENTITY_SANDBOX_TOKEN` for reset — never `NEXT_PUBLIC_*`).
+- Customer portal nav includes Profile + Notifications.
+
+### Fixed — 15 November 2026 (strip profile password from client props)
+
+- Page boundary and `patchProfileAction` return `PublicProfileUser` via
+  `toPublicProfileUser` — never ship fixture `password` to `ProfilePanel`.
+- Mark-read soft failures use yellow `data-tone="warning"` banner
+  (`notification-error`); list stays mounted.
+
+### Added — 15 November 2026 (customer profile + notifications)
+
+- Replaced customer Profile and Notifications stubs with identity-backed
+  panels (`components/customer/profile-panel.tsx`,
+  `notifications-panel.tsx`). Pages load via `getMe` /
+  `listNotifications`; mutations via `patchProfileAction` /
+  `markNotificationReadAction`.
+- `data-testid`: `customer-profile`, `customer-notifications`, `peer-error`.
+  Never “Not available yet”.
+- Browser tests: `tests/browser/customer-profile-notifications.test.tsx`.
+
+### Fixed — 15 November 2026 (auth challenge request errors)
+
+- Verify/MFA forms surface non-peer request failures (e.g. session required);
+  peer-error banners no longer unmount forms; workspace select testids use
+  `assignment_id`.
+
+### Added — 15 November 2026 (auth verify / MFA / reset / workspaces pages)
+
+- Replaced `/auth/workspaces`, `/auth/verify`, `/auth/mfa`,
+  `/auth/forgot-password`, `/auth/reset-password` placeholders with identity
+  flows. Client panels under `components/auth/`; no “Fixture placeholder”.
+- Forgot/reset use server actions → `getIdentityClient()` (not BFF session
+  proxy — unauthenticated requests would 401 without a cookie).
+- Workspaces list via `listWorkspaces` + `switchWorkspaceAction` cookie update;
+  verify/MFA use session + IdentityClient. Peer failure → `peer-error`.
+- Browser tests: `tests/browser/auth-challenge-pages.test.tsx`.
+
+### Added — 15 November 2026 (identity client auth surface)
+
+- `IdentityClient` auth extensions (real-peer + fixture stub): `getMe`,
+  `patchProfile`, `listNotifications`, `markNotificationRead`,
+  `requestVerify`, `confirmVerify`, `mfaChallenge`, `mfaVerify`,
+  `forgotPassword`, `resetPassword`, `listWorkspaces`, `selectWorkspace`
+  (reuses workspace select / `selectAssignment`).
+- Profile fields on mapped users: `preferred_language`, `email_verified_at`.
+- Fixture seeds ≥1 customer notification; sandbox challenge codes stay
+  fixture/local only.
+- BFF `/api/bff/identity` confirmed passthrough for PATCH/GET/POST (Wave 2
+  proxy already exported all methods).
+- Tests: `tests/identity.test.ts`, `tests/bff-identity-route.test.ts`.
+
 ### Added — 15 November 2026 (supervisor Team from identity)
 
 - Supervisor Team page loads ops roster via BFF `/api/bff/identity` →

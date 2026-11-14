@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hmac
 import uuid
 from dataclasses import replace
 from datetime import timedelta
@@ -9,6 +10,7 @@ from typing import Any
 
 from ..domain.models import (
     AuditEvent,
+    AuthChallenge,
     Invitation,
     PrivilegedChangeRequest,
     RoleAssignment,
@@ -25,15 +27,18 @@ from ..domain.roles import (
 from .errors import (
     ConflictError,
     ForbiddenError,
+    InvalidChallengeError,
     NotFoundError,
     UnauthorizedError,
     ValidationError,
 )
 from .ports import Clock, IdentityStore
 from .security import (
+    MAX_CHALLENGE_ATTEMPTS,
     assert_password_acceptable,
     hash_password,
     hash_token,
+    mint_challenge_code,
     mint_token,
     normalize_email,
     verify_password,
@@ -41,6 +46,9 @@ from .security import (
 
 SESSION_TTL = timedelta(hours=12)
 INVITE_TTL = timedelta(days=7)
+CHALLENGE_TTL = timedelta(minutes=15)
+NOTIFICATION_LIST_LIMIT = 50
+INVALID_CHALLENGE_MESSAGE = "Invalid or expired challenge"
 OPS_TEAM_ROLES = frozenset({"operator", "supervisor"})
 OPS_TEAM_READERS = frozenset({"supervisor", "platform_admin"})
 
@@ -59,6 +67,12 @@ PRIVILEGED_BODY_FIELDS = frozenset(
 )
 
 
+SANDBOX_PASSWORD_RESET_HINT = (
+    "use GET /v1/auth/sandbox/password-reset-code with X-Identity-Sandbox-Token"
+)
+SANDBOX_LATEST_PURPOSES = frozenset({"email_verify", "mfa"})
+
+
 class IdentityService:
     def __init__(
         self,
@@ -66,10 +80,16 @@ class IdentityService:
         clock: Clock,
         *,
         delivery: Any | None = None,
+        expose_sandbox_codes: bool = False,
+        sandbox: bool = False,
+        sandbox_token: str = "",
     ) -> None:
         self._store = store
         self._clock = clock
         self._delivery = delivery
+        self._expose_sandbox_codes = expose_sandbox_codes
+        self._sandbox = sandbox
+        self._sandbox_token = sandbox_token
 
     # --- Auth ---
 
@@ -79,6 +99,7 @@ class IdentityService:
         email: str,
         password: str,
         display_name: str,
+        preferred_language: str = "",
         extra: dict[str, Any] | None = None,
         request_id: str = "request-local",
     ) -> dict[str, Any]:
@@ -106,6 +127,7 @@ class IdentityService:
             created_at=now,
             updated_at=now,
             tenant_id="tenant-demo",
+            preferred_language=preferred_language.strip(),
         )
         self._store.create_user(user)
         assignment = RoleAssignment(
@@ -206,6 +228,243 @@ class IdentityService:
             if tenant_h and active and tenant_h != active["tenant_id"]:
                 raise ForbiddenError("Forged tenant header denied")
         return ctx
+
+    def update_profile(
+        self,
+        *,
+        session_token: str,
+        display_name: str | None = None,
+        preferred_language: str | None = None,
+        extra: dict[str, Any] | None = None,
+        request_id: str = "request-local",
+    ) -> dict[str, Any]:
+        """Self-service profile patch. Never accepts role/tenant/permission keys."""
+        body = extra or {}
+        if body:
+            raise ValidationError("Unknown or privileged profile fields are not permitted")
+        session = self._require_session(session_token)
+        user = self._require_user(session.user_id)
+        if user.status != "active":
+            raise ForbiddenError("Account is not active")
+        updates: dict[str, Any] = {"updated_at": self._clock.now()}
+        if display_name is not None:
+            if not str(display_name).strip():
+                raise ValidationError("display_name must not be empty")
+            updates["display_name"] = str(display_name).strip()
+        if preferred_language is not None:
+            updates["preferred_language"] = str(preferred_language).strip()
+        user = replace(user, **updates)
+        self._store.save_user(user)
+        self._audit(
+            actor=user.user_id,
+            action="profile.updated",
+            target_type="user",
+            target_id=user.user_id,
+            tenant_id=user.tenant_id,
+            request_id=request_id,
+            details={k: updates[k] for k in ("display_name", "preferred_language") if k in updates},
+        )
+        return {"user": user.to_public()}
+
+    def list_notifications(self, *, session_token: str) -> dict[str, Any]:
+        session = self._require_session(session_token)
+        rows = self._store.list_notifications(session.user_id, limit=NOTIFICATION_LIST_LIMIT)
+        return {"notifications": [n.to_public() for n in rows]}
+
+    def mark_notification_read(
+        self,
+        *,
+        session_token: str,
+        notification_id: str,
+        request_id: str = "request-local",
+    ) -> dict[str, Any]:
+        session = self._require_session(session_token)
+        notification = self._store.get_notification(notification_id)
+        if notification is None or notification.user_id != session.user_id:
+            raise NotFoundError("Notification not found")
+        if notification.read_at is None:
+            notification = replace(notification, read_at=self._clock.now())
+            self._store.save_notification(notification)
+            self._audit(
+                actor=session.user_id,
+                action="notification.read",
+                target_type="notification",
+                target_id=notification.notification_id,
+                tenant_id=None,
+                request_id=request_id,
+            )
+        return {
+            "notification_id": notification.notification_id,
+            "read_at": notification.read_at.isoformat() if notification.read_at else None,
+        }
+
+    def request_email_verify(
+        self, *, session_token: str, request_id: str = "request-local"
+    ) -> dict[str, Any]:
+        session = self._require_session(session_token)
+        user = self._require_user(session.user_id)
+        raw_code, _challenge = self._issue_challenge(
+            user=user,
+            challenge_type="email_verify",
+            destination=user.email,
+            purpose="email_verify",
+            request_id=request_id,
+        )
+        return self._accepted_challenge_response(raw_code)
+
+    def confirm_email_verify(
+        self,
+        *,
+        session_token: str,
+        code: str,
+        request_id: str = "request-local",
+    ) -> dict[str, Any]:
+        session = self._require_session(session_token)
+        user = self._require_user(session.user_id)
+        challenge = self._consume_challenge(
+            user_id=user.user_id, challenge_type="email_verify", code=code
+        )
+        now = self._clock.now()
+        user = replace(user, email_verified_at=now, updated_at=now)
+        self._store.save_user(user)
+        self._audit(
+            actor=user.user_id,
+            action="email.verified",
+            target_type="user",
+            target_id=user.user_id,
+            tenant_id=user.tenant_id,
+            request_id=request_id,
+            details={"challenge_id": challenge.challenge_id},
+        )
+        return {"user": user.to_public(), "email_verified": True}
+
+    def request_mfa_challenge(
+        self, *, session_token: str, request_id: str = "request-local"
+    ) -> dict[str, Any]:
+        """Sandbox MFA: alphanumeric loopback code (not production TOTP)."""
+        session = self._require_session(session_token)
+        user = self._require_user(session.user_id)
+        raw_code, _challenge = self._issue_challenge(
+            user=user,
+            challenge_type="mfa",
+            destination=user.email,
+            purpose="mfa",
+            request_id=request_id,
+        )
+        return self._accepted_challenge_response(raw_code)
+
+    def verify_mfa(
+        self,
+        *,
+        session_token: str,
+        code: str,
+        request_id: str = "request-local",
+    ) -> dict[str, Any]:
+        session = self._require_session(session_token)
+        challenge = self._consume_challenge(
+            user_id=session.user_id, challenge_type="mfa", code=code
+        )
+        now = self._clock.now()
+        session = replace(session, mfa_verified_at=now)
+        self._store.save_session(session)
+        self._audit(
+            actor=session.user_id,
+            action="mfa.verified",
+            target_type="session",
+            target_id=session.session_id,
+            tenant_id=None,
+            request_id=request_id,
+            details={"challenge_id": challenge.challenge_id},
+        )
+        mfa_at = session.mfa_verified_at.isoformat() if session.mfa_verified_at else None
+        return {"mfa_verified": True, "mfa_verified_at": mfa_at}
+
+    def forgot_password(self, *, email: str, request_id: str = "request-local") -> dict[str, Any]:
+        """Always 202-equivalent body; never reveal whether the email exists."""
+        email_n = normalize_email(email)
+        user = self._store.get_user_by_email(email_n) if email_n else None
+        raw_code: str | None = None
+        if user is not None and user.status == "active":
+            raw_code, _challenge = self._issue_challenge(
+                user=user,
+                challenge_type="password_reset",
+                destination=user.email,
+                purpose="password_reset",
+                request_id=request_id,
+            )
+        body = self._accepted_challenge_response(raw_code)
+        if self._sandbox:
+            # Identical for known and unknown email — no enumeration.
+            body["sandbox_hint"] = SANDBOX_PASSWORD_RESET_HINT
+        return body
+
+    def sandbox_latest_code(self, *, session_token: str, purpose: str) -> dict[str, str]:
+        """Session inbox for latest open verify/MFA code. Sandbox flag required."""
+        if not self._sandbox:
+            raise NotFoundError("Not found")
+        if purpose not in SANDBOX_LATEST_PURPOSES:
+            raise ValidationError("purpose must be email_verify or mfa")
+        session = self._require_session(session_token)
+        code = self._store.peek_auth_sandbox_code(user_id=session.user_id, purpose=purpose)
+        if not code:
+            raise NotFoundError("Not found")
+        return {"code": code}
+
+    def sandbox_password_reset_code(self, *, email: str, sandbox_token: str) -> dict[str, str]:
+        """Token-gated reset inbox. Identical 404 for missing user/challenge/bad token."""
+        if not self._sandbox:
+            raise NotFoundError("Not found")
+        expected = self._sandbox_token or ""
+        provided = sandbox_token or ""
+        if not expected or not hmac.compare_digest(provided, expected):
+            raise NotFoundError("Not found")
+        email_n = normalize_email(email)
+        user = self._store.get_user_by_email(email_n) if email_n else None
+        if user is None:
+            raise NotFoundError("Not found")
+        code = self._store.peek_auth_sandbox_code(user_id=user.user_id, purpose="password_reset")
+        if not code:
+            raise NotFoundError("Not found")
+        return {"code": code}
+
+    def reset_password(
+        self,
+        *,
+        email: str,
+        code: str,
+        new_password: str,
+        request_id: str = "request-local",
+    ) -> dict[str, Any]:
+        email_n = normalize_email(email)
+        try:
+            assert_password_acceptable(new_password)
+        except ValueError as exc:
+            raise ValidationError(str(exc)) from exc
+        user = self._store.get_user_by_email(email_n) if email_n else None
+        if user is None:
+            raise InvalidChallengeError(INVALID_CHALLENGE_MESSAGE)
+        challenge = self._consume_challenge(
+            user_id=user.user_id, challenge_type="password_reset", code=code
+        )
+        now = self._clock.now()
+        user = replace(
+            user,
+            password_hash=hash_password(new_password),
+            authz_version=user.authz_version + 1,
+            updated_at=now,
+        )
+        self._store.save_user(user)
+        self._store.revoke_sessions_for_user(user.user_id, at=now)
+        self._audit(
+            actor=user.user_id,
+            action="password.reset",
+            target_type="user",
+            target_id=user.user_id,
+            tenant_id=user.tenant_id,
+            request_id=request_id,
+            details={"challenge_id": challenge.challenge_id},
+        )
+        return {"status": "reset"}
 
     def list_workspaces(self, *, session_token: str) -> dict[str, Any]:
         ctx = self.resolve_session(session_token)
@@ -1017,6 +1276,70 @@ class IdentityService:
         )
         self._store.create_session(session)
         return raw, session
+
+    def _issue_challenge(
+        self,
+        *,
+        user: User,
+        challenge_type: str,
+        destination: str,
+        purpose: str,
+        request_id: str,
+    ) -> tuple[str, AuthChallenge]:
+        now = self._clock.now()
+        raw_code = mint_challenge_code()
+        challenge = AuthChallenge(
+            challenge_id=str(uuid.uuid4()),
+            user_id=user.user_id,
+            challenge_type=challenge_type,
+            code_hash=hash_token(raw_code),
+            expires_at=now + CHALLENGE_TTL,
+            created_at=now,
+            attempt_count=0,
+        )
+        self._store.create_auth_challenge(challenge)
+        self._store.append_auth_delivery(
+            challenge_id=challenge.challenge_id,
+            user_id=user.user_id,
+            destination=destination,
+            purpose=purpose,
+            at=now,
+            # Persist plaintext only for sandbox product-demo inbox.
+            raw_code=raw_code if self._sandbox else "",
+        )
+        self._audit(
+            actor=user.user_id,
+            action=f"challenge.{purpose}.issued",
+            target_type="auth_challenge",
+            target_id=challenge.challenge_id,
+            tenant_id=user.tenant_id,
+            request_id=request_id,
+            details={"channel": "loopback", "destination": destination},
+        )
+        return raw_code, challenge
+
+    def _consume_challenge(self, *, user_id: str, challenge_type: str, code: str) -> AuthChallenge:
+        now = self._clock.now()
+        challenge = self._store.get_active_auth_challenge(
+            user_id=user_id, challenge_type=challenge_type, at=now
+        )
+        if challenge is None or not code:
+            raise InvalidChallengeError(INVALID_CHALLENGE_MESSAGE)
+        if hmac.compare_digest(hash_token(code), challenge.code_hash):
+            consumed = self._store.try_consume_auth_challenge(challenge.challenge_id, at=now)
+            if consumed is None:
+                raise InvalidChallengeError(INVALID_CHALLENGE_MESSAGE)
+            return consumed
+        self._store.record_auth_challenge_failure(
+            challenge.challenge_id, at=now, max_attempts=MAX_CHALLENGE_ATTEMPTS
+        )
+        raise InvalidChallengeError(INVALID_CHALLENGE_MESSAGE)
+
+    def _accepted_challenge_response(self, raw_code: str | None) -> dict[str, Any]:
+        body: dict[str, Any] = {"status": "accepted"}
+        if self._expose_sandbox_codes and raw_code:
+            body["sandbox_code"] = raw_code
+        return body
 
     def _audit(
         self,

@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Added — 15 November 2026 (portal wave 3 verify)
+
+- `verify_wave3` + `scripts/verify_wave3.sh` / `make verify-wave3` /
+  `sentinel-core-assembly verify-wave3`: HTTP 200 + seeded JSON for identity
+  `GET /v1/auth/me` (profile fields), `/v1/auth/notifications`,
+  `/v1/auth/workspaces`; `POST /v1/auth/password/forgot` returns 202 for known
+  and unknown email without enumeration.
+- Session via login (`customer@example.test` + `IDENTITY_DEMO_PASSWORD`) or
+  `VERIFY_IDENTITY_TOKEN` (hashed session — refuses matrix `tok-*`).
+- `seed_sandbox` invokes `make -C services/identity seed` when
+  `IDENTITY_DATABASE_URL` is set. README Wave 3 run order + curl checklist.
+
 ### Fixed — 15 November 2026 (wave 2 verify operator token)
 
 - `verify_wave2` defaults to case-api fixture `token-operator` /

@@ -15,6 +15,10 @@ from .application.service import IdentityService
 from .domain.roles import CONTRACT_VERSION
 
 
+def _truthy(value: str | None) -> bool:
+    return value in {"1", "true", "True", "yes", "YES"}
+
+
 @dataclass(frozen=True)
 class Settings:
     mode: str
@@ -22,6 +26,9 @@ class Settings:
     database_url: str
     seed: bool
     accept_link_base: str
+    expose_sandbox_codes: bool = False
+    sandbox: bool = False
+    sandbox_token: str = ""
 
     @classmethod
     def from_environ(cls, env: dict[str, str] | None = None) -> Settings:
@@ -29,12 +36,23 @@ class Settings:
         mode = source.get("IDENTITY_MODE", "fixture")
         if mode not in {"fixture", "real-peers"}:
             raise ConfigurationError("IDENTITY_MODE must be fixture or real-peers")
+        expose = _truthy(source.get("IDENTITY_EXPOSE_SANDBOX_CODES", "0"))
+        if mode == "real-peers" and expose:
+            raise ConfigurationError(
+                "IDENTITY_EXPOSE_SANDBOX_CODES must stay off in real-peers mode"
+            )
+        sandbox = _truthy(source.get("IDENTITY_SANDBOX")) or _truthy(
+            source.get("SENTINEL_V1_SANDBOX")
+        )
         return cls(
             mode=mode,
             contract_version=source.get("IDENTITY_CONTRACT_VERSION", CONTRACT_VERSION),
             database_url=source.get("IDENTITY_DATABASE_URL", ""),
             seed=source.get("IDENTITY_SEED", "1") not in {"0", "false", "False"},
             accept_link_base=source.get("IDENTITY_ACCEPT_LINK_BASE", DEFAULT_ACCEPT_LINK_BASE),
+            expose_sandbox_codes=expose,
+            sandbox=sandbox,
+            sandbox_token=source.get("IDENTITY_SANDBOX_TOKEN", ""),
         )
 
 
@@ -42,6 +60,9 @@ def build_app(settings: Settings | None = None, *, store=None):
     settings = settings or Settings.from_environ()
     if settings.contract_version != CONTRACT_VERSION:
         raise ConfigurationError("Unsupported contract version")
+    # Refuse even when Settings is constructed manually (not only from_environ).
+    if settings.mode == "real-peers" and settings.expose_sandbox_codes:
+        raise ConfigurationError("IDENTITY_EXPOSE_SANDBOX_CODES must stay off in real-peers mode")
 
     clock = SystemClock()
     if store is not None:
@@ -71,7 +92,14 @@ def build_app(settings: Settings | None = None, *, store=None):
         identity_store, clock, accept_link_base=settings.accept_link_base
     )
     services = AppServices(
-        identity=IdentityService(identity_store, clock, delivery=delivery),
+        identity=IdentityService(
+            identity_store,
+            clock,
+            delivery=delivery,
+            expose_sandbox_codes=settings.expose_sandbox_codes,
+            sandbox=settings.sandbox,
+            sandbox_token=settings.sandbox_token,
+        ),
         mode=mode,
     )
     return create_app(services)

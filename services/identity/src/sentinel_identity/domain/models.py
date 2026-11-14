@@ -19,6 +19,8 @@ class User:
     created_at: datetime
     updated_at: datetime
     tenant_id: str | None = None  # home tenant hint for seeds
+    preferred_language: str = ""
+    email_verified_at: datetime | None = None
 
     def to_public(self) -> dict[str, Any]:
         return {
@@ -26,8 +28,12 @@ class User:
             "account_type": self.account_type,
             "email": self.email,
             "display_name": self.display_name,
+            "preferred_language": self.preferred_language,
             "status": self.status,
             "authz_version": self.authz_version,
+            "email_verified_at": (
+                self.email_verified_at.isoformat() if self.email_verified_at else None
+            ),
         }
 
 
@@ -173,6 +179,58 @@ class DeliveryOutboxItem:
             "status": self.status,
             "delivered_at": self.delivered_at.isoformat() if self.delivered_at else None,
             "evidence_label": "sandbox_inbox",
+        }
+
+
+@dataclass(frozen=True)
+class Notification:
+    notification_id: str
+    user_id: str
+    title: str
+    body: str
+    created_at: datetime
+    read_at: datetime | None = None
+
+    def to_public(self) -> dict[str, Any]:
+        return {
+            "notification_id": self.notification_id,
+            "title": self.title,
+            "body": self.body,
+            "created_at": self.created_at.isoformat(),
+            "read_at": self.read_at.isoformat() if self.read_at else None,
+        }
+
+
+@dataclass(frozen=True)
+class AuthChallenge:
+    challenge_id: str
+    user_id: str
+    challenge_type: str  # email_verify | mfa | password_reset
+    code_hash: str
+    expires_at: datetime
+    created_at: datetime
+    consumed_at: datetime | None = None
+    attempt_count: int = 0
+
+
+@dataclass(frozen=True)
+class AuthDeliveryLogEntry:
+    """Sandbox loopback delivery row. Never carries plaintext OTP."""
+
+    log_id: str
+    channel: str
+    destination: str
+    purpose: str
+    challenge_id: str
+    user_id: str
+    created_at: datetime
+
+    def to_public(self) -> dict[str, Any]:
+        return {
+            "channel": self.channel,
+            "destination": self.destination,
+            "purpose": self.purpose,
+            "created_at": self.created_at.isoformat(),
         }
 
 

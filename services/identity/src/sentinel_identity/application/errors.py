@@ -33,6 +33,13 @@ class ValidationError(IdentityError):
     http_status = 422
 
 
+class InvalidChallengeError(IdentityError):
+    """Bad / expired / missing auth challenge (generic; no enumeration)."""
+
+    code = "INVALID_CHALLENGE"
+    http_status = 400
+
+
 class ConflictError(IdentityError):
     code = "CONFLICT"
     http_status = 409

@@ -54,5 +54,19 @@ def mint_token() -> str:
     return secrets.token_urlsafe(32)
 
 
+# Ambiguity-safe alphabet (no 0/O/1/I). 32^8 ≈ 1.1e12 candidates.
+_CHALLENGE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+CHALLENGE_CODE_LENGTH = 8
+# Fail-closed: lock/consume challenge after this many bad codes (inclusive).
+MAX_CHALLENGE_ATTEMPTS = 5
+
+
+def mint_challenge_code(*, length: int = CHALLENGE_CODE_LENGTH) -> str:
+    """Sandbox verify / MFA / reset code: 8+ char alphanumeric."""
+    if length < 8:
+        raise ValueError("challenge code length must be at least 8")
+    return "".join(secrets.choice(_CHALLENGE_ALPHABET) for _ in range(length))
+
+
 def hash_token(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()

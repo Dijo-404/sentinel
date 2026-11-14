@@ -80,6 +80,7 @@ def test_seed_invokes_wave0_1_peers_when_database_urls_set() -> None:
     assert by_peer["merchant-disputes"]["rows"] == 1
     assert by_peer["risk"]["status"] == "PASS"
     assert by_peer["case-api"]["status"] == "SKIPPED"
+    assert by_peer["identity"]["status"] == "SKIPPED"
 
 
 def test_seed_fails_when_peer_make_seed_fails() -> None:

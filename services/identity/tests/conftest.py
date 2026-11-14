@@ -40,6 +40,9 @@ def client(store: MemoryIdentityStore) -> TestClient:
             database_url="",
             seed=False,
             accept_link_base="http://127.0.0.1:3000",
+            expose_sandbox_codes=False,
+            sandbox=True,
+            sandbox_token="test-sandbox-token",
         ),
         store=store,
     )

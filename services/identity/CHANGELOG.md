@@ -2,6 +2,63 @@
 
 ## Unreleased
 
+### Fixed — sandbox latest-code inbox for auth challenges
+
+- When `IDENTITY_SANDBOX` or `SENTINEL_V1_SANDBOX` is truthy, persist challenge
+  plaintext in `auth_delivery_log.sandbox_code` (migration `0007`). Never when
+  sandbox flag false.
+- `GET /v1/auth/sandbox/latest-code?purpose=email_verify|mfa` (Bearer) → `{ code }`
+  or 404 when flag off / no open challenge.
+- `GET /v1/auth/sandbox/password-reset-code?email=` requires
+  `X-Identity-Sandbox-Token` = `IDENTITY_SANDBOX_TOKEN` (constant-time); identical
+  404 for bad token / unknown email / missing challenge.
+- Forgot 202 includes identical `sandbox_hint` when sandbox on (no email enum).
+- Real-peers + sandbox allowed (product demo). `IDENTITY_EXPOSE_SANDBOX_CODES`
+  still refused in real-peers.
+
+### Added — 15 November 2026 (portal wave 3 make seed)
+
+- `sentinel-identity seed` / `make seed`: load `fixtures/seed_users.json` into
+  Postgres (`IDENTITY_DATABASE_URL`) — profile fields + ≥1 notification for
+  `customer@example.test`. Challenge OTP fixtures stay test-only
+  (`IDENTITY_EXPOSE_SANDBOX_CODES` / memory peek); never written by seed.
+
+### Fixed — harden sandbox auth challenges
+
+- Challenge codes are 8+ char alphanumeric (not 6-digit). Failed verifies
+  increment `attempt_count`; challenge locks/consumes after **N=5** failures.
+- Atomic consume: conditional `UPDATE … WHERE consumed_at IS NULL AND expires_at > at`.
+- Durable Postgres `auth_delivery_log` dropped legacy `raw_code`; sandbox
+  plaintext returns via gated `sandbox_code` + inbox GETs (see above).
+- `build_app` refuses `expose_sandbox_codes` when `mode=real-peers` even if
+  Settings is constructed manually.
+
+### Added — sandbox verify / MFA / password reset
+
+- `POST /v1/auth/verify/request|confirm`, `/v1/auth/mfa/challenge|verify`,
+  `/v1/auth/password/forgot|reset`.
+- `identity.auth_challenges` + append-only `identity.auth_delivery_log`
+  (loopback channel); `users.email_verified_at`.
+- MFA / verify / reset codes are hashed at rest. Plaintext appears only via
+  in-memory peek helper or `IDENTITY_EXPOSE_SANDBOX_CODES=true` (fixture/module
+  checks). Flag is refused in `real-peers` mode. Public JSON never includes
+  codes by default. Forgot always returns 202 (no email enumeration).
+
+### Added — notifications inbox
+
+- `GET /v1/auth/notifications` returns the caller's inbox (newest first, max 50).
+- `POST /v1/auth/notifications/{id}/read` marks own notification read; other-user
+  or missing id → 404.
+- Migration `0004_notifications.sql` adds `identity.notifications`.
+- Sandbox seed includes ≥1 unread notification for `customer@example.test`.
+
+### Added — self-service profile PATCH
+
+- `PATCH /v1/auth/me` updates `display_name` / `preferred_language` for the
+  bearer session. Unknown and privilege fields (`role`, `tenant_id`, …) return
+  422. `GET /v1/auth/me` user public always includes those profile fields.
+- Migration `0003_preferred_language.sql` adds `identity.users.preferred_language`.
+
 ### Added — supervisor-safe ops team roster
 
 - `GET /v1/ops/team`: active operator/supervisor assignments for the caller's
