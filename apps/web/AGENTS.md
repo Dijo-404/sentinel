@@ -1,4 +1,4 @@
-# Scoped agent rules: SN-012
+# Scoped agent rules: SN-038 / SN-012
 
 Read [repository AGENTS.md](../../AGENTS.md) and this module's [README](README.md) before editing. These rules supplement the root instructions.
 
@@ -7,7 +7,8 @@ Read [repository AGENTS.md](../../AGENTS.md) and this module's [README](README.m
 - Work only in `apps/web/` and any exact extra paths listed in the task. No broad parent-directory ownership.
 - Own the module's manifest/lockfile, configuration, migrations, code, contract snapshots, tests, fixtures, README and changelog.
 - No task-completion prerequisite; use local port doubles. Never wait for another agent's implementation or modify another module's state to make tests pass.
-- Use branch `feat/sn-012-ui-shell` or an explicitly recorded alternative and a separate worktree.
+- Use branch `feat/sn-038-web-portals` (or `feat/sn-012-ui-shell` for shell-only work) and a separate worktree.
+- Fixture identity lives under `tests/stubs/identity`. Do not implement `services/identity` from this module. Never put bearers in `NEXT_PUBLIC_*`.
 
 ## Architecture and contracts
 

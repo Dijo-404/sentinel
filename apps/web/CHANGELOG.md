@@ -1,6 +1,20 @@
-# SN-012 changelog
+# SN-012 / SN-038 changelog
 
 ## Unreleased
+
+### Fixed — 14 November 2026
+
+- Session cookie set only after portal role match; mismatch clears cookie and revokes provisional session. Active assignment bound to requested portal before cookie write (Refs #100 / PR #107).
+- `registerCustomerAccount` rejects privileged client fields before identity peer call. Safe redirects normalize path, reject `..`, require exact `/{role}` prefix.
+- Legacy `/intake` and `/ops` gated with `requireRole` / `requireAnyRole` (customer; operator|supervisor).
+
+### Added — 14 November 2026
+
+- SN-038 six role portals: `/customer|merchant|operator|supervisor|risk|admin` login + protected dashboards; customer `/register`; shared `RoleLogin`, `ProtectedShell`, unauthorized workspace chooser (Refs #100).
+- Admin users directory + invite form wired to `tests/stubs/identity`; `PermissionPreview` advisory only; staff invite rejects `customer` role.
+- Server session cookie helpers (`sentinel_session`), fixture identity double, real-peers refuses `NEXT_PUBLIC_*` identity bearers.
+- Design tokens: graphite/white surfaces with blue primary (§13.1). Legacy `/intake` and `/ops` kept for compatibility.
+- Vitest coverage for identity stub, auth helpers, role-mismatch UI, and no customer staff-register path.
 
 ### Fixed — 14 November 2026
 
