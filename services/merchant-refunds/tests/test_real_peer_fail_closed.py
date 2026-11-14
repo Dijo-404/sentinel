@@ -39,6 +39,30 @@ def test_real_peers_refuses_demo_bearer(monkeypatch):
         build_app(mode="real-peers", store=object())
 
 
+def test_real_peers_refuses_default_memory_store(peers):
+    case_api, evidence, policy, ledger = peers
+    with pytest.raises(PeerUnavailableError, match="injected durable store"):
+        build_app(
+            mode="real-peers",
+            case_api=case_api,
+            evidence=evidence,
+            policy=policy,
+            ledger=ledger,
+        )
+
+
+def test_real_peers_env_mode_refuses_default_memory_store(monkeypatch, peers):
+    monkeypatch.setenv("MERCHANT_REFUNDS_MODE", "real-peers")
+    case_api, evidence, policy, ledger = peers
+    with pytest.raises(PeerUnavailableError, match="injected durable store"):
+        build_app(
+            case_api=case_api,
+            evidence=evidence,
+            policy=policy,
+            ledger=ledger,
+        )
+
+
 def test_http_case_api_unavailable():
     client = HttpCaseApiClient("http://127.0.0.1:9", token="t")
     principal = Principal(

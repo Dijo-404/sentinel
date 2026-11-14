@@ -12,8 +12,19 @@ from .adapters.peers_fixture import FixtureCaseApi, FixtureEvidence
 from .adapters.peers_http import HttpCaseApi, HttpEvidence
 from .adapters.storage_memory import MemoryDisputeStore
 from .application.disputes import DisputeService
-from .application.errors import ConfigurationError
+from .application.errors import ConfigurationError, PeerUnavailableError
 from .domain.types import CONTRACT_VERSION
+
+
+def _resolve_store(mode: str, store):
+    if store is not None:
+        return store
+    if mode == "real-peers":
+        raise PeerUnavailableError(
+            "real-peers requires an injected durable store; "
+            "MemoryDisputeStore defaults are not allowed across workers"
+        )
+    return MemoryDisputeStore()
 
 
 @dataclass(frozen=True)
@@ -78,7 +89,7 @@ def build_app(
         disputes=DisputeService(
             case_api=case_peer,
             evidence=evidence_peer,
-            store=store or MemoryDisputeStore(),
+            store=_resolve_store(mode, store),
             clock=clock or SystemClock(),
             default_deadline_seconds=settings.default_deadline_seconds,
         ),

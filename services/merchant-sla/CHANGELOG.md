@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- Real-peers bootstrap refuses default `MemorySlaStore`; requires an injected
+  durable store so worker processes cannot wipe or split state.
+
 ### Added
 
 - Independent `merchant-sla.v1` HTTP service: SLA policies, task assignment, overdue highlighting via injectable/virtual clock, follow-up scheduling.

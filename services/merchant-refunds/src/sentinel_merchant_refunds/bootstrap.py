@@ -43,6 +43,17 @@ def _resolve_peer_bearer(resolved_mode: str) -> str:
     return token or DEMO_BEARER_TOKEN
 
 
+def _resolve_store(resolved_mode: str, store):
+    if store is not None:
+        return store
+    if resolved_mode == "real-peers":
+        raise PeerUnavailableError(
+            "real-peers requires an injected durable store; "
+            "MemoryRequestStore defaults are not allowed across workers"
+        )
+    return MemoryRequestStore()
+
+
 def build_app(
     *,
     store=None,
@@ -67,7 +78,7 @@ def build_app(
         ledger = ledger or HttpLedgerClient(os.environ["LEDGER_BASE_URL"], token=token)
 
     service = MerchantRefundService(
-        store=store or MemoryRequestStore(),
+        store=_resolve_store(resolved_mode, store),
         case_api=case_api,
         evidence=evidence,
         policy=policy,

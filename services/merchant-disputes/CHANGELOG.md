@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- Real-peers bootstrap refuses default `MemoryDisputeStore`; requires an injected
+  durable store so worker processes cannot wipe or split state.
+
 ### Added
 
 - Independent `merchant-disputes.v1` HTTP service with dispute lifecycle, evidence packet assembly, and deadline tracking.

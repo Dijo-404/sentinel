@@ -64,6 +64,27 @@ def test_real_peers_build_app_rejects_missing_peer():
         )
 
 
+def test_real_peers_refuses_default_memory_store():
+    with pytest.raises(PeerUnavailableError, match="injected durable store"):
+        build_app(
+            settings=Settings(
+                mode="real-peers",
+                principals_path=PRINCIPALS,
+                case_api_base_url="http://127.0.0.1:9",
+                case_api_token="tok",
+            )
+        )
+
+
+def test_real_peers_env_mode_refuses_default_memory_store(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("MERCHANT_SLA_MODE", "real-peers")
+    monkeypatch.setenv("MERCHANT_SLA_CASE_API_BASE_URL", "http://127.0.0.1:9")
+    monkeypatch.setenv("MERCHANT_SLA_CASE_API_TOKEN", "tok")
+    monkeypatch.setenv("MERCHANT_SLA_PRINCIPALS_PATH", str(PRINCIPALS))
+    with pytest.raises(PeerUnavailableError, match="injected durable store"):
+        build_app()
+
+
 def test_http_case_api_unavailable():
     def handler(request: httpx.Request) -> httpx.Response:
         raise httpx.ConnectError("down", request=request)
