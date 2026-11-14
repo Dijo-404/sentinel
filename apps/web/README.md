@@ -43,7 +43,7 @@ See `.env.example`.
 | `CASE_API_BEARER_TOKEN` | Optional service-only fallback (server); portals use session cookie |
 | `IDENTITY_BASE_URL` | Required in real-peers mode (default `http://127.0.0.1:8012`) |
 
-Real-peer failures are visible. Never put bearers, identity passwords, or session tokens in `NEXT_PUBLIC_*`. Fixture auth uses `tests/stubs/identity` seeded users. Real-peers calls identity.v1 (`/v1/auth/login|me|workspaces|accept-invitation`, register, admin invite) via the server-only BFF; the httpOnly `sentinel_session` cookie stores the identity `session_token`. Portal case-api traffic goes through `/api/bff/case/**`, which forwards that session as the case-api bearer (one principal per request).
+Real-peer failures are visible. Never put bearers, identity passwords, or session tokens in `NEXT_PUBLIC_*`. Fixture auth uses `tests/stubs/identity` seeded users. Real-peers calls identity.v1 (`/v1/auth/login|me|workspaces|accept-invitation`, register, admin invite) via the server-only identity client; the httpOnly `sentinel_session` cookie stores the identity `session_token`. Portal case-api traffic goes through `/api/bff/case/**`, which forwards that session as the case-api bearer (one principal per request). Supervisor Team uses `/api/bff/identity/**` → `GET /v1/ops/team` (supervisor-safe tenant roster; does **not** call `/v1/admin/users`, which remains platform_admin-only).
 
 ### Fixture demo credentials (synthetic only)
 
@@ -86,6 +86,7 @@ Real-peer failures are visible. Never put bearers, identity passwords, or sessio
 | `/merchant/dashboard` | Merchant overview (rich viz) |
 | `/operator/dashboard` · `/operator/queue` | Operator overview (rich viz) + queue |
 | `/supervisor/dashboard` | Supervisor overview (rich viz) |
+| `/supervisor/team` | Ops roster via `/api/bff/identity` → `GET /v1/ops/team` (fail closed) |
 | `/supervisor/approvals` · `/supervisor/approvals/[actionId]` | Supervisor approval queue + exact decide UI (local substitute) |
 | `/supervisor/cases/[caseId]` | Supervisor case review with opt-in approval slot |
 | `/risk/dashboard` | Risk Officer |

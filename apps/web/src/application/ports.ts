@@ -276,6 +276,22 @@ export interface MerchantTeamsClient {
   getSettings(merchantRef: string): Promise<MerchantSettings>;
 }
 
+/** identity.v1 ops team member (supervisor-safe roster row). */
+export type OpsTeamMember = {
+  user_id: string;
+  email: string;
+  display_name: string;
+  role: string;
+};
+
+/** Optional identity.v1 ops team client via BFF `/api/bff/identity`. */
+export interface OpsTeamClient {
+  listOpsTeam(): Promise<{
+    members: OpsTeamMember[];
+    source: "identity" | "fixture" | string;
+  }>;
+}
+
 /** Optional voice.v1 port. Disabled by default in composition. */
 export interface VoiceClient {
   transcribe(request: VoiceRequest): Promise<VoiceResult>;

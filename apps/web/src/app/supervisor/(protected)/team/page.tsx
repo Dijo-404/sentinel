@@ -1,13 +1,7 @@
+"use client";
+
+import { TeamPanel } from "@/components/ops/team-panel";
+
 export default function SupervisorTeamPage() {
-  return (
-    <div className="panel stack" data-testid="supervisor-team">
-      <h1>Team</h1>
-      <p className="muted">
-        This view is not connected to its service yet. Nothing here is live data.
-      </p>
-      <p className="fixture-banner" role="status">
-        Not available yet
-      </p>
-    </div>
-  );
+  return <TeamPanel />;
 }

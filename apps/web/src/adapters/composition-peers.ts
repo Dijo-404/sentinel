@@ -8,6 +8,7 @@ import type {
   MerchantInboxClient,
   MerchantSettlementClient,
   MerchantTeamsClient,
+  OpsTeamClient,
   RiskClient,
   ShellMode,
 } from "@/application/ports";
@@ -16,12 +17,14 @@ import { createBffMerchantDisputesClient } from "./real-peer-merchant-disputes-c
 import { createBffMerchantInboxClient } from "./real-peer-merchant-inbox-client";
 import { createBffMerchantSettlementClient } from "./real-peer-merchant-settlement-client";
 import { createBffMerchantTeamsClient } from "./real-peer-merchant-teams-client";
+import { createBffOpsTeamClient } from "./real-peer-ops-team-client";
 import { createBffRiskClient } from "./real-peer-risk-client";
 import { createMerchantAnalyticsStub } from "../../tests/stubs/merchant-analytics";
 import { createMerchantDisputesStub } from "../../tests/stubs/merchant-disputes";
 import { createMerchantInboxStub } from "../../tests/stubs/merchant-inbox";
 import { createMerchantSettlementStub } from "../../tests/stubs/merchant-settlement";
 import { createMerchantTeamsStub } from "../../tests/stubs/merchant-teams";
+import { createOpsTeamStub } from "../../tests/stubs/ops-team";
 import { createRiskStub } from "../../tests/stubs/risk";
 
 export function createMerchantAnalyticsClientForMode(
@@ -66,6 +69,20 @@ export function createMerchantTeamsClientForMode(
   if (overrides?.client) return overrides.client;
   if (mode === "fixture") return createMerchantTeamsStub("valid");
   return createBffMerchantTeamsClient({
+    fetchImpl: overrides?.fetchImpl,
+  });
+}
+
+export function createOpsTeamClientForMode(
+  mode: ShellMode,
+  overrides?: {
+    client?: OpsTeamClient;
+    fetchImpl?: typeof fetch;
+  },
+): OpsTeamClient {
+  if (overrides?.client) return overrides.client;
+  if (mode === "fixture") return createOpsTeamStub("valid");
+  return createBffOpsTeamClient({
     fetchImpl: overrides?.fetchImpl,
   });
 }

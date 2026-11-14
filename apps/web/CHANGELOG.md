@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added — 15 November 2026 (supervisor Team from identity)
+
+- Supervisor Team page loads ops roster via BFF `/api/bff/identity` →
+  identity `GET /v1/ops/team` (supervisor-safe; not `/v1/admin/users`).
+- `TeamPanel` (`data-testid="supervisor-team"`); fixture stub only when
+  `SHELL_MODE=fixture`; peer/BFF failure → `peer-error` (never invent roster).
+- Browser tests: `tests/browser/supervisor-team-page.test.tsx`.
+
 ### Added — 15 November 2026 (supervisor Escalations + History + Audit from case-api)
 
 - Supervisor Escalations reuses `EscalationsPanel` with `basePath="/supervisor"`;
