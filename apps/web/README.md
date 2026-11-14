@@ -1,16 +1,16 @@
-# SN-012 — Customer and operator web shell
+# SN-038 / SN-012 — Six role portals + web shell
 
-**State:** implemented module with local fixture checks. Assembled real-peer product evidence is unverified.
+**State:** portal scaffold + fixture identity auth UI implemented. Assembled real-peer product evidence is unverified. Money-path assembly is **not** claimed complete.
 
 **Owned root:** `apps/web/`  
-**Branch:** `feat/sn-012-ui-shell`  
+**Branch:** `feat/sn-038-web-portals`  
 **Produces:** `web-shell.v1`  
-**Consumes:** `case-api.v1`, `approval-ui.v1`, optional `voice.v1`  
+**Consumes:** `case-api.v1`, `approval-ui.v1`, optional `voice.v1`, identity doubles  
 **Contract:** `sentinel.task-contracts.v1` · SHA-256 `0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb`
 
 ## Outcome
 
-Text intake, case timeline, operator queue, and evidence pages. Local case-api stub for standalone work. Documented approval-ui and voice component slots render **local substitutes** (no deep import of sibling packages). Voice is disabled by default. Financial authority stays on the server; the UI masks PII and payment identifiers.
+Six role portal trees (customer, merchant, operator, supervisor, risk, admin) with shared `RoleLogin`, customer self-registration, protected layouts, and admin users/invite wired to a local identity stub. Legacy `/intake` and `/ops` routes remain. Financial authority stays on the server; the UI masks PII and payment identifiers.
 
 ## Standalone setup
 
@@ -29,7 +29,7 @@ make -C apps/web preview
 # or: npm run dev
 ```
 
-Open `http://localhost:3012/intake` and `http://localhost:3012/ops`.
+Open `http://localhost:3012/` for portal entry.
 
 ## Configuration
 
@@ -40,19 +40,54 @@ See `.env.example`.
 | `NEXT_PUBLIC_SHELL_MODE` | `fixture` (default) or `real-peers` |
 | `NEXT_PUBLIC_VOICE_ENABLED` | `false` by default |
 | `CASE_API_BASE_URL` | Required in real-peers mode |
-| `CASE_API_BEARER_TOKEN` | Required in real-peers mode |
+| `CASE_API_BEARER_TOKEN` | Required in real-peers mode (server-only) |
+| `IDENTITY_BASE_URL` / `IDENTITY_BEARER_TOKEN` | Required for identity real-peers (not wired yet; fixture stub used locally) |
 
-Real-peer failures are visible (`PEER_UNAVAILABLE`, `FORBIDDEN`, `MALFORMED_PEER_RESPONSE`). The shell never silently switches to fixtures.
+Real-peer failures are visible. Never put bearers in `NEXT_PUBLIC_*`. Fixture auth uses `tests/stubs/identity` seeded users.
+
+### Fixture demo credentials (synthetic only)
+
+| Portal | Email | Password |
+| --- | --- | --- |
+| Customer | `customer@example.test` | `demo-customer` |
+| Merchant | `merchant@example.test` | `demo-merchant` |
+| Operator | `operator@example.test` | `demo-operator` |
+| Supervisor | `supervisor@example.test` | `demo-supervisor` |
+| Risk | `risk@example.test` | `demo-risk` |
+| Admin | `admin@example.test` | `demo-admin` |
 
 ## Layout
 
 - `src/domain/` — wire types, masking, status labels (framework-free)
 - `src/application/ports.ts` — CaseClient / slot ports
 - `src/adapters/` — fixture + real-peer clients, composition
+- `src/lib/server/` — session cookie helpers, authorization, auth actions
+- `src/components/auth|layout|identity|dashboards/` — shared portal UI
+- `src/app/{customer,merchant,operator,supervisor,risk,admin}/` — portal trees
 - `src/slots/` — local approval-ui / voice substitutes
-- `src/app/` — Next.js routes
-- `tests/stubs/` — case-api, approval-ui, voice doubles (valid / unavailable / malformed / unauthorized)
-- `contracts/` — snapshots, fixtures, compatibility checklist
+- `tests/stubs/` — case-api, approval-ui, voice, **identity** doubles
+
+## Routes
+
+| Route | Role |
+| --- | --- |
+| `/` | Portal entry |
+| `/customer/login` · `/customer/register` · `/customer/dashboard` | Customer |
+| `/merchant/login` · `/merchant/dashboard` | Merchant |
+| `/operator/login` · `/operator/dashboard` | Support Operator |
+| `/supervisor/login` · `/supervisor/dashboard` | Supervisor |
+| `/risk/login` · `/risk/dashboard` | Risk Officer |
+| `/admin/login` · `/admin/dashboard` | Platform Admin |
+| `/admin/users` · `/admin/users/invite` | Staff directory + invite (stub) |
+| `/auth/*` | Shared auth scaffolds (verify, MFA, invitation, …) |
+| `/unauthorized` | Role mismatch — authorized workspaces only |
+| `/intake` | Legacy customer text intake (compat) |
+| `/cases/[caseId]` | Case timeline |
+| `/ops` | Legacy operator queue (compat) |
+| `/ops/cases/[caseId]/evidence` | Evidence + approval slot |
+| `/v1/capabilities` | Assembly probe |
+
+Staff portals have **no** public sign-up. Customer registration rejects privileged fields (`roles`, `tenant_id`, `subject_refs`). Admin invite rejects `role_id=customer`.
 
 ## Assembly probe
 
@@ -60,30 +95,7 @@ Real-peer failures are visible (`PEER_UNAVAILABLE`, `FORBIDDEN`, `MALFORMED_PEER
 GET /v1/capabilities
 ```
 
-JSON body:
-
-```json
-{
-  "contract_version": "sentinel.task-contracts.v1",
-  "component": "web-shell",
-  "port": "web-shell.v1",
-  "mode": "fixture"
-}
-```
-
 `mode` comes from `NEXT_PUBLIC_SHELL_MODE` (`fixture` | `real-peers`). App stays on port **3012**.
-
-## Pages
-
-| Route | Role |
-| --- | --- |
-| `/v1/capabilities` | Assembly probe (`contract_version`, `component`, `port`, `mode`) |
-| `/intake` | Customer text intake (+ disabled voice slot) |
-| `/cases/[caseId]` | Case timeline |
-| `/ops` | Operator queue |
-| `/ops/cases/[caseId]/evidence` | Evidence + approval slot |
-
-Status chips use exact labels for **Pending**, **Provider confirmed**, **Credit confirmed** / **Credit pending**, and **Escalated**.
 
 ## Checks observed
 
@@ -99,10 +111,12 @@ Root `make check` validates repository metadata only.
 
 | Dimension | This module check |
 | --- | --- |
-| Component under test | Real web-shell implementation |
+| Component under test | Real web-shell + portal scaffold |
 | Case API peer | Local fixture stub |
+| Identity peer | Local fixture stub |
 | Approval UI / voice | Local substitutes |
 | Payment provider | N/A (UI only) |
 | Model/voice live | Off |
+| Money-path assembly | **Not claimed** |
 
 Assembled real-peer integration remains **unverified** until owner assembly.

@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Sentinel web shell",
-  description: "SN-012 customer and operator console (web-shell.v1)",
+  description: "SN-038 six role portals + SN-012 intake/ops shell (web-shell.v1)",
 };
 
 export default function RootLayout({
