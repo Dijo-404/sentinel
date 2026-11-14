@@ -210,11 +210,12 @@ class AuthChallenge:
     expires_at: datetime
     created_at: datetime
     consumed_at: datetime | None = None
+    attempt_count: int = 0
 
 
 @dataclass(frozen=True)
 class AuthDeliveryLogEntry:
-    """Sandbox loopback delivery row. Public view never includes raw codes."""
+    """Sandbox loopback delivery row. Never carries plaintext OTP."""
 
     log_id: str
     channel: str
@@ -223,7 +224,6 @@ class AuthDeliveryLogEntry:
     challenge_id: str
     user_id: str
     created_at: datetime
-    raw_code: str = ""
 
     def to_public(self) -> dict[str, Any]:
         return {

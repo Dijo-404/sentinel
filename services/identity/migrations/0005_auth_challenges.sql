@@ -1,4 +1,6 @@
 -- Sandbox verify / MFA / password-reset challenges + loopback delivery log.
+-- Codes: 8+ char alphanumeric, hashed at rest. Max 5 failed attempts then locked.
+-- Durable delivery log never stores plaintext OTP (memory peek / EXPOSE only).
 ALTER TABLE identity.users
     ADD COLUMN IF NOT EXISTS email_verified_at timestamptz;
 
@@ -10,6 +12,7 @@ CREATE TABLE IF NOT EXISTS identity.auth_challenges (
     code_hash text NOT NULL,
     expires_at timestamptz NOT NULL,
     consumed_at timestamptz,
+    attempt_count integer NOT NULL DEFAULT 0 CHECK (attempt_count >= 0),
     created_at timestamptz NOT NULL DEFAULT now()
 );
 
@@ -23,9 +26,7 @@ CREATE TABLE IF NOT EXISTS identity.auth_delivery_log (
     purpose text NOT NULL,
     challenge_id uuid NOT NULL REFERENCES identity.auth_challenges(challenge_id),
     user_id uuid NOT NULL REFERENCES identity.users(user_id),
-    created_at timestamptz NOT NULL DEFAULT now(),
-    -- Sandbox peek only; never returned by public list/auth JSON by default.
-    raw_code text NOT NULL
+    created_at timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS auth_delivery_log_user_purpose_idx

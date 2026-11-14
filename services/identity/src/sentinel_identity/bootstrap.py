@@ -53,6 +53,9 @@ def build_app(settings: Settings | None = None, *, store=None):
     settings = settings or Settings.from_environ()
     if settings.contract_version != CONTRACT_VERSION:
         raise ConfigurationError("Unsupported contract version")
+    # Refuse even when Settings is constructed manually (not only from_environ).
+    if settings.mode == "real-peers" and settings.expose_sandbox_codes:
+        raise ConfigurationError("IDENTITY_EXPOSE_SANDBOX_CODES must stay off in real-peers mode")
 
     clock = SystemClock()
     if store is not None:

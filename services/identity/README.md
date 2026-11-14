@@ -22,9 +22,12 @@ Contract: `sentinel.task-contracts.v1`, SHA-256
 - Accept invitation (single-use; deny expired/revoked/mismatched; new password ≥ 8)
 - Sandbox invite delivery: durable outbox + `GET /v1/sandbox/inbox` acceptance links
   (local demo only; set `IDENTITY_ACCEPT_LINK_BASE`, default `http://127.0.0.1:3000`)
-- Sandbox auth challenges: loopback delivery log; codes never in public JSON unless
-  `IDENTITY_EXPOSE_SANDBOX_CODES=true` (module checks only; blocked in real-peers).
-  Forgot password always 202 (no email enumeration).
+- Sandbox auth challenges: 8+ char alphanumeric codes hashed at rest; fail-closed
+  after **N=5** bad attempts per challenge; atomic consume. Loopback delivery log
+  never stores plaintext OTP in Postgres. Codes never in public JSON unless
+  `IDENTITY_EXPOSE_SANDBOX_CODES=true` (memory/module checks only; blocked in
+  real-peers, including manual Settings). Forgot password always 202 (no email
+  enumeration).
 - `GET /v1/merchant-memberships` for merchant-teams identity peer projection
 - `GET /v1/ops/team` supervisor-safe tenant roster (operator + supervisor only;
   not full `/v1/admin/users`)

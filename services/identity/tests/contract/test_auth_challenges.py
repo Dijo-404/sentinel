@@ -2,12 +2,21 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+from datetime import timedelta
+
+import pytest
 from fastapi.testclient import TestClient
 from tests.conftest import NEW_PASSWORD, auth_header, login
 
 from sentinel_identity.adapters.clock import SystemClock
 from sentinel_identity.adapters.seed import load_seed_users
 from sentinel_identity.adapters.storage_memory import MemoryIdentityStore
+from sentinel_identity.application.errors import ConfigurationError
+from sentinel_identity.application.security import (
+    CHALLENGE_CODE_LENGTH,
+    MAX_CHALLENGE_ATTEMPTS,
+)
 from sentinel_identity.bootstrap import Settings, build_app
 
 
@@ -15,6 +24,19 @@ def _peek_code(store: MemoryIdentityStore, *, user_id: str, purpose: str) -> str
     code = store.peek_auth_sandbox_code(user_id=user_id, purpose=purpose)
     assert code, f"missing sandbox code for {purpose}"
     return code
+
+
+def _fixture_settings(**overrides: object) -> Settings:
+    base: dict[str, object] = {
+        "mode": "fixture",
+        "contract_version": "sentinel.task-contracts.v1",
+        "database_url": "",
+        "seed": False,
+        "accept_link_base": "http://127.0.0.1:3000",
+        "expose_sandbox_codes": False,
+    }
+    base.update(overrides)
+    return Settings(**base)  # type: ignore[arg-type]
 
 
 def test_verify_request_confirm_marks_email_verified(
@@ -31,6 +53,7 @@ def test_verify_request_confirm_marks_email_verified(
     assert body.get("status") == "accepted"
 
     code = _peek_code(store, user_id=user_id, purpose="email_verify")
+    assert len(code) >= CHALLENGE_CODE_LENGTH
     confirm = client.post(
         "/v1/auth/verify/confirm",
         headers=headers,
@@ -49,7 +72,7 @@ def test_verify_confirm_rejects_bad_code(client: TestClient, demo_password: str)
     bad = client.post(
         "/v1/auth/verify/confirm",
         headers=headers,
-        json={"code": "000000"},
+        json={"code": "AAAAAAAA"},
     )
     assert bad.status_code == 400
     assert bad.json()["code"] == "INVALID_CHALLENGE"
@@ -96,7 +119,6 @@ def test_forgot_never_enumerates_email(client: TestClient, demo_password: str) -
     assert known.json() == unknown.json()
     assert "sandbox_code" not in known.json()
     assert "sandbox_code" not in unknown.json()
-    # unused demo_password keeps fixture signature consistent with siblings
     assert demo_password
 
 
@@ -116,7 +138,7 @@ def test_password_reset_success_and_invalid(
         "/v1/auth/password/reset",
         json={
             "email": "customer@example.test",
-            "code": "000000",
+            "code": "AAAAAAAA",
             "new_password": NEW_PASSWORD,
         },
     )
@@ -158,25 +180,16 @@ def test_password_reset_success_and_invalid(
 def test_expose_sandbox_codes_opt_in_only(demo_password: str) -> None:
     store = MemoryIdentityStore()
     load_seed_users(store, SystemClock())
-    app = build_app(
-        Settings(
-            mode="fixture",
-            contract_version="sentinel.task-contracts.v1",
-            database_url="",
-            seed=False,
-            accept_link_base="http://127.0.0.1:3000",
-            expose_sandbox_codes=True,
-        ),
-        store=store,
-    )
+    app = build_app(_fixture_settings(expose_sandbox_codes=True), store=store)
     client = TestClient(app)
     session = login(client, "customer@example.test", demo_password)
     headers = auth_header(session["session_token"])
 
     verify = client.post("/v1/auth/verify/request", headers=headers, json={})
     assert verify.status_code == 202
-    assert isinstance(verify.json().get("sandbox_code"), str)
-    assert len(verify.json()["sandbox_code"]) == 6
+    code = verify.json().get("sandbox_code")
+    assert isinstance(code, str)
+    assert len(code) >= CHALLENGE_CODE_LENGTH
 
     mfa = client.post("/v1/auth/mfa/challenge", headers=headers, json={})
     assert mfa.status_code == 202
@@ -189,7 +202,6 @@ def test_expose_sandbox_codes_opt_in_only(demo_password: str) -> None:
     assert forgot.status_code == 202
     assert isinstance(forgot.json().get("sandbox_code"), str)
 
-    # unknown email still 202; must not leak a code
     ghost = client.post(
         "/v1/auth/password/forgot",
         json={"email": "ghost@example.test"},
@@ -200,6 +212,83 @@ def test_expose_sandbox_codes_opt_in_only(demo_password: str) -> None:
 
 def test_challenge_routes_require_bearer(client: TestClient) -> None:
     assert client.post("/v1/auth/verify/request", json={}).status_code == 401
-    assert client.post("/v1/auth/verify/confirm", json={"code": "123456"}).status_code == 401
+    assert client.post("/v1/auth/verify/confirm", json={"code": "ABCD2345"}).status_code == 401
     assert client.post("/v1/auth/mfa/challenge", json={}).status_code == 401
-    assert client.post("/v1/auth/mfa/verify", json={"code": "123456"}).status_code == 401
+    assert client.post("/v1/auth/mfa/verify", json={"code": "ABCD2345"}).status_code == 401
+
+
+def test_expired_challenge_rejected(
+    client: TestClient, store: MemoryIdentityStore, demo_password: str
+) -> None:
+    session = login(client, "customer@example.test", demo_password)
+    headers = auth_header(session["session_token"])
+    user_id = session["user"]["user_id"]
+    client.post("/v1/auth/verify/request", headers=headers, json={})
+    code = _peek_code(store, user_id=user_id, purpose="email_verify")
+    challenge = next(
+        c
+        for c in store.auth_challenges.values()
+        if c.user_id == user_id and c.challenge_type == "email_verify"
+    )
+    store.save_auth_challenge(
+        replace(challenge, expires_at=challenge.created_at - timedelta(seconds=1))
+    )
+    response = client.post(
+        "/v1/auth/verify/confirm",
+        headers=headers,
+        json={"code": code},
+    )
+    assert response.status_code == 400
+    assert response.json()["code"] == "INVALID_CHALLENGE"
+
+
+def test_consumed_challenge_reuse_rejected(
+    client: TestClient, store: MemoryIdentityStore, demo_password: str
+) -> None:
+    session = login(client, "customer@example.test", demo_password)
+    headers = auth_header(session["session_token"])
+    user_id = session["user"]["user_id"]
+    client.post("/v1/auth/verify/request", headers=headers, json={})
+    code = _peek_code(store, user_id=user_id, purpose="email_verify")
+    first = client.post("/v1/auth/verify/confirm", headers=headers, json={"code": code})
+    assert first.status_code == 200, first.text
+    second = client.post("/v1/auth/verify/confirm", headers=headers, json={"code": code})
+    assert second.status_code == 400
+    assert second.json()["code"] == "INVALID_CHALLENGE"
+
+
+def test_challenge_locks_after_max_failed_attempts(
+    client: TestClient, store: MemoryIdentityStore, demo_password: str
+) -> None:
+    session = login(client, "customer@example.test", demo_password)
+    headers = auth_header(session["session_token"])
+    user_id = session["user"]["user_id"]
+    client.post("/v1/auth/verify/request", headers=headers, json={})
+    code = _peek_code(store, user_id=user_id, purpose="email_verify")
+    for _ in range(MAX_CHALLENGE_ATTEMPTS):
+        bad = client.post(
+            "/v1/auth/verify/confirm",
+            headers=headers,
+            json={"code": "ZZZZZZZZ"},
+        )
+        assert bad.status_code == 400
+    locked = next(
+        c
+        for c in store.auth_challenges.values()
+        if c.user_id == user_id and c.challenge_type == "email_verify"
+    )
+    assert locked.attempt_count == MAX_CHALLENGE_ATTEMPTS
+    assert locked.consumed_at is not None
+    still = client.post("/v1/auth/verify/confirm", headers=headers, json={"code": code})
+    assert still.status_code == 400
+
+
+def test_build_app_refuses_real_peers_with_expose() -> None:
+    with pytest.raises(ConfigurationError, match="EXPOSE_SANDBOX_CODES"):
+        build_app(
+            _fixture_settings(
+                mode="real-peers",
+                expose_sandbox_codes=True,
+                database_url="postgresql+psycopg://identity:identity@127.0.0.1:5432/identity",
+            )
+        )

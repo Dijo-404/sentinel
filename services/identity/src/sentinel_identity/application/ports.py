@@ -135,6 +135,18 @@ class IdentityStore(Protocol):
         self, *, user_id: str, challenge_type: str, at: datetime
     ) -> AuthChallenge | None: ...
 
+    def try_consume_auth_challenge(
+        self, challenge_id: str, *, at: datetime
+    ) -> AuthChallenge | None:
+        """Atomic consume: UPDATE … WHERE consumed_at IS NULL AND expires_at > at."""
+        ...
+
+    def record_auth_challenge_failure(
+        self, challenge_id: str, *, at: datetime, max_attempts: int
+    ) -> AuthChallenge | None:
+        """Increment attempt_count; consume/lock when attempts reach max_attempts."""
+        ...
+
     def append_auth_delivery(
         self,
         *,
@@ -142,11 +154,15 @@ class IdentityStore(Protocol):
         user_id: str,
         destination: str,
         purpose: str,
-        raw_code: str,
         at: datetime,
-    ) -> AuthDeliveryLogEntry: ...
+        raw_code: str = "",
+    ) -> AuthDeliveryLogEntry:
+        """Append loopback delivery. raw_code is memory-only; durable store ignores it."""
+        ...
 
-    def peek_auth_sandbox_code(self, *, user_id: str, purpose: str) -> str | None: ...
+    def peek_auth_sandbox_code(self, *, user_id: str, purpose: str) -> str | None:
+        """Memory/test helper. Postgres always returns None (no durable plaintext)."""
+        ...
 
     def list_auth_delivery_log(
         self, *, user_id: str | None = None, limit: int = 50

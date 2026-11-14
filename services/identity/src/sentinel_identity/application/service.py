@@ -34,10 +34,11 @@ from .errors import (
 )
 from .ports import Clock, IdentityStore
 from .security import (
+    MAX_CHALLENGE_ATTEMPTS,
     assert_password_acceptable,
     hash_password,
     hash_token,
-    mint_numeric_code,
+    mint_challenge_code,
     mint_token,
     normalize_email,
     verify_password,
@@ -330,7 +331,7 @@ class IdentityService:
     def request_mfa_challenge(
         self, *, session_token: str, request_id: str = "request-local"
     ) -> dict[str, Any]:
-        """Sandbox MFA: numeric loopback code (not production TOTP)."""
+        """Sandbox MFA: alphanumeric loopback code (not production TOTP)."""
         session = self._require_session(session_token)
         user = self._require_user(session.user_id)
         raw_code, _challenge = self._issue_challenge(
@@ -1243,7 +1244,7 @@ class IdentityService:
         request_id: str,
     ) -> tuple[str, AuthChallenge]:
         now = self._clock.now()
-        raw_code = mint_numeric_code()
+        raw_code = mint_challenge_code()
         challenge = AuthChallenge(
             challenge_id=str(uuid.uuid4()),
             user_id=user.user_id,
@@ -1251,6 +1252,7 @@ class IdentityService:
             code_hash=hash_token(raw_code),
             expires_at=now + CHALLENGE_TTL,
             created_at=now,
+            attempt_count=0,
         )
         self._store.create_auth_challenge(challenge)
         self._store.append_auth_delivery(
@@ -1258,8 +1260,8 @@ class IdentityService:
             user_id=user.user_id,
             destination=destination,
             purpose=purpose,
-            raw_code=raw_code,
             at=now,
+            raw_code=raw_code,
         )
         self._audit(
             actor=user.user_id,
@@ -1277,15 +1279,17 @@ class IdentityService:
         challenge = self._store.get_active_auth_challenge(
             user_id=user_id, challenge_type=challenge_type, at=now
         )
-        if (
-            challenge is None
-            or not code
-            or not hmac.compare_digest(hash_token(code), challenge.code_hash)
-        ):
+        if challenge is None or not code:
             raise InvalidChallengeError(INVALID_CHALLENGE_MESSAGE)
-        challenge = replace(challenge, consumed_at=now)
-        self._store.save_auth_challenge(challenge)
-        return challenge
+        if hmac.compare_digest(hash_token(code), challenge.code_hash):
+            consumed = self._store.try_consume_auth_challenge(challenge.challenge_id, at=now)
+            if consumed is None:
+                raise InvalidChallengeError(INVALID_CHALLENGE_MESSAGE)
+            return consumed
+        self._store.record_auth_challenge_failure(
+            challenge.challenge_id, at=now, max_attempts=MAX_CHALLENGE_ATTEMPTS
+        )
+        raise InvalidChallengeError(INVALID_CHALLENGE_MESSAGE)
 
     def _accepted_challenge_response(self, raw_code: str | None) -> dict[str, Any]:
         body: dict[str, Any] = {"status": "accepted"}

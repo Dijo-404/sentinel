@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Fixed — harden sandbox auth challenges
+
+- Challenge codes are 8+ char alphanumeric (not 6-digit). Failed verifies
+  increment `attempt_count`; challenge locks/consumes after **N=5** failures.
+- Atomic consume: conditional `UPDATE … WHERE consumed_at IS NULL AND expires_at > at`.
+- Durable Postgres `auth_delivery_log` never stores plaintext OTP (`raw_code`
+  dropped). Memory peek / `IDENTITY_EXPOSE_SANDBOX_CODES` only.
+- `build_app` refuses `expose_sandbox_codes` when `mode=real-peers` even if
+  Settings is constructed manually.
+
 ### Added — sandbox verify / MFA / password reset
 
 - `POST /v1/auth/verify/request|confirm`, `/v1/auth/mfa/challenge|verify`,
@@ -9,7 +19,7 @@
 - `identity.auth_challenges` + append-only `identity.auth_delivery_log`
   (loopback channel); `users.email_verified_at`.
 - MFA / verify / reset codes are hashed at rest. Plaintext appears only via
-  store peek helper or `IDENTITY_EXPOSE_SANDBOX_CODES=true` (fixture/module
+  in-memory peek helper or `IDENTITY_EXPOSE_SANDBOX_CODES=true` (fixture/module
   checks). Flag is refused in `real-peers` mode. Public JSON never includes
   codes by default. Forgot always returns 202 (no email enumeration).
 

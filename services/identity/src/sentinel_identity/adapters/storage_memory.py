@@ -39,6 +39,8 @@ class MemoryIdentityStore:
         self.notifications: dict[str, Notification] = {}
         self.auth_challenges: dict[str, AuthChallenge] = {}
         self.auth_delivery_log: dict[str, AuthDeliveryLogEntry] = {}
+        # In-process only; never written to durable delivery log rows.
+        self._sandbox_codes: dict[str, str] = {}
         self._delivery_outbox: dict[str, DeliveryOutboxItem] = {}
         self._delivery_by_invitation: dict[str, str] = {}
 
@@ -361,6 +363,30 @@ class MemoryIdentityStore:
         rows.sort(key=lambda c: c.created_at.isoformat(), reverse=True)
         return rows[0]
 
+    def try_consume_auth_challenge(
+        self, challenge_id: str, *, at: datetime
+    ) -> AuthChallenge | None:
+        with self._lock:
+            challenge = self.auth_challenges.get(challenge_id)
+            if challenge is None or challenge.consumed_at is not None or challenge.expires_at <= at:
+                return None
+            updated = replace(challenge, consumed_at=at)
+            self.auth_challenges[challenge_id] = updated
+            return updated
+
+    def record_auth_challenge_failure(
+        self, challenge_id: str, *, at: datetime, max_attempts: int
+    ) -> AuthChallenge | None:
+        with self._lock:
+            challenge = self.auth_challenges.get(challenge_id)
+            if challenge is None or challenge.consumed_at is not None or challenge.expires_at <= at:
+                return None
+            attempts = challenge.attempt_count + 1
+            consumed_at = at if attempts >= max_attempts else None
+            updated = replace(challenge, attempt_count=attempts, consumed_at=consumed_at)
+            self.auth_challenges[challenge_id] = updated
+            return updated
+
     def append_auth_delivery(
         self,
         *,
@@ -368,8 +394,8 @@ class MemoryIdentityStore:
         user_id: str,
         destination: str,
         purpose: str,
-        raw_code: str,
         at: datetime,
+        raw_code: str = "",
     ) -> AuthDeliveryLogEntry:
         with self._lock:
             entry = AuthDeliveryLogEntry(
@@ -380,21 +406,22 @@ class MemoryIdentityStore:
                 challenge_id=challenge_id,
                 user_id=user_id,
                 created_at=at,
-                raw_code=raw_code,
             )
             self.auth_delivery_log[entry.log_id] = entry
+            if raw_code:
+                self._sandbox_codes[challenge_id] = raw_code
             return entry
 
     def peek_auth_sandbox_code(self, *, user_id: str, purpose: str) -> str | None:
         rows = [
             e
             for e in self.auth_delivery_log.values()
-            if e.user_id == user_id and e.purpose == purpose and e.raw_code
+            if e.user_id == user_id and e.purpose == purpose
         ]
         if not rows:
             return None
         rows.sort(key=lambda e: e.created_at.isoformat(), reverse=True)
-        return rows[0].raw_code
+        return self._sandbox_codes.get(rows[0].challenge_id)
 
     def list_auth_delivery_log(
         self, *, user_id: str | None = None, limit: int = 50

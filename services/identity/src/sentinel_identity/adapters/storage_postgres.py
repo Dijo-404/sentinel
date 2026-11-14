@@ -675,10 +675,10 @@ class PostgresIdentityStore:
                     """
                     INSERT INTO identity.auth_challenges (
                         challenge_id, user_id, challenge_type, code_hash,
-                        expires_at, consumed_at, created_at
+                        expires_at, consumed_at, attempt_count, created_at
                     ) VALUES (
                         :challenge_id, :user_id, :challenge_type, :code_hash,
-                        :expires_at, :consumed_at, :created_at
+                        :expires_at, :consumed_at, :attempt_count, :created_at
                     )
                     """
                 ),
@@ -693,7 +693,7 @@ class PostgresIdentityStore:
                     """
                     UPDATE identity.auth_challenges SET
                         code_hash=:code_hash, expires_at=:expires_at,
-                        consumed_at=:consumed_at
+                        consumed_at=:consumed_at, attempt_count=:attempt_count
                     WHERE challenge_id=:challenge_id
                     """
                 ),
@@ -729,6 +729,60 @@ class PostgresIdentityStore:
             )
         return _auth_challenge_from_row(row) if row else None
 
+    def try_consume_auth_challenge(
+        self, challenge_id: str, *, at: datetime
+    ) -> AuthChallenge | None:
+        with self._engine.begin() as conn:
+            row = (
+                conn.execute(
+                    text(
+                        """
+                        UPDATE identity.auth_challenges
+                        SET consumed_at = :at
+                        WHERE challenge_id = :challenge_id
+                          AND consumed_at IS NULL
+                          AND expires_at > :at
+                        RETURNING *
+                        """
+                    ),
+                    {"challenge_id": challenge_id, "at": at},
+                )
+                .mappings()
+                .first()
+            )
+        return _auth_challenge_from_row(row) if row else None
+
+    def record_auth_challenge_failure(
+        self, challenge_id: str, *, at: datetime, max_attempts: int
+    ) -> AuthChallenge | None:
+        with self._engine.begin() as conn:
+            row = (
+                conn.execute(
+                    text(
+                        """
+                        UPDATE identity.auth_challenges
+                        SET attempt_count = attempt_count + 1,
+                            consumed_at = CASE
+                                WHEN attempt_count + 1 >= :max_attempts THEN :at
+                                ELSE consumed_at
+                            END
+                        WHERE challenge_id = :challenge_id
+                          AND consumed_at IS NULL
+                          AND expires_at > :at
+                        RETURNING *
+                        """
+                    ),
+                    {
+                        "challenge_id": challenge_id,
+                        "at": at,
+                        "max_attempts": max_attempts,
+                    },
+                )
+                .mappings()
+                .first()
+            )
+        return _auth_challenge_from_row(row) if row else None
+
     def append_auth_delivery(
         self,
         *,
@@ -736,9 +790,11 @@ class PostgresIdentityStore:
         user_id: str,
         destination: str,
         purpose: str,
-        raw_code: str,
         at: datetime,
+        raw_code: str = "",
     ) -> AuthDeliveryLogEntry:
+        # Durable store never persists plaintext OTP.
+        _ = raw_code
         entry = AuthDeliveryLogEntry(
             log_id=str(uuid.uuid4()),
             channel="loopback",
@@ -747,7 +803,6 @@ class PostgresIdentityStore:
             challenge_id=challenge_id,
             user_id=user_id,
             created_at=at,
-            raw_code=raw_code,
         )
         with self._engine.begin() as conn:
             conn.execute(
@@ -755,10 +810,10 @@ class PostgresIdentityStore:
                     """
                     INSERT INTO identity.auth_delivery_log (
                         log_id, channel, destination, purpose, challenge_id,
-                        user_id, created_at, raw_code
+                        user_id, created_at
                     ) VALUES (
                         :log_id, :channel, :destination, :purpose, :challenge_id,
-                        :user_id, :created_at, :raw_code
+                        :user_id, :created_at
                     )
                     """
                 ),
@@ -767,23 +822,9 @@ class PostgresIdentityStore:
         return entry
 
     def peek_auth_sandbox_code(self, *, user_id: str, purpose: str) -> str | None:
-        with self._engine.connect() as conn:
-            row = (
-                conn.execute(
-                    text(
-                        """
-                        SELECT raw_code FROM identity.auth_delivery_log
-                        WHERE user_id = :user_id AND purpose = :purpose
-                        ORDER BY created_at DESC
-                        LIMIT 1
-                        """
-                    ),
-                    {"user_id": user_id, "purpose": purpose},
-                )
-                .mappings()
-                .first()
-            )
-        return str(row["raw_code"]) if row else None
+        # No durable plaintext; peek is memory/test only.
+        _ = (user_id, purpose)
+        return None
 
     def list_auth_delivery_log(
         self, *, user_id: str | None = None, limit: int = 50
@@ -979,6 +1020,7 @@ def _auth_challenge_from_row(row: Any) -> AuthChallenge:
         expires_at=_dt(row["expires_at"]),
         created_at=_dt(row["created_at"]),
         consumed_at=_dt(row["consumed_at"]) if row["consumed_at"] else None,
+        attempt_count=int(row["attempt_count"]) if row.get("attempt_count") is not None else 0,
     )
 
 
@@ -991,7 +1033,6 @@ def _auth_delivery_from_row(row: Any) -> AuthDeliveryLogEntry:
         challenge_id=str(row["challenge_id"]),
         user_id=str(row["user_id"]),
         created_at=_dt(row["created_at"]),
-        raw_code=str(row["raw_code"]) if row.get("raw_code") else "",
     )
 
 
