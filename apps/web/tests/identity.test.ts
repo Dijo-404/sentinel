@@ -8,6 +8,7 @@ import { getIdentityClient } from "@/lib/server/identity-client";
 import {
   isSafeInternalPath,
   portalPath,
+  safePortalRedirect,
   workspaceChoices,
 } from "@/lib/server/auth";
 import { PeerError } from "@/domain/types";
@@ -80,11 +81,25 @@ describe("auth helpers", () => {
     expect(portalPath("operator")).toBe("/operator/dashboard");
   });
 
-  it("isSafeInternalPath rejects open redirects", () => {
-    expect(isSafeInternalPath("/customer/dashboard")).toBe(true);
-    expect(isSafeInternalPath("//evil.example")).toBe(false);
-    expect(isSafeInternalPath("https://evil.example")).toBe(false);
+  it("isSafeInternalPath rejects open redirects and traversal", () => {
+    expect(isSafeInternalPath("/customer/dashboard", "customer")).toBe(true);
+    expect(isSafeInternalPath("//evil.example", "customer")).toBe(false);
+    expect(isSafeInternalPath("https://evil.example", "customer")).toBe(false);
+    expect(isSafeInternalPath("/customer/../admin", "customer")).toBe(false);
     expect(isSafeInternalPath(null)).toBe(false);
+    expect(safePortalRedirect("/admin/users", "admin")).toBe("/admin/users");
+    expect(safePortalRedirect("/ops", "admin")).toBe("/admin/dashboard");
+  });
+
+  it("selectAssignment binds matching portal role", () => {
+    const id = createIdentityStub();
+    // Seed a multi-role user by inviting is N/A; mutate via login + select on admin.
+    const login = id.login("admin@example.test", "demo-admin");
+    expect(login.ok).toBe(true);
+    if (!login.ok) return;
+    const asg = login.workspaces[0]!;
+    const selected = id.selectAssignment(login.session.session_id, asg.assignment_id);
+    expect(selected?.active_assignment_id).toBe(asg.assignment_id);
   });
 
   it("workspaceChoices maps authorized portals only", () => {

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Fixed — 14 November 2026
+
+- Session cookie set only after portal role match; mismatch clears cookie and revokes provisional session. Active assignment bound to requested portal before cookie write (Refs #100 / PR #107).
+- `registerCustomerAccount` rejects privileged client fields before identity peer call. Safe redirects normalize path, reject `..`, require exact `/{role}` prefix.
+- Legacy `/intake` and `/ops` gated with `requireRole` / `requireAnyRole` (customer; operator|supervisor).
+
 ### Added — 14 November 2026
 
 - SN-038 six role portals: `/customer|merchant|operator|supervisor|risk|admin` login + protected dashboards; customer `/register`; shared `RoleLogin`, `ProtectedShell`, unauthorized workspace chooser (Refs #100).

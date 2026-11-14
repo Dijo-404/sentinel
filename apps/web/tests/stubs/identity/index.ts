@@ -88,6 +88,8 @@ export type StubIdentity = {
     user: IdentityUser;
     assignment: WorkspaceAssignment;
   } | null;
+  /** Bind session to an assignment the user already holds. */
+  selectAssignment(sessionId: string, assignmentId: string): SessionRecord | null;
   logout(sessionId: string): void;
   listStaffUsers(actorUserId: string): IdentityUser[] | { error: "FORBIDDEN" };
   listInvitations(actorUserId: string): Invitation[] | { error: "FORBIDDEN" };
@@ -335,6 +337,23 @@ export function createIdentityStub(): StubIdentity {
       );
       if (!assignment) return null;
       return { session, user, assignment };
+    },
+
+    selectAssignment(sessionId, assignmentId) {
+      const session = sessions.get(sessionId);
+      if (!session || session.revoked) return null;
+      const user = users.find((u) => u.user_id === session.user_id);
+      if (!user || user.account_status !== "ACTIVE") return null;
+      const assignment = user.assignments.find(
+        (a) => a.assignment_id === assignmentId,
+      );
+      if (!assignment) return null;
+      const next: SessionRecord = {
+        ...session,
+        active_assignment_id: assignment.assignment_id,
+      };
+      sessions.set(sessionId, next);
+      return next;
     },
 
     logout(sessionId) {

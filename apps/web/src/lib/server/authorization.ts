@@ -55,6 +55,24 @@ export async function requireRole(required: PortalRole): Promise<AuthSession> {
   return result.session;
 }
 
+/**
+ * Accept any of the listed roles. Unauthenticated users go to `loginAs` login.
+ */
+export async function requireAnyRole(
+  allowed: PortalRole[],
+  loginAs: PortalRole = allowed[0]!,
+): Promise<AuthSession> {
+  const session = await getAuthSession();
+  if (!session) {
+    redirect(loginPath(loginAs));
+  }
+  const match = session.workspaces.find((w) => allowed.includes(w.role));
+  if (!match) {
+    redirect(`/unauthorized?portal=${loginAs}`);
+  }
+  return session;
+}
+
 export function dashboardFor(role: PortalRole): string {
   return portalPath(role);
 }

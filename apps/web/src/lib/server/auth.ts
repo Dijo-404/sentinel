@@ -41,10 +41,44 @@ export function loginPath(role: PortalRole): string {
   return `/${role}/login`;
 }
 
-export function isSafeInternalPath(path: string | null | undefined): path is string {
-  if (!path || !path.startsWith("/") || path.startsWith("//")) return false;
-  if (path.includes("://") || path.includes("\\")) return false;
+/**
+ * Same-origin portal redirect only.
+ * Normalize, reject `..` / schemes / protocol-relative, require `/{role}` or `/{role}/…`.
+ */
+export function isSafeInternalPath(
+  path: string | null | undefined,
+  role?: PortalRole,
+): path is string {
+  if (!path) return false;
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(path);
+  } catch {
+    return false;
+  }
+  const pathOnly = decoded.split(/[?#]/, 1)[0] ?? "";
+  if (!pathOnly.startsWith("/") || pathOnly.startsWith("//")) return false;
+  if (pathOnly.includes("\\") || pathOnly.includes("://")) return false;
+  const segments = pathOnly.split("/").filter(Boolean);
+  if (segments.some((s) => s === ".." || s === ".")) return false;
+  // Collapse accidental duplicate slashes for prefix check
+  const normalized = "/" + segments.join("/");
+  if (role) {
+    return normalized === `/${role}` || normalized.startsWith(`/${role}/`);
+  }
   return true;
+}
+
+export function safePortalRedirect(
+  path: string | null | undefined,
+  role: PortalRole,
+): string {
+  if (!isSafeInternalPath(path, role)) {
+    return portalPath(role);
+  }
+  const pathOnly = decodeURIComponent(path).split(/[?#]/, 1)[0]!;
+  const segments = pathOnly.split("/").filter(Boolean);
+  return "/" + segments.join("/");
 }
 
 export async function readSessionId(): Promise<string | undefined> {
@@ -92,20 +126,41 @@ export async function loginWithCredentials(
   const identity = getIdentityClient();
   const result = identity.login(email, password);
   if (!result.ok) {
+    await clearSessionCookie();
     return { ok: false, code: result.code, message: GENERIC_AUTH_FAILURE };
   }
-  await setSessionCookie(result.session.session_id);
-  const role_match = result.workspaces.some((w) => w.role === requestedRole);
+
+  const matched = result.workspaces.find((w) => w.role === requestedRole);
+  if (!matched) {
+    identity.logout(result.session.session_id);
+    await clearSessionCookie();
+    return {
+      ok: true,
+      session: {
+        session: result.session,
+        user: result.user,
+        assignment: result.user.assignments[0]!,
+        workspaces: result.workspaces,
+      },
+      role_match: false,
+      requested_role: requestedRole,
+    };
+  }
+
+  const activated =
+    identity.selectAssignment(result.session.session_id, matched.assignment_id) ??
+    result.session;
+
+  await setSessionCookie(activated.session_id);
   return {
     ok: true,
     session: {
-      session: result.session,
+      session: activated,
       user: result.user,
-      assignment: result.workspaces.find((w) => w.role === requestedRole) ??
-        result.user.assignments[0]!,
+      assignment: matched,
       workspaces: result.workspaces,
     },
-    role_match,
+    role_match: true,
     requested_role: requestedRole,
   };
 }
@@ -122,8 +177,28 @@ export async function registerCustomerAccount(input: {
   | { ok: true; redirectTo: string }
   | { ok: false; code: string; message: string }
 > {
+  // Reject privileged client fields before any peer call.
+  if (
+    input.roles !== undefined ||
+    input.tenant_id !== undefined ||
+    input.subject_refs !== undefined
+  ) {
+    return {
+      ok: false,
+      code: "PRIVILEGED_FIELDS_REJECTED",
+      message: "Registration rejected privileged fields",
+    };
+  }
+
+  const safe = {
+    email: input.email,
+    display_name: input.display_name,
+    password: input.password,
+    language: input.language,
+  };
+
   const identity = getIdentityClient();
-  const result = identity.registerCustomer(input);
+  const result = identity.registerCustomer(safe);
   if (!result.ok) {
     if (result.code === "PRIVILEGED_FIELDS_REJECTED") {
       return {

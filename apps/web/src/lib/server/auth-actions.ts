@@ -4,11 +4,11 @@ import { redirect } from "next/navigation";
 import type { PortalRole } from "../../../tests/stubs/identity";
 import { getIdentityClient } from "./identity-client";
 import {
-  isSafeInternalPath,
   loginWithCredentials,
   logoutCurrentSession,
   portalPath,
   registerCustomerAccount,
+  safePortalRedirect,
 } from "./auth";
 import { requireRole } from "./authorization";
 
@@ -54,11 +54,7 @@ export async function loginAction(
     };
   }
 
-  const dest =
-    isSafeInternalPath(next) && next.startsWith(`/${role}/`)
-      ? next
-      : portalPath(role);
-  redirect(dest);
+  redirect(safePortalRedirect(next || null, role));
 }
 
 export async function registerCustomerAction(

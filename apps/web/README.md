@@ -81,10 +81,10 @@ Real-peer failures are visible. Never put bearers in `NEXT_PUBLIC_*`. Fixture au
 | `/admin/users` · `/admin/users/invite` | Staff directory + invite (stub) |
 | `/auth/*` | Shared auth scaffolds (verify, MFA, invitation, …) |
 | `/unauthorized` | Role mismatch — authorized workspaces only |
-| `/intake` | Legacy customer text intake (compat) |
-| `/cases/[caseId]` | Case timeline |
-| `/ops` | Legacy operator queue (compat) |
-| `/ops/cases/[caseId]/evidence` | Evidence + approval slot |
+| `/intake` | Legacy customer text intake (requires customer session) |
+| `/cases/[caseId]` | Case timeline (requires customer session) |
+| `/ops` | Legacy operator queue (requires operator or supervisor) |
+| `/ops/cases/[caseId]/evidence` | Evidence + approval slot (same ops gate) |
 | `/v1/capabilities` | Assembly probe |
 
 Staff portals have **no** public sign-up. Customer registration rejects privileged fields (`roles`, `tenant_id`, `subject_refs`). Admin invite rejects `role_id=customer`.
