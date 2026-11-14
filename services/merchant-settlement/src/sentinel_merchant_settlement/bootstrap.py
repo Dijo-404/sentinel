@@ -98,7 +98,15 @@ def build_app(
                 token=settings.provider_token,
             )
 
-    finding_store = store if store is not None else MemoryFindingStore()
+    if store is not None:
+        finding_store = store
+    elif mode == "real-peers":
+        raise ConfigurationError(
+            "real-peers requires an injected durable finding store "
+            "(MemoryFindingStore defaults are not allowed across workers)"
+        )
+    else:
+        finding_store = MemoryFindingStore()
     import_uc = ImportSettlementBatch(
         evidence=evidence_port,
         provider=provider_port,

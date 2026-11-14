@@ -39,6 +39,11 @@ import {
 } from "@/lib/server/auth";
 import { requireRole } from "@/lib/server/authorization";
 
+// Auth helpers read process.env via getIdentityClient(); product default is real-peers.
+beforeEach(() => {
+  process.env.NEXT_PUBLIC_SHELL_MODE = "fixture";
+});
+
 describe("login session cookie policy", () => {
   beforeEach(() => {
     resetSharedIdentityStub();

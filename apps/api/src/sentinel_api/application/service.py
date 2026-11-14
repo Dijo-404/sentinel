@@ -310,11 +310,12 @@ class CaseService:
         rows = self._repo.list_case_rows(tenant_id=principal.tenant_id)
         waiting_approval = sum(1 for row in rows if row["status"] == "WAITING_APPROVAL")
         escalated = sum(1 for row in rows if row["status"] == "ESCALATED")
-        # Approval exposure stays ledger-owned; case store only surfaces queue hints.
+        # Case-store projection: pending_approvals matches WAITING_APPROVAL rows
+        # (not a literal zero). Ledger decide authority remains separate.
         return {
             "waiting_approval_cases": waiting_approval,
             "escalated_cases": escalated,
-            "pending_approvals": 0,
+            "pending_approvals": waiting_approval,
             "label": "case-store-projection",
         }
 

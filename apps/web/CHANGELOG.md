@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Fixed — 15 November 2026 (data provenance / hardcode audit)
+
+- Supervisor case evidence approval loads `getAction(case.action_id)` + evidence
+  expiry — never `demoAction` / fixed `2026-12-31T23:59:59Z`. Removed
+  `FIXTURE_DECISION_EXPIRES_AT`; missing expiry fails closed in both modes.
+- Default `NEXT_PUBLIC_SHELL_MODE` is `real-peers` (fixture only when set for checks).
+- Merchant metrics windows use rolling UTC dates, not Nov 1–14 fixture calendar.
+- Customer/merchant transaction and refund list pages never render hardcoded rows
+  (fail closed until a list peer exists).
+- Settlement real-peers refuses in-memory finding store without injected durable store.
+
 ### Added — 15 November 2026 (merchant Settings from merchant-teams BFF)
 
 - Merchant Settings page loads via `/api/bff/merchant-teams` →
@@ -90,7 +101,7 @@
 ### Fixed — 14 November 2026
 
 - Operator and supervisor overviews prefer `CaseClient.getOperatorDashboard` / `getSupervisorDashboard` aggregates; PeerError or missing port shows explicit unavailable — never page-scoped `listOpsCases` or fake KPIs.
-- Supervisor decision workspace loads authoritative `ActionRecord` via `getAction` (ledger BFF `/api/bff/ledger` → `GET /v1/actions/{id}`); real-peers fail closed without silent `demoAction` digests. Decision expiry from evidence freshness (fixture keeps labeled `FIXTURE_DECISION_EXPIRES_AT`).
+- Supervisor decision workspace loads authoritative `ActionRecord` via `getAction` (ledger BFF `/api/bff/ledger` → `GET /v1/actions/{id}`); real-peers fail closed without silent `demoAction` digests. Decision expiry from evidence/approval freshness only (no invented `2026-12-31` constant).
 - Case timeline polls `listEvents` and wires message/escalate controls; operator queue paginates on `next_cursor` and links timeline to `/operator/cases/{id}` (not customer `/cases`).
 - Merchant and role portal dashboards withhold fake KPIs; customer uses scoped case-api dashboard when available, otherwise explicit unavailable.
 - Portal BFF `/api/bff/case/**` requires `sentinel_session` only; removed `CASE_API_BEARER_TOKEN` fallback so unauthenticated browser callers cannot borrow the service token (401, no upstream call).

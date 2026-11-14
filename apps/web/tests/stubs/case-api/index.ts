@@ -293,7 +293,7 @@ function validClient(options?: CaseApiStubOptions): CaseClient {
       return {
         waiting_approval_cases: 1,
         escalated_cases: 0,
-        pending_approvals: 0,
+        pending_approvals: 1,
         label: "fixture-projection",
       };
     },

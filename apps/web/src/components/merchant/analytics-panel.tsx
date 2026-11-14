@@ -14,6 +14,7 @@ import { FixtureBanner } from "@/components/viz/fixture-banner";
 import { StatBlock } from "@/components/viz/stat-block";
 import { UiState } from "@/components/ui-states";
 import { FIXTURE_MERCHANT_METRICS } from "../../../tests/stubs/merchant-analytics";
+import { rollingMetricsWindow } from "@/domain/metrics-window";
 
 type Props = {
   session: AuthSession;
@@ -78,10 +79,7 @@ export function AnalyticsPanel({ session, analyticsClient }: Props) {
         }
         return;
       }
-      const window = {
-        window_start: FIXTURE_MERCHANT_METRICS.window_start,
-        window_end: FIXTURE_MERCHANT_METRICS.window_end,
-      };
+      const window = rollingMetricsWindow();
       try {
         const metrics = await client.getMetrics(merchantRef, window);
         if (cancelled) return;

@@ -1,7 +1,9 @@
 # SN-027 changelog
 
 ## Unreleased
+
 - Refuse non-loopback HTTP bind while demo/sandbox bearer tokens remain configured.
+- real-peers refuses default `MemoryFindingStore` (require injected durable store).
 
 ### Added — 13 November 2026
 

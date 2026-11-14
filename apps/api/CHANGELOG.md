@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed — 15 November 2026 (supervisor dashboard pending_approvals)
+
+- `pending_approvals` is the case-store count of `WAITING_APPROVAL` rows (same as
+  `waiting_approval_cases`), not a literal `0`.
+
 ### Fixed — order reference identity + workflow outbox crash recovery
 
 - Canonical authorized `order_reference` remains `{subject_ref}/{customer_order_id}`

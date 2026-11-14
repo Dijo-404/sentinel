@@ -1,8 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { CaseClient } from "@/application/ports";
-import type { Case, Evidence, EvidenceBundle } from "@/domain/types";
+import type {
+  ActionRecord,
+  Case,
+  Evidence,
+  EvidenceBundle,
+} from "@/domain/types";
 import { PeerError } from "@/domain/types";
 import {
   labelCaseStatus,
@@ -21,7 +26,7 @@ import { UiState } from "./ui-states";
 import { MaskedRef } from "./masked-ref";
 import { ApprovalSlot } from "@/slots/approval-slot";
 import type { ApprovalSlotProps } from "@/application/ports";
-import { demoAction } from "@/adapters/fixture-case-client";
+import { decisionExpiresFromEvidence } from "@/components/approvals/supervisor-decision-workspace";
 import { PeerError as SlotPeerError } from "@/domain/types";
 
 type Props = {
@@ -32,7 +37,10 @@ type Props = {
    * so approve/reject controls stay off those routes.
    */
   enableApproval?: boolean;
-  /** Authoritative decision window when enableApproval is set. */
+  /**
+   * Optional override for tests. Production derives expiry from
+   * action.approval.expires_at or evidence expires_at — never a fixed fixture date.
+   */
   decisionExpiresAt?: string;
   /** Injected approval slot override for tests (e.g. peer failure). */
   approvalSlot?:
@@ -41,16 +49,25 @@ type Props = {
     | { state: "malformed" };
 };
 
+/**
+ * Evidence workspace. When enableApproval is set, loads ActionRecord via
+ * caseClient.getAction(case.action_id) — never demoAction digests.
+ */
 export function EvidencePanel({
   caseId,
   caseClient,
   enableApproval = false,
-  decisionExpiresAt,
+  decisionExpiresAt: decisionExpiresOverride,
   approvalSlot,
 }: Props) {
   const [loading, setLoading] = useState(true);
   const [caseRecord, setCaseRecord] = useState<Case | null>(null);
   const [bundle, setBundle] = useState<EvidenceBundle | null>(null);
+  const [action, setAction] = useState<ActionRecord | null>(null);
+  const [decisionExpiresAt, setDecisionExpiresAt] = useState<string | null>(
+    null,
+  );
+  const [approvalError, setApprovalError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [permission, setPermission] = useState<string | null>(null);
 
@@ -60,6 +77,9 @@ export function EvidencePanel({
       setLoading(true);
       setError(null);
       setPermission(null);
+      setApprovalError(null);
+      setAction(null);
+      setDecisionExpiresAt(null);
       try {
         const [c, e] = await Promise.all([
           caseClient.getCase(caseId),
@@ -68,6 +88,34 @@ export function EvidencePanel({
         if (cancelled) return;
         setCaseRecord(c);
         setBundle(e);
+
+        if (!enableApproval) {
+          return;
+        }
+        const actionId = c.action_id;
+        if (!actionId) {
+          setApprovalError(
+            "No action_id on case — proposal withheld (not a fixture digest)",
+          );
+          return;
+        }
+        const resolved = await caseClient.getAction(actionId);
+        if (cancelled) return;
+        const expires =
+          decisionExpiresOverride ??
+          decisionExpiresFromEvidence(
+            e.evidence,
+            resolved.approval?.expires_at,
+          );
+        if (!expires) {
+          setApprovalError(
+            "Decision expiry unavailable — no evidence expires_at or approval window",
+          );
+          setAction(resolved);
+          return;
+        }
+        setAction(resolved);
+        setDecisionExpiresAt(expires);
       } catch (err) {
         if (cancelled) return;
         if (
@@ -88,25 +136,21 @@ export function EvidencePanel({
     return () => {
       cancelled = true;
     };
-  }, [caseId, caseClient]);
+  }, [caseId, caseClient, enableApproval, decisionExpiresOverride]);
 
-  const defaultApproval = useMemo(() => {
-    if (!enableApproval || !caseRecord || !bundle || !decisionExpiresAt) {
-      return null;
-    }
-    const props: ApprovalSlotProps = {
-      caseRecord,
-      action: {
-        ...demoAction,
-        status:
-          caseRecord.status === "ESCALATED" ? "ESCALATED" : demoAction.status,
-      },
-      evidence: bundle.evidence,
-      decisionExpiresAt,
-      decide: (actionId, request) => caseClient.decide(actionId, request),
-    };
-    return { state: "ready" as const, props };
-  }, [enableApproval, caseRecord, bundle, caseClient, decisionExpiresAt]);
+  const defaultApproval =
+    enableApproval && caseRecord && bundle && action && decisionExpiresAt
+      ? ({
+          state: "ready" as const,
+          props: {
+            caseRecord,
+            action,
+            evidence: bundle.evidence,
+            decisionExpiresAt,
+            decide: (id, request) => caseClient.decide(id, request),
+          } satisfies ApprovalSlotProps,
+        } as const)
+      : null;
 
   const slot = approvalSlot ?? defaultApproval;
 
@@ -152,6 +196,13 @@ export function EvidencePanel({
           <EvidenceCard key={item.evidence_id} evidence={item} />
         ))}
       </div>
+      {enableApproval && approvalError && !slot ? (
+        <UiState
+          tone="error"
+          title="Proposal unavailable"
+          detail={approvalError}
+        />
+      ) : null}
       {slot ? <ApprovalSlot {...slot} /> : null}
     </div>
   );
