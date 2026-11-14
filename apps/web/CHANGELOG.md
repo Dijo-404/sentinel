@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Added — 15 November 2026 (SN-013 approval-ui in real-peers)
+
+- `approval-slot` mounts `ApprovalPanel` from `sentinel-approval-ui` when
+  `mode=real-peers`; fixture keeps `LocalApprovalSubstitute`.
+- Decide stays on case-api BFF via injected `CaseClient.decide` (wrapped to
+  `DecisionClientError`); package holds no money authority.
+- Dependency: `sentinel-approval-ui` (`file:../../packages/approval-ui`);
+  Makefile builds the package before `npm ci`.
+- Tests: `tests/browser/approval-slot.test.tsx`; supervisor real-peers path
+  asserts no local `data-slot` substitute.
+
 ### Added — 15 November 2026 (assistant / knowledge / ops-activity intel)
 
 - BFF session proxies: `/api/bff/assistant`, `/api/bff/knowledge`,

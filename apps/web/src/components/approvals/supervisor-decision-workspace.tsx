@@ -30,6 +30,10 @@ type Props = {
   actionId: string;
   caseClient: CaseClient;
   mode: "fixture" | "real-peers";
+  /** Authenticated reviewer for SN-013 ApprovalPanel (real-peers). */
+  reviewerId?: string;
+  /** Optional clock for ApprovalPanel expiry checks (tests). */
+  now?: () => Date;
   /** False for operators: proposal stays visible, decide controls are withheld (server enforces too). */
   canDecide?: boolean;
   /** Override slot for tests (peer failure / malformed). */
@@ -48,6 +52,8 @@ export function SupervisorDecisionWorkspace({
   actionId,
   caseClient,
   mode,
+  reviewerId,
+  now,
   canDecide = true,
   approvalSlot,
 }: Props) {
@@ -209,7 +215,12 @@ export function SupervisorDecisionWorkspace({
         ) : null}
       </div>
       {canDecide ? (
-        <ApprovalSlot {...slot} />
+        <ApprovalSlot
+          {...slot}
+          mode={mode}
+          reviewerId={reviewerId}
+          now={now}
+        />
       ) : (
         <UiState
           tone="permission"
