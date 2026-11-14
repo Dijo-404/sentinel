@@ -29,6 +29,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 import { resetSharedIdentityStub } from "./stubs/identity";
+import { resetIdentityClientCache } from "@/lib/server/identity-client";
 import {
   loginWithCredentials,
   registerCustomerAccount,
@@ -40,6 +41,7 @@ import { requireRole } from "@/lib/server/authorization";
 describe("login session cookie policy", () => {
   beforeEach(() => {
     resetSharedIdentityStub();
+    resetIdentityClientCache();
     cookieStore.value = undefined;
     cookieStore.set.mockClear();
     cookieStore.delete.mockClear();

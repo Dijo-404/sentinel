@@ -4,7 +4,11 @@ import {
   getSharedIdentityStub,
   resetSharedIdentityStub,
 } from "./stubs/identity";
-import { getIdentityClient } from "@/lib/server/identity-client";
+import {
+  getIdentityClient,
+  resetIdentityClientCache,
+} from "@/lib/server/identity-client";
+import { createRealPeerIdentityClient } from "@/adapters/real-peer-identity-client";
 import {
   isSafeInternalPath,
   portalPath,
@@ -16,6 +20,7 @@ import { PeerError } from "@/domain/types";
 describe("identity stub", () => {
   beforeEach(() => {
     resetSharedIdentityStub();
+    resetIdentityClientCache();
   });
 
   it("logs in seeded customer and lists customer workspace only", () => {
@@ -129,9 +134,151 @@ describe("auth helpers", () => {
     ).toThrow(PeerError);
   });
 
-  it("fixture identity returns shared stub", () => {
+  it("real-peers refuses missing IDENTITY_BASE_URL", () => {
+    expect(() =>
+      getIdentityClient({
+        NEXT_PUBLIC_SHELL_MODE: "real-peers",
+      }),
+    ).toThrow(PeerError);
+    try {
+      getIdentityClient({ NEXT_PUBLIC_SHELL_MODE: "real-peers" });
+    } catch (err) {
+      expect(err).toBeInstanceOf(PeerError);
+      expect((err as PeerError).message).toMatch(/IDENTITY_BASE_URL/);
+    }
+  });
+
+  it("real-peers refuses NEXT_PUBLIC identity secrets", () => {
+    expect(() =>
+      getIdentityClient({
+        NEXT_PUBLIC_SHELL_MODE: "real-peers",
+        IDENTITY_BASE_URL: "http://127.0.0.1:8012",
+        NEXT_PUBLIC_IDENTITY_PASSWORD: "secret",
+      }),
+    ).toThrow(PeerError);
+  });
+
+  it("fixture identity returns shared client", () => {
     const a = getIdentityClient({ NEXT_PUBLIC_SHELL_MODE: "fixture" });
     const b = getIdentityClient({ NEXT_PUBLIC_SHELL_MODE: "fixture" });
     expect(a).toBe(b);
+  });
+});
+
+describe("real-peer identity client", () => {
+  it("surfaces network failure without fixture fallback", async () => {
+    const client = createRealPeerIdentityClient({
+      baseUrl: "http://127.0.0.1:8012",
+      fetchImpl: async () => {
+        throw new Error("peer down");
+      },
+    });
+    await expect(client.login("a@b.test", "x")).rejects.toMatchObject({
+      code: "PEER_UNAVAILABLE",
+    });
+  });
+
+  it("rejects malformed JSON body", async () => {
+    const client = createRealPeerIdentityClient({
+      baseUrl: "http://127.0.0.1:8012",
+      fetchImpl: async () => new Response("{not-json", { status: 200 }),
+    });
+    await expect(client.login("a@b.test", "x")).rejects.toMatchObject({
+      code: "MALFORMED_PEER_RESPONSE",
+    });
+  });
+
+  it("composition fail-closed via fetch double", async () => {
+    const client = getIdentityClient(
+      {
+        NEXT_PUBLIC_SHELL_MODE: "real-peers",
+        IDENTITY_BASE_URL: "http://127.0.0.1:8012",
+      },
+      {
+        fetchImpl: async () => {
+          throw new Error("identity peer unreachable");
+        },
+      },
+    );
+    await expect(client.resolveSession("sess-x")).rejects.toMatchObject({
+      code: "PEER_UNAVAILABLE",
+    });
+  });
+
+  it("maps login success and me from identity.v1 shapes", async () => {
+    const client = createRealPeerIdentityClient({
+      baseUrl: "http://identity.test",
+      fetchImpl: async (input, init) => {
+        const url = String(input);
+        if (url.endsWith("/v1/auth/login") && init?.method === "POST") {
+          return Response.json({
+            user: {
+              user_id: "user-1",
+              account_type: "customer",
+              email: "customer@example.test",
+              display_name: "Demo",
+              status: "active",
+              authz_version: 1,
+            },
+            workspaces: [
+              {
+                assignment_id: "asg-1",
+                tenant_id: "tenant-demo",
+                role_id: "customer",
+                scope_key: "tenant-demo",
+                status: "active",
+              },
+            ],
+            active_assignment: {
+              assignment_id: "asg-1",
+              tenant_id: "tenant-demo",
+              role_id: "customer",
+              scope_key: "tenant-demo",
+              status: "active",
+            },
+            session_token: "tok-sess-1",
+            expires_at: "2099-01-01T00:00:00Z",
+          });
+        }
+        if (url.endsWith("/v1/auth/me")) {
+          return Response.json({
+            user: {
+              user_id: "user-1",
+              account_type: "customer",
+              email: "customer@example.test",
+              display_name: "Demo",
+              status: "active",
+              authz_version: 1,
+            },
+            workspaces: [
+              {
+                assignment_id: "asg-1",
+                tenant_id: "tenant-demo",
+                role_id: "customer",
+                scope_key: "tenant-demo",
+                status: "active",
+              },
+            ],
+            active_assignment: {
+              assignment_id: "asg-1",
+              tenant_id: "tenant-demo",
+              role_id: "customer",
+              scope_key: "tenant-demo",
+              status: "active",
+            },
+            permissions: ["identity.self.read"],
+          });
+        }
+        return new Response("not found", { status: 404 });
+      },
+    });
+    const login = await client.login("customer@example.test", "x");
+    expect(login.ok).toBe(true);
+    if (!login.ok) return;
+    expect(login.session.session_id).toBe("tok-sess-1");
+    expect(login.workspaces[0]?.role).toBe("customer");
+    const me = await client.resolveSession("tok-sess-1");
+    expect(me?.user.user_id).toBe("user-1");
+    expect(me?.assignment.role).toBe("customer");
   });
 });

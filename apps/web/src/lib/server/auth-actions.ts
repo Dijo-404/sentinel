@@ -105,7 +105,7 @@ export async function inviteStaffAction(
 ): Promise<ActionResult> {
   const session = await requireRole("admin");
   const identity = getIdentityClient();
-  const result = identity.inviteStaff(session.user.user_id, {
+  const result = await identity.inviteStaff(session.session.session_id, {
     display_name: String(formData.get("display_name") ?? ""),
     work_email: String(formData.get("work_email") ?? ""),
     tenant_id: String(formData.get("tenant_id") ?? "tenant-demo"),

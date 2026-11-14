@@ -5,8 +5,8 @@ import { getIdentityClient } from "@/lib/server/identity-client";
 export default async function AdminUsersPage() {
   const session = await requireRole("admin");
   const identity = getIdentityClient();
-  const staff = identity.listStaffUsers(session.user.user_id);
-  const invitations = identity.listInvitations(session.user.user_id);
+  const staff = await identity.listStaffUsers(session.session.session_id);
+  const invitations = await identity.listInvitations(session.session.session_id);
 
   if ("error" in staff || "error" in invitations) {
     return (
