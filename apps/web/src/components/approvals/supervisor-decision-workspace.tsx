@@ -33,6 +33,8 @@ type Props = {
   actionId: string;
   caseClient: CaseClient;
   mode: "fixture" | "real-peers";
+  /** False for operators: proposal stays visible, decide controls are withheld (server enforces too). */
+  canDecide?: boolean;
   /** Override slot for tests (peer failure / malformed). */
   approvalSlot?:
     | { state: "ready"; props: ApprovalSlotProps }
@@ -49,6 +51,7 @@ export function SupervisorDecisionWorkspace({
   actionId,
   caseClient,
   mode,
+  canDecide = true,
   approvalSlot,
 }: Props) {
   const [loading, setLoading] = useState(true);
@@ -210,7 +213,15 @@ export function SupervisorDecisionWorkspace({
           </p>
         ) : null}
       </div>
-      <ApprovalSlot {...slot} />
+      {canDecide ? (
+        <ApprovalSlot {...slot} />
+      ) : (
+        <UiState
+          tone="permission"
+          title="Supervisor decision required"
+          detail="You can review this proposal. Only a supervisor can approve or reject it."
+        />
+      )}
     </div>
   );
 }

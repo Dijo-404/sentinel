@@ -33,6 +33,43 @@ describe("standalone browser checks", () => {
     );
   });
 
+  it("intake trims input, blocks blank order reference, clears message after submit", async () => {
+    const user = userEvent.setup();
+    const client = createCaseApiStub("valid");
+    const createCase = vi.fn(client.createCase.bind(client));
+    client.createCase = createCase;
+    render(
+      <IntakeForm
+        caseClient={client}
+        voiceEnabled={false}
+        voiceClient={null}
+      />,
+    );
+    const submit = screen.getByRole("button", { name: "Submit case" });
+    await user.type(
+      screen.getByLabelText("Complaint message"),
+      "  Paid twice  ",
+    );
+    await user.clear(screen.getByLabelText("Order reference"));
+    await user.type(screen.getByLabelText("Order reference"), "   ");
+    expect(submit).toBeDisabled();
+    await user.clear(screen.getByLabelText("Order reference"));
+    await user.type(
+      screen.getByLabelText("Order reference"),
+      " DEMO-ORDER-42 ",
+    );
+    await user.click(submit);
+    await screen.findByTestId("state-empty");
+    expect(createCase).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "Paid twice",
+        order_reference: "DEMO-ORDER-42",
+      }),
+      expect.any(String),
+    );
+    expect(screen.getByLabelText("Complaint message")).toHaveValue("");
+  });
+
   it("intake shows permission and error states", async () => {
     const user = userEvent.setup();
     render(

@@ -134,7 +134,7 @@ export function OperatorOverview({
             className="stack"
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(11rem, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(9.5rem, 1fr))",
               gap: "0.85rem",
             }}
             data-testid="operator-kpi-row"

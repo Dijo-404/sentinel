@@ -8,12 +8,18 @@ import type { VoiceClient } from "@/application/ports";
 import { PeerError } from "@/domain/types";
 
 type Props = {
+  title?: string;
   caseClient: CaseClient;
   voiceEnabled: boolean;
   voiceClient: VoiceClient | null;
 };
 
-export function IntakeForm({ caseClient, voiceEnabled, voiceClient }: Props) {
+export function IntakeForm({
+  title = "Text intake",
+  caseClient,
+  voiceEnabled,
+  voiceClient,
+}: Props) {
   const formId = useId();
   const [message, setMessage] = useState("");
   const [language, setLanguage] = useState("en-IN");
@@ -32,14 +38,16 @@ export function IntakeForm({ caseClient, voiceEnabled, voiceClient }: Props) {
     try {
       const created = await caseClient.createCase(
         {
-          message,
+          message: message.trim(),
           language,
-          order_reference: orderReference,
+          order_reference: orderReference.trim(),
           channel: "web",
         },
         crypto.randomUUID(),
       );
       setCreatedId(created.case_id);
+      // Cleared so a second click cannot file a duplicate complaint.
+      setMessage("");
     } catch (err) {
       if (
         err instanceof PeerError &&
@@ -58,10 +66,10 @@ export function IntakeForm({ caseClient, voiceEnabled, voiceClient }: Props) {
 
   return (
     <div className="stack">
-      <h1>Text intake</h1>
+      <h1>{title}</h1>
       <p className="muted">
-        Authenticated customer complaint. Identity comes from the session; this
-        form never asserts authority.
+        Tell us what went wrong with your payment. We verify it against your
+        order and keep you updated.
       </p>
       <LocalVoiceSubstitute
         enabled={voiceEnabled}
@@ -84,8 +92,8 @@ export function IntakeForm({ caseClient, voiceEnabled, voiceClient }: Props) {
               onChange={(e) => setLanguage(e.target.value)}
               aria-label="Language"
             >
-              <option value="en-IN">en-IN</option>
-              <option value="ta-IN">ta-IN</option>
+              <option value="en-IN">English</option>
+              <option value="ta-IN">Tamil</option>
             </select>
           </label>
           <label>
@@ -108,7 +116,10 @@ export function IntakeForm({ caseClient, voiceEnabled, voiceClient }: Props) {
             aria-label="Complaint message"
           />
         </label>
-        <button type="submit" disabled={loading || !message.trim()}>
+        <button
+          type="submit"
+          disabled={loading || !message.trim() || !orderReference.trim()}
+        >
           Submit case
         </button>
       </form>

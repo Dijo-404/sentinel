@@ -122,7 +122,7 @@ export function PortalDashboard({ role, session, highlights }: Props) {
           className="stack"
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(11rem, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(9.5rem, 1fr))",
             gap: "0.85rem",
           }}
           data-testid="portal-kpi-row"

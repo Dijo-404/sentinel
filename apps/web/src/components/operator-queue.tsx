@@ -118,7 +118,9 @@ export function OperatorQueue({ caseClient }: Props) {
                 <td>{c.intent}</td>
                 <td className="mono">{c.revision}</td>
                 <td>
-                  <Link href={`/ops/cases/${c.case_id}/evidence`}>
+                  <Link
+                    href={`/operator/cases/${encodeURIComponent(c.case_id)}/evidence`}
+                  >
                     Open evidence
                   </Link>
                   {" · "}

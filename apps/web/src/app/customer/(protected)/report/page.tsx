@@ -1,13 +1,18 @@
+"use client";
+
+import { useShell } from "@/adapters/shell-context";
+import { IntakeForm } from "@/components/intake-form";
+
 export default function CustomerReportPage() {
+  const { caseClient, voiceClient, config } = useShell();
   return (
-    <div className="panel stack" data-testid="customer-report">
-      <h1>Report an issue</h1>
-      <p className="muted">
-        Scaffold page — wire to domain peers in later milestones.
-      </p>
-      <p className="fixture-banner" role="status">
-        Fixture mode placeholder
-      </p>
+    <div data-testid="customer-report">
+      <IntakeForm
+        title="Report an issue"
+        caseClient={caseClient}
+        voiceEnabled={config.voiceEnabled}
+        voiceClient={voiceClient}
+      />
     </div>
   );
 }

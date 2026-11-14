@@ -3,10 +3,10 @@ export default function SupervisorAuditPage() {
     <div className="panel stack" data-testid="supervisor-audit">
       <h1>Audit</h1>
       <p className="muted">
-        Scaffold page — wire to domain peers in later milestones.
+        This view is not connected to its service yet. Nothing here is live data.
       </p>
       <p className="fixture-banner" role="status">
-        Fixture mode placeholder
+        Not available yet
       </p>
     </div>
   );

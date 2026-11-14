@@ -33,6 +33,9 @@ export type LoginAttempt =
       message: string;
     };
 
+const REGISTER_FAILURE =
+  "We couldn't create this account. Check your name, email and password (min 8 characters), or sign in if you already have an account.";
+
 const GENERIC_AUTH_FAILURE =
   "Sign-in failed. Check your credentials and try again.";
 
@@ -234,17 +237,11 @@ export async function registerCustomerAccount(input: {
         message: "Registration rejected privileged fields",
       };
     }
-    if (result.code === "ALREADY_EXISTS") {
-      return {
-        ok: false,
-        code: result.code,
-        message: GENERIC_AUTH_FAILURE,
-      };
-    }
+    // Same text for ALREADY_EXISTS and invalid input: the reply must not reveal registered emails.
     return {
       ok: false,
       code: result.code,
-      message: "Check name, email and password (min 8 characters).",
+      message: REGISTER_FAILURE,
     };
   }
   await setSessionCookie(result.session.session_id, result.session.expires_at);

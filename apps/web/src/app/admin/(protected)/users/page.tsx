@@ -24,7 +24,7 @@ export default async function AdminUsersPage() {
         <h1>Staff directory</h1>
         <Link href="/admin/users/invite">Invite staff</Link>
       </div>
-      <div className="panel">
+      <div className="panel table-scroll">
         <table className="table">
           <thead>
             <tr>
@@ -51,26 +51,28 @@ export default async function AdminUsersPage() {
         {invitations.length === 0 ? (
           <p className="muted">No invitations yet.</p>
         ) : (
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {invitations.map((inv) => (
-                <tr key={inv.invitation_id}>
-                  <td>{inv.display_name}</td>
-                  <td className="mono">{inv.work_email}</td>
-                  <td>{inv.role}</td>
-                  <td>{inv.status}</td>
+          <div className="table-scroll">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {invitations.map((inv) => (
+                  <tr key={inv.invitation_id}>
+                    <td>{inv.display_name}</td>
+                    <td className="mono">{inv.work_email}</td>
+                    <td>{inv.role}</td>
+                    <td>{inv.status}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>
