@@ -11,6 +11,8 @@ dependencies = [
   "fastapi>=0.115,<1",
   "uvicorn[standard]>=0.32,<1",
   "httpx>=0.28,<1",
+  "sqlalchemy>=2.0,<3",
+  "psycopg[binary]>=3.2,<4",
 ]
 
 [project.scripts]
@@ -40,6 +42,9 @@ include = [
 pythonpath = ["src", "."]
 testpaths = ["tests"]
 addopts = "-q --strict-markers"
+markers = [
+  "postgres: real PostgreSQL metrics snapshot proofs",
+]
 
 [tool.ruff]
 line-length = 100

@@ -24,6 +24,7 @@ class Settings:
     evidence_base_url: str
     evidence_token: str
     contract_version: str
+    database_url: str = ""
 
     @classmethod
     def from_environ(cls, env: dict[str, str] | None = None) -> Settings:
@@ -38,8 +39,19 @@ class Settings:
             case_api_token=source.get("CASE_API_TOKEN", ""),
             evidence_base_url=source.get("EVIDENCE_BASE_URL", ""),
             evidence_token=source.get("EVIDENCE_TOKEN", ""),
+            database_url=source.get("MERCHANT_ANALYTICS_DATABASE_URL", ""),
             contract_version=source.get("MERCHANT_ANALYTICS_CONTRACT_VERSION", CONTRACT_VERSION),
         )
+
+
+def _resolve_snapshots(database_url: str):
+    if not database_url:
+        return None
+    from .adapters.postgres_snapshots import PostgresMetricsSnapshotStore, build_engine
+
+    store = PostgresMetricsSnapshotStore(build_engine(database_url))
+    store.migrate()
+    return store
 
 
 def build_app(
@@ -47,21 +59,31 @@ def build_app(
     *,
     case_api: object | None = None,
     evidence: object | None = None,
+    snapshots: object | None = None,
 ):
     settings = settings or Settings.from_environ()
     if settings.contract_version != CONTRACT_VERSION:
         raise ConfigurationError("Unsupported contract version")
 
     authenticator = TokenAuthenticator(parse_token_map(settings.tokens))
+    store = snapshots if snapshots is not None else _resolve_snapshots(settings.database_url)
 
     if case_api is not None and evidence is not None:
         cases_port = case_api
         evidence_port = evidence
         mode = settings.mode
+        require_snapshot = store is not None and settings.mode == "real-peers"
     elif settings.mode == "fixture":
         cases_port = FixtureCaseApi(behavior="valid")
         evidence_port = FixtureEvidence(behavior="valid")
         mode = "fixture"
+        require_snapshot = False
+    elif store is not None:
+        # real-peers with DB: serve metrics from snapshots only (no live invent).
+        cases_port = None
+        evidence_port = None
+        mode = "real-peers"
+        require_snapshot = True
     else:
         cases_port = HttpCaseApi(
             base_url=settings.case_api_base_url,
@@ -72,10 +94,16 @@ def build_app(
             token=settings.evidence_token,
         )
         mode = "real-peers"
+        require_snapshot = False
 
     services = AppServices(
         authenticator=authenticator,
-        get_metrics=GetMerchantMetrics(cases_port, evidence_port),  # type: ignore[arg-type]
+        get_metrics=GetMerchantMetrics(
+            cases_port,  # type: ignore[arg-type]
+            evidence_port,  # type: ignore[arg-type]
+            snapshots=store,  # type: ignore[arg-type]
+            require_snapshot=require_snapshot,
+        ),
         mode=mode,
     )
     return create_app(services)

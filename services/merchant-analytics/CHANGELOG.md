@@ -1,6 +1,10 @@
 # SN-032 changelog
 
 ## Unreleased
+- Postgres metrics snapshots via `MERCHANT_ANALYTICS_DATABASE_URL`; real-peers with
+  DB serves `GET /v1/merchants/{merchant_ref}/metrics` from
+  `merchant_analytics.merchant_metrics_snapshots` (404 `SNAPSHOT_NOT_FOUND` when
+  missing; 503 when DB down). `make seed` writes one `merchant-demo-1` row.
 - Refuse non-loopback HTTP bind while demo/sandbox bearer tokens remain configured.
 
 ### Fixed
