@@ -1,0 +1,38 @@
+{
+  "port": "platform-ai.v1",
+  "contract_version": "sentinel.task-contracts.v1",
+  "contract_sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb",
+  "produces": ["AiConfig", "AiRun"],
+  "consumes": [],
+  "money_authority": false,
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/v1/config",
+      "response": {
+        "models": [{ "model_id": "string", "label": "string", "provider": "string" }],
+        "kill_switch": "bool",
+        "updated_at": "rfc3339"
+      },
+      "roles": ["platform_admin", "sandbox-admin"],
+      "notes": "Metadata only; never includes amount/refund/payment fields"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/runs",
+      "response": {
+        "runs": [
+          {
+            "run_id": "string",
+            "model_id": "string",
+            "status": "string",
+            "started_at": "rfc3339"
+          }
+        ]
+      },
+      "roles": ["platform_admin", "sandbox-admin"],
+      "notes": "Run metadata only; no money fields"
+    }
+  ],
+  "also": ["/healthz", "/readyz", "/v1/capabilities"]
+}

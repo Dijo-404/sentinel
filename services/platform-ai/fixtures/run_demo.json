@@ -1,0 +1,7 @@
+{
+  "run_id": "run-demo-1",
+  "tenant_id": "tenant-demo",
+  "model_id": "model-sandbox-1",
+  "status": "SUCCEEDED",
+  "started_at": "2026-11-15T00:01:00Z"
+}

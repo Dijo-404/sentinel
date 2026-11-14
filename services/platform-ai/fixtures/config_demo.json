@@ -1,0 +1,12 @@
+{
+  "tenant_id": "tenant-demo",
+  "models": [
+    {
+      "model_id": "model-sandbox-1",
+      "label": "Sandbox chat",
+      "provider": "sandbox"
+    }
+  ],
+  "kill_switch": false,
+  "updated_at": "2026-11-15T00:00:00Z"
+}

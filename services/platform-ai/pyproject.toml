@@ -1,0 +1,48 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sentinel-platform-ai"
+version = "0.1.0"
+description = "Independent platform-ai.v1 admin AI config and run metadata (no money authority)"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn[standard]>=0.32,<1",
+  "sqlalchemy>=2.0,<3",
+  "psycopg[binary]>=3.2,<4",
+]
+
+[project.scripts]
+sentinel-platform-ai = "sentinel_platform_ai.cli:main"
+
+[dependency-groups]
+dev = [
+  "httpx>=0.28,<1",
+  "pytest>=8.4,<10",
+  "ruff>=0.14,<1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sentinel_platform_ai"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/sentinel_platform_ai", "contracts", "fixtures", "migrations", "tests", "Makefile", "README.md", "CHANGELOG.md"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "."]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+markers = [
+  "postgres: requires disposable Docker PostgreSQL",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
