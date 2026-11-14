@@ -1,13 +1,7 @@
-export default function CustomerAssistantPage() {
-  return (
-    <div className="panel stack" data-testid="customer-assistant">
-      <h1>Assistant</h1>
-      <p className="muted">
-        This view is not connected to its service yet. Nothing here is live data.
-      </p>
-      <p className="fixture-banner" role="status">
-        Not available yet
-      </p>
-    </div>
-  );
+import { AssistantPanel } from "@/components/ops/assistant-panel";
+import { requireRole } from "@/lib/server/authorization";
+
+export default async function CustomerAssistantPage() {
+  await requireRole("customer");
+  return <AssistantPanel role="customer" testId="customer-assistant" />;
 }

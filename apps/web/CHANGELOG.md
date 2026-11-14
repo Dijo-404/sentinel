@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+### Added — 15 November 2026 (assistant / knowledge / ops-activity intel)
+
+- BFF session proxies: `/api/bff/assistant`, `/api/bff/knowledge`,
+  `/api/bff/ops-activity` (mirror merchant-teams `_session-proxy`).
+- Replaced operator Activity / Knowledge / Assistant and customer Assistant
+  stubs with peer-backed panels. Env: `ASSISTANT_BASE_URL` (:8026),
+  `KNOWLEDGE_BASE_URL` (:8028), `OPS_ACTIVITY_BASE_URL` (:8029).
+- `data-testid`: `operator-activity`, `operator-activity-list`,
+  `operator-knowledge`, `operator-knowledge-list`, `operator-assistant`,
+  `operator-assistant-threads`, `operator-assistant-messages`,
+  `customer-assistant`, `customer-assistant-threads`, `peer-error`.
+  Never “Not available yet”; real-peers fail closed.
+- Browser tests: `tests/browser/operator-activity-page.test.tsx`,
+  `operator-knowledge-page.test.tsx`, `operator-assistant-page.test.tsx`,
+  `customer-assistant-page.test.tsx`; BFF: `tests/bff-intel-routes.test.ts`.
+
 ### Fixed — fetch sandbox codes for auth challenge UI
 
 - After verify/MFA/forgot, server actions call identity sandbox inbox GETs when
