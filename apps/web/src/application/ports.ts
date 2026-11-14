@@ -52,6 +52,8 @@ export type ApprovalSlotProps = {
   caseRecord: Case;
   action: ActionRecord;
   evidence: Evidence[];
+  /** Authoritative decision window; decide() must send this exact value. */
+  decisionExpiresAt: string;
   decide: (actionId: string, request: DecisionRequest) => Promise<Approval>;
   onRefresh?: () => void;
   onConflict?: (message: string) => void;

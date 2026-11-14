@@ -115,9 +115,31 @@ describe("standalone browser checks", () => {
     expect(screen.queryByText("subject-demo-9")).not.toBeInTheDocument();
     expect(screen.queryByText("TXN-B")).not.toBeInTheDocument();
     expect(screen.queryByText("refund-demo-1")).not.toBeInTheDocument();
-    expect(screen.getByTestId("approval-slot")).toHaveAttribute(
-      "data-slot",
-      "approval-ui.v1-local",
+    // Operator / legacy ops evidence: no approve controls by default.
+    expect(screen.queryByTestId("approval-slot")).not.toBeInTheDocument();
+  });
+
+  it("evidence can enable supervisor approval slot with exact digest/expiry", async () => {
+    render(
+      <EvidencePanel
+        caseId="case-demo-42"
+        caseClient={createCaseApiStub("valid")}
+        enableApproval
+        decisionExpiresAt="2026-12-31T23:59:59Z"
+      />,
+    );
+    await waitFor(() => {
+      expect(screen.getByTestId("approval-slot")).toHaveAttribute(
+        "data-slot",
+        "approval-ui.v1-local",
+      );
+    });
+    expect(screen.getByTestId("approval-action-digest")).toHaveTextContent(
+      "d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993",
+    );
+    expect(screen.getByTestId("approval-case-revision")).toHaveTextContent("2");
+    expect(screen.getByTestId("approval-decision-expires-at")).toHaveTextContent(
+      "2026-12-31T23:59:59Z",
     );
   });
 

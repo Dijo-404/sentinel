@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added — 14 November 2026
+
+- Supervisor approvals queue + decision workspace (`/supervisor/approvals`, `/supervisor/approvals/[actionId]`) embed local `approval-ui.v1` substitute with exact digest/revision/expiry via case-api `decide` proxy (Refs #100 / M4.2).
+- Supervisor case review `/supervisor/cases/[caseId]` with opt-in approval slot; legacy `/ops` evidence keeps approve controls off (`enableApproval` default false).
+
 ### Fixed — 14 November 2026
 
 - Session cookie set only after portal role match; mismatch clears cookie and revokes provisional session. Active assignment bound to requested portal before cookie write (Refs #100 / PR #107).
