@@ -206,14 +206,69 @@ def test_run_refund_pending_not_credit() -> None:
     assert outcome["path"] == "provider-sandbox-only"
 
 
-def test_timeout_recovered_false_when_no_504() -> None:
+def test_timeout_recovered_tracks_504_status() -> None:
+    """Happy path: first refund 504 → timeout_recovered True (status tracking)."""
     seed = journey_seed("duplicate_payment")
     provider_ref = seed["provider_ref"]
+    state = {"refunds": 0, "resets": 0, "confirms": 0}
 
     def handler(request: httpx.Request) -> httpx.Response:
         url = str(request.url)
         method = request.method
         if method == "POST" and url.endswith("/v1/admin/faults/reset"):
+            state["resets"] += 1
+            return httpx.Response(200, json={"outage": False, "timeout_after_accept": False})
+        if method == "PUT" and url.endswith("/v1/admin/faults"):
+            return httpx.Response(200, json={"timeout_after_accept": True})
+        if method == "POST" and url.endswith("/v1/refunds"):
+            state["refunds"] += 1
+            return httpx.Response(504, json={"code": "TIMEOUT_AFTER_ACCEPT", "message": "timeout"})
+        if method == "GET" and f"/v1/refunds/{provider_ref}" in url:
+            return httpx.Response(
+                200,
+                json={
+                    "provider_ref": provider_ref,
+                    "status": "PENDING",
+                    "amount_minor": 150000,
+                },
+            )
+        if method == "GET" and f"/v1/admin/refunds/{provider_ref}/stats" in url:
+            return httpx.Response(
+                200,
+                json={
+                    "provider_ref": provider_ref,
+                    "accept_count": state["refunds"],
+                    "side_effect_count": 1,
+                    "timeout_count": state["refunds"],
+                },
+            )
+        if method == "POST" and f"/v1/admin/refunds/{provider_ref}/confirm" in url:
+            state["confirms"] += 1
+            return httpx.Response(200, json={"status": "PROVIDER_CONFIRMED"})
+        if method == "POST" and f"/v1/admin/credits/{provider_ref}/confirm" in url:
+            state["confirms"] += 1
+            return httpx.Response(200, json={"provider_ref": provider_ref, "confirmed": True})
+        if method == "GET" and f"/v1/credits/{provider_ref}" in url:
+            return httpx.Response(200, json={"provider_ref": provider_ref, "confirmed": True})
+        return httpx.Response(404, json={"code": "NOT_FOUND"})
+
+    outcome = _bundle(handler).run_duplicate_payment()
+    assert outcome["timeout_recovered"] is True
+    assert state["confirms"] == 2
+    assert state["resets"] >= 2  # initial + finally
+
+
+def test_non_504_aborts_without_credit_confirm() -> None:
+    """After timeout arm, 202 must PeerFault; faults/reset still runs; no confirm."""
+    seed = journey_seed("duplicate_payment")
+    provider_ref = seed["provider_ref"]
+    state = {"resets": 0, "confirms": 0}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        url = str(request.url)
+        method = request.method
+        if method == "POST" and url.endswith("/v1/admin/faults/reset"):
+            state["resets"] += 1
             return httpx.Response(200, json={})
         if method == "PUT" and url.endswith("/v1/admin/faults"):
             return httpx.Response(200, json={"timeout_after_accept": True})
@@ -222,31 +277,21 @@ def test_timeout_recovered_false_when_no_504() -> None:
                 202,
                 json={"provider_ref": provider_ref, "status": "PENDING", "amount_minor": 150000},
             )
-        if method == "GET" and f"/v1/refunds/{provider_ref}" in url:
-            return httpx.Response(
-                200,
-                json={"provider_ref": provider_ref, "status": "PENDING", "amount_minor": 150000},
-            )
-        if method == "GET" and f"/v1/admin/refunds/{provider_ref}/stats" in url:
-            return httpx.Response(
-                200,
-                json={
-                    "provider_ref": provider_ref,
-                    "accept_count": 1,
-                    "side_effect_count": 1,
-                    "timeout_count": 0,
-                },
-            )
-        if method == "POST" and f"/v1/admin/refunds/{provider_ref}/confirm" in url:
+        if method == "POST" and "/v1/admin/refunds/" in url and url.endswith("/confirm"):
+            state["confirms"] += 1
             return httpx.Response(200, json={"status": "PROVIDER_CONFIRMED"})
-        if method == "POST" and f"/v1/admin/credits/{provider_ref}/confirm" in url:
-            return httpx.Response(200, json={"provider_ref": provider_ref, "confirmed": True})
-        if method == "GET" and f"/v1/credits/{provider_ref}" in url:
+        if method == "POST" and "/v1/admin/credits/" in url and url.endswith("/confirm"):
+            state["confirms"] += 1
             return httpx.Response(200, json={"provider_ref": provider_ref, "confirmed": True})
         return httpx.Response(404)
 
-    outcome = _bundle(handler).run_duplicate_payment()
-    assert outcome["timeout_recovered"] is False
+    try:
+        _bundle(handler).run_duplicate_payment()
+        raise AssertionError("expected PeerFault")
+    except PeerFault as exc:
+        assert exc.code == "JOURNEY_PROVIDER"
+    assert state["confirms"] == 0
+    assert state["resets"] >= 2  # initial + finally
 
 
 def test_require_full_path_fails_closed(monkeypatch) -> None:

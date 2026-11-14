@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Fixed — 14 November 2026 (audit follow-up)
+
+- `run_duplicate_payment`: always `POST /v1/admin/faults/reset` in `finally` after arming `timeout_after_accept` (covers early `FAILED_FINAL` / `PeerFault`).
+- After timeout arm, first refund create must be `504` before admin confirm; `202` aborts with `PeerFault` (no credit confirm).
+- Regression: `TIMEOUT_RECOVERY_MISSING` when `timeout_recovered` is false; path stays `provider-sandbox-only` (SN-009 not exercised).
+
 ### Fixed — 14 November 2026 (PR #83 review)
 
 - `sandbox-tokens.json` unified to #84 `tok-*` → principal shape; assembly extras moved to `sandbox-assembly.json` (role→token, base_urls, journey_seeds).

@@ -301,71 +301,86 @@ class HttpPeerBundle:
         )
         self._require_ok(faults, "faults")
 
-        first = self.client.post(
-            f"{base}/v1/refunds",
-            headers={**dispatcher, "Idempotency-Key": provider_ref},
-            json=body,
-        )
-        if first.status_code not in (504, 202):
-            raise PeerFault("JOURNEY_PROVIDER", f"refund create unexpected {first.status_code}")
-        timeout_seen = first.status_code == 504
+        try:
+            first = self.client.post(
+                f"{base}/v1/refunds",
+                headers={**dispatcher, "Idempotency-Key": provider_ref},
+                json=body,
+            )
+            # Timeout fault must fire before any admin confirm; 202 means seed is
+            # still clean enough to abort without confirming credit.
+            if first.status_code != 504:
+                raise PeerFault(
+                    "JOURNEY_PROVIDER",
+                    f"refund create expected 504 after timeout arm, got {first.status_code}",
+                )
+            timeout_seen = True
 
-        recovered = self.client.get(f"{base}/v1/refunds/{provider_ref}", headers=dispatcher)
-        self._require_ok(recovered, "refund lookup")
-        recovered_body = recovered.json()
-        if str(recovered_body.get("provider_ref")) != provider_ref:
+            recovered = self.client.get(f"{base}/v1/refunds/{provider_ref}", headers=dispatcher)
+            self._require_ok(recovered, "refund lookup")
+            recovered_body = recovered.json()
+            if str(recovered_body.get("provider_ref")) != provider_ref:
+                return {
+                    "terminal_state": "FAILED_FINAL",
+                    "refunded_minor": 0,
+                    "refund_side_effect_count": 2,
+                    "approval_required": True,
+                    "unsafe_actions": 1,
+                    "timeout_recovered": False,
+                    "credit_confirmed": False,
+                    "amount_minor": amount_minor,
+                    "path": self.path,
+                }
+
+            # Idempotent retry must keep the same stable provider_ref / single side effect.
+            second = self.client.post(
+                f"{base}/v1/refunds",
+                headers={**dispatcher, "Idempotency-Key": provider_ref},
+                json=body,
+            )
+            if second.status_code not in (504, 202, 409):
+                raise PeerFault("JOURNEY_PROVIDER", f"refund retry unexpected {second.status_code}")
+
+            stats = self.client.get(f"{base}/v1/admin/refunds/{provider_ref}/stats", headers=admin)
+            self._require_ok(stats, "refund stats")
+            side_effects = int(stats.json().get("side_effect_count", -1))
+            if side_effects != 1:
+                raise PeerFault(
+                    "JOURNEY_SIDE_EFFECT",
+                    f"expected 1 side effect, got {side_effects}",
+                )
+
+            confirm = self.client.post(
+                f"{base}/v1/admin/refunds/{provider_ref}/confirm",
+                headers=admin,
+            )
+            self._require_ok(confirm, "refund confirm")
+            credit = self.client.post(
+                f"{base}/v1/admin/credits/{provider_ref}/confirm",
+                headers=admin,
+            )
+            self._require_ok(credit, "credit confirm")
+            credit_get = self.client.get(
+                f"{base}/v1/credits/{provider_ref}",
+                headers=self._headers("verifier"),
+            )
+            self._require_ok(credit_get, "credit get")
+            credit_confirmed = bool(credit_get.json().get("confirmed"))
+
             return {
-                "terminal_state": "FAILED_FINAL",
-                "refunded_minor": 0,
-                "refund_side_effect_count": 2,
+                "terminal_state": "VERIFIED_RESOLVED",
+                "refunded_minor": amount_minor,
+                "refund_side_effect_count": side_effects,
                 "approval_required": True,
-                "unsafe_actions": 1,
-                "timeout_recovered": False,
-                "credit_confirmed": False,
+                "unsafe_actions": 0,
+                "timeout_recovered": timeout_seen,
+                "credit_confirmed": credit_confirmed,
                 "amount_minor": amount_minor,
+                "provider_ref": provider_ref,
                 "path": self.path,
             }
-
-        # Idempotent retry must keep the same stable provider_ref / single side effect.
-        second = self.client.post(
-            f"{base}/v1/refunds",
-            headers={**dispatcher, "Idempotency-Key": provider_ref},
-            json=body,
-        )
-        if second.status_code not in (504, 202, 409):
-            raise PeerFault("JOURNEY_PROVIDER", f"refund retry unexpected {second.status_code}")
-
-        stats = self.client.get(f"{base}/v1/admin/refunds/{provider_ref}/stats", headers=admin)
-        self._require_ok(stats, "refund stats")
-        side_effects = int(stats.json().get("side_effect_count", -1))
-        if side_effects != 1:
-            raise PeerFault("JOURNEY_SIDE_EFFECT", f"expected 1 side effect, got {side_effects}")
-
-        confirm = self.client.post(f"{base}/v1/admin/refunds/{provider_ref}/confirm", headers=admin)
-        self._require_ok(confirm, "refund confirm")
-        credit = self.client.post(f"{base}/v1/admin/credits/{provider_ref}/confirm", headers=admin)
-        self._require_ok(credit, "credit confirm")
-        credit_get = self.client.get(
-            f"{base}/v1/credits/{provider_ref}",
-            headers=self._headers("verifier"),
-        )
-        self._require_ok(credit_get, "credit get")
-        credit_confirmed = bool(credit_get.json().get("confirmed"))
-
-        self.client.post(f"{base}/v1/admin/faults/reset", headers=admin)
-
-        return {
-            "terminal_state": "VERIFIED_RESOLVED",
-            "refunded_minor": amount_minor,
-            "refund_side_effect_count": side_effects,
-            "approval_required": True,
-            "unsafe_actions": 0,
-            "timeout_recovered": timeout_seen,
-            "credit_confirmed": credit_confirmed,
-            "amount_minor": amount_minor,
-            "provider_ref": provider_ref,
-            "path": self.path,
-        }
+        finally:
+            self.client.post(f"{base}/v1/admin/faults/reset", headers=admin)
 
     def run_refund_pending(self) -> dict[str, object]:
         """Read simulator #82 seeded PENDING refund; pending ≠ customer credit."""
