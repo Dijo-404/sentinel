@@ -245,10 +245,15 @@ class RiskService:
                 "Risk restriction clearance must never grant financial approval"
             )
 
-        # CLEAR: emit resume before persisting unblock. Emit failure leaves the
-        # restriction active/MAINTAINED so CLEAR stays retryable and money path
-        # stays closed.
+        # CLEAR: CAS-claim revision while block stays active, then emit resume,
+        # then persist CLEARED. Concurrent CLEAR with the same expected_revision
+        # conflicts before a second resume emit. Emit failure leaves the claim
+        # (still blocking); retry with the claimed revision.
         if decision == "CLEAR":
+            claim = replace(restriction, revision=restriction.revision + 1)
+            self._store.compare_and_swap_restriction(
+                claim, expected_revision=request.expected_revision
+            )
             self._workflow.emit_resume(
                 ResumeEvent(
                     event_type="risk.restriction.cleared",
@@ -260,8 +265,14 @@ class RiskService:
                 ),
                 principal=principal,
             )
-
-        saved = self._store.save_restriction(updated)
+            cleared = replace(updated, revision=claim.revision)
+            saved = self._store.compare_and_swap_restriction(
+                cleared, expected_revision=claim.revision
+            )
+        else:
+            saved = self._store.compare_and_swap_restriction(
+                updated, expected_revision=request.expected_revision
+            )
         inv_status = investigation.status
         if decision == "CLEAR":
             inv_status = "CLOSED"

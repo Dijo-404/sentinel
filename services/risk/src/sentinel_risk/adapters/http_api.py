@@ -168,6 +168,12 @@ def create_app(services: AppServices) -> FastAPI:
             for key in ("decision", "reason"):
                 if key not in body or not str(body[key]).strip():
                     raise ValidationError(f"{key} is required")
+            if "expected_revision" not in body:
+                raise ValidationError("expected_revision is required")
+            try:
+                expected_revision = int(body["expected_revision"])
+            except (TypeError, ValueError) as exc:
+                raise ValidationError("expected_revision must be an int") from exc
             evidence_ids = body.get("evidence_ids") or []
             if not isinstance(evidence_ids, list):
                 raise ValidationError("evidence_ids must be an array")
@@ -178,9 +184,7 @@ def create_app(services: AppServices) -> FastAPI:
                     decision=str(body["decision"]),  # type: ignore[arg-type]
                     reason=str(body["reason"]),
                     evidence_ids=tuple(str(x) for x in evidence_ids),
-                    expected_revision=(
-                        int(body["expected_revision"]) if "expected_revision" in body else None
-                    ),
+                    expected_revision=expected_revision,
                 ),
             )
             return JSONResponse(result.to_wire())

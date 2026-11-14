@@ -220,8 +220,8 @@ class RecordFindingRequest:
 class RestrictionDecisionRequest:
     decision: RestrictionDecision
     reason: str
+    expected_revision: int
     evidence_ids: tuple[str, ...] = ()
-    expected_revision: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
