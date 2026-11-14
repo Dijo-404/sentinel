@@ -18,7 +18,7 @@ export default function MerchantTransactionsPage() {
       <div className="panel stack" data-testid="merchant-transactions">
         <h1>Transactions</h1>
         <UiState
-          tone="empty"
+          tone="error"
           title="Transactions unavailable"
           detail="No merchant transaction list HTTP route is wired. Live rows are withheld — not synthetic stand-ins."
         />

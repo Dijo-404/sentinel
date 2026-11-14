@@ -18,7 +18,7 @@ export default function CustomerTransactionsPage() {
       <div className="panel stack" data-testid="customer-transactions">
         <h1>Transactions</h1>
         <UiState
-          tone="empty"
+          tone="error"
           title="Transactions unavailable"
           detail="No customer transaction list peer is wired (GET /v1/customer/transactions does not exist on case-api). Live rows are withheld — not synthetic stand-ins."
         />

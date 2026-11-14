@@ -67,9 +67,10 @@ describe("customer cases / transactions wiring", () => {
       </ShellProvider>,
     );
 
-    expect(screen.getByTestId("state-empty")).toHaveTextContent(
+    expect(screen.getByTestId("state-error")).toHaveTextContent(
       "Transactions unavailable",
     );
     expect(screen.queryByText("txn-…1001")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("fixture-banner")).not.toBeInTheDocument();
   });
 });

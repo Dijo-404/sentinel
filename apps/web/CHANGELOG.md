@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed — 15 November 2026 (real-peers transaction/refund list honesty)
+
+- Merchant transactions, merchant refunds, and customer transactions: real-peers shows peer-error (`state-error`) and never renders fixture demo rows; fixture mode keeps labeled stub tables behind `FixtureBanner`.
+- Browser tests cover mode split for all three pages (`merchant-list-honesty`, customer transactions in `customer-cases`).
+
 ### Fixed — 15 November 2026 (portal peer wiring + fixture hardening, Refs #129)
 
 - Fixture portals bind case-stub `decide` to the active assignment via `PortalCaseShell` (not `NEXT_PUBLIC_DEMO_ROLE`).
