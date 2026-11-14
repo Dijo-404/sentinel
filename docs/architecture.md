@@ -90,6 +90,6 @@ Real-peer mode never silently selects fixtures on failure. Test doubles are expl
 
 ## Integration and change control
 
-SN-014, SN-019 and SN-026 build independent assembly/release/pilot verification tools using local reference peers. They must also reject incomplete or fixture-only evidence in real-component mode. Their completion does not certify a product release. As of the SN-027–034 admission, components exist on `main`, but a single local simulator-backed MVP process graph and strict assembled release evidence are still owner-run follow-ups.
+SN-014, SN-019 and SN-026 build independent assembly/release/pilot verification tools using local reference peers. They must also reject incomplete or fixture-only evidence in real-component mode. Their completion does not certify a product release. As of V1 sandbox assembly, peers can run `real-peers` against the mock simulator (`path=provider-sandbox-only`); full case→workflow→ledger money authority and strict assembled release evidence remain owner-run follow-ups. No live payment rails are claimed.
 
 Consumers continue against the baseline while additive or versioned contract changes are reviewed. Keep compatibility adapters and negative fixtures. Do not hold unrelated tasks hostage to a root lockfile, global refactor, SDK extraction or a contract-checker implementation.
