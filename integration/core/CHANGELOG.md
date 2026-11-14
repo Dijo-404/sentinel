@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed — 14 November 2026 (RBAC fixture role catalog)
+
+- `_STAFF_ROLES` aligned with identity `STAFF_INVITABLE_ROLES` (dropped legacy `admin` alias).
+- Regression: fixture invite of `role_id=admin` denied; set equality asserted in tests.
+
 ### Added — 14 November 2026 (SN-041 Refs #104)
 
 - Identity (8012) and risk (8013) ports/tokens in sandbox matrix + assembly fixtures;

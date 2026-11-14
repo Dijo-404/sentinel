@@ -14,9 +14,8 @@ from sentinel_core_assembly.domain.types import CONTRACT_VERSION, Capabilities
 _PRIVILEGED_REGISTER_FIELDS = frozenset(
     {"role", "roles", "role_id", "account_type", "tenant_id", "subject_refs"}
 )
-_STAFF_ROLES = frozenset(
-    {"operator", "supervisor", "platform_admin", "risk_officer", "admin", "merchant"}
-)
+# Mirror identity STAFF_INVITABLE_ROLES — no legacy "admin" alias.
+_STAFF_ROLES = frozenset({"merchant", "operator", "supervisor", "risk_officer", "platform_admin"})
 
 
 @dataclass

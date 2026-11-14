@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from sentinel_core_assembly.adapters.rbac_fixture import RbacFixtureProbe
+from sentinel_core_assembly.adapters.rbac_fixture import _STAFF_ROLES, RbacFixtureProbe
 from sentinel_core_assembly.adapters.sandbox_matrix import (
     default_peer_endpoints,
     default_tokens,
@@ -11,6 +11,11 @@ from sentinel_core_assembly.adapters.sandbox_matrix import (
     optional_rbac_peer_endpoints,
     rbac_path_label,
     sn009_authority_exercised,
+)
+
+# identity domain STAFF_INVITABLE_ROLES — fixture must stay aligned (no admin alias).
+_IDENTITY_STAFF_INVITABLE_ROLES = frozenset(
+    {"merchant", "operator", "supervisor", "risk_officer", "platform_admin"}
 )
 
 
@@ -55,6 +60,11 @@ def test_auth01_customer_register_denied_staff_role() -> None:
     assert "sneaky@example.test" not in probe.world.accounts
 
 
+def test_staff_roles_match_identity_invitable() -> None:
+    assert _STAFF_ROLES == _IDENTITY_STAFF_INVITABLE_ROLES
+    assert "admin" not in _STAFF_ROLES
+
+
 def test_admin_invite_staff() -> None:
     probe = RbacFixtureProbe()
     outcome = probe.admin_invite_staff(
@@ -68,6 +78,19 @@ def test_admin_invite_staff() -> None:
     assert outcome["path"] == "rbac-fixture"
     assert outcome["sn009_authority_exercised"] is False
     assert outcome["invitation_id"] in probe.world.invitations
+
+
+def test_admin_invite_rejects_admin_alias() -> None:
+    probe = RbacFixtureProbe()
+    outcome = probe.admin_invite_staff(
+        actor_role="platform_admin",
+        work_email="alias@example.test",
+        role_id="admin",
+    )
+    assert outcome["status_code"] == 422
+    assert outcome["denied"] is True
+    assert outcome["invitation_created"] is False
+    assert outcome["reason_code"] == "STAFF_INVITE_ROLE_INVALID"
 
 
 def test_auth06_operator_denied_supervisor_decide() -> None:
