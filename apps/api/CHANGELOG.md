@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Fixed — 14 November 2026 (SN-037 review)
+
+- Fixture identity sessions wire only in `fixture` mode; `real-peers` uses opaque token map (future BFF). Refs #101.
+- Bind safety treats `sess-*` fixture session credentials as demo offenders. Refs #101.
+- `apply_result` preserves `assigned_principal_id` through updates and idempotent replay. Refs #101.
+
 ### Added — 14 November 2026 (SN-037)
 
 - Identity principal adapter port with fixture session/BFF projection double (`fixtures/identity_sessions.json`); composite resolver prefers identity projection then opaque token map for service peers. Refs #101.

@@ -554,6 +554,42 @@ def test_claim_concurrency(client, app):
     assert meta["assigned_principal_id"] in {"operator-1", "operator-2"}
 
 
+def test_apply_result_preserves_assigned_principal(client):
+    case_id = _create(client, key="claim-preserve").json()["case_id"]
+    claimed = client.post(f"/v1/ops/cases/{case_id}/claim", headers=auth("token-operator"))
+    assert claimed.status_code == 200
+    assert claimed.json()["assigned_principal_id"] == "operator-1"
+    revision = claimed.json()["revision"]
+
+    result = client.post(
+        f"/v1/internal/cases/{case_id}/results",
+        headers=auth("token-workflow"),
+        json={
+            "event_key": "preserve-assign-1",
+            "expected_revision": revision,
+            "status": "INVESTIGATING",
+            "evidence_ids": ["evidence-payment-b"],
+            "reason_code": "CONTINUE",
+        },
+    )
+    assert result.status_code == 200
+    assert result.json()["assigned_principal_id"] == "operator-1"
+
+    replay = client.post(
+        f"/v1/internal/cases/{case_id}/results",
+        headers=auth("token-workflow"),
+        json={
+            "event_key": "preserve-assign-1",
+            "expected_revision": revision,
+            "status": "INVESTIGATING",
+            "evidence_ids": ["evidence-payment-b"],
+            "reason_code": "CONTINUE",
+        },
+    )
+    assert replay.status_code == 200
+    assert replay.json()["assigned_principal_id"] == "operator-1"
+
+
 def test_dashboards_and_identity_session(client):
     case_id = _create(client, key="dash-1").json()["case_id"]
 

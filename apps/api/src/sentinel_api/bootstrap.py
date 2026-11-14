@@ -47,13 +47,19 @@ def build_app(settings: Settings | None = None, *, engine=None, tokens: TokenMap
 
     module_root = Path(__file__).resolve().parents[2]
     token_map = tokens or TokenMap.from_path(settings.token_path(module_root))
-    identity = FixtureIdentityPrincipalAdapter.from_path(settings.identity_path(module_root))
-    resolver = CompositePrincipalResolver(identity=identity, tokens=token_map)
-    demo_credentials = [
-        *resolver.tokens.keys(),
-        *getattr(identity, "_sessions", {}).keys(),
-        settings.service_token,
-    ]
+    # Fixture identity sessions are demo-only. real-peers uses opaque tokens / future BFF.
+    session_keys: list[str] = []
+    if settings.mode == "fixture":
+        identity: FixtureIdentityPrincipalAdapter | None = (
+            FixtureIdentityPrincipalAdapter.from_path(settings.identity_path(module_root))
+        )
+        session_keys = list(identity.session_credentials())
+        resolver: TokenMap | CompositePrincipalResolver = CompositePrincipalResolver(
+            identity=identity, tokens=token_map
+        )
+    else:
+        resolver = token_map
+    demo_credentials = [*token_map.tokens.keys(), *session_keys, settings.service_token]
     assert_loopback_or_non_demo(settings.host, demo_credentials)
 
     if engine is None:

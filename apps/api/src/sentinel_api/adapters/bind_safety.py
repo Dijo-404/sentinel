@@ -12,6 +12,11 @@ DEMO_BEARER_TOKENS = frozenset(
         "token-case-api-demo",
         "token-workflow-demo",
         "token-operator-demo",
+        # Fixture identity session credentials (apps/api/fixtures/identity_sessions.json).
+        "sess-customer-a",
+        "sess-operator-1",
+        "sess-operator-2",
+        "sess-supervisor-1",
     }
 )
 
@@ -24,13 +29,22 @@ def is_loopback_host(host: str) -> bool:
     return host.strip().lower() in _LOOPBACK
 
 
+def is_demo_bearer_token(token: str) -> bool:
+    if not token:
+        return True
+    if token in DEMO_BEARER_TOKENS:
+        return True
+    # Any fixture session/BFF double credential uses the sess- prefix.
+    return token.startswith("sess-")
+
+
 TokenValues = list[str] | set[str] | tuple[str, ...]
 
 
 def assert_loopback_or_non_demo(host: str, token_values: TokenValues) -> None:
     if is_loopback_host(host):
         return
-    offenders = sorted({t for t in token_values if not t or t in DEMO_BEARER_TOKENS})
+    offenders = sorted({t for t in token_values if is_demo_bearer_token(t)})
     if not offenders:
         return
     shown = ", ".join(offenders[:8])

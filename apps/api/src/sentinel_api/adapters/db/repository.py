@@ -571,6 +571,7 @@ class SqlCaseRepository:
                     intent=snap["intent"],
                     evidence_ids=tuple(snap["evidence_ids"]),
                     action_id=snap.get("action_id"),
+                    assigned_principal_id=snap.get("assigned_principal_id"),
                     contract_version=snap.get("contract_version", CONTRACT_VERSION),
                 )
 
@@ -592,6 +593,8 @@ class SqlCaseRepository:
                     evidence_ids_json=evidence_json,
                     action_id=result.action_id,
                     assessment_id=assessment_ref,
+                    # Preserve operator claim across workflow result transitions.
+                    assigned_principal_id=row["assigned_principal_id"],
                 )
             )
             if result.action_id:

@@ -42,3 +42,6 @@ class FixtureIdentityPrincipalAdapter:
 
     def project(self, credential: str) -> Principal | None:
         return self._sessions.get(credential)
+
+    def session_credentials(self) -> tuple[str, ...]:
+        return tuple(self._sessions.keys())
