@@ -43,7 +43,14 @@ def test_seed_pass_with_documented_peer_skips_without_db_urls() -> None:
     assert by_peer["merchant-analytics"]["status"] == "SKIPPED"
     assert by_peer["merchant-disputes"]["status"] == "SKIPPED"
     assert by_peer["risk"]["status"] == "SKIPPED"
+    assert by_peer["assistant"]["status"] == "SKIPPED"
+    assert by_peer["knowledge"]["status"] == "SKIPPED"
+    assert by_peer["ops-activity"]["status"] == "SKIPPED"
+    assert by_peer["platform-ai"]["status"] == "SKIPPED"
+    assert by_peer["evals"]["status"] == "SKIPPED"
+    assert by_peer["observability"]["status"] == "SKIPPED"
     assert "MERCHANT_ANALYTICS_DATABASE_URL" in by_peer["merchant-analytics"]["detail"]
+    assert "ASSISTANT_DATABASE_URL" in by_peer["assistant"]["detail"]
     assert any(entry.get("status") == "SKIPPED" for entry in report["seeds"])
 
 
@@ -80,6 +87,48 @@ def test_seed_invokes_wave0_1_peers_when_database_urls_set() -> None:
     assert by_peer["merchant-disputes"]["rows"] == 1
     assert by_peer["risk"]["status"] == "PASS"
     assert by_peer["case-api"]["status"] == "SKIPPED"
+    assert by_peer["identity"]["status"] == "SKIPPED"
+    assert by_peer["assistant"]["status"] == "SKIPPED"
+
+
+def test_seed_invokes_wave4_peers_when_database_urls_set() -> None:
+    calls: list[tuple[str, str]] = []
+
+    def fake_invoke(peer: str, rel_dir: str, env: dict, **_kwargs: object) -> SeedEntry:
+        calls.append((peer, rel_dir))
+        return {
+            "peer": peer,
+            "rows": 1,
+            "status": "PASS",
+            "detail": "make seed ok",
+        }
+
+    report = seed_sandbox(
+        {
+            "CORE_ASSEMBLY_TENANT_ID": "tenant-demo",
+            "SENTINEL_V1_SANDBOX": "1",
+            "ASSISTANT_DATABASE_URL": "postgresql+psycopg://x/y",
+            "KNOWLEDGE_DATABASE_URL": "postgresql+psycopg://x/y",
+            "OPS_ACTIVITY_DATABASE_URL": "postgresql+psycopg://x/y",
+            "PLATFORM_AI_DATABASE_URL": "postgresql+psycopg://x/y",
+            "EVALUATION_DATABASE_URL": "postgresql+psycopg://x/y",
+            "OBSERVABILITY_DATABASE_URL": "postgresql+psycopg://x/y",
+        },
+        invoke_peer_seed=fake_invoke,
+    )
+    assert report["status"] == "PASS"
+    assert [c[0] for c in calls] == [
+        "assistant",
+        "knowledge",
+        "ops-activity",
+        "platform-ai",
+        "evals",
+        "observability",
+    ]
+    by_peer = {entry["peer"]: entry for entry in report["seeds"]}
+    assert by_peer["assistant"]["status"] == "PASS"
+    assert by_peer["evals"]["rows"] == 1
+    assert by_peer["observability"]["status"] == "PASS"
     assert by_peer["identity"]["status"] == "SKIPPED"
 
 

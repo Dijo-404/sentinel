@@ -164,7 +164,7 @@
 - Update `sandbox-matrix.md` ports
 - Program index Wave 4 → done
 
-- [ ] **Steps: check, commit** `feat(integration): wave 4 intel voice verify`
+- [x] **Steps: check, commit** `feat(integration): wave 4 intel voice verify`
 
 ---
 

@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+### Added — 15 November 2026 (portal wave 4 verify)
+
+- `verify_wave4` + `scripts/verify_wave4.sh` / `make verify-wave4` /
+  `sentinel-core-assembly verify-wave4`: HTTP 200 + seeded JSON for assistant
+  threads (`thr-seed-tenant-demo`), knowledge articles
+  (`article-demo-refund-policy`), ops-activity feed (`act-seed-case-demo-42`);
+  voice `GET /v1/capabilities` (`port=voice.v1`); offline
+  `packages/approval-ui` package export smoke (`ApprovalPanel`).
+- Defaults: assistant `:8026`, knowledge `:8034`, ops-activity `:8029`,
+  voice `:8017`. Tokens: `tok-customer` / `operator-token`.
+- `seed_sandbox` invokes `make seed` for assistant / knowledge / ops-activity /
+  platform-ai / evals / observability when matching `*_DATABASE_URL` /
+  `EVALUATION_DATABASE_URL` is set. Matrix ports + README Wave 4 run order.
+
 ### Added — 15 November 2026 (portal wave 3 verify)
 
 - `verify_wave3` + `scripts/verify_wave3.sh` / `make verify-wave3` /
