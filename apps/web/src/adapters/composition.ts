@@ -36,13 +36,26 @@ export function loadShellConfig(
     );
   }
   const role = env.NEXT_PUBLIC_DEMO_ROLE ?? "customer";
+  const serverToken = env.CASE_API_BEARER_TOKEN;
+  // ShellProvider is a client component: NEXT_PUBLIC_* values ship to the browser.
+  // Real-peers must use the server-only CASE_API_BEARER_TOKEN — never a public fallback.
+  if (mode === "real-peers" && !serverToken) {
+    throw new PeerError(
+      "INVALID_CONFIG",
+      "CASE_API_BEARER_TOKEN is required in real-peers mode; never put secrets in NEXT_PUBLIC_*",
+      "cfg-missing-server-token",
+    );
+  }
   return {
     mode,
     voiceEnabled: env.NEXT_PUBLIC_VOICE_ENABLED === "true",
     contractVersion: env.NEXT_PUBLIC_CONTRACT_VERSION ?? CONTRACT_VERSION,
     contractSha256: env.NEXT_PUBLIC_CONTRACT_SHA256 ?? CONTRACT_SHA256,
     caseApiBaseUrl: env.CASE_API_BASE_URL,
-    bearerToken: env.CASE_API_BEARER_TOKEN ?? env.NEXT_PUBLIC_DEMO_TOKEN,
+    bearerToken:
+      mode === "real-peers"
+        ? serverToken
+        : (serverToken ?? env.NEXT_PUBLIC_DEMO_TOKEN),
     principal: demoPrincipal(role),
   };
 }

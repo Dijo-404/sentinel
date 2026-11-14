@@ -42,18 +42,25 @@ describe("GET /v1/capabilities", () => {
   });
 
   it("reflects real-peers mode from env", async () => {
-    const prev = process.env.NEXT_PUBLIC_SHELL_MODE;
+    const prevMode = process.env.NEXT_PUBLIC_SHELL_MODE;
+    const prevToken = process.env.CASE_API_BEARER_TOKEN;
     process.env.NEXT_PUBLIC_SHELL_MODE = "real-peers";
+    process.env.CASE_API_BEARER_TOKEN = "tok-server";
     try {
       const body = await GET().json();
       expect(body.mode).toBe("real-peers");
       expect(body.component).toBe("web-shell");
       expect(body.port).toBe("web-shell.v1");
     } finally {
-      if (prev === undefined) {
+      if (prevMode === undefined) {
         delete process.env.NEXT_PUBLIC_SHELL_MODE;
       } else {
-        process.env.NEXT_PUBLIC_SHELL_MODE = prev;
+        process.env.NEXT_PUBLIC_SHELL_MODE = prevMode;
+      }
+      if (prevToken === undefined) {
+        delete process.env.CASE_API_BEARER_TOKEN;
+      } else {
+        process.env.CASE_API_BEARER_TOKEN = prevToken;
       }
     }
   });

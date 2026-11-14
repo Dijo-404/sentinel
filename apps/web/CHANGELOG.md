@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed — 14 November 2026
+
+- `loadShellConfig` refuses `real-peers` when bearer would come from `NEXT_PUBLIC_DEMO_TOKEN`; requires server-only `CASE_API_BEARER_TOKEN` (`PeerError` `INVALID_CONFIG`). `.env.example` warns never put secrets in `NEXT_PUBLIC_*` (ShellProvider is a client component).
+
 ### Added — 14 November 2026
 
 - `GET /v1/capabilities` assembly probe: `{ contract_version, component: "web-shell", port: "web-shell.v1", mode }` from `NEXT_PUBLIC_SHELL_MODE` (Refs #76).
