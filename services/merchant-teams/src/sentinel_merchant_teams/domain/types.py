@@ -108,6 +108,36 @@ class StaffActivity:
 
 
 @dataclass(frozen=True, slots=True)
+class MerchantSettings:
+    """Merchant-scoped business preferences (notification language + alerts)."""
+
+    tenant_id: str
+    merchant_ref: str
+    notification_language: str
+    notify_disputes: bool
+    notify_settlements: bool
+
+    def to_wire(self) -> dict[str, Any]:
+        return {
+            "tenant_id": self.tenant_id,
+            "merchant_ref": self.merchant_ref,
+            "notification_language": self.notification_language,
+            "notify_disputes": self.notify_disputes,
+            "notify_settlements": self.notify_settlements,
+        }
+
+    @classmethod
+    def from_wire(cls, body: dict[str, Any]) -> MerchantSettings:
+        return cls(
+            tenant_id=str(body["tenant_id"]),
+            merchant_ref=str(body["merchant_ref"]),
+            notification_language=str(body["notification_language"]),
+            notify_disputes=bool(body["notify_disputes"]),
+            notify_settlements=bool(body["notify_settlements"]),
+        )
+
+
+@dataclass(frozen=True, slots=True)
 class CaseSnapshot:
     case_id: str
     revision: int

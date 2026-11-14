@@ -227,12 +227,22 @@ export type MerchantStaff = {
   currency?: string;
 };
 
-/** Optional merchant-teams.v1 team projection client. */
+/** merchant-teams.v1 MerchantSettings wire shape. */
+export type MerchantSettings = {
+  tenant_id: string;
+  merchant_ref: string;
+  notification_language: string;
+  notify_disputes: boolean;
+  notify_settlements: boolean;
+};
+
+/** Optional merchant-teams.v1 team + settings client. */
 export interface MerchantTeamsClient {
   listTeam(merchantRef: string): Promise<{
     staff: MerchantStaff[];
     source: "identity_projection" | "local_projection" | string;
   }>;
+  getSettings(merchantRef: string): Promise<MerchantSettings>;
 }
 
 /** Optional voice.v1 port. Disabled by default in composition. */

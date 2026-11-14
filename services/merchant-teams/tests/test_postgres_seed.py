@@ -143,6 +143,20 @@ def test_seed_membership_served_by_list_api(postgres_url: str):
     assert listed.status_code == 200
     assert listed.json()["staff"][0]["staff_id"] == "staff-demo-1"
 
+    settings_resp = client.get(
+        "/v1/merchant/settings",
+        params={"merchant_ref": "merchant-demo-1"},
+        headers={"Authorization": "Bearer operator-token"},
+    )
+    assert settings_resp.status_code == 200
+    settings_body = settings_resp.json()
+    assert settings_body["tenant_id"] == "tenant-demo"
+    assert settings_body["merchant_ref"] == "merchant-demo-1"
+    assert settings_body["notification_language"] == "en"
+    assert settings_body["notify_disputes"] is True
+    assert settings_body["notify_settlements"] is True
+    assert report["settings_merchant_ref"] == "merchant-demo-1"
+
 
 @pytest.mark.postgres
 def test_seed_is_idempotent(postgres_url: str):

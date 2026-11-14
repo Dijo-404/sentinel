@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added — 15 November 2026 (merchant Settings from merchant-teams BFF)
+
+- Merchant Settings page loads via `/api/bff/merchant-teams` →
+  `GET /v1/merchant/settings` (never “Not available yet”).
+- Fail closed: `data-testid="peer-error"` when peer/BFF unavailable or settings
+  missing; `merchant-settings-data` when fetch succeeds.
+- Browser tests: `tests/browser/merchant-settings-page.test.tsx`.
+
 ### Added — 15 November 2026 (risk portal pages from BFF)
 
 - Risk queue/holds/transactions/audit/analytics/reports load via `/api/bff/risk` (never “Not available yet”).

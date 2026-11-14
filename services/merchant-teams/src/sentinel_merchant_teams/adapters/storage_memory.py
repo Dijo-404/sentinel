@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from ..domain.types import MerchantStaff, StaffActivity
+from ..domain.types import MerchantSettings, MerchantStaff, StaffActivity
 
 
 class MemoryStaffStore:
     def __init__(self) -> None:
         self._staff: dict[tuple[str, str], MerchantStaff] = {}
         self._activity: dict[str, list[StaffActivity]] = {}
+        self._settings: dict[tuple[str, str], MerchantSettings] = {}
 
     def create(self, staff: MerchantStaff) -> MerchantStaff:
         key = (staff.tenant_id, staff.staff_id)
@@ -41,3 +42,10 @@ class MemoryStaffStore:
 
     def list_activity(self, *, staff_id: str) -> tuple[StaffActivity, ...]:
         return tuple(self._activity.get(staff_id, []))
+
+    def get_settings(self, *, tenant_id: str, merchant_ref: str) -> MerchantSettings | None:
+        return self._settings.get((tenant_id, merchant_ref))
+
+    def save_settings(self, settings: MerchantSettings) -> MerchantSettings:
+        self._settings[(settings.tenant_id, settings.merchant_ref)] = settings
+        return settings

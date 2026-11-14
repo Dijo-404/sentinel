@@ -23,11 +23,12 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from ..application.errors import ConfigurationError, PeerUnavailableError
-from ..domain.types import MerchantStaff, StaffActivity
+from ..domain.types import MerchantSettings, MerchantStaff, StaffActivity
 
 SCHEMA = "merchant_teams"
 STAFF_TABLE = "merchant_staff"
 ACTIVITY_TABLE = "staff_activity"
+SETTINGS_TABLE = "merchant_settings"
 
 SANDBOX_TENANT_ID = "tenant-demo"
 SANDBOX_MERCHANT_REF = "merchant-demo-1"
@@ -73,6 +74,20 @@ def _activity_table(schema: str = SCHEMA) -> Table:
     )
 
 
+def _settings_table(schema: str = SCHEMA) -> Table:
+    metadata = MetaData()
+    return Table(
+        SETTINGS_TABLE,
+        metadata,
+        Column("tenant_id", String(256), primary_key=True),
+        Column("merchant_ref", String(256), primary_key=True),
+        Column("notification_language", String(32), nullable=False),
+        Column("notify_disputes", Boolean, nullable=False, server_default=text("TRUE")),
+        Column("notify_settlements", Boolean, nullable=False, server_default=text("TRUE")),
+        schema=schema,
+    )
+
+
 class PostgresStaffStore:
     def __init__(self, engine: Engine, schema: str = SCHEMA) -> None:
         if engine.dialect.name != "postgresql":
@@ -81,6 +96,7 @@ class PostgresStaffStore:
         self._schema = schema
         self._staff = _staff_table(schema)
         self._activity = _activity_table(schema)
+        self._settings = _settings_table(schema)
 
     @classmethod
     def from_url(cls, database_url: str) -> PostgresStaffStore:
@@ -92,6 +108,7 @@ class PostgresStaffStore:
                 connection.execute(text(f'CREATE SCHEMA IF NOT EXISTS "{self._schema}"'))
                 self._staff.create(connection, checkfirst=True)
                 self._activity.create(connection, checkfirst=True)
+                self._settings.create(connection, checkfirst=True)
                 connection.execute(
                     text(
                         f"CREATE INDEX IF NOT EXISTS ix_merchant_staff_tenant_merchant "
@@ -205,6 +222,43 @@ class PostgresStaffStore:
             raise PeerUnavailableError("merchant-teams database unavailable") from exc
         return tuple(_row_to_activity(dict(row)) for row in rows)
 
+    def get_settings(self, *, tenant_id: str, merchant_ref: str) -> MerchantSettings | None:
+        try:
+            with self._engine.begin() as connection:
+                row = (
+                    connection.execute(
+                        select(self._settings).where(
+                            self._settings.c.tenant_id == tenant_id,
+                            self._settings.c.merchant_ref == merchant_ref,
+                        )
+                    )
+                    .mappings()
+                    .first()
+                )
+        except SQLAlchemyError as exc:
+            raise PeerUnavailableError("merchant-teams database unavailable") from exc
+        if row is None:
+            return None
+        return _row_to_settings(dict(row))
+
+    def save_settings(self, settings: MerchantSettings) -> MerchantSettings:
+        values = _settings_to_row(settings)
+        try:
+            with self._engine.begin() as connection:
+                stmt = pg_insert(self._settings).values(**values)
+                stmt = stmt.on_conflict_do_update(
+                    index_elements=["tenant_id", "merchant_ref"],
+                    set_={
+                        "notification_language": stmt.excluded.notification_language,
+                        "notify_disputes": stmt.excluded.notify_disputes,
+                        "notify_settlements": stmt.excluded.notify_settlements,
+                    },
+                )
+                connection.execute(stmt)
+        except SQLAlchemyError as exc:
+            raise PeerUnavailableError("merchant-teams database unavailable") from exc
+        return settings
+
 
 def _staff_demo_fixture_path() -> Path:
     here = Path(__file__).resolve()
@@ -229,10 +283,20 @@ def seed_merchant_demo_membership(database_url: str) -> dict[str, Any]:
     if staff_body["staff_id"] != SANDBOX_STAFF_ID:
         raise ConfigurationError("sandbox seed requires staff-demo-1")
 
+    settings_body = fixture.get("settings")
+    if not isinstance(settings_body, dict):
+        raise ConfigurationError("sandbox seed requires settings object")
+    if settings_body.get("tenant_id") != SANDBOX_TENANT_ID:
+        raise ConfigurationError("sandbox seed settings require tenant-demo")
+    if settings_body.get("merchant_ref") != SANDBOX_MERCHANT_REF:
+        raise ConfigurationError("sandbox seed settings require merchant-demo-1")
+
     store = PostgresStaffStore.from_url(database_url)
     store.migrate()
     staff = MerchantStaff.from_wire(staff_body)
     store.save(staff)
+    settings = MerchantSettings.from_wire(settings_body)
+    store.save_settings(settings)
 
     activity_rows = fixture.get("activity") or []
     existing = {event.event_id for event in store.list_activity(staff_id=staff.staff_id)}
@@ -253,6 +317,7 @@ def seed_merchant_demo_membership(database_url: str) -> dict[str, Any]:
         "tenant_id": staff.tenant_id,
         "merchant_ref": staff.merchant_ref,
         "staff_id": staff.staff_id,
+        "settings_merchant_ref": settings.merchant_ref,
         "evidence_label": "synthetic_seed",
     }
 
@@ -307,4 +372,24 @@ def _row_to_activity(row: dict[str, Any]) -> StaffActivity:
         kind=str(row["kind"]),
         subject_ref=str(row["subject_ref"]),
         summary=str(row["summary"]),
+    )
+
+
+def _settings_to_row(settings: MerchantSettings) -> dict[str, Any]:
+    return {
+        "tenant_id": settings.tenant_id,
+        "merchant_ref": settings.merchant_ref,
+        "notification_language": settings.notification_language,
+        "notify_disputes": settings.notify_disputes,
+        "notify_settlements": settings.notify_settlements,
+    }
+
+
+def _row_to_settings(row: dict[str, Any]) -> MerchantSettings:
+    return MerchantSettings(
+        tenant_id=str(row["tenant_id"]),
+        merchant_ref=str(row["merchant_ref"]),
+        notification_language=str(row["notification_language"]),
+        notify_disputes=bool(row["notify_disputes"]),
+        notify_settlements=bool(row["notify_settlements"]),
     )

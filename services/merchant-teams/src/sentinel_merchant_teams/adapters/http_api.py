@@ -127,6 +127,20 @@ def create_app(services: AppServices) -> FastAPI:
         except TeamsError as exc:
             return _error(exc, request_id)
 
+    @app.get("/v1/merchant/settings")
+    def merchant_settings(request: Request) -> JSONResponse:
+        """Merchant business preferences. Missing row fails closed (404)."""
+        request_id = _request_id(request)
+        try:
+            principal = services.authenticator.authenticate(request.headers.get("authorization"))
+            merchant_ref = request.query_params.get("merchant_ref")
+            if not merchant_ref:
+                raise ValidationError("merchant_ref query is required")
+            row = services.staff.get_settings(principal, merchant_ref)
+            return JSONResponse(row.to_wire())
+        except TeamsError as exc:
+            return _error(exc, request_id)
+
     @app.get("/v1/staff/{staff_id}")
     def get_staff(staff_id: str, request: Request) -> JSONResponse:
         request_id = _request_id(request)

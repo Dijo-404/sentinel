@@ -1,4 +1,5 @@
 import type {
+  MerchantSettings,
   MerchantStaff,
   MerchantTeamsClient,
 } from "@/application/ports";
@@ -8,6 +9,37 @@ import { createPeerJsonFetcher, type PeerJsonOptions } from "./peer-json";
 export type MerchantTeamsPeerOptions = Omit<PeerJsonOptions, "peerLabel"> & {
   peerLabel?: string;
 };
+
+function validateSettings(json: unknown, requestId: string): MerchantSettings {
+  if (!json || typeof json !== "object") {
+    throw new PeerError(
+      "MALFORMED_PEER_RESPONSE",
+      "Settings response is not an object",
+      requestId,
+    );
+  }
+  const o = json as Record<string, unknown>;
+  if (
+    typeof o.tenant_id !== "string" ||
+    typeof o.merchant_ref !== "string" ||
+    typeof o.notification_language !== "string" ||
+    typeof o.notify_disputes !== "boolean" ||
+    typeof o.notify_settlements !== "boolean"
+  ) {
+    throw new PeerError(
+      "MALFORMED_PEER_RESPONSE",
+      "Settings missing required fields",
+      requestId,
+    );
+  }
+  return {
+    tenant_id: o.tenant_id,
+    merchant_ref: o.merchant_ref,
+    notification_language: o.notification_language,
+    notify_disputes: o.notify_disputes,
+    notify_settlements: o.notify_settlements,
+  };
+}
 
 function validateTeam(
   json: unknown,
@@ -102,6 +134,14 @@ export function createRealPeerMerchantTeamsClient(
         "GET",
         `/v1/merchant/team?${params}`,
         validateTeam,
+      );
+    },
+    getSettings(merchantRef) {
+      const params = new URLSearchParams({ merchant_ref: merchantRef });
+      return request(
+        "GET",
+        `/v1/merchant/settings?${params}`,
+        validateSettings,
       );
     },
   };

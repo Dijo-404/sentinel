@@ -4,6 +4,9 @@
 
 ### Added
 
+- Thin merchant settings resource on this service (portal Task 7): table
+  `merchant_teams.merchant_settings`, `GET /v1/merchant/settings?merchant_ref=…`,
+  seeded with membership from `fixtures/staff_demo.json`. Missing row → 404.
 - PostgreSQL staff store (`MERCHANT_TEAMS_DATABASE_URL`): schema
   `merchant_teams.merchant_staff` / `staff_activity`, migrate on boot when DSN set.
 - `make seed` / `sentinel-merchant-teams seed`: idempotent synthetic membership for

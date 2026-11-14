@@ -22,6 +22,8 @@ Contract: `sentinel.task-contracts.v1`, SHA-256
   the list as a projection (`source`)
 - Sync deactivates local staff absent from identity (revoke)
 - Optional PostgreSQL durable store + sandbox seed for portal real-peers
+- Thin merchant settings resource (`merchant_teams.merchant_settings`) for
+  portal Settings — notification language + alert flags (no separate service)
 
 **Non-goals:** this module never creates approvals or reservations, never writes
 SN-009 ledger tables, and never calls payment providers. Advisory limits cannot
@@ -37,6 +39,11 @@ Prefer the projection surface for merchant portal Team:
 | --- | --- | --- |
 | `GET` | `/v1/merchant/team?merchant_ref=merchant-demo-1` | `{ "staff": MerchantStaff[], "source": "identity_projection" \| "local_projection" }` |
 | `GET` | `/v1/staff?merchant_ref=merchant-demo-1` | `{ "staff": MerchantStaff[] }` |
+| `GET` | `/v1/merchant/settings?merchant_ref=merchant-demo-1` | `MerchantSettings` wire object |
+
+`MerchantSettings` fields: `tenant_id`, `merchant_ref`, `notification_language`,
+`notify_disputes`, `notify_settlements`. Missing row returns `404 NOT_FOUND`
+(fail closed — no silent defaults).
 
 Auth: `Authorization: Bearer <token>` from `MERCHANT_TEAMS_TOKENS`. Operator /
 supervisor / sandbox-admin with merchant scope. Empty merchant list is honest
@@ -66,9 +73,10 @@ make seed
 # {"evidence_label":"synthetic_seed","merchant_ref":"merchant-demo-1","staff_id":"staff-demo-1","status":"PASS","tenant_id":"tenant-demo"}
 ```
 
-Seed migrates schema `merchant_teams`, upserts `staff-demo-1` for
-`tenant-demo` / `merchant-demo-1` from `fixtures/staff_demo.json` (synthetic),
-and appends demo activity when missing. Idempotent.
+Seed migrates schema `merchant_teams`, upserts `staff-demo-1` and one
+`merchant_settings` row for `tenant-demo` / `merchant-demo-1` from
+`fixtures/staff_demo.json` (synthetic), and appends demo activity when missing.
+Idempotent.
 
 real-peers requires `MERCHANT_TEAMS_DATABASE_URL` (or an injected durable store).
 
