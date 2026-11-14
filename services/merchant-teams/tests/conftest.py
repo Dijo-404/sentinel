@@ -11,6 +11,7 @@ from sentinel_merchant_teams.adapters.auth import TokenAuthenticator
 from sentinel_merchant_teams.adapters.case_api_stub import StubCaseApi
 from sentinel_merchant_teams.adapters.clock import FixedClock
 from sentinel_merchant_teams.adapters.http_api import AppServices, create_app
+from sentinel_merchant_teams.adapters.identity_stub import StubIdentityMemberships
 from sentinel_merchant_teams.adapters.storage_memory import MemoryStaffStore
 from sentinel_merchant_teams.application.staff import StaffService
 from sentinel_merchant_teams.domain.types import Principal
@@ -62,15 +63,20 @@ def cases():
 
 
 @pytest.fixture
-def service(store, cases, clock):
-    return StaffService(store, cases, clock)
+def identity():
+    return StubIdentityMemberships(mode="valid")
 
 
 @pytest.fixture
-def app(store, cases, clock):
+def service(store, cases, clock, identity):
+    return StaffService(store, cases, clock, identity)
+
+
+@pytest.fixture
+def app(store, cases, clock, identity):
     services = AppServices(
         authenticator=TokenAuthenticator(TOKENS),
-        staff=StaffService(store, cases, clock),
+        staff=StaffService(store, cases, clock, identity),
         mode="fixture",
     )
     return create_app(services)

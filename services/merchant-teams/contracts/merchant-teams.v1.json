@@ -3,7 +3,7 @@
   "contract_version": "sentinel.task-contracts.v1",
   "contract_sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb",
   "produces": ["MerchantStaff", "StaffActivity"],
-  "consumes": ["case-api.v1"],
+  "consumes": ["case-api.v1", "identity.v1"],
   "routes": [
     {
       "method": "POST",
@@ -17,13 +17,29 @@
         "staff_id?": "string"
       },
       "response": "MerchantStaff",
-      "roles": ["operator", "supervisor", "sandbox-admin"]
+      "roles": ["operator", "supervisor", "sandbox-admin"],
+      "notes": "roles limited to merchant subroles viewer|operator|approver|admin; platform grants denied"
     },
     {
       "method": "GET",
       "path": "/v1/staff?merchant_ref=...",
       "response": "{ staff: MerchantStaff[] }",
       "roles": ["operator", "supervisor", "sandbox-admin"]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/staff/sync",
+      "request": { "merchant_ref": "string" },
+      "response": "{ staff: MerchantStaff[] }",
+      "roles": ["operator", "supervisor", "sandbox-admin"],
+      "notes": "Projects identity.v1 merchant memberships into local store; fail closed when IDENTITY_BASE_URL configured"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/merchant/team?merchant_ref=...",
+      "response": "{ staff: MerchantStaff[] }",
+      "roles": ["operator", "supervisor", "sandbox-admin"],
+      "notes": "Authoritative membership projection surface over local projected staff"
     },
     {
       "method": "GET",
@@ -81,8 +97,11 @@
   "notes": [
     "approval_limit_minor is advisory metadata only.",
     "Advisory checks never mint approval_id or reservation_id.",
-    "POST /v1/staff/{id}/authorize always fails closed.",
+    "POST /v1/staff/{id}/authorize always fails closed (AUTH-09).",
+    "Merchant subroles only; platform role grants rejected (AUTH-10).",
+    "Identity owns grants; merchant-teams projects memberships and is not a second role authority.",
     "CASE_* activity kinds require a live case-api.v1 get; real-peers never falls back to fixtures.",
+    "When IDENTITY_BASE_URL is set in real-peers, membership sync fails closed on identity errors.",
     "Unauthorized tenant/merchant scope returns 403."
   ]
 }

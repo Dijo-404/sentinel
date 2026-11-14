@@ -15,15 +15,17 @@ from ..domain.types import (
     StaffActivity,
 )
 from .errors import (
+    ConfigurationError,
     FinancialAuthorityDenied,
     NotFoundError,
     UnauthorizedError,
     ValidationError,
 )
-from .ports import CaseApiPort, Clock, StaffStore
+from .ports import CaseApiPort, Clock, IdentityMembershipPort, StaffStore
 
 _MANAGE_ROLES = frozenset({"operator", "supervisor", "sandbox-admin"})
 _CASE_ACTIVITY_KINDS = frozenset({"CASE_VIEW", "CASE_NOTE", "CASE_ASSIGN"})
+_ACTIVE_MEMBERSHIP = frozenset({"active"})
 
 
 def _require_manager(principal: Principal) -> None:
@@ -49,10 +51,17 @@ def _rfc3339(clock: Clock) -> str:
 
 
 class StaffService:
-    def __init__(self, store: StaffStore, cases: CaseApiPort, clock: Clock):
+    def __init__(
+        self,
+        store: StaffStore,
+        cases: CaseApiPort,
+        clock: Clock,
+        identity: IdentityMembershipPort | None = None,
+    ):
         self._store = store
         self._cases = cases
         self._clock = clock
+        self._identity = identity
 
     def create(
         self,
@@ -285,3 +294,61 @@ class StaffService:
             refuse_financial_authorization()
         except PermissionError as exc:
             raise FinancialAuthorityDenied(str(exc)) from exc
+
+    def sync_memberships(
+        self, principal: Principal, merchant_ref: str
+    ) -> tuple[MerchantStaff, ...]:
+        """Project identity.v1 memberships into the local store (read model only)."""
+        _require_manager(principal)
+        _require_merchant(principal, merchant_ref)
+        if self._identity is None:
+            raise ConfigurationError("identity membership peer is not configured")
+
+        memberships = self._identity.list_memberships(
+            tenant_id=principal.tenant_id,
+            merchant_ref=merchant_ref,
+            principal=principal,
+        )
+        projected: list[MerchantStaff] = []
+        for membership in memberships:
+            if membership.tenant_id != principal.tenant_id:
+                raise ValidationError("identity membership tenant mismatch")
+            if membership.merchant_ref != merchant_ref:
+                raise ValidationError("identity membership merchant_ref mismatch")
+            try:
+                role_tuple = normalize_roles(list(membership.subroles))
+            except ValueError as exc:
+                raise ValidationError(str(exc)) from exc
+
+            staff_id = membership.membership_id
+            existing = self._store.get(tenant_id=principal.tenant_id, staff_id=staff_id)
+            staff = MerchantStaff(
+                staff_id=staff_id,
+                tenant_id=membership.tenant_id,
+                merchant_ref=membership.merchant_ref,
+                display_name=membership.display_name.strip() or membership.user_id,
+                roles=role_tuple,
+                active=membership.status in _ACTIVE_MEMBERSHIP,
+                approval_limit_minor=existing.approval_limit_minor if existing else None,
+                currency=existing.currency if existing else None,
+            )
+            if existing is None:
+                saved = self._store.create(staff)
+                kind = "MEMBERSHIP_PROJECTED"
+                summary = f"Projected membership {saved.display_name} from identity"
+            else:
+                saved = self._store.save(staff)
+                kind = "MEMBERSHIP_SYNCED"
+                summary = f"Synced membership {saved.display_name} from identity"
+            self._store.append_activity(
+                StaffActivity(
+                    event_id=_new_event_id(),
+                    staff_id=saved.staff_id,
+                    at=_rfc3339(self._clock),
+                    kind=kind,
+                    subject_ref=saved.merchant_ref,
+                    summary=summary,
+                )
+            )
+            projected.append(saved)
+        return tuple(projected)
