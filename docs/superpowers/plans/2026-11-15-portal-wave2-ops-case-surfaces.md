@@ -208,11 +208,11 @@
 - Modify: `integration/core/README.md`, `CHANGELOG.md`
 - Assert against seeded stack (or document curl checklist if compose not up): HTTP 200 JSON for ops messages, audit-events, HISTORY list, ESCALATED list; web pages not required in script if BFF needs session — then assert case-api + identity directly with matrix tokens
 
-- [ ] **Step 1: Write verify that fails without seed rows**
+- [x] **Step 1: Write verify that fails without seed rows**
 
-- [ ] **Step 2: Document run order**
+- [x] **Step 2: Document run order**
 
-- [ ] **Step 3: Commit** `feat(integration): wave 2 ops surfaces verify`
+- [x] **Step 3: Commit** `feat(integration): wave 2 ops surfaces verify`
 
 ---
 

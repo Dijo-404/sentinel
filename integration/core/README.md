@@ -125,6 +125,63 @@ curl -sS -H "Authorization: Bearer tok-risk-officer" \
 
 Optional BFF path (web `:3012` + session cookie): `/api/bff/merchant-analytics/...`, `/api/bff/merchant-disputes/...`, `/api/bff/risk/...` — same fail-closed rule; script hits peers directly so web need not be up.
 
+### Wave 2 portal peers (ops case surfaces) — run order
+
+DB-backed ops checks need Postgres + case-api seeded before verify (identity optional):
+
+1. Compose Postgres + `SENTINEL_API_DATABASE_URL` (see Wave 0–1 steps 1–2; include `apps/api` DSN).
+2. Seed case-api ops rows (`case-seed-ops-escalated`, `case-seed-ops-history`):
+
+```sh
+make -C integration/core seed-sandbox
+# or: make -C apps/api seed
+```
+
+3. Serve case-api on `:8080` (`make -C apps/api preview`). Optional: identity `:8012` for team.
+
+4. Verify (nonzero if case-api down, HTTP ≠ 200, or seed rows missing):
+
+```sh
+make -C integration/core verify-wave2
+# or: ./scripts/verify_wave2.sh
+```
+
+Asserts HTTP 200 + non-empty seeded JSON for:
+
+| Check | Peer URL | Seed marker |
+| --- | --- | --- |
+| ESCALATED | `GET /v1/ops/cases?status=ESCALATED` | `case-seed-ops-escalated` |
+| HISTORY | `GET /v1/ops/cases?status=HISTORY` | `case-seed-ops-history` |
+| messages | `GET /v1/ops/messages` | seed case message present |
+| audit-events | `GET /v1/ops/audit-events` | seed case event present |
+| team (optional) | `GET /v1/ops/team` | non-empty `members` when `VERIFY_IDENTITY_TOKEN` set |
+
+Bearers: matrix `tok-operator` / `tok-supervisor` (override `VERIFY_OPERATOR_TOKEN` / `VERIFY_SUPERVISOR_TOKEN`). Identity needs a supervisor **session** from login (`VERIFY_IDENTITY_TOKEN`), not a matrix `tok-*`. Web BFF/pages not required — script hits case-api (+ identity) directly.
+
+#### Curl checklist (wave 2)
+
+```sh
+# escalations (expect cases[] containing case-seed-ops-escalated; empty = unseeded)
+curl -sS -H "Authorization: Bearer tok-operator" \
+  "http://127.0.0.1:8080/v1/ops/cases?status=ESCALATED"
+
+# history (expect case-seed-ops-history with CLOSED_NO_ACTION or VERIFIED_RESOLVED)
+curl -sS -H "Authorization: Bearer tok-supervisor" \
+  "http://127.0.0.1:8080/v1/ops/cases?status=HISTORY"
+
+# messages inbox (expect messages[] for seed cases; empty = unseeded)
+curl -sS -H "Authorization: Bearer tok-operator" \
+  "http://127.0.0.1:8080/v1/ops/messages"
+
+# audit events (expect events[] for seed cases; empty = unseeded)
+curl -sS -H "Authorization: Bearer tok-supervisor" \
+  "http://127.0.0.1:8080/v1/ops/audit-events"
+
+# optional team (supervisor session token from identity login)
+# curl -sS -H "Authorization: Bearer $VERIFY_IDENTITY_TOKEN" \
+#   "http://127.0.0.1:8012/v1/ops/team"
+```
+
 Optional live pytest (skips unless env set and stack healthy):
 
 ```sh
@@ -152,6 +209,7 @@ integration/core/
   fixtures/
   scripts/run_sandbox_journeys.sh
   scripts/verify_wave0_1.sh
+  scripts/verify_wave2.sh
   tests/stubs/
 ```
 

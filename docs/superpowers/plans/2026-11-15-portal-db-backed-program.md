@@ -9,7 +9,7 @@
 | Wave | Plan file | Status |
 | --- | --- | --- |
 | 0–1 Foundation + Merchant/Risk wire | `docs/superpowers/plans/2026-11-15-portal-wave0-1-foundation-merchant-risk.md` | done (hardcode audit merged on branch) |
-| 2 Ops case surfaces | `docs/superpowers/plans/2026-11-15-portal-wave2-ops-case-surfaces.md` | **active** |
+| 2 Ops case surfaces | `docs/superpowers/plans/2026-11-15-portal-wave2-ops-case-surfaces.md` | done |
 | 3 Identity / auth / customer | TBD | pending |
 | 4 Intel + voice + approval-ui | TBD | pending |
 | 5 Admin remainder | TBD | pending |

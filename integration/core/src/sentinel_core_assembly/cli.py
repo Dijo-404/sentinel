@@ -51,6 +51,13 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
             "merchant-disputes list, risk investigations (fails without seed)"
         ),
     )
+    sub.add_parser(
+        "verify-wave2",
+        help=(
+            "HTTP 200 + seeded JSON from case-api ops ESCALATED/HISTORY/messages/"
+            "audit-events; optional identity /v1/ops/team when VERIFY_IDENTITY_TOKEN set"
+        ),
+    )
     return parser.parse_args(argv)
 
 
@@ -98,6 +105,14 @@ def main(argv: list[str] | None = None) -> int:
         from sentinel_core_assembly.adapters.verify_wave0_1 import verify_wave0_1
 
         report = verify_wave0_1(dict(os.environ))
+        json.dump(report, sys.stdout, indent=2, sort_keys=True)
+        sys.stdout.write("\n")
+        return 0 if report.get("status") == "PASS" else 1
+
+    if args.command == "verify-wave2":
+        from sentinel_core_assembly.adapters.verify_wave2 import verify_wave2
+
+        report = verify_wave2(dict(os.environ))
         json.dump(report, sys.stdout, indent=2, sort_keys=True)
         sys.stdout.write("\n")
         return 0 if report.get("status") == "PASS" else 1

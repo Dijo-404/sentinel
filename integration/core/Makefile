@@ -1,6 +1,6 @@
 UV ?= uv
 
-.PHONY: setup check preview seed-sandbox verify-wave0-1
+.PHONY: setup check preview seed-sandbox verify-wave0-1 verify-wave2
 setup:
 	$(UV) sync --frozen
 
@@ -23,3 +23,7 @@ seed-sandbox: setup
 # Live peers must be up + seeded. Fails closed on empty DB / connect error.
 verify-wave0-1: setup
 	./scripts/verify_wave0_1.sh
+
+# case-api :8080 seeded. Optional VERIFY_IDENTITY_TOKEN for identity :8012 team.
+verify-wave2: setup
+	./scripts/verify_wave2.sh

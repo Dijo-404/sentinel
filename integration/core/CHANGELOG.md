@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added — 15 November 2026 (portal wave 2 verify)
+
+- `verify_wave2` + `scripts/verify_wave2.sh` / `make verify-wave2` /
+  `sentinel-core-assembly verify-wave2`: HTTP 200 + seeded JSON for case-api
+  ESCALATED / HISTORY / messages / audit-events (fails closed without seed).
+- Optional identity `GET /v1/ops/team` when `VERIFY_IDENTITY_TOKEN` (supervisor
+  session) is set. README Wave 2 run order + curl checklist.
+
 ### Added — 15 November 2026 (case-api ops seed hook)
 
 - `seed_sandbox` invokes `make -C apps/api seed` when `SENTINEL_API_DATABASE_URL`
