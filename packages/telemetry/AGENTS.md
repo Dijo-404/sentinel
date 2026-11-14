@@ -1,4 +1,4 @@
-# Scoped agent rules: SN-015
+# Scoped agent rules: SN-015 / SN-042
 
 Read [repository AGENTS.md](../../AGENTS.md) and this module's [README](README.md) before editing. These rules supplement the root instructions.
 
@@ -7,7 +7,8 @@ Read [repository AGENTS.md](../../AGENTS.md) and this module's [README](README.m
 - Work only in `packages/telemetry/` and any exact extra paths listed in the task. No broad parent-directory ownership.
 - Own the module's manifest/lockfile, configuration, migrations, code, contract snapshots, tests, fixtures, README and changelog.
 - No task-completion prerequisite; use local port doubles. Never wait for another agent's implementation or modify another module's state to make tests pass.
-- Use branch `feat/sn-015-observability` or an explicitly recorded alternative and a separate worktree.
+- Use branch `feat/sn-015-observability`, `feat/sn-042-identity-observability`, or an explicitly recorded alternative and a separate worktree.
+- SN-042 identity helpers stay in this package; do not silently claim FinHarness/FinBench complete.
 
 ## Architecture and contracts
 

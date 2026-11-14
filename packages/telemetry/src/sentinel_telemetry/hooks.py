@@ -5,7 +5,11 @@ from __future__ import annotations
 from .contracts import CorrelationIds, RecordedMetric, RecordedSpan, RedactionError
 from .memory import MemoryCollector
 from .ports import MetricSink, SpanSink
-from .redaction import sanitize_attributes, sanitize_metric_labels
+from .redaction import (
+    IDENTITY_VALUE_BOUNDED_METRIC_LABELS,
+    sanitize_attributes,
+    sanitize_metric_labels,
+)
 
 
 class FailingSink:
@@ -91,7 +95,13 @@ class SafeTelemetryHooks:
         try:
             if not isinstance(name, str) or not name or len(name) > 128:
                 raise RedactionError("Metric name invalid")
-            cleaned = sanitize_metric_labels(labels)
+            # Identity value-bounded keys must go through identity sanitize.
+            if labels and IDENTITY_VALUE_BOUNDED_METRIC_LABELS.intersection(labels):
+                from .identity import sanitize_identity_metric_labels
+
+                cleaned = sanitize_identity_metric_labels(labels)
+            else:
+                cleaned = sanitize_metric_labels(labels)
             metric = RecordedMetric(name=name, value=float(value), labels=cleaned)
             self._metrics.export_metric(metric)
         except Exception as exc:  # noqa: BLE001
