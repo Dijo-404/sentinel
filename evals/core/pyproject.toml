@@ -7,21 +7,50 @@ name = "sentinel-evaluation"
 version = "0.1.0"
 description = "Independent safety evaluation runner (evaluation.v1)"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn[standard]>=0.32,<1",
+  "sqlalchemy>=2.0,<3",
+  "psycopg[binary]>=3.2,<4",
+]
 
 [project.scripts]
 sentinel-evaluation = "sentinel_evaluation.cli:main"
 
 [dependency-groups]
-dev = ["pytest>=8.4,<10", "ruff>=0.14,<1"]
+dev = [
+  "httpx>=0.28,<1",
+  "pytest>=8.4,<10",
+  "ruff>=0.14,<1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sentinel_evaluation"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "src/sentinel_evaluation",
+  "contracts",
+  "fixtures",
+  "migrations",
+  "tests",
+  "Makefile",
+  "README.md",
+  "CHANGELOG.md",
+]
 
 [tool.pytest.ini_options]
+pythonpath = ["src", "."]
 testpaths = ["tests"]
 addopts = "-q --strict-markers"
+markers = [
+  "postgres: requires disposable Docker PostgreSQL",
+]
 
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]

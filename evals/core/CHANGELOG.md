@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Added — portal wave 4 HTTP + Postgres reports
+
+- Optional Postgres `evaluation.run_reports` store and FastAPI serve on port `8031`
+  (`GET /v1/reports`, `GET /v1/reports/{run_id}`) keeping `evaluation.v1` sole authority.
+- `make preview-http` / `sentinel-evaluation serve` and `make seed` (one synthetic
+  `eval-sandbox-1` RunReport). Fixture memory store for unit HTTP tests; real-peers
+  refuses missing DSN (no silent fallback).
+- CLI `run` / `self-test` unchanged as runner authority.
+
 ### Changed (finding #13)
 
 - Replaced reject-only real-assembly placeholder with `HttpAssemblyPeer`

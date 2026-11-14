@@ -1,0 +1,47 @@
+"""Opaque bearer token → Principal map. Headers never establish identity alone."""
+
+from __future__ import annotations
+
+from sentinel_evaluation.application.errors import UnauthorizedError
+from sentinel_evaluation.domain.models import Principal
+
+
+def parse_token_map(raw: str) -> dict[str, Principal]:
+    """
+    token=principal_id|tenant_id|roles|subjects|cases
+    Entries separated by ';'. Empty segments yield empty tuples.
+    """
+    mapping: dict[str, Principal] = {}
+    if not raw.strip():
+        return mapping
+    for entry in raw.split(";"):
+        entry = entry.strip()
+        if not entry:
+            continue
+        token, _, body = entry.partition("=")
+        parts = body.split("|")
+        if len(parts) != 5:
+            raise ValueError(f"Invalid EVALUATION_TOKENS entry for {token!r}")
+        principal_id, tenant_id, roles, subjects, cases = parts
+        mapping[token.strip()] = Principal(
+            principal_id=principal_id.strip(),
+            tenant_id=tenant_id.strip(),
+            roles=tuple(r.strip() for r in roles.split(",") if r.strip()),
+            subject_refs=tuple(s.strip() for s in subjects.split(",") if s.strip()),
+            case_ids=tuple(c.strip() for c in cases.split(",") if c.strip()),
+        )
+    return mapping
+
+
+class TokenAuthenticator:
+    def __init__(self, tokens: dict[str, Principal]):
+        self._tokens = tokens
+
+    def authenticate(self, authorization: str | None) -> Principal:
+        if not authorization or not authorization.startswith("Bearer "):
+            raise UnauthorizedError("Missing bearer token")
+        token = authorization.removeprefix("Bearer ").strip()
+        principal = self._tokens.get(token)
+        if principal is None:
+            raise UnauthorizedError("Unknown bearer token")
+        return principal

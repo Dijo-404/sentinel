@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
+from sentinel_evaluation.application.errors import ConfigurationError, EvaluationError
 from sentinel_evaluation.application.evaluate import EvaluateError
 from sentinel_evaluation.composition.bootstrap import build_service
 from sentinel_evaluation.domain.models import CONTRACT_SHA256, CONTRACT_VERSION
@@ -128,6 +130,38 @@ def cmd_self_test(_args: argparse.Namespace) -> int:
     return 0 if not failures else 1
 
 
+def cmd_serve(args: argparse.Namespace) -> int:
+    import uvicorn
+
+    from sentinel_evaluation.adapters.auth import parse_token_map
+    from sentinel_evaluation.adapters.bind_safety import (
+        UnsafeBindError,
+        assert_loopback_or_non_demo,
+    )
+    from sentinel_evaluation.composition.http_app import Settings, build_app
+
+    settings = Settings.from_environ()
+    tokens = list(parse_token_map(settings.tokens).keys())
+    try:
+        assert_loopback_or_non_demo(args.host, tokens)
+    except UnsafeBindError as exc:
+        print(f'{{"code":"UNSAFE_BIND","message":"{exc}"}}', file=sys.stderr)
+        return 2
+    app = build_app(settings)
+    uvicorn.run(app, host=args.host, port=args.port, log_level="info")
+    return 0
+
+
+def cmd_seed(_args: argparse.Namespace) -> int:
+    from sentinel_evaluation.composition.http_app import Settings
+    from sentinel_evaluation.seed import seed_demo_report
+
+    settings = Settings.from_environ()
+    report = seed_demo_report(settings.database_url)
+    print(json.dumps(report))
+    return 0 if report.get("status") == "PASS" else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="sentinel-evaluation")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -153,6 +187,21 @@ def main(argv: list[str] | None = None) -> int:
     )
     self_test.set_defaults(func=cmd_self_test)
 
+    serve = sub.add_parser("serve", help="Serve stored RunReports over HTTP (port 8031)")
+    serve.add_argument("--host", default=os.environ.get("EVALUATION_HOST", "127.0.0.1"))
+    serve.add_argument(
+        "--port",
+        type=int,
+        default=int(os.environ.get("EVALUATION_PORT", "8031")),
+    )
+    serve.set_defaults(func=cmd_serve)
+
+    seed = sub.add_parser(
+        "seed",
+        help="Write one sandbox RunReport (requires EVALUATION_DATABASE_URL)",
+    )
+    seed.set_defaults(func=cmd_seed)
+
     args = parser.parse_args(argv)
     try:
         return args.func(args)
@@ -164,6 +213,12 @@ def main(argv: list[str] | None = None) -> int:
             ),
             file=sys.stderr,
         )
+        return 2
+    except ConfigurationError as exc:
+        print(f'{{"code":"{exc.code}","message":"{exc.message}"}}', file=sys.stderr)
+        return 2
+    except EvaluationError as exc:
+        print(f'{{"code":"{exc.code}","message":"{exc.message}"}}', file=sys.stderr)
         return 2
 
 
