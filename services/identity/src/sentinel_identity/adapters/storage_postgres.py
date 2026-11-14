@@ -793,8 +793,7 @@ class PostgresIdentityStore:
         at: datetime,
         raw_code: str = "",
     ) -> AuthDeliveryLogEntry:
-        # Durable store never persists plaintext OTP.
-        _ = raw_code
+        # Persist plaintext only when caller passes raw_code (sandbox-gated at service).
         entry = AuthDeliveryLogEntry(
             log_id=str(uuid.uuid4()),
             channel="loopback",
@@ -810,21 +809,48 @@ class PostgresIdentityStore:
                     """
                     INSERT INTO identity.auth_delivery_log (
                         log_id, channel, destination, purpose, challenge_id,
-                        user_id, created_at
+                        user_id, created_at, sandbox_code
                     ) VALUES (
                         :log_id, :channel, :destination, :purpose, :challenge_id,
-                        :user_id, :created_at
+                        :user_id, :created_at, :sandbox_code
                     )
                     """
                 ),
-                entry.__dict__,
+                {
+                    **entry.__dict__,
+                    "sandbox_code": raw_code or None,
+                },
             )
         return entry
 
     def peek_auth_sandbox_code(self, *, user_id: str, purpose: str) -> str | None:
-        # No durable plaintext; peek is memory/test only.
-        _ = (user_id, purpose)
-        return None
+        with self._engine.connect() as conn:
+            row = (
+                conn.execute(
+                    text(
+                        """
+                        SELECT d.sandbox_code
+                        FROM identity.auth_delivery_log d
+                        JOIN identity.auth_challenges c
+                          ON c.challenge_id = d.challenge_id
+                        WHERE d.user_id = :user_id
+                          AND d.purpose = :purpose
+                          AND d.sandbox_code IS NOT NULL
+                          AND c.consumed_at IS NULL
+                          AND c.expires_at > now()
+                        ORDER BY d.created_at DESC
+                        LIMIT 1
+                        """
+                    ),
+                    {"user_id": user_id, "purpose": purpose},
+                )
+                .mappings()
+                .first()
+            )
+        if row is None:
+            return None
+        code = row.get("sandbox_code")
+        return str(code) if code else None
 
     def list_auth_delivery_log(
         self, *, user_id: str | None = None, limit: int = 50

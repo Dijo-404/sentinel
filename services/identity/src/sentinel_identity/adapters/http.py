@@ -247,6 +247,35 @@ def create_app(services: AppServices) -> FastAPI:
         except IdentityError as exc:
             return _error(exc, request_id)
 
+    @app.get("/v1/auth/sandbox/latest-code")
+    def sandbox_latest_code(request: Request) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            purpose = str(request.query_params.get("purpose", ""))
+            return JSONResponse(
+                services.identity.sandbox_latest_code(
+                    session_token=_bearer(request),
+                    purpose=purpose,
+                )
+            )
+        except IdentityError as exc:
+            return _error(exc, request_id)
+
+    @app.get("/v1/auth/sandbox/password-reset-code")
+    def sandbox_password_reset_code(request: Request) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            email = str(request.query_params.get("email", ""))
+            token = request.headers.get("x-identity-sandbox-token") or ""
+            return JSONResponse(
+                services.identity.sandbox_password_reset_code(
+                    email=email,
+                    sandbox_token=token,
+                )
+            )
+        except IdentityError as exc:
+            return _error(exc, request_id)
+
     @app.post("/v1/auth/password/reset")
     async def password_reset(request: Request) -> JSONResponse:
         request_id = _request_id(request)

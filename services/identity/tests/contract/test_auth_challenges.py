@@ -34,6 +34,8 @@ def _fixture_settings(**overrides: object) -> Settings:
         "seed": False,
         "accept_link_base": "http://127.0.0.1:3000",
         "expose_sandbox_codes": False,
+        "sandbox": False,
+        "sandbox_token": "",
     }
     base.update(overrides)
     return Settings(**base)  # type: ignore[arg-type]
@@ -119,6 +121,10 @@ def test_forgot_never_enumerates_email(client: TestClient, demo_password: str) -
     assert known.json() == unknown.json()
     assert "sandbox_code" not in known.json()
     assert "sandbox_code" not in unknown.json()
+    # Sandbox demo: identical hint for known + unknown (no email enum).
+    assert known.json().get("sandbox_hint") == (
+        "use GET /v1/auth/sandbox/password-reset-code with X-Identity-Sandbox-Token"
+    )
     assert demo_password
 
 
@@ -292,3 +298,116 @@ def test_build_app_refuses_real_peers_with_expose() -> None:
                 database_url="postgresql+psycopg://identity:identity@127.0.0.1:5432/identity",
             )
         )
+
+
+def test_sandbox_latest_code_404_when_flag_off(demo_password: str) -> None:
+    store = MemoryIdentityStore()
+    load_seed_users(store, SystemClock())
+    app = build_app(_fixture_settings(sandbox=False), store=store)
+    client = TestClient(app)
+    session = login(client, "customer@example.test", demo_password)
+    headers = auth_header(session["session_token"])
+    client.post("/v1/auth/verify/request", headers=headers, json={})
+    assert (
+        store.peek_auth_sandbox_code(user_id=session["user"]["user_id"], purpose="email_verify")
+        is None
+    )
+    missing = client.get(
+        "/v1/auth/sandbox/latest-code",
+        params={"purpose": "email_verify"},
+        headers=headers,
+    )
+    assert missing.status_code == 404
+
+
+def test_sandbox_latest_code_returns_code_when_flag_on(
+    client: TestClient, store: MemoryIdentityStore, demo_password: str
+) -> None:
+    session = login(client, "customer@example.test", demo_password)
+    headers = auth_header(session["session_token"])
+    user_id = session["user"]["user_id"]
+    client.post("/v1/auth/verify/request", headers=headers, json={})
+    peek = store.peek_auth_sandbox_code(user_id=user_id, purpose="email_verify")
+    assert peek
+    inbox = client.get(
+        "/v1/auth/sandbox/latest-code",
+        params={"purpose": "email_verify"},
+        headers=headers,
+    )
+    assert inbox.status_code == 200, inbox.text
+    assert inbox.json() == {"code": peek}
+
+    client.post("/v1/auth/mfa/challenge", headers=headers, json={})
+    mfa_peek = store.peek_auth_sandbox_code(user_id=user_id, purpose="mfa")
+    mfa_inbox = client.get(
+        "/v1/auth/sandbox/latest-code",
+        params={"purpose": "mfa"},
+        headers=headers,
+    )
+    assert mfa_inbox.status_code == 200
+    assert mfa_inbox.json() == {"code": mfa_peek}
+
+
+def test_sandbox_password_reset_code_token_gated(
+    client: TestClient, store: MemoryIdentityStore, demo_password: str
+) -> None:
+    forgot = client.post(
+        "/v1/auth/password/forgot",
+        json={"email": "customer@example.test"},
+    )
+    assert forgot.status_code == 202
+    user = store.get_user_by_email("customer@example.test")
+    assert user is not None
+    peek = store.peek_auth_sandbox_code(user_id=user.user_id, purpose="password_reset")
+    assert peek
+
+    bad_token = client.get(
+        "/v1/auth/sandbox/password-reset-code",
+        params={"email": "customer@example.test"},
+        headers={"X-Identity-Sandbox-Token": "wrong"},
+    )
+    assert bad_token.status_code == 404
+
+    unknown = client.get(
+        "/v1/auth/sandbox/password-reset-code",
+        params={"email": "ghost@example.test"},
+        headers={"X-Identity-Sandbox-Token": "test-sandbox-token"},
+    )
+    assert unknown.status_code == 404
+    assert unknown.json()["code"] == bad_token.json()["code"]
+
+    ok = client.get(
+        "/v1/auth/sandbox/password-reset-code",
+        params={"email": "customer@example.test"},
+        headers={"X-Identity-Sandbox-Token": "test-sandbox-token"},
+    )
+    assert ok.status_code == 200, ok.text
+    assert ok.json() == {"code": peek}
+    assert demo_password
+
+
+def test_real_peers_allows_sandbox_flag_not_expose(demo_password: str) -> None:
+    store = MemoryIdentityStore()
+    load_seed_users(store, SystemClock())
+    app = build_app(
+        _fixture_settings(
+            mode="real-peers",
+            sandbox=True,
+            sandbox_token="demo-token",
+            database_url="postgresql+psycopg://identity:identity@127.0.0.1:5432/identity",
+        ),
+        store=store,
+    )
+    client = TestClient(app)
+    session = login(client, "customer@example.test", demo_password)
+    headers = auth_header(session["session_token"])
+    requested = client.post("/v1/auth/verify/request", headers=headers, json={})
+    assert requested.status_code == 202
+    assert "sandbox_code" not in requested.json()
+    inbox = client.get(
+        "/v1/auth/sandbox/latest-code",
+        params={"purpose": "email_verify"},
+        headers=headers,
+    )
+    assert inbox.status_code == 200
+    assert isinstance(inbox.json().get("code"), str)

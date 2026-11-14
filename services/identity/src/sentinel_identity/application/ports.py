@@ -157,11 +157,11 @@ class IdentityStore(Protocol):
         at: datetime,
         raw_code: str = "",
     ) -> AuthDeliveryLogEntry:
-        """Append loopback delivery. raw_code is memory-only; durable store ignores it."""
+        """Append loopback delivery. raw_code persists only when caller passes it (sandbox)."""
         ...
 
     def peek_auth_sandbox_code(self, *, user_id: str, purpose: str) -> str | None:
-        """Memory/test helper. Postgres always returns None (no durable plaintext)."""
+        """Latest open challenge sandbox_code for user+purpose, or None."""
         ...
 
     def list_auth_delivery_log(

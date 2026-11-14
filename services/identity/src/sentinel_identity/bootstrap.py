@@ -15,6 +15,10 @@ from .application.service import IdentityService
 from .domain.roles import CONTRACT_VERSION
 
 
+def _truthy(value: str | None) -> bool:
+    return value in {"1", "true", "True", "yes", "YES"}
+
+
 @dataclass(frozen=True)
 class Settings:
     mode: str
@@ -23,6 +27,8 @@ class Settings:
     seed: bool
     accept_link_base: str
     expose_sandbox_codes: bool = False
+    sandbox: bool = False
+    sandbox_token: str = ""
 
     @classmethod
     def from_environ(cls, env: dict[str, str] | None = None) -> Settings:
@@ -30,15 +36,14 @@ class Settings:
         mode = source.get("IDENTITY_MODE", "fixture")
         if mode not in {"fixture", "real-peers"}:
             raise ConfigurationError("IDENTITY_MODE must be fixture or real-peers")
-        expose = source.get("IDENTITY_EXPOSE_SANDBOX_CODES", "0") in {
-            "1",
-            "true",
-            "True",
-        }
+        expose = _truthy(source.get("IDENTITY_EXPOSE_SANDBOX_CODES", "0"))
         if mode == "real-peers" and expose:
             raise ConfigurationError(
                 "IDENTITY_EXPOSE_SANDBOX_CODES must stay off in real-peers mode"
             )
+        sandbox = _truthy(source.get("IDENTITY_SANDBOX")) or _truthy(
+            source.get("SENTINEL_V1_SANDBOX")
+        )
         return cls(
             mode=mode,
             contract_version=source.get("IDENTITY_CONTRACT_VERSION", CONTRACT_VERSION),
@@ -46,6 +51,8 @@ class Settings:
             seed=source.get("IDENTITY_SEED", "1") not in {"0", "false", "False"},
             accept_link_base=source.get("IDENTITY_ACCEPT_LINK_BASE", DEFAULT_ACCEPT_LINK_BASE),
             expose_sandbox_codes=expose,
+            sandbox=sandbox,
+            sandbox_token=source.get("IDENTITY_SANDBOX_TOKEN", ""),
         )
 
 
@@ -90,6 +97,8 @@ def build_app(settings: Settings | None = None, *, store=None):
             clock,
             delivery=delivery,
             expose_sandbox_codes=settings.expose_sandbox_codes,
+            sandbox=settings.sandbox,
+            sandbox_token=settings.sandbox_token,
         ),
         mode=mode,
     )

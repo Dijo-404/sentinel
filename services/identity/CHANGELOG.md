@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+### Fixed — sandbox latest-code inbox for auth challenges
+
+- When `IDENTITY_SANDBOX` or `SENTINEL_V1_SANDBOX` is truthy, persist challenge
+  plaintext in `auth_delivery_log.sandbox_code` (migration `0007`). Never when
+  sandbox flag false.
+- `GET /v1/auth/sandbox/latest-code?purpose=email_verify|mfa` (Bearer) → `{ code }`
+  or 404 when flag off / no open challenge.
+- `GET /v1/auth/sandbox/password-reset-code?email=` requires
+  `X-Identity-Sandbox-Token` = `IDENTITY_SANDBOX_TOKEN` (constant-time); identical
+  404 for bad token / unknown email / missing challenge.
+- Forgot 202 includes identical `sandbox_hint` when sandbox on (no email enum).
+- Real-peers + sandbox allowed (product demo). `IDENTITY_EXPOSE_SANDBOX_CODES`
+  still refused in real-peers.
+
 ### Added — 15 November 2026 (portal wave 3 make seed)
 
 - `sentinel-identity seed` / `make seed`: load `fixtures/seed_users.json` into
@@ -14,8 +28,8 @@
 - Challenge codes are 8+ char alphanumeric (not 6-digit). Failed verifies
   increment `attempt_count`; challenge locks/consumes after **N=5** failures.
 - Atomic consume: conditional `UPDATE … WHERE consumed_at IS NULL AND expires_at > at`.
-- Durable Postgres `auth_delivery_log` never stores plaintext OTP (`raw_code`
-  dropped). Memory peek / `IDENTITY_EXPOSE_SANDBOX_CODES` only.
+- Durable Postgres `auth_delivery_log` dropped legacy `raw_code`; sandbox
+  plaintext returns via gated `sandbox_code` + inbox GETs (see above).
 - `build_app` refuses `expose_sandbox_codes` when `mode=real-peers` even if
   Settings is constructed manually.
 

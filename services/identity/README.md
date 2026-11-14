@@ -23,11 +23,17 @@ Contract: `sentinel.task-contracts.v1`, SHA-256
 - Sandbox invite delivery: durable outbox + `GET /v1/sandbox/inbox` acceptance links
   (local demo only; set `IDENTITY_ACCEPT_LINK_BASE`, default `http://127.0.0.1:3000`)
 - Sandbox auth challenges: 8+ char alphanumeric codes hashed at rest; fail-closed
-  after **N=5** bad attempts per challenge; atomic consume. Loopback delivery log
-  never stores plaintext OTP in Postgres. Codes never in public JSON unless
-  `IDENTITY_EXPOSE_SANDBOX_CODES=true` (memory/module checks only; blocked in
-  real-peers, including manual Settings). Forgot password always 202 (no email
-  enumeration).
+  after **N=5** bad attempts per challenge; atomic consume. Plaintext OTP persists
+  only when `IDENTITY_SANDBOX=true` or `SENTINEL_V1_SANDBOX=true` (column
+  `auth_delivery_log.sandbox_code`). Session inbox:
+  `GET /v1/auth/sandbox/latest-code?purpose=email_verify|mfa` → `{ code }` (404 when
+  sandbox flag off). Password-reset inbox (no session):
+  `GET /v1/auth/sandbox/password-reset-code?email=` requires
+  `X-Identity-Sandbox-Token` = `IDENTITY_SANDBOX_TOKEN` (constant-time); identical
+  404 for bad token / unknown email / missing challenge. Forgot always 202; when
+  sandbox on, includes identical `sandbox_hint` (no email enumeration).
+  `IDENTITY_EXPOSE_SANDBOX_CODES=true` still injects `sandbox_code` into 202 bodies
+  for fixture/module checks only (refused in real-peers).
 - `GET /v1/merchant-memberships` for merchant-teams identity peer projection
 - `GET /v1/ops/team` supervisor-safe tenant roster (operator + supervisor only;
   not full `/v1/admin/users`)
@@ -77,6 +83,28 @@ Loads `fixtures/seed_users.json` (profile fields + ≥1 notification). Challenge
 OTP codes stay test-only — never written by `make seed`. Assembly harness:
 `IDENTITY_DATABASE_URL` set → `make -C integration/core seed-sandbox` invokes
 this hook. Live verify: `make -C integration/core verify-wave3`.
+
+## Sandbox demo flow (auth challenges)
+
+Product-demo path works in **real-peers + Postgres** when sandbox flags are on
+(distinct from `IDENTITY_EXPOSE_SANDBOX_CODES`, which stays refused in real-peers).
+
+```sh
+export IDENTITY_MODE=real-peers
+export IDENTITY_DATABASE_URL=postgresql+psycopg://identity:identity@127.0.0.1:5432/identity
+export IDENTITY_SANDBOX=1          # or SENTINEL_V1_SANDBOX=1
+export IDENTITY_SANDBOX_TOKEN=local-demo-token
+make preview
+```
+
+1. Login → Bearer session.
+2. `POST /v1/auth/verify/request` or `/v1/auth/mfa/challenge` (202, no code in body).
+3. `GET /v1/auth/sandbox/latest-code?purpose=email_verify|mfa` with Bearer → `{ "code": "…" }`.
+4. Confirm / verify with that code.
+5. Forgot: `POST /v1/auth/password/forgot` → 202 + `sandbox_hint` (same for unknown email).
+6. Reset inbox: `GET /v1/auth/sandbox/password-reset-code?email=…` with header
+   `X-Identity-Sandbox-Token: $IDENTITY_SANDBOX_TOKEN` → `{ "code": "…" }` or identical 404.
+7. Sandbox flag off → both GET inboxes return 404; delivery log `sandbox_code` stays NULL.
 
 ## Seeded fixture principals
 

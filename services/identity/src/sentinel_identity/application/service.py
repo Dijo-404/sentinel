@@ -67,6 +67,12 @@ PRIVILEGED_BODY_FIELDS = frozenset(
 )
 
 
+SANDBOX_PASSWORD_RESET_HINT = (
+    "use GET /v1/auth/sandbox/password-reset-code with X-Identity-Sandbox-Token"
+)
+SANDBOX_LATEST_PURPOSES = frozenset({"email_verify", "mfa"})
+
+
 class IdentityService:
     def __init__(
         self,
@@ -75,11 +81,15 @@ class IdentityService:
         *,
         delivery: Any | None = None,
         expose_sandbox_codes: bool = False,
+        sandbox: bool = False,
+        sandbox_token: str = "",
     ) -> None:
         self._store = store
         self._clock = clock
         self._delivery = delivery
         self._expose_sandbox_codes = expose_sandbox_codes
+        self._sandbox = sandbox
+        self._sandbox_token = sandbox_token
 
     # --- Auth ---
 
@@ -382,7 +392,40 @@ class IdentityService:
                 purpose="password_reset",
                 request_id=request_id,
             )
-        return self._accepted_challenge_response(raw_code)
+        body = self._accepted_challenge_response(raw_code)
+        if self._sandbox:
+            # Identical for known and unknown email — no enumeration.
+            body["sandbox_hint"] = SANDBOX_PASSWORD_RESET_HINT
+        return body
+
+    def sandbox_latest_code(self, *, session_token: str, purpose: str) -> dict[str, str]:
+        """Session inbox for latest open verify/MFA code. Sandbox flag required."""
+        if not self._sandbox:
+            raise NotFoundError("Not found")
+        if purpose not in SANDBOX_LATEST_PURPOSES:
+            raise ValidationError("purpose must be email_verify or mfa")
+        session = self._require_session(session_token)
+        code = self._store.peek_auth_sandbox_code(user_id=session.user_id, purpose=purpose)
+        if not code:
+            raise NotFoundError("Not found")
+        return {"code": code}
+
+    def sandbox_password_reset_code(self, *, email: str, sandbox_token: str) -> dict[str, str]:
+        """Token-gated reset inbox. Identical 404 for missing user/challenge/bad token."""
+        if not self._sandbox:
+            raise NotFoundError("Not found")
+        expected = self._sandbox_token or ""
+        provided = sandbox_token or ""
+        if not expected or not hmac.compare_digest(provided, expected):
+            raise NotFoundError("Not found")
+        email_n = normalize_email(email)
+        user = self._store.get_user_by_email(email_n) if email_n else None
+        if user is None:
+            raise NotFoundError("Not found")
+        code = self._store.peek_auth_sandbox_code(user_id=user.user_id, purpose="password_reset")
+        if not code:
+            raise NotFoundError("Not found")
+        return {"code": code}
 
     def reset_password(
         self,
@@ -1261,7 +1304,8 @@ class IdentityService:
             destination=destination,
             purpose=purpose,
             at=now,
-            raw_code=raw_code,
+            # Persist plaintext only for sandbox product-demo inbox.
+            raw_code=raw_code if self._sandbox else "",
         )
         self._audit(
             actor=user.user_id,

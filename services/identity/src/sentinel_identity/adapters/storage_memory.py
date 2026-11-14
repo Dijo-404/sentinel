@@ -413,15 +413,27 @@ class MemoryIdentityStore:
             return entry
 
     def peek_auth_sandbox_code(self, *, user_id: str, purpose: str) -> str | None:
-        rows = [
-            e
-            for e in self.auth_delivery_log.values()
-            if e.user_id == user_id and e.purpose == purpose
-        ]
-        if not rows:
+        from datetime import UTC, datetime
+
+        now = datetime.now(UTC)
+        with self._lock:
+            rows = [
+                e
+                for e in self.auth_delivery_log.values()
+                if e.user_id == user_id and e.purpose == purpose
+            ]
+            rows.sort(key=lambda e: e.created_at.isoformat(), reverse=True)
+            for entry in rows:
+                code = self._sandbox_codes.get(entry.challenge_id)
+                if not code:
+                    continue
+                challenge = self.auth_challenges.get(entry.challenge_id)
+                if challenge is None:
+                    continue
+                if challenge.consumed_at is not None or challenge.expires_at <= now:
+                    continue
+                return code
             return None
-        rows.sort(key=lambda e: e.created_at.isoformat(), reverse=True)
-        return self._sandbox_codes.get(rows[0].challenge_id)
 
     def list_auth_delivery_log(
         self, *, user_id: str | None = None, limit: int = 50
