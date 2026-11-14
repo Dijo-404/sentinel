@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const cookieStore = {
   value: undefined as string | undefined,
-  set: vi.fn((name: string, value: string) => {
+  set: vi.fn((name: string, value: string, _options?: { maxAge?: number }) => {
     if (name === "sentinel_session") cookieStore.value = value;
   }),
   delete: vi.fn((name: string) => {
@@ -127,5 +127,67 @@ describe("requireRole unauthenticated redirect", () => {
   it("redirects unauthenticated access to role login", async () => {
     await expect(requireRole("admin")).rejects.toThrow("REDIRECT:/admin/login");
     expect(redirectMock).toHaveBeenCalledWith("/admin/login");
+  });
+});
+
+describe("requireRole active assignment only", () => {
+  beforeEach(() => {
+    resetSharedIdentityStub();
+    resetIdentityClientCache();
+    cookieStore.value = undefined;
+    cookieStore.set.mockClear();
+    cookieStore.delete.mockClear();
+    redirectMock.mockClear();
+  });
+
+  it("rejects dual-role user when active assignment mismatches portal", async () => {
+    const login = await loginWithCredentials(
+      "dual@example.test",
+      "demo-dual",
+      "operator",
+    );
+    expect(login.ok).toBe(true);
+    if (!login.ok) return;
+    expect(login.role_match).toBe(true);
+    expect(login.session.assignment.role).toBe("operator");
+    expect(cookieStore.value).toBe(login.session.session.session_id);
+
+    await expect(requireRole("supervisor")).rejects.toThrow(
+      "REDIRECT:/unauthorized?portal=supervisor",
+    );
+  });
+
+  it("does not set cookie when selectAssignment fails", async () => {
+    const { getIdentityClient } = await import("@/lib/server/identity-client");
+    const identity = getIdentityClient();
+    const select = vi
+      .spyOn(identity, "selectAssignment")
+      .mockResolvedValue(null);
+
+    const result = await loginWithCredentials(
+      "operator@example.test",
+      "demo-operator",
+      "operator",
+    );
+    expect(result.ok).toBe(false);
+    expect(cookieStore.value).toBeUndefined();
+    expect(cookieStore.set).not.toHaveBeenCalled();
+    select.mockRestore();
+  });
+
+  it("sets cookie maxAge from session expires_at", async () => {
+    const result = await loginWithCredentials(
+      "operator@example.test",
+      "demo-operator",
+      "operator",
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(cookieStore.set).toHaveBeenCalled();
+    const call = cookieStore.set.mock.calls.find(
+      (c) => c[0] === "sentinel_session",
+    );
+    expect(call?.[2]?.maxAge).toBeGreaterThan(0);
+    expect(call?.[2]?.maxAge).toBeLessThanOrEqual(12 * 60 * 60);
   });
 });

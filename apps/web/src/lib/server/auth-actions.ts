@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import type { PortalRole } from "../../../tests/stubs/identity";
 import { getIdentityClient } from "./identity-client";
 import {
+  acceptInvitationAccount,
   loginWithCredentials,
   logoutCurrentSession,
   portalPath,
@@ -97,6 +98,22 @@ export async function registerCustomerAction(
 export async function logoutAction(): Promise<void> {
   await logoutCurrentSession();
   redirect("/");
+}
+
+export async function acceptInvitationAction(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  const result = await acceptInvitationAccount({
+    token: String(formData.get("token") ?? ""),
+    email: String(formData.get("email") ?? ""),
+    password: String(formData.get("password") ?? ""),
+    display_name: String(formData.get("display_name") ?? "") || undefined,
+  });
+  if (!result.ok) {
+    return { ok: false, message: result.message };
+  }
+  redirect(result.redirectTo);
 }
 
 export async function inviteStaffAction(

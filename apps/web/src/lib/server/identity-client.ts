@@ -59,6 +59,20 @@ export type IdentityClient = {
     sessionCredential: string,
     input: InviteStaffInput,
   ): Promise<InviteResult>;
+  acceptInvitation(input: {
+    token: string;
+    email: string;
+    password: string;
+    display_name?: string;
+  }): Promise<
+    | {
+        ok: true;
+        session: SessionRecord;
+        user: IdentityUser;
+        assignment: WorkspaceAssignment;
+      }
+    | { ok: false; code: string; message: string }
+  >;
   assignableRoles(): Promise<
     Array<{ role_id: Exclude<import("../../../tests/stubs/identity").PortalRole, "customer">; label: string }>
   >;
@@ -104,6 +118,7 @@ function wrapFixtureStub(stub: StubIdentity): IdentityClient {
       }
       return stub.inviteStaff(resolved.user.user_id, input);
     },
+    acceptInvitation: async (input) => stub.acceptInvitation(input),
     assignableRoles: async () => stub.assignableRoles(),
   };
 }

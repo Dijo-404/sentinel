@@ -2,14 +2,20 @@
 
 ## Unreleased
 
+### Fixed — 14 November 2026
+
+- Portal case-api calls use per-request `sentinel_session` via BFF `/api/bff/case/**` (and `getServerCaseClient`); ShellProvider no longer embeds process-wide `CASE_API_BEARER_TOKEN`. Service token remains optional server fallback only.
+- `requireRole` / `checkRole` / `requireAnyRole` enforce active `assignment.role` only (dual-role mismatch covered in tests).
+- Supervisor decision workspace loads action id from queue/case + refund evidence; removed `demoAction.action_id` hard-gate.
+- `/auth/accept-invitation` wires identity accept-invitation and sets session cookie on success.
+- Login fails closed when `selectAssignment` returns null (no cookie). Cookie `maxAge` aligned with session `expires_at` (~12h).
+- `mapMe` prefers peer `expires_at` when present.
+
 ### Added — 14 November 2026
 
-<<<<<<< HEAD
 - Supervisor approvals queue + decision workspace (`/supervisor/approvals`, `/supervisor/approvals/[actionId]`) embed local `approval-ui.v1` substitute with exact digest/revision/expiry via case-api `decide` proxy (Refs #100 / M4.2).
 - Supervisor case review `/supervisor/cases/[caseId]` with opt-in approval slot; legacy `/ops` evidence keeps approve controls off (`enableApproval` default false).
-=======
 - Real-peers identity.v1 HTTP client (`createRealPeerIdentityClient`): login/register/me/workspaces select/logout + admin invite/list against `IDENTITY_BASE_URL` (default `http://127.0.0.1:8012`). Fail-closed on missing base URL, network failure, or malformed peer JSON; fixture stub retained for `NEXT_PUBLIC_SHELL_MODE=fixture`. Session token stays in httpOnly cookie — never `NEXT_PUBLIC_*` (Refs #100).
->>>>>>> 95bf520 (feat(web): wire real-peers identity.v1 HTTP client)
 
 ### Fixed — 14 November 2026
 
@@ -27,7 +33,7 @@
 
 ### Fixed — 14 November 2026
 
-- `loadShellConfig` refuses `real-peers` when bearer would come from `NEXT_PUBLIC_DEMO_TOKEN`; requires server-only `CASE_API_BEARER_TOKEN` (`PeerError` `INVALID_CONFIG`). `.env.example` warns never put secrets in `NEXT_PUBLIC_*` (ShellProvider is a client component).
+- `loadShellConfig` refuses `real-peers` when bearer would come from `NEXT_PUBLIC_DEMO_TOKEN` alone without `CASE_API_BASE_URL`. Portal shell never embeds `CASE_API_BEARER_TOKEN`. `.env.example` warns never put secrets in `NEXT_PUBLIC_*`.
 
 ### Added — 14 November 2026
 
