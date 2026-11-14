@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Added — 15 November 2026 (supervisor Escalations + History + Audit from case-api)
+
+- Supervisor Escalations reuses `EscalationsPanel` with `basePath="/supervisor"`;
+  links to `/supervisor/cases/{caseId}`; `data-testid="supervisor-escalations"`.
+- Supervisor History page loads via `listOpsCases({ status: "HISTORY" })`;
+  `data-testid="supervisor-history"`.
+- Supervisor Audit page loads via `listOpsAuditEvents()`; shows type / case_id /
+  occurred_at; no decide controls; `data-testid="supervisor-audit"`.
+- Fail closed: `data-testid="peer-error"` on peer/BFF failure (never “Not available yet”).
+- Browser tests: `tests/browser/supervisor-ops-surfaces.test.tsx`.
+
 ### Added — 15 November 2026 (operator Escalations + Messages from case-api)
 
 - Operator Escalations page loads via `listOpsCases({ status: "ESCALATED" })`
