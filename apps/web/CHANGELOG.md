@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added — 15 November 2026 (merchant Analytics from BFF)
+
+- Merchant Analytics page loads metrics via `/api/bff/merchant-analytics` (never “Not available yet”).
+- Fail closed: `data-testid="peer-error"` when peer/BFF unavailable; metrics region when fetch succeeds.
+- Browser tests: `tests/browser/merchant-analytics-page.test.tsx`.
+
 ### Fixed — 15 November 2026 (real-peers transaction/refund list honesty)
 
 - Merchant transactions, merchant refunds, and customer transactions: real-peers shows peer-error (`state-error`) and never renders fixture demo rows; fixture mode keeps labeled stub tables behind `FixtureBanner`.
