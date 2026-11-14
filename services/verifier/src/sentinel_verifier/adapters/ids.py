@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import secrets
+import threading
 
 
 class SecureIdGenerator:
@@ -13,7 +14,9 @@ class SecureIdGenerator:
 class SequenceIdGenerator:
     def __init__(self) -> None:
         self._n = 0
+        self._lock = threading.Lock()
 
     def new_id(self, prefix: str) -> str:
-        self._n += 1
-        return f"{prefix}-{self._n:04d}"
+        with self._lock:
+            self._n += 1
+            return f"{prefix}-{self._n:04d}"

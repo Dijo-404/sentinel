@@ -8,6 +8,7 @@
 
 ### Fixed — 14 November 2026
 
+- Concurrent recheck with the same Idempotency-Key: atomic insert winner only processes; ledger `event_key` is stable (`verifier-{provider_ref}-{target}`) without job id.
 - Unprocessed inbox duplicates re-run provider reconciliation after crash-after-insert.
 - Real-peers bootstrap refuses demo webhook HMAC and demo peer bearer defaults.
 - PENDING refund synthetic evidence uses `verification_status=UNVERIFIED`.

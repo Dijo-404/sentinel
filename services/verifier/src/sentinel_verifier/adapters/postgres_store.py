@@ -235,6 +235,28 @@ class PostgresVerifierStore:
             connection.execute(sql, _recheck_params(job))
         return job
 
+    def insert_recheck(self, job: RecheckJob) -> RecheckJob | None:
+        sql = text(
+            f"""
+            INSERT INTO "{self._schema}".recheck_jobs (
+                tenant_id, job_id, idempotency_key, case_id, case_revision, action_id,
+                provider_ref, request_digest, available_at, lease_expires_at, attempts,
+                status, created_at, updated_at
+            ) VALUES (
+                :tenant_id, :job_id, :idempotency_key, :case_id, :case_revision, :action_id,
+                :provider_ref, :request_digest, :available_at, :lease_expires_at, :attempts,
+                :status, :created_at, :updated_at
+            )
+            ON CONFLICT (tenant_id, idempotency_key) DO NOTHING
+            RETURNING job_id
+            """
+        )
+        with self._engine.begin() as connection:
+            row = connection.execute(sql, _recheck_params(job)).first()
+        if row is None:
+            return None
+        return job
+
     def get_recheck_by_idempotency(self, tenant_id: str, idempotency_key: str) -> RecheckJob | None:
         sql = text(
             f"""
