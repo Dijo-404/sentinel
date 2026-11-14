@@ -1,7 +1,10 @@
 "use client";
 
-import { useMemo, type ReactNode } from "react";
-import { ShellProvider, useShell } from "@/adapters/shell-context";
+import { useContext, useMemo, type ReactNode } from "react";
+import {
+  ShellProvider,
+  ShellContext,
+} from "@/adapters/shell-context";
 import { createCaseApiStub } from "@/adapters/fixture-case-client";
 import type { PortalRole } from "../../../tests/stubs/identity";
 
@@ -17,18 +20,18 @@ export function PortalCaseShell({
   role: PortalRole;
   children: ReactNode;
 }) {
-  const { config } = useShell();
+  const shell = useContext(ShellContext);
   const caseClient = useMemo(() => {
-    if (config.mode !== "fixture") return undefined;
+    if (!shell || shell.config.mode !== "fixture") return undefined;
     return createCaseApiStub("valid", { reviewerRole: role });
-  }, [config.mode, role]);
+  }, [shell, role]);
 
-  if (!caseClient) {
+  if (!shell || !caseClient) {
     return children;
   }
 
   return (
-    <ShellProvider config={config} caseClient={caseClient}>
+    <ShellProvider config={shell.config} caseClient={caseClient}>
       {children}
     </ShellProvider>
   );
