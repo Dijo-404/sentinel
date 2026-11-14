@@ -74,7 +74,11 @@ def build_container(
         ledger=peers["ledger"],
         verifier=peers["verifier"],
         model=model,
-        outbox=SqlOutbox(session_factory),
+        outbox=SqlOutbox(
+            session_factory,
+            max_attempts=settings.outbox_max_attempts,
+            backoff_base_seconds=settings.outbox_backoff_base_seconds,
+        ),
         policy_version=settings.policy_version,
     )
     service = WorkflowService(

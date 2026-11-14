@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS workflow.result_outbox (
   status TEXT NOT NULL,
   attempts INTEGER NOT NULL DEFAULT 0,
   last_error TEXT,
+  available_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL,
   UNIQUE (tenant_id, case_id, event_key)
 );

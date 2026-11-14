@@ -11,6 +11,7 @@
 - Remove `X-Sentinel-Approval` forge path; DECISION resume uses ledger approval only.
 - Outbox marks retry (not delivered) on `IDEMPOTENCY_CONFLICT`; revision bump only on `REVISION_CONFLICT`.
 - `put_decision` only when job `created`; empty `case_ids` deny, `"*"` allows all.
+- Outbox `mark_retry` sets `status=failed` after `WORKFLOW_OUTBOX_MAX_ATTEMPTS` (default 10); `pending()` returns only retryable rows (optional `available_at` backoff).
 
 ## 0.1.0 — 2026-11-13
 
