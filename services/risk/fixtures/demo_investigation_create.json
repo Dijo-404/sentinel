@@ -1,0 +1,7 @@
+{
+  "case_id": "case-demo-42",
+  "reason_code": "SUSPECTED_DUPLICATE",
+  "queue_ref": "FRAUD",
+  "severity": "HIGH",
+  "evidence_ids": ["evidence-payment-b", "evidence-order"]
+}
