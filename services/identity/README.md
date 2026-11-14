@@ -19,8 +19,14 @@ Contract: `sentinel.task-contracts.v1`, SHA-256
 - Sandbox invite delivery: durable outbox + `GET /v1/sandbox/inbox` acceptance links
   (local demo only; set `IDENTITY_ACCEPT_LINK_BASE`, default `http://127.0.0.1:3000`)
 - `GET /v1/merchant-memberships` for merchant-teams identity peer projection
+- `GET /v1/ops/team` supervisor-safe tenant roster (operator + supervisor only;
+  not full `/v1/admin/users`)
 - `authz_version` bump + session denial after revoke/suspend
 - Seeded synthetic accounts for six human roles + cross-tenant negative
+
+**Ruling (portal Wave 2 Team):** Supervisors must not require platform_admin.
+Use `GET /v1/ops/team` for the supervisor Team page. Keep `GET /v1/admin/users`
+for Platform Admin staff directory only.
 
 **Non-goals:** ledger approvals, provider writes, Case API ownership, portal UI
 (M2 admin UI / M1.3 web auth live in `apps/web`). Service principals never get

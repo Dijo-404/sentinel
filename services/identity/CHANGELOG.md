@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added — supervisor-safe ops team roster
+
+- `GET /v1/ops/team`: active operator/supervisor assignments for the caller's
+  tenant. Allowed for `supervisor` and `platform_admin` sessions.
+  Does not replace `/v1/admin/users` (still platform_admin-only).
+
 ### Fixed — admin invite duplicate active email (#129)
 
 - `admin_invite` rejects when `work_email` already belongs to an active user

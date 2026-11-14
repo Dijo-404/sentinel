@@ -164,6 +164,15 @@ def create_app(services: AppServices) -> FastAPI:
         except IdentityError as exc:
             return _error(exc, request_id)
 
+    @app.get("/v1/ops/team")
+    def ops_team(request: Request) -> JSONResponse:
+        """Supervisor-safe ops roster for the active tenant (not full admin users)."""
+        request_id = _request_id(request)
+        try:
+            return JSONResponse(services.identity.list_ops_team(session_token=_bearer(request)))
+        except IdentityError as exc:
+            return _error(exc, request_id)
+
     # --- §12.2 Admin ---
 
     @app.get("/v1/admin/users")
