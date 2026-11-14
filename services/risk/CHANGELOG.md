@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Fixed
+
+- CLEAR persists unblocked restriction only after successful workflow resume emit;
+  emit failure leaves the block active and CLEAR retryable.
+- Ledger approval deny surfaces return `LEDGER_APPROVAL_FORBIDDEN` for any
+  authenticated caller (not only `risk_officer`).
+
 ### Added
 
 - Independent `risk.v1` HTTP service: investigations, findings, authorized restrictions.

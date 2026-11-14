@@ -244,22 +244,27 @@ class RiskService:
             raise errors.LedgerApprovalForbiddenError(
                 "Risk restriction clearance must never grant financial approval"
             )
-        saved = self._store.save_restriction(updated)
 
-        inv_status = investigation.status
+        # CLEAR: emit resume before persisting unblock. Emit failure leaves the
+        # restriction active/MAINTAINED so CLEAR stays retryable and money path
+        # stays closed.
         if decision == "CLEAR":
-            inv_status = "CLOSED"
             self._workflow.emit_resume(
                 ResumeEvent(
                     event_type="risk.restriction.cleared",
                     investigation_id=investigation.investigation_id,
                     case_id=investigation.case_id,
-                    restriction_id=saved.restriction_id,
+                    restriction_id=restriction.restriction_id,
                     tenant_id=investigation.tenant_id,
                     financial_approval_granted=False,
                 ),
                 principal=principal,
             )
+
+        saved = self._store.save_restriction(updated)
+        inv_status = investigation.status
+        if decision == "CLEAR":
+            inv_status = "CLOSED"
         elif decision == "CONFIRM_FRAUD":
             inv_status = "CLOSED"
         self._store.save_investigation(
@@ -280,11 +285,10 @@ class RiskService:
         return rules.case_is_blocked(restrictions, case_id=case_id)
 
     def deny_ledger_approval(self, principal: Principal, *, action_id: str) -> None:
-        """AUTH-21: risk principals cannot approve ledger actions."""
-        del action_id
-        self._require_risk_officer(principal)
+        """AUTH-21: this service never approves ledger actions for any caller."""
+        del action_id, principal
         raise errors.LedgerApprovalForbiddenError(
-            "Risk officers cannot approve ledger refunds or financial actions"
+            "Risk service cannot approve ledger refunds or financial actions"
         )
 
     def _require_investigation(self, investigation_id: str) -> Investigation:

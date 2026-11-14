@@ -34,6 +34,17 @@ def test_service_deny_ledger_approval(service):
         service.deny_ledger_approval(RISK_OFFICER, action_id="action-refund-1")
 
 
+def test_http_ledger_denied_for_operator_and_supervisor(client):
+    for token in ("operator-token", "supervisor-token"):
+        response = client.post(
+            "/v1/ledger/approvals",
+            headers=auth(token),
+            json={"action_id": "action-refund-1", "decision": "APPROVE"},
+        )
+        assert response.status_code == 403
+        assert response.json()["code"] == "LEDGER_APPROVAL_FORBIDDEN"
+
+
 def test_local_ledger_stub_denies():
     with pytest.raises(LedgerApprovalForbiddenError):
         ledger_deny.approve(action_id="action-refund-1", decision="APPROVE")

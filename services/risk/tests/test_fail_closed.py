@@ -69,14 +69,15 @@ def test_case_api_malformed(service):
         )
 
 
-def test_workflow_unavailable_on_clear(service, store):
+def test_workflow_unavailable_on_clear_keeps_block_and_is_retryable(service, store):
+    from sentinel_risk.domain.types import RestrictionDecisionRequest
+
     inv = service.create_investigation(
         RISK_OFFICER,
         CreateInvestigationRequest(case_id="case-demo-42", reason_code="X"),
     )
-    service._workflow = FixtureWorkflow(behavior="unavailable")  # noqa: SLF001
     restriction_id = inv.restriction_ids[0]
-    from sentinel_risk.domain.types import RestrictionDecisionRequest
+    service._workflow = FixtureWorkflow(behavior="unavailable")  # noqa: SLF001
 
     with pytest.raises(PeerUnavailableError):
         service.decide_restriction(
@@ -84,6 +85,23 @@ def test_workflow_unavailable_on_clear(service, store):
             restriction_id,
             RestrictionDecisionRequest(decision="CLEAR", reason="ok"),
         )
+
+    stuck = store.get_restriction(restriction_id)
+    assert stuck is not None
+    assert stuck.status != "CLEARED"
+    assert stuck.blocks_financial_actions is True
+    assert service.case_blocks_financial_actions(RISK_OFFICER, "case-demo-42") is True
+
+    recovered = FixtureWorkflow(behavior="valid")
+    service._workflow = recovered  # noqa: SLF001
+    cleared = service.decide_restriction(
+        RISK_OFFICER,
+        restriction_id,
+        RestrictionDecisionRequest(decision="CLEAR", reason="ok"),
+    )
+    assert cleared.status == "CLEARED"
+    assert cleared.blocks_financial_actions is False
+    assert len(recovered.events) == 1
 
 
 def test_real_peers_requires_urls():
