@@ -289,7 +289,9 @@ class RiskService:
         return saved
 
     def case_blocks_financial_actions(self, principal: Principal, case_id: str) -> bool:
-        self._require_risk_officer(principal)
+        # risk_officer (portal) or workflow service (financial-path hold gate).
+        if not (principal.is_risk_officer() or principal.is_workflow_service()):
+            raise errors.UnauthorizedError("risk_officer or workflow role required")
         if not principal.allows_case(case_id):
             raise errors.UnauthorizedError("Unauthorized or out of scope")
         restrictions = self._store.list_restrictions(tenant_id=principal.tenant_id, case_id=case_id)

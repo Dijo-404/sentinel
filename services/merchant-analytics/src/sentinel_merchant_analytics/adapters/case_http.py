@@ -40,19 +40,17 @@ class HttpCaseApi:
         window_start: str,
         window_end: str,
     ) -> list[CaseRecord]:
-        del principal
-        params = {
-            "merchant_ref": merchant_ref,
-            "window_start": window_start,
-            "window_end": window_end,
-        }
-        body = self._get_json("/v1/ops/cases", params=params)
+        del principal, window_start, window_end
+        # case-api.v1 ops list is status/cursor scoped; merchant/window filter is local.
+        body = self._get_json("/v1/ops/cases", params={})
         try:
             cases_raw = body["cases"]
             if not isinstance(cases_raw, list):
                 raise TypeError("cases must be a list")
             rows: list[CaseRecord] = []
             for item in cases_raw:
+                if not isinstance(item, dict):
+                    raise TypeError("case item must be an object")
                 rows.append(_parse_case(item, default_merchant=merchant_ref))
             return rows
         except (KeyError, TypeError, ValueError) as exc:
@@ -80,19 +78,49 @@ class HttpCaseApi:
 
 
 def _parse_case(item: dict[str, Any], *, default_merchant: str) -> CaseRecord:
-    evidence_ids = item.get("evidence_ids") or []
-    if not isinstance(evidence_ids, list):
+    """Map case-api.v1 Case (+ optional analytics fields). Missing required fields fail closed."""
+    case_id = item["case_id"]
+    status = item["status"]
+    intent = item["intent"]
+    if not isinstance(case_id, str) or not case_id:
+        raise TypeError("case_id")
+    if not isinstance(status, str) or not status:
+        raise TypeError("status")
+    if not isinstance(intent, str) or not intent:
+        raise TypeError("intent")
+
+    evidence_ids = item["evidence_ids"]
+    if not isinstance(evidence_ids, list) or not all(isinstance(x, str) for x in evidence_ids):
         raise TypeError("evidence_ids")
+
+    # Analytics windowing needs a timestamp. Case wire may omit it → fail closed.
+    opened_at = item.get("opened_at")
+    if opened_at is None:
+        opened_at = item.get("created_at")
+    if not isinstance(opened_at, str) or not opened_at:
+        raise TypeError("opened_at")
+
     closed_at = item.get("closed_at")
     if closed_at is not None and not isinstance(closed_at, str):
         raise TypeError("closed_at")
+
+    merchant_ref = item.get("merchant_ref")
+    if merchant_ref is None:
+        merchant_ref = default_merchant
+    elif not isinstance(merchant_ref, str) or not merchant_ref:
+        raise TypeError("merchant_ref")
+
+    currency = item.get("currency", "INR")
+    if currency != "INR":
+        raise TypeError("currency")
+
     return CaseRecord(
-        case_id=str(item["case_id"]),
-        merchant_ref=str(item.get("merchant_ref") or default_merchant),
-        status=str(item["status"]),
-        intent=str(item.get("intent") or item.get("cause") or "UNKNOWN"),
-        opened_at=str(item["opened_at"]),
+        case_id=case_id,
+        merchant_ref=merchant_ref,
+        status=status,
+        intent=intent,
+        opened_at=opened_at,
         closed_at=closed_at,
-        evidence_ids=tuple(str(x) for x in evidence_ids),
-        currency=item.get("currency") or "INR",
+        evidence_ids=tuple(evidence_ids),
+        currency="INR",
     )

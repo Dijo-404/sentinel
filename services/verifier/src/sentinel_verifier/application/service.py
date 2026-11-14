@@ -41,6 +41,7 @@ from sentinel_verifier.domain.types import (
 PROVIDER_NAME = "simulator"
 ASSESSMENT_TTL = timedelta(hours=1)
 RECHECK_LEASE = timedelta(minutes=5)
+RECHECK_INTERVAL = timedelta(minutes=5)
 DEFAULT_MAX_AGE = timedelta(hours=24)
 
 
@@ -185,30 +186,12 @@ class VerifierService:
                 updated_at=now.isoformat().replace("+00:00", "Z"),
             )
         )
-        self._process_provider_ref(
+        status, _reasons = self._process_provider_ref(
             tenant_id=principal.tenant_id,
             provider_ref=request.provider_ref,
             source_event_id=job_id,
         )
-        done_at = self._clock.now().isoformat().replace("+00:00", "Z")
-        self._store.save_recheck(
-            RecheckJob(
-                tenant_id=job.tenant_id,
-                job_id=job.job_id,
-                idempotency_key=job.idempotency_key,
-                case_id=job.case_id,
-                case_revision=job.case_revision,
-                action_id=job.action_id,
-                provider_ref=job.provider_ref,
-                request_digest=job.request_digest,
-                available_at=job.available_at,
-                lease_expires_at=job.lease_expires_at,
-                attempts=job.attempts + 1,
-                status="COMPLETED",
-                created_at=job.created_at,
-                updated_at=done_at,
-            )
-        )
+        self._persist_recheck_after_lookup(job, status=status, attempts=job.attempts + 1)
         return Ack(CONTRACT_VERSION, job_id)
 
     def drain_due_rechecks(self, *, limit: int = 100) -> int:
@@ -218,30 +201,13 @@ class VerifierService:
         lease_until = (now + RECHECK_LEASE).isoformat().replace("+00:00", "Z")
         jobs = self._store.claim_due_rechecks(now=now_s, lease_expires_at=lease_until, limit=limit)
         for job in jobs:
-            self._process_provider_ref(
+            status, _reasons = self._process_provider_ref(
                 tenant_id=job.tenant_id,
                 provider_ref=job.provider_ref,
                 source_event_id=job.job_id,
             )
-            done_at = self._clock.now().isoformat().replace("+00:00", "Z")
-            self._store.save_recheck(
-                RecheckJob(
-                    tenant_id=job.tenant_id,
-                    job_id=job.job_id,
-                    idempotency_key=job.idempotency_key,
-                    case_id=job.case_id,
-                    case_revision=job.case_revision,
-                    action_id=job.action_id,
-                    provider_ref=job.provider_ref,
-                    request_digest=job.request_digest,
-                    available_at=job.available_at,
-                    lease_expires_at=job.lease_expires_at,
-                    attempts=job.attempts,
-                    status="COMPLETED",
-                    created_at=job.created_at,
-                    updated_at=done_at,
-                )
-            )
+            # Claim already incremented attempts; do not bump again.
+            self._persist_recheck_after_lookup(job, status=status, attempts=job.attempts)
         return len(jobs)
 
     def create_assessment(
@@ -318,24 +284,25 @@ class VerifierService:
 
     def _process_provider_ref(
         self, *, tenant_id: str, provider_ref: str, source_event_id: str
-    ) -> None:
+    ) -> tuple[str, tuple[str, ...]]:
         binding = self._store.get_binding(tenant_id, provider_ref)
         if binding is None:
-            return
+            return "WAITING", ()
         action = self._ledger.get_action(binding.action_id)
         refund = self._provider.get_refund(provider_ref)
         credit = self._provider.get_credit(provider_ref)
+        request = VerificationRequest(
+            case_id=binding.case_id,
+            case_revision=binding.case_revision,
+            action_id=binding.action_id,
+            provider_ref=provider_ref,
+        )
         evidence = self._synthetic_provider_evidence(
-            request=VerificationRequest(
-                case_id=binding.case_id,
-                case_revision=binding.case_revision,
-                action_id=binding.action_id,
-                provider_ref=provider_ref,
-            ),
+            request=request,
             refund=refund,
             credit=credit,
         )
-        _status, _reasons, ledger_targets = classify_outcomes(
+        status, reasons, ledger_targets = classify_outcomes(
             action_status=str(action.get("status") or ""),
             refund=refund,
             credit=credit,
@@ -349,6 +316,100 @@ class VerifierService:
                 evidence=evidence,
                 source=source_event_id,
             )
+        # Pending/provider confirmation alone never closes the case.
+        if status == "VERIFIED" and "CREDIT_CONFIRMED" in reasons:
+            self._deliver_credit_confirmed_case_result(
+                tenant_id=tenant_id,
+                binding=binding,
+                status=status,  # type: ignore[arg-type]
+                reasons=reasons,
+                evidence=evidence,
+            )
+        return status, reasons
+
+    def _deliver_credit_confirmed_case_result(
+        self,
+        *,
+        tenant_id: str,
+        binding: ProviderBinding,
+        status: str,
+        reasons: tuple[str, ...],
+        evidence: list[dict[str, Any]],
+    ) -> None:
+        """Announce VERIFIED_RESOLVED; refresh revision; skip if already closed."""
+        case = self._case_api.get_case(binding.case_id)
+        if case.get("status") == "VERIFIED_RESOLVED":
+            return
+        case_revision = int(case.get("revision", binding.case_revision))
+        now = self._clock.now()
+        result = VerificationResult(
+            assessment_id=self._ids.new_id("assessment"),
+            case_id=binding.case_id,
+            case_revision=case_revision,
+            action_id=binding.action_id,
+            assessed_at=now.isoformat().replace("+00:00", "Z"),
+            expires_at=(now + ASSESSMENT_TTL).isoformat().replace("+00:00", "Z"),
+            status=status,  # type: ignore[arg-type]
+            evidence=tuple(evidence),
+            reason_codes=reasons,
+        )
+        self._store.save_assessment(result, tenant_id=tenant_id)
+        # Stable event_key so crash/retry after ledger post is idempotent.
+        self._announce_case_result(
+            tenant_id,
+            result,
+            event_key=f"verified-{binding.action_id}-CREDIT_CONFIRMED",
+        )
+
+    def _persist_recheck_after_lookup(
+        self,
+        job: RecheckJob,
+        *,
+        status: str,
+        attempts: int,
+    ) -> None:
+        """Complete terminal outcomes; keep WAITING jobs scheduled for another poll."""
+        now = self._clock.now()
+        now_s = now.isoformat().replace("+00:00", "Z")
+        if status == "WAITING":
+            next_at = (now + RECHECK_INTERVAL).isoformat().replace("+00:00", "Z")
+            self._store.save_recheck(
+                RecheckJob(
+                    tenant_id=job.tenant_id,
+                    job_id=job.job_id,
+                    idempotency_key=job.idempotency_key,
+                    case_id=job.case_id,
+                    case_revision=job.case_revision,
+                    action_id=job.action_id,
+                    provider_ref=job.provider_ref,
+                    request_digest=job.request_digest,
+                    available_at=next_at,
+                    lease_expires_at=None,
+                    attempts=attempts,
+                    status="SCHEDULED",
+                    created_at=job.created_at,
+                    updated_at=now_s,
+                )
+            )
+            return
+        self._store.save_recheck(
+            RecheckJob(
+                tenant_id=job.tenant_id,
+                job_id=job.job_id,
+                idempotency_key=job.idempotency_key,
+                case_id=job.case_id,
+                case_revision=job.case_revision,
+                action_id=job.action_id,
+                provider_ref=job.provider_ref,
+                request_digest=job.request_digest,
+                available_at=job.available_at,
+                lease_expires_at=job.lease_expires_at,
+                attempts=attempts,
+                status="COMPLETED",
+                created_at=job.created_at,
+                updated_at=now_s,
+            )
+        )
 
     def _post_ledger_outcome(
         self,
@@ -371,12 +432,18 @@ class VerifierService:
             ),
         )
 
-    def _announce_case_result(self, tenant_id: str, result: VerificationResult) -> None:
+    def _announce_case_result(
+        self,
+        tenant_id: str,
+        result: VerificationResult,
+        *,
+        event_key: str | None = None,
+    ) -> None:
         del tenant_id
         self._case_api.submit_result(
             result.case_id,
             {
-                "event_key": f"verified-{result.assessment_id}",
+                "event_key": event_key or f"verified-{result.assessment_id}",
                 "expected_revision": result.case_revision,
                 "status": "VERIFIED_RESOLVED",
                 "evidence_ids": [

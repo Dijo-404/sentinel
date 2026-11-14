@@ -40,6 +40,7 @@ class CaseRepository(Protocol):
         message_id: str,
         event_id: str,
         occurred_at: str,
+        start_job: WorkflowRequest | None = None,
     ) -> tuple[CaseCreated, Case, bool]:
         """Return (created, case, reused). Raises DomainError on conflict."""
         ...

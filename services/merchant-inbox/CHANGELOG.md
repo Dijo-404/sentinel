@@ -3,6 +3,11 @@
 ## Unreleased
 - Refuse non-loopback HTTP bind while demo/sandbox bearer tokens remain configured.
 
+### Fixed
+
+- Real-peers refuses loading fixture exception records; requires
+  `MERCHANT_INBOX_DATABASE_URL` (sqlite) or an injected store.
+
 ### Added
 
 - Independent `merchant-inbox.v1` service: list/filter, assign, notes, escalate for synthetic PAID_UNFULFILLED, UNMATCHED_PAYMENT, and PENDING_REFUND items.

@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime, timedelta
 from typing import Any
+from urllib.parse import quote
 
 import httpx
 
@@ -38,10 +39,10 @@ class HttpPaymentProvider:
 
     def fetch_snapshot(self, *, order_reference: str, principal: Principal) -> ProviderSnapshot:
         del principal  # provider authorizes via bearer token scope, not forwarded identity headers
-        payments_body, payments_raw = self._get_json(
-            f"/v1/transactions?order_reference={order_reference}"
-        )
-        order_body, order_raw = self._get_json(f"/v1/orders/{order_reference}")
+        # Caller (collect) already derived the bare provider key from any authorized form.
+        encoded = quote(order_reference, safe="")
+        payments_body, payments_raw = self._get_json(f"/v1/transactions?order_reference={encoded}")
+        order_body, order_raw = self._get_json(f"/v1/orders/{encoded}")
         try:
             payments = tuple(_parse_payment(item) for item in payments_body["payments"])
             order = _parse_order(order_body)

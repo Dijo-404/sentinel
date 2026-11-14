@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Changed
+
+- `GET /v1/risk/cases/{case_id}/blocks` accepts `workflow` service principals
+  (in addition to `risk_officer`) so workflow can enforce holds fail-closed.
+
 ### Fixed
 
 - Restriction decisions require `expected_revision`; store compare-and-swap

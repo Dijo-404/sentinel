@@ -77,6 +77,104 @@ def test_real_peers_mode_without_urls_fails_explicitly() -> None:
     assert all(a.evidence_mode != "real-component" for a in report.output_artifacts)
 
 
+def test_real_peers_configured_urls_exercise_capabilities(monkeypatch) -> None:
+    import json
+
+    class _Resp:
+        status = 200
+
+        def __init__(self, body: dict) -> None:
+            self._body = json.dumps(body).encode("utf-8")
+
+        def read(self) -> bytes:
+            return self._body
+
+        def getcode(self) -> int:
+            return 200
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+    def opener(request, timeout=5.0):  # noqa: ARG001
+        url = request.full_url
+        if url.endswith("/healthz"):
+            return _Resp({"status": "ok"})
+        if "runtime" in url and url.endswith("/v1/capabilities"):
+            return _Resp(
+                {
+                    "contract_version": "sentinel.task-contracts.v1",
+                    "component": "finharness-runtime",
+                    "mode": "real-peers",
+                }
+            )
+        if "finbench" in url and url.endswith("/v1/capabilities"):
+            return _Resp(
+                {
+                    "contract_version": "sentinel.task-contracts.v1",
+                    "component": "finbench",
+                    "mode": "real-peers",
+                }
+            )
+        if "replay" in url and url.endswith("/v1/capabilities"):
+            return _Resp(
+                {
+                    "contract_version": "sentinel.task-contracts.v1",
+                    "component": "replay",
+                    "mode": "real-peers",
+                }
+            )
+        raise AssertionError(url)
+
+    monkeypatch.setattr(
+        "sentinel_harness_replay.adapters.real_peers.urllib.request.urlopen", opener
+    )
+    report = compare_candidates(
+        run_id="real-peers-exercised",
+        mode="real-peers",
+        deps=default_deps(
+            peer_config=RealPeerConfig(
+                runtime_url="http://runtime.example",
+                finbench_url="http://finbench.example",
+                replay_url="http://replay.example",
+            )
+        ),
+    )
+    assert report.status == "PASS"
+    by_name = {c.name: c.reason_code for c in report.checks}
+    assert by_name["real-peers.finharness-runtime"] == "PEER_CAPABILITIES_OK"
+    assert by_name["real-peers.finbench"] == "PEER_CAPABILITIES_OK"
+    assert by_name["real-peers.replay"] == "PEER_CAPABILITIES_OK"
+
+
+def test_real_peers_configured_but_unreachable_fails(monkeypatch) -> None:
+    import urllib.error
+
+    def boom(request, timeout=5.0):  # noqa: ARG001
+        raise urllib.error.URLError("refused")
+
+    monkeypatch.setattr("sentinel_harness_replay.adapters.real_peers.urllib.request.urlopen", boom)
+    report = compare_candidates(
+        run_id="real-peers-down",
+        mode="real-peers",
+        deps=default_deps(
+            peer_config=RealPeerConfig(
+                runtime_url="http://runtime.example",
+                finbench_url="http://finbench.example",
+                replay_url="http://replay.example",
+            )
+        ),
+    )
+    assert report.status == "FAIL"
+    assert all(
+        c.reason_code == "PEER_UNAVAILABLE"
+        for c in report.checks
+        if c.name.startswith("real-peers.")
+    )
+
+
 def test_fixture_run_never_claims_product_evidence() -> None:
     report = compare_candidates(mode="fixture")
     assert report.output_artifacts[0].evidence_mode == "fixture"

@@ -12,9 +12,7 @@ import {
 } from "recharts";
 import { useShell } from "@/adapters/shell-context";
 import type { CaseClient } from "@/application/ports";
-import type { CaseState } from "@/domain/types";
 import { PeerError } from "@/domain/types";
-import { labelCaseStatus } from "@/domain/status-labels";
 import type { AuthSession } from "@/lib/server/auth";
 import { PORTAL_META } from "@/lib/permissions";
 import { ChartCard } from "@/components/viz/chart-card";
@@ -23,79 +21,29 @@ import { StatBlock } from "@/components/viz/stat-block";
 import { TrendPill } from "@/components/viz/trend-pill";
 import { UiState } from "@/components/ui-states";
 
-/** Display-only pipeline stages (enums only — not a second ledger). */
-const PIPELINE_STATES: CaseState[] = [
-  "RECEIVED",
-  "INVESTIGATING",
-  "WAITING_APPROVAL",
-  "EXECUTING",
-  "VERIFYING",
-  "ESCALATED",
-  "VERIFIED_RESOLVED",
-];
-
-const FIXTURE_WAITING = 3;
-
-const FIXTURE_PIPELINE: Record<CaseState, number> = {
-  RECEIVED: 4,
-  NEEDS_INPUT: 2,
-  INVESTIGATING: 6,
-  RECONCILING: 1,
-  PLANNING: 1,
-  POLICY_CHECK: 2,
-  WAITING_APPROVAL: FIXTURE_WAITING,
-  EXECUTING: 2,
-  VERIFYING: 1,
-  WAITING_EXTERNAL: 1,
-  ESCALATED: 1,
-  VERIFIED_RESOLVED: 8,
-  CLOSED_NO_ACTION: 3,
-};
-
 type Props = {
   session: AuthSession;
   /** Optional override for tests; defaults to shell case client. Explicit null skips shell client. */
   caseClient?: CaseClient | null;
 };
 
+export type SupervisorDashboardKpis = {
+  waiting_approval_cases: number;
+  escalated_cases: number;
+  pending_approvals: number;
+  label: string;
+};
+
 type LoadState =
   | { status: "loading" }
   | { status: "error"; detail: string }
   | { status: "permission"; detail: string }
+  | { status: "unavailable"; detail: string }
   | {
       status: "ready";
-      waitingCount: number;
-      pipeline: Record<string, number>;
+      kpis: SupervisorDashboardKpis;
       source: "live" | "fixture";
     };
-
-function emptyPipeline(): Record<string, number> {
-  const out: Record<string, number> = {};
-  for (const state of PIPELINE_STATES) out[state] = 0;
-  return out;
-}
-
-function histogram(statuses: CaseState[]): Record<string, number> {
-  const out = emptyPipeline();
-  for (const status of statuses) {
-    if (status in out) out[status] += 1;
-    else out[status] = 1;
-  }
-  return out;
-}
-
-function fixtureReady(): Extract<LoadState, { status: "ready" }> {
-  const pipeline = emptyPipeline();
-  for (const state of PIPELINE_STATES) {
-    pipeline[state] = FIXTURE_PIPELINE[state] ?? 0;
-  }
-  return {
-    status: "ready",
-    waitingCount: FIXTURE_WAITING,
-    pipeline,
-    source: "fixture",
-  };
-}
 
 export function SupervisorOverview({
   session,
@@ -116,29 +64,29 @@ export function SupervisorOverview({
     async function loadData() {
       setLoad({ status: "loading" });
       if (!caseClient) {
-        // Real-peers: never silent-fill fixture when peer client missing.
-        if (config.mode === "real-peers") {
-          if (!cancelled) {
-            setLoad({
-              status: "error",
-              detail: "PEER_UNAVAILABLE: Case client unavailable",
-            });
-          }
-          return;
+        if (!cancelled) {
+          setLoad({
+            status: "error",
+            detail: "PEER_UNAVAILABLE: Case client unavailable",
+          });
         }
-        if (!cancelled) setLoad(fixtureReady());
+        return;
+      }
+      if (!caseClient.getSupervisorDashboard) {
+        if (!cancelled) {
+          setLoad({
+            status: "unavailable",
+            detail: "Supervisor dashboard port not available on this client",
+          });
+        }
         return;
       }
       try {
-        const [waiting, all] = await Promise.all([
-          caseClient.listOpsCases({ status: "WAITING_APPROVAL" }),
-          caseClient.listOpsCases(),
-        ]);
+        const kpis = await caseClient.getSupervisorDashboard();
         if (cancelled) return;
         setLoad({
           status: "ready",
-          waitingCount: waiting.cases.length,
-          pipeline: histogram(all.cases.map((c) => c.status)),
+          kpis,
           source: config.mode === "fixture" ? "fixture" : "live",
         });
       } catch (err) {
@@ -153,18 +101,13 @@ export function SupervisorOverview({
           });
           return;
         }
-        // Real-peer: never silent-fallback to fixture.
-        if (config.mode === "real-peers") {
-          const detail =
-            err instanceof PeerError
-              ? `${err.code}: ${err.message}`
-              : err instanceof Error
-                ? err.message
-                : "Load failed";
-          setLoad({ status: "error", detail });
-          return;
-        }
-        setLoad(fixtureReady());
+        const detail =
+          err instanceof PeerError
+            ? `${err.code}: ${err.message}`
+            : err instanceof Error
+              ? err.message
+              : "Load failed";
+        setLoad({ status: "error", detail });
       }
     }
     void loadData();
@@ -175,17 +118,33 @@ export function SupervisorOverview({
 
   const chartRows = useMemo(() => {
     if (load.status !== "ready") return [];
-    return PIPELINE_STATES.map((state) => ({
-      state,
-      label: labelCaseStatus(state).text,
-      count: load.pipeline[state] ?? 0,
-    }));
+    return [
+      {
+        key: "waiting",
+        label: "Waiting approval",
+        count: load.kpis.waiting_approval_cases,
+      },
+      {
+        key: "escalated",
+        label: "Escalated",
+        count: load.kpis.escalated_cases,
+      },
+      {
+        key: "pending",
+        label: "Pending approvals",
+        count: load.kpis.pending_approvals,
+      },
+    ];
   }, [load]);
 
   const meta = PORTAL_META.supervisor;
   const showFixtureBanner =
     config.mode === "fixture" ||
     (load.status === "ready" && load.source === "fixture");
+  const caption =
+    load.status === "ready" && load.source === "live"
+      ? "Scoped projection"
+      : "Fixture peer";
 
   return (
     <div className="stack" data-testid="supervisor-dashboard">
@@ -215,30 +174,49 @@ export function SupervisorOverview({
           detail={load.detail}
         />
       ) : null}
+      {load.status === "unavailable" ? (
+        <UiState
+          tone="empty"
+          title="Metrics unavailable"
+          detail={load.detail}
+        />
+      ) : null}
 
       {load.status === "ready" ? (
         <>
           <div className="kpi-row" data-testid="supervisor-kpi-row">
             <StatBlock
               label="Waiting approval"
-              value={String(load.waitingCount)}
-              caption="Exact digest-bound proposals"
+              value={String(load.kpis.waiting_approval_cases)}
+              caption={caption}
             />
             <StatBlock
-              label="In pipeline"
-              value={String(
-                Object.values(load.pipeline).reduce((a, b) => a + b, 0),
-              )}
-              caption="Visible case states"
+              label="Escalated"
+              value={String(load.kpis.escalated_cases)}
+              caption={caption}
+            />
+            <StatBlock
+              label="Pending approvals"
+              value={String(load.kpis.pending_approvals)}
+              caption={caption}
             />
             <div
               className="stack"
               style={{ gap: "0.5rem", justifyContent: "center" }}
             >
               <TrendPill
-                value={load.waitingCount > 0 ? "Queue active" : "Queue clear"}
-                direction={load.waitingCount > 0 ? "up" : "flat"}
+                value={
+                  load.kpis.waiting_approval_cases > 0
+                    ? "Queue active"
+                    : "Queue clear"
+                }
+                direction={
+                  load.kpis.waiting_approval_cases > 0 ? "up" : "flat"
+                }
               />
+              <p className="muted" data-testid="supervisor-projection-label">
+                {load.kpis.label}
+              </p>
               <Link
                 href="/supervisor/approvals"
                 data-testid="supervisor-open-approvals"
@@ -248,36 +226,11 @@ export function SupervisorOverview({
             </div>
           </div>
 
-          <div className="panel stack">
-            <h2>Pipeline</h2>
-            <p className="muted">
-              Case-state strip only. Approval ≠ credit; amounts stay locked.
-            </p>
-            <ol className="pipeline-strip" data-testid="supervisor-pipeline">
-              {PIPELINE_STATES.map((state) => (
-                <li
-                  key={state}
-                  className="pipeline-strip__item"
-                  data-state={state}
-                  data-active={
-                    state === "WAITING_APPROVAL" && load.waitingCount > 0
-                      ? "true"
-                      : undefined
-                  }
-                >
-                  <span className="pipeline-strip__count">
-                    {load.pipeline[state] ?? 0}
-                  </span>
-                  <span className="pipeline-strip__label">
-                    {labelCaseStatus(state).text}
-                  </span>
-                </li>
-              ))}
-            </ol>
-          </div>
-
-          <ChartCard title="Case state volume">
-            <div style={{ width: "100%", height: 220 }}>
+          <ChartCard title="Dashboard projection">
+            <div
+              style={{ width: "100%", height: 220 }}
+              data-testid="supervisor-projection-chart"
+            >
               {chartReady ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart

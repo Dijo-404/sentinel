@@ -1,6 +1,6 @@
 # SN-014 — V1 sandbox assembly harness (`core-assembly.v1`)
 
-Standalone scenario drivers, version/mode configuration and composition adapters for the four P0 journeys: **pending**, **merchant mismatch**, **duplicate payment**, and **refund-pending**.
+Standalone scenario drivers, version/mode configuration and composition adapters for P0 journeys: **pending**, **merchant mismatch**, **duplicate payment**, **refund-pending**, plus authority journeys **browser_to_credit** and **duplicate_approval_deny**.
 
 This module is the **V1 sandbox assembly** entry: fixture self-tests always available; `real-peers` drives HTTP against a local mock payment sandbox (`payment_provider=simulator`). A live provider is a later adapter/credentials swap behind the same `payment-provider.v1` contract — not claimed here.
 
@@ -47,7 +47,9 @@ Probe rule: every required peer must advertise `mode=real-peers` (including the 
 
 Canonical identity (`tok-*` → principal): [docs/sandbox-matrix.md](docs/sandbox-matrix.md), [fixtures/sandbox-tokens.json](fixtures/sandbox-tokens.json).
 Assembly role tokens / journey seeds / path label: [fixtures/sandbox-assembly.json](fixtures/sandbox-assembly.json).
-Real-peers path is currently `provider-sandbox-only` (not full MVP / SN-009).
+Default real-peers path is `provider-sandbox-only`. Set `SENTINEL_V1_AUTHORITY_PATH=1`
+for `browser-to-credit` / SN-009 HTTP journeys (`sn009_authority_exercised=true` when
+postconditions pass). Never auto-claims MVP release.
 
 Bring-up (Postgres compose + peer order + assembly command): [docs/sandbox-runbook.md](docs/sandbox-runbook.md).
 

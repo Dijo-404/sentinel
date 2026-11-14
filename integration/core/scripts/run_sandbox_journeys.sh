@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Live V1 sandbox four-journey assembly. Exits nonzero on failure.
+# Live V1 sandbox assembly. Exits nonzero on failure.
+# Default: provider journeys (path=provider-sandbox-only).
+# SENTINEL_V1_AUTHORITY_PATH=1 also runs browser_to_credit + duplicate_approval_deny.
 # Requires peers up per docs/sandbox-runbook.md. No real money.
 set -euo pipefail
 

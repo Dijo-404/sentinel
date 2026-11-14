@@ -111,7 +111,7 @@ def test_real_peers_requires_config():
 
 
 def test_real_peers_refuses_default_memory_store():
-    with pytest.raises(PeerUnavailableError, match="injected durable store"):
+    with pytest.raises(PeerUnavailableError, match="durable store"):
         build_app(
             Settings(
                 mode="real-peers",
@@ -122,6 +122,7 @@ def test_real_peers_refuses_default_memory_store():
                 evidence_token="tok",
                 default_deadline_seconds=60,
                 contract_version="sentinel.task-contracts.v1",
+                database_url="",
             )
         )
 

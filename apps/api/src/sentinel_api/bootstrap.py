@@ -141,6 +141,7 @@ def build_app(settings: Settings | None = None, *, engine=None, tokens: TokenMap
     app.state.settings = settings
     app.state.engine = engine
     app.state.repo = repo
+    app.state.service = service
     app.state.workflow = workflow
     app.state.evidence = evidence
     app.state.ledger = ledger

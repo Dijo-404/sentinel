@@ -41,6 +41,30 @@ function realPeersConfig() {
 }
 
 describe("supervisor overview", () => {
+  it("renders KPIs from getSupervisorDashboard projection", async () => {
+    render(
+      <ShellProvider
+        config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}
+      >
+        <SupervisorOverview
+          session={sessionStub}
+          caseClient={createCaseApiStub("valid")}
+        />
+      </ShellProvider>,
+    );
+
+    expect(await screen.findByTestId("supervisor-kpi-row")).toBeInTheDocument();
+    expect(screen.getByTestId("fixture-banner")).toBeInTheDocument();
+    expect(screen.getByTestId("supervisor-projection-label")).toHaveTextContent(
+      "fixture-projection",
+    );
+    expect(screen.getByTestId("supervisor-projection-chart")).toBeInTheDocument();
+    expect(screen.getByText("Waiting approval")).toBeInTheDocument();
+    expect(screen.getByText("Escalated")).toBeInTheDocument();
+    expect(screen.getByText("Pending approvals")).toBeInTheDocument();
+    expect(screen.queryByTestId("supervisor-pipeline")).not.toBeInTheDocument();
+  });
+
   it("real-peers peer failure shows error — no silent fixture fill", async () => {
     render(
       <ShellProvider config={realPeersConfig()}>
@@ -59,10 +83,9 @@ describe("supervisor overview", () => {
     );
     expect(screen.queryByTestId("fixture-banner")).not.toBeInTheDocument();
     expect(screen.queryByTestId("supervisor-kpi-row")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("supervisor-pipeline")).not.toBeInTheDocument();
   });
 
-  it("real-peers missing case client shows error — never fixtureReady", async () => {
+  it("real-peers missing case client shows error — never fake KPIs", async () => {
     render(
       <ShellProvider config={realPeersConfig()}>
         <SupervisorOverview session={sessionStub} caseClient={null} />
@@ -79,7 +102,7 @@ describe("supervisor overview", () => {
     expect(screen.queryByTestId("supervisor-kpi-row")).not.toBeInTheDocument();
   });
 
-  it("fixture mode missing case client may use simulator KPIs", async () => {
+  it("fixture mode missing case client shows unavailable — never fake KPIs", async () => {
     render(
       <ShellProvider
         config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}
@@ -88,8 +111,27 @@ describe("supervisor overview", () => {
       </ShellProvider>,
     );
 
-    expect(await screen.findByTestId("supervisor-kpi-row")).toBeInTheDocument();
-    expect(screen.getByTestId("fixture-banner")).toBeInTheDocument();
-    expect(screen.getByTestId("supervisor-pipeline")).toBeInTheDocument();
+    expect(await screen.findByTestId("state-error")).toHaveTextContent(
+      "Overview unavailable",
+    );
+    expect(screen.queryByTestId("supervisor-kpi-row")).not.toBeInTheDocument();
+  });
+
+  it("missing dashboard method shows unavailable — never listOpsCases KPIs", async () => {
+    const client = createCaseApiStub("valid");
+    delete client.getSupervisorDashboard;
+    render(
+      <ShellProvider config={realPeersConfig()}>
+        <SupervisorOverview session={sessionStub} caseClient={client} />
+      </ShellProvider>,
+    );
+
+    expect(await screen.findByTestId("state-empty")).toHaveTextContent(
+      "Metrics unavailable",
+    );
+    expect(screen.getByTestId("state-empty")).toHaveTextContent(
+      "Supervisor dashboard port not available",
+    );
+    expect(screen.queryByTestId("supervisor-kpi-row")).not.toBeInTheDocument();
   });
 });

@@ -11,8 +11,12 @@ from fastapi.responses import JSONResponse
 from sentinel_workflow import CONTRACT_VERSION, __version__
 from sentinel_workflow.adapters.auth import TokenMapAuth
 from sentinel_workflow.application.errors import WorkflowError
-from sentinel_workflow.application.service import WorkflowService, authorize_run
-from sentinel_workflow.domain.types import Ack, WorkflowRequest
+from sentinel_workflow.application.service import (
+    WorkflowService,
+    authorize_risk_resume,
+    authorize_run,
+)
+from sentinel_workflow.domain.types import Ack, RiskResumeRequest, WorkflowRequest
 
 
 def create_app(
@@ -51,6 +55,16 @@ def create_app(
         authorize_run(principal, body.case_id)
         # DECISION resume approval comes from ledger.get_action(...).approval only.
         return service.accept(body, principal)
+
+    @app.post("/v1/workflow/risk-resume", status_code=202, response_model=Ack)
+    def risk_resume(
+        body: RiskResumeRequest,
+        authorization: str | None = Header(default=None),
+    ) -> Ack:
+        principal = auth.authenticate(authorization)
+        authorize_risk_resume(principal, body.case_id)
+        # Clearance restarts investigation only; supervisor/ledger still own money.
+        return service.accept_risk_resume(body, principal)
 
     @app.exception_handler(WorkflowError)
     async def workflow_error(_request: Request, exc: WorkflowError) -> JSONResponse:

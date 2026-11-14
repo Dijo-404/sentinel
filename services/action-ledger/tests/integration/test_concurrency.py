@@ -70,6 +70,7 @@ def test_concurrent_reservations_never_overrun(app_client, tokens, engine, clock
                 payload=payload,
                 digest=digest,
                 approval_id=approval_id,
+                order_reference="DEMO-ORDER-42",
             )
             return "ok", record.status, created
         except LedgerError as exc:
@@ -130,6 +131,7 @@ def test_concurrent_claim_and_outcome_no_deadlock(app_client, tokens):
                 "payload": payload,
                 "action_digest": action_digest(payload),
                 "approval_id": approval["approval_id"],
+                "order_reference": "DEMO-ORDER-42",
             },
         )
         assert reserved.status_code == 201, reserved.text

@@ -162,6 +162,8 @@ class ProposalRequest(StrictModel):
     operation_key: str
     payload: RefundAction
     action_digest: str
+    # Top-level identity for ledger restart fallbacks; not part of action digest.
+    order_reference: str | None = None
 
 
 class ReservationRequest(StrictModel):
@@ -169,6 +171,8 @@ class ReservationRequest(StrictModel):
     payload: RefundAction
     action_digest: str
     approval_id: str
+    # Required for reserve after approval — ledger rejects missing/blank.
+    order_reference: str
 
 
 class ActionRecord(StrictModel):
@@ -227,3 +231,20 @@ class ErrorBody(StrictModel):
     code: str
     message: str
     request_id: str
+
+
+class RiskResumeRequest(StrictModel):
+    """Clearance signal from risk.v1. Never carries financial approval."""
+
+    event_type: str
+    investigation_id: str
+    case_id: str
+    restriction_id: str
+    tenant_id: str
+    financial_approval_granted: bool = False
+
+
+class CaseBlocks(StrictModel):
+    case_id: str
+    blocks_financial_actions: bool
+    financial_approval_granted: Literal[False] = False

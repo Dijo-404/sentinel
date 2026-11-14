@@ -192,3 +192,65 @@ def test_http_case_valid_no_fixture_fallback():
     )
     assert len(rows) == 1
     assert rows[0].case_id == "case-live-1"
+
+
+def test_http_case_missing_opened_at_fail_closed():
+    """case-api.v1 Case has no opened_at; adapter must not invent one."""
+    payload = {
+        "cases": [
+            {
+                "case_id": "case-live-1",
+                "status": "INVESTIGATING",
+                "language": "en-IN",
+                "intent": "DUPLICATE_PAYMENT",
+                "evidence_ids": [],
+                "contract_version": "sentinel.task-contracts.v1",
+                "revision": 1,
+            }
+        ]
+    }
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, content=json.dumps(payload).encode("utf-8"))
+
+    api = HttpCaseApi(
+        base_url="http://case.test",
+        token="tok",
+        client=httpx.Client(transport=_Transport(handler)),
+    )
+    with pytest.raises(PeerMalformedError):
+        api.list_merchant_cases(
+            PRINCIPAL,
+            merchant_ref="merchant-demo-1",
+            window_start=WINDOW["window_start"],
+            window_end=WINDOW["window_end"],
+        )
+
+
+def test_http_case_missing_intent_fail_closed():
+    payload = {
+        "cases": [
+            {
+                "case_id": "case-live-1",
+                "status": "INVESTIGATING",
+                "opened_at": "2026-11-02T10:00:00Z",
+                "evidence_ids": [],
+            }
+        ]
+    }
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, content=json.dumps(payload).encode("utf-8"))
+
+    api = HttpCaseApi(
+        base_url="http://case.test",
+        token="tok",
+        client=httpx.Client(transport=_Transport(handler)),
+    )
+    with pytest.raises(PeerMalformedError):
+        api.list_merchant_cases(
+            PRINCIPAL,
+            merchant_ref="merchant-demo-1",
+            window_start=WINDOW["window_start"],
+            window_end=WINDOW["window_end"],
+        )

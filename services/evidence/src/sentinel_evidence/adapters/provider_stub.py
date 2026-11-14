@@ -28,29 +28,32 @@ class StubPaymentProvider:
     def fetch_snapshot(self, *, order_reference: str, principal: Principal) -> ProviderSnapshot:
         del principal
         key = self.case
-        if order_reference.endswith(":stale") or key == STALE:
+        # Fixture scenario marker is ``#`` (not ``:``/``/``) so it never collides
+        # with authorized subject-boundary forms handled by provider_order_id.
+        bare = order_reference.split("#", 1)[0]
+        if order_reference.endswith("#stale") or key == STALE:
             return self._valid(
-                order_reference=order_reference.split(":", 1)[0],
+                order_reference=bare,
                 expires_at="2026-11-13T11:00:00Z",
                 merchant_confirmed=True,
                 fulfilled=1,
             )
-        if order_reference.endswith(":conflict") or key == CONFLICTING:
-            return self._conflicting(order_reference.split(":", 1)[0])
-        if order_reference.endswith(":equal") or key == EQUAL_ONLY:
+        if order_reference.endswith("#conflict") or key == CONFLICTING:
+            return self._conflicting(bare)
+        if order_reference.endswith("#equal") or key == EQUAL_ONLY:
             return self._valid(
-                order_reference=order_reference.split(":", 1)[0],
+                order_reference=bare,
                 merchant_confirmed=False,
                 fulfilled=2,
             )
-        if order_reference.endswith(":unavailable") or key == UNAVAILABLE:
+        if order_reference.endswith("#unavailable") or key == UNAVAILABLE:
             raise PeerUnavailableError("Required peer unavailable")
-        if order_reference.endswith(":malformed") or key == MALFORMED:
+        if order_reference.endswith("#malformed") or key == MALFORMED:
             raise PeerMalformedError("Provider response failed schema validation")
-        if order_reference.endswith(":unauthorized") or key == UNAUTHORIZED:
+        if order_reference.endswith("#unauthorized") or key == UNAUTHORIZED:
             raise PeerUnauthorizedError("Provider denied scoped read")
         return self._valid(
-            order_reference=order_reference.split(":", 1)[0],
+            order_reference=bare,
             merchant_confirmed=True,
             fulfilled=1,
         )

@@ -79,6 +79,9 @@ describe("standalone browser checks", () => {
     ).toBeInTheDocument();
     expect(screen.getAllByText("Waiting approval").length).toBeGreaterThan(0);
     expect(screen.queryByText("TXN-B")).not.toBeInTheDocument();
+    expect(screen.getByTestId("case-interactions")).toBeInTheDocument();
+    expect(screen.getByTestId("case-message-submit")).toBeInTheDocument();
+    expect(screen.getByTestId("case-escalate")).toBeInTheDocument();
 
     rerender(
       <CaseTimeline
@@ -100,6 +103,32 @@ describe("standalone browser checks", () => {
     const link = screen.getByTestId("focus-link");
     link.focus();
     expect(link).toHaveFocus();
+  });
+
+  it("timeline message and escalate call case client", async () => {
+    const user = userEvent.setup();
+    const client = createCaseApiStub("valid");
+    const postMessage = vi.fn(client.postMessage.bind(client));
+    const escalate = vi.fn(client.escalate.bind(client));
+    client.postMessage = postMessage;
+    client.escalate = escalate;
+    render(<CaseTimeline caseId="case-demo-42" caseClient={client} />);
+    await screen.findByTestId("case-interactions");
+    await user.type(screen.getByTestId("case-message-input"), "Need update");
+    await user.click(screen.getByTestId("case-message-submit"));
+    await waitFor(() => {
+      expect(postMessage).toHaveBeenCalledWith(
+        "case-demo-42",
+        expect.objectContaining({
+          message: "Need update",
+          expected_revision: 2,
+        }),
+      );
+    });
+    await user.click(screen.getByTestId("case-escalate"));
+    await waitFor(() => {
+      expect(escalate).toHaveBeenCalled();
+    });
   });
 
   it("operator queue empty and permission states", async () => {

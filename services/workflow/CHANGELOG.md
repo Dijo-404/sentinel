@@ -1,6 +1,19 @@
 # Changelog — SN-008 services/workflow
 
 ## Unreleased
+
+### Added
+
+- Authenticated `POST /v1/workflow/risk-resume` for risk clearance events; starts
+  re-evaluation (`START`) without granting financial approval.
+- Risk hold port (`GET /v1/risk/cases/{case_id}/blocks` via fixture/HTTP); fail
+  closed before ledger propose/reserve when restriction active or risk peer down.
+
+### Fixed
+
+- Reserve after approval sends explicit `order_reference` from case input
+  (and stashes it on the local proposal for restart); missing value escalates
+  `ORDER_REFERENCE_REQUIRED`. HTTP reservation JSON includes the top-level field.
 - Refuse non-loopback HTTP bind while demo/sandbox bearer tokens remain configured.
 
 ### Changed — 14 November 2026

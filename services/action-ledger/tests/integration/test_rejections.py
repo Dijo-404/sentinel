@@ -50,6 +50,7 @@ def test_reject_decision_blocks_reservation(app_client, tokens):
             "payload": DEMO_PAYLOAD,
             "action_digest": DEMO_DIGEST,
             "approval_id": decision.json()["approval_id"],
+            "order_reference": "DEMO-ORDER-42",
         },
     )
     assert reserved.status_code == 409
@@ -66,6 +67,7 @@ def test_lease_mismatch_on_dispatcher_outcome(app_client, tokens):
             "payload": DEMO_PAYLOAD,
             "action_digest": DEMO_DIGEST,
             "approval_id": approval["approval_id"],
+            "order_reference": "DEMO-ORDER-42",
         },
     )
     assert reserved.status_code == 201
@@ -101,6 +103,7 @@ def test_invalid_transition_rejected(app_client, tokens):
             "payload": DEMO_PAYLOAD,
             "action_digest": DEMO_DIGEST,
             "approval_id": approval["approval_id"],
+            "order_reference": "DEMO-ORDER-42",
         },
     )
     assert reserved.status_code == 201
@@ -170,6 +173,7 @@ def test_wrong_subject_scope_forbidden(engine, clock, tokens, guard):
             "payload": DEMO_PAYLOAD,
             "action_digest": DEMO_DIGEST,
             "approval_id": decision.json()["approval_id"],
+            "order_reference": "DEMO-ORDER-42",
         },
     )
     assert reserved.status_code == 403
@@ -185,6 +189,7 @@ def test_outcome_evidence_mismatch_rejected(app_client, tokens):
             "payload": DEMO_PAYLOAD,
             "action_digest": DEMO_DIGEST,
             "approval_id": approval["approval_id"],
+            "order_reference": "DEMO-ORDER-42",
         },
     )
     assert reserved.status_code == 201
@@ -254,6 +259,7 @@ def test_pending_outcome_stops_outbox_reclaim(app_client, tokens, clock):
             "payload": DEMO_PAYLOAD,
             "action_digest": DEMO_DIGEST,
             "approval_id": approval["approval_id"],
+            "order_reference": "DEMO-ORDER-42",
         },
     )
     assert reserved.status_code == 201

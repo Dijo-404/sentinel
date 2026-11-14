@@ -22,6 +22,7 @@ from sentinel_workflow.adapters.peers_http import (
     HttpEvidence,
     HttpLedger,
     HttpPolicy,
+    HttpRisk,
     HttpVerifier,
 )
 from sentinel_workflow.adapters.settings import Settings
@@ -79,6 +80,7 @@ def build_container(
             max_attempts=settings.outbox_max_attempts,
             backoff_base_seconds=settings.outbox_backoff_base_seconds,
         ),
+        risk=peers["risk"],
         policy_version=settings.policy_version,
     )
     service = WorkflowService(
@@ -111,12 +113,14 @@ def _default_peers(settings: Settings) -> dict[str, Any]:
             "policy": HttpPolicy(settings.peer_policy_url, token),
             "ledger": HttpLedger(settings.peer_ledger_url, token),
             "verifier": HttpVerifier(settings.peer_verifier_url, token),
+            "risk": HttpRisk(settings.peer_risk_url, token),
         }
     from sentinel_workflow.adapters.fixture_peers import (
         FixtureCaseApi,
         FixtureEvidence,
         FixtureLedger,
         FixturePolicy,
+        FixtureRisk,
         FixtureVerifier,
     )
 
@@ -126,6 +130,7 @@ def _default_peers(settings: Settings) -> dict[str, Any]:
         "policy": FixturePolicy(),
         "ledger": FixtureLedger(),
         "verifier": FixtureVerifier(),
+        "risk": FixtureRisk(),
     }
 
 

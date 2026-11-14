@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from ..domain.digest import sha256_hex
+from ..domain.order_reference import OrderReferenceError, provider_order_id
 from ..domain.reconcile import apply_status, classify_verification, parse_rfc3339, reconcile_codes
 from ..domain.types import (
     CONTRACT_VERSION,
@@ -159,8 +160,13 @@ class CollectEvidence:
         _require_case_scope(principal, request.case_id)
         _validate_collect(request)
 
+        # Authorized case identity stays on the request/store; provider keys are bare.
+        try:
+            provider_key = provider_order_id(request.order_reference)
+        except OrderReferenceError as exc:
+            raise ValidationError(str(exc)) from exc
         snapshot = self._provider.fetch_snapshot(
-            order_reference=request.order_reference,
+            order_reference=provider_key,
             principal=principal,
         )
         _require_subject_scope(principal, snapshot.order.subject_ref)

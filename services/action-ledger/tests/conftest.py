@@ -27,6 +27,7 @@ from sentinel_action_ledger.bootstrap import build_app
 IMAGE = "postgres:17-alpine@sha256:d3244e8ce3f165ee3c93d9c4a4b1d0fe48b3a89e2287b717fdcbbde92d405065"
 ROOT = Path(__file__).resolve().parents[1]
 DEMO_DIGEST = "d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993"
+DEMO_ORDER_REFERENCE = "DEMO-ORDER-42"
 DEMO_PAYLOAD = {
     "action": "REQUEST_REFUND",
     "case_id": "case-demo-42",
@@ -205,3 +206,27 @@ def propose_and_approve(client, tokens, *, operation_key="duplicate-demo-42-b", 
     )
     assert decision.status_code == 200, decision.text
     return proposed.json(), decision.json()
+
+
+def reservation_json(
+    *,
+    operation_key: str,
+    approval_id: str,
+    payload=None,
+    digest: str | None = None,
+    order_reference: str = DEMO_ORDER_REFERENCE,
+):
+    body_payload = payload or DEMO_PAYLOAD
+    if digest is None:
+        digest = DEMO_DIGEST if payload is None else None
+    if digest is None:
+        from sentinel_action_ledger.domain.digest import action_digest
+
+        digest = action_digest(body_payload)
+    return {
+        "operation_key": operation_key,
+        "payload": body_payload,
+        "action_digest": digest,
+        "approval_id": approval_id,
+        "order_reference": order_reference,
+    }

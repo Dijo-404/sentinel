@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Changed (finding #13)
+
+- Real-peers mode now invokes configured peer `/healthz` and `/v1/capabilities`
+  instead of reporting `REAL_PEER_NOT_EXERCISED`.
+- Reachable real-peers labeled capabilities → `PEER_CAPABILITIES_OK` / `PASS`.
+- Unreachable or malformed peers → `FAIL`; fixture-labeled peers stay `UNVERIFIED`.
+
 ### Added — 13 November 2026
 
 - Independent module ownership, architecture/interface guide, scoped agent rules and acceptance checklist.
@@ -15,5 +22,7 @@
 
 ### Implementation status
 
-- Fixture-mode standalone checks implemented. Real runtime/finbench/replay assembly unverified.
+- Fixture-mode standalone checks implemented.
+- Real-peers health/capabilities probes exercised when URLs configured (mocked in unit tests).
+- Full counterfactual compare against live runtime/finbench/replay remains owner-assembled.
 - No live refunds; sandbox simulator only. Fixture evidence is not product release proof.

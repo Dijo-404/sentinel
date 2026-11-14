@@ -11,17 +11,20 @@ from .adapters.http_api import AppServices, create_app
 from .adapters.peers_fixture import FixtureCaseApi, FixtureEvidence
 from .adapters.peers_http import HttpCaseApi, HttpEvidence
 from .adapters.storage_memory import MemoryDisputeStore
+from .adapters.storage_sqlite import SqliteDisputeStore
 from .application.disputes import DisputeService
 from .application.errors import ConfigurationError, PeerUnavailableError
 from .domain.types import CONTRACT_VERSION
 
 
-def _resolve_store(mode: str, store):
+def _resolve_store(mode: str, store, database_url: str):
     if store is not None:
         return store
+    if database_url:
+        return SqliteDisputeStore.from_url(database_url)
     if mode == "real-peers":
         raise PeerUnavailableError(
-            "real-peers requires an injected durable store; "
+            "real-peers requires DISPUTES_DATABASE_URL or an injected durable store; "
             "MemoryDisputeStore defaults are not allowed across workers"
         )
     return MemoryDisputeStore()
@@ -37,6 +40,7 @@ class Settings:
     evidence_token: str
     default_deadline_seconds: int
     contract_version: str
+    database_url: str = ""
 
     @classmethod
     def from_environ(cls, env: dict[str, str] | None = None) -> Settings:
@@ -53,6 +57,7 @@ class Settings:
             evidence_token=source.get("EVIDENCE_TOKEN", ""),
             default_deadline_seconds=int(source.get("DISPUTES_DEFAULT_DEADLINE_SECONDS", "604800")),
             contract_version=source.get("DISPUTES_CONTRACT_VERSION", CONTRACT_VERSION),
+            database_url=source.get("DISPUTES_DATABASE_URL", ""),
         )
 
 
@@ -89,7 +94,7 @@ def build_app(
         disputes=DisputeService(
             case_api=case_peer,
             evidence=evidence_peer,
-            store=_resolve_store(mode, store),
+            store=_resolve_store(mode, store, settings.database_url),
             clock=clock or SystemClock(),
             default_deadline_seconds=settings.default_deadline_seconds,
         ),

@@ -30,6 +30,7 @@ def cmd_run(args: argparse.Namespace) -> int:
         mode=args.mode,
         assembly_stub=args.assembly_stub,
         candidate_url=args.candidate_url or None,
+        assembly_url=getattr(args, "assembly_url", "") or None,
         output_dir=Path(args.output_dir) if args.output_dir else None,
     )
     report = service.run(_run_input(args.run_id, args.mode, args.candidate))
@@ -136,6 +137,11 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument("--mode", choices=("fixture", "real-peers"), default="fixture")
     run.add_argument("--assembly-stub", default="valid")
     run.add_argument("--candidate-url", default="")
+    run.add_argument(
+        "--assembly-url",
+        default="",
+        help="core-assembly.v1 base URL when --assembly-stub=live",
+    )
     run.add_argument("--run-id", default="eval-local-1")
     run.add_argument("--output-dir", default="")
     run.add_argument("--full", action="store_true")

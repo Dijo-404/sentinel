@@ -44,8 +44,10 @@ export async function getServerCaseClient(
     );
   }
 
+  const ledgerBaseUrl = env.ACTION_LEDGER_BASE_URL ?? "";
   return createRealPeerCaseClient({
     baseUrl,
+    ...(ledgerBaseUrl ? { ledgerBaseUrl } : {}),
     bearerToken: bearer,
     fetchImpl: overrides?.fetchImpl,
   });

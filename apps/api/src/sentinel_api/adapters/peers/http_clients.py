@@ -28,7 +28,7 @@ class HttpWorkflowClient:
         try:
             response = self._client.post(
                 f"{self._base}/v1/runs",
-                json=request.to_dict(),
+                json=request.to_wire_dict(),
                 headers={"Authorization": authorization},
             )
         except httpx.HTTPError as exc:

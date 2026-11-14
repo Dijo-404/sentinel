@@ -58,9 +58,16 @@ PRIVILEGED_BODY_FIELDS = frozenset(
 
 
 class IdentityService:
-    def __init__(self, store: IdentityStore, clock: Clock) -> None:
+    def __init__(
+        self,
+        store: IdentityStore,
+        clock: Clock,
+        *,
+        delivery: Any | None = None,
+    ) -> None:
         self._store = store
         self._clock = clock
+        self._delivery = delivery
 
     # --- Auth ---
 
@@ -459,7 +466,12 @@ class IdentityService:
             reason=reason,
         )
         self._store.create_invitation(invitation)
-        self._store.record_delivery_secret(invitation.invitation_id, raw_token)
+        self._store.record_delivery_secret(
+            invitation.invitation_id,
+            raw_token,
+            work_email=invitation.work_email,
+        )
+        self.flush_delivery_outbox()
         if privileged and change_id is not None:
             self._store.create_privileged_change(
                 PrivilegedChangeRequest(
@@ -487,6 +499,23 @@ class IdentityService:
             "invitation": invitation.to_public(),
             "delivery_hint": "queued_for_delivery_adapter",
             "privileged_change_id": change_id,
+        }
+
+    def flush_delivery_outbox(self) -> dict[str, Any]:
+        """Drain durable invite delivery outbox into the sandbox inbox."""
+        if self._delivery is None:
+            return {"delivered": 0, "adapter": "none"}
+        delivered = int(self._delivery.drain())
+        return {"delivered": delivered, "adapter": "sandbox_inbox"}
+
+    def list_sandbox_inbox(self, *, work_email: str | None = None) -> dict[str, Any]:
+        """Local demo inbox: acceptance links from delivered outbox rows."""
+        if self._delivery is not None and hasattr(self._delivery, "drain"):
+            self._delivery.drain()
+        rows = self._store.list_sandbox_inbox(work_email=work_email)
+        return {
+            "evidence_label": "sandbox_inbox",
+            "messages": [row.to_inbox() for row in rows],
         }
 
     def admin_list_invitations(self, *, session_token: str) -> dict[str, Any]:

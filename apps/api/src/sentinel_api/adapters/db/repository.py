@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from sqlalchemy import Engine, select, text
@@ -25,6 +26,9 @@ from sentinel_api.domain.types import (
     WorkflowRequest,
 )
 
+# Claimed jobs become reclaimable after this lease window (crash recovery).
+WORKFLOW_JOB_LEASE_SECONDS = 30
+
 
 def _hash(payload: dict[str, Any]) -> str:
     raw = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
@@ -37,6 +41,20 @@ def _json_loads(raw: str) -> Any:
 
 def _json_dumps(value: Any) -> str:
     return json.dumps(value, separators=(",", ":"), ensure_ascii=False)
+
+
+def _workflow_request_from_payload(data: dict[str, Any]) -> WorkflowRequest:
+    return WorkflowRequest(
+        case_id=data["case_id"],
+        case_revision=data["case_revision"],
+        job_key=data["job_key"],
+        event=data["event"],
+        order_reference=data.get("order_reference"),
+    )
+
+
+def _outbox_row_id(tenant_id: str, job_key: str) -> str:
+    return hashlib.sha256(f"{tenant_id}:{job_key}".encode()).hexdigest()[:32]
 
 
 class SqlCaseRepository:
@@ -57,6 +75,7 @@ class SqlCaseRepository:
         message_id: str,
         event_id: str,
         occurred_at: str,
+        start_job: WorkflowRequest | None = None,
     ) -> tuple[CaseCreated, Case, bool]:
         request_payload = {
             "message": create.message,
@@ -184,6 +203,8 @@ class SqlCaseRepository:
                     case_id=case_id,
                 )
             )
+            if start_job is not None:
+                self._insert_workflow_outbox(conn, tenant_id=principal.tenant_id, request=start_job)
             return created, case, False
 
     def get_case(self, *, tenant_id: str, case_id: str) -> Case | None:
@@ -678,38 +699,19 @@ class SqlCaseRepository:
             return row[0] if row else None
 
     def enqueue_workflow(self, *, tenant_id: str, request: WorkflowRequest) -> None:
-        payload = request.to_dict()
-        row_id = hashlib.sha256(f"{tenant_id}:{request.job_key}".encode()).hexdigest()[:32]
         with self._engine.begin() as conn:
-            existing = (
-                conn.execute(
-                    select(schema.workflow_outbox).where(
-                        schema.workflow_outbox.c.tenant_id == tenant_id,
-                        schema.workflow_outbox.c.job_key == request.job_key,
-                    )
-                )
-                .mappings()
-                .first()
-            )
-            if existing is not None:
-                if not idempotency_payload_equal(_json_loads(existing["payload_json"]), payload):
-                    raise DomainError(
-                        "IDEMPOTENCY_CONFLICT",
-                        "Key already used with a different payload",
-                        409,
-                    )
-                return
-            conn.execute(
-                schema.workflow_outbox.insert().values(
-                    id=row_id,
-                    tenant_id=tenant_id,
-                    job_key=request.job_key,
-                    payload_json=_json_dumps(payload),
-                    status="PENDING",
-                )
-            )
+            self._insert_workflow_outbox(conn, tenant_id=tenant_id, request=request)
 
-    def claim_workflow_jobs(self, *, limit: int = 20) -> list[tuple[str, WorkflowRequest]]:
+    def claim_workflow_jobs(
+        self,
+        *,
+        limit: int = 20,
+        now: datetime | None = None,
+        lease_seconds: int = WORKFLOW_JOB_LEASE_SECONDS,
+    ) -> list[tuple[str, WorkflowRequest]]:
+        """Claim PENDING jobs, or CLAIMED jobs whose lease expired (crash reclaim)."""
+        claim_now = now or datetime.now(UTC)
+        lease_expires = claim_now + timedelta(seconds=lease_seconds)
         with self._engine.begin() as conn:
             rows = (
                 conn.execute(
@@ -718,45 +720,74 @@ class SqlCaseRepository:
                         WITH picked AS (
                           SELECT id FROM workflow_outbox
                           WHERE status = 'PENDING'
+                             OR (
+                               status = 'CLAIMED'
+                               AND (
+                                 lease_expires_at IS NULL
+                                 OR lease_expires_at < :now
+                               )
+                             )
                           ORDER BY created_at ASC
                           FOR UPDATE SKIP LOCKED
                           LIMIT :limit
                         )
                         UPDATE workflow_outbox AS o
-                        SET status = 'CLAIMED'
+                        SET status = 'CLAIMED',
+                            lease_expires_at = :lease_expires,
+                            detail = ''
                         FROM picked
                         WHERE o.id = picked.id
                         RETURNING o.id, o.payload_json
                         """
                     ),
-                    {"limit": limit},
+                    {"limit": limit, "now": claim_now, "lease_expires": lease_expires},
                 )
                 .mappings()
                 .all()
             )
-            out: list[tuple[str, WorkflowRequest]] = []
-            for row in rows:
-                data = _json_loads(row["payload_json"])
-                out.append(
-                    (
-                        row["id"],
-                        WorkflowRequest(
-                            case_id=data["case_id"],
-                            case_revision=data["case_revision"],
-                            job_key=data["job_key"],
-                            event=data["event"],
-                        ),
-                    )
-                )
-            return out
+            return [
+                (row["id"], _workflow_request_from_payload(_json_loads(row["payload_json"])))
+                for row in rows
+            ]
 
     def mark_workflow_job(self, *, job_row_id: str, status: str, detail: str = "") -> None:
         with self._engine.begin() as conn:
             conn.execute(
                 schema.workflow_outbox.update()
                 .where(schema.workflow_outbox.c.id == job_row_id)
-                .values(status=status, detail=detail)
+                .values(status=status, detail=detail, lease_expires_at=None)
             )
+
+    def _insert_workflow_outbox(self, conn, *, tenant_id: str, request: WorkflowRequest) -> None:
+        payload = request.to_dict()
+        row_id = _outbox_row_id(tenant_id, request.job_key)
+        existing = (
+            conn.execute(
+                select(schema.workflow_outbox).where(
+                    schema.workflow_outbox.c.tenant_id == tenant_id,
+                    schema.workflow_outbox.c.job_key == request.job_key,
+                )
+            )
+            .mappings()
+            .first()
+        )
+        if existing is not None:
+            if not idempotency_payload_equal(_json_loads(existing["payload_json"]), payload):
+                raise DomainError(
+                    "IDEMPOTENCY_CONFLICT",
+                    "Key already used with a different payload",
+                    409,
+                )
+            return
+        conn.execute(
+            schema.workflow_outbox.insert().values(
+                id=row_id,
+                tenant_id=tenant_id,
+                job_key=request.job_key,
+                payload_json=_json_dumps(payload),
+                status="PENDING",
+            )
+        )
 
     def _lock_case(self, conn, tenant_id: str, case_id: str):
         row = (

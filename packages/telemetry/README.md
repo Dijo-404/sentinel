@@ -66,7 +66,7 @@ report = run(
 - Span/event attributes: allowlisted correlation and operational keys only. Secrets, raw complaints, prompts, and customer/payment identifiers are rejected.
 - Metric labels: bounded allowlist (`service`, `environment`, `outcome`, `scenario`, `tool`, `action_type`, `provider`, `error_type`, `queue`, `event_kind`). Identity keys `role` / `result` / `operation` / `permission` / `reason` are **not** free-form via `sanitize_metric_labels` — use `sanitize_identity_metric_labels` or `emit_*` helpers (bounded values only). `environment` for identity metrics is `sandbox` / `fixture` / `prod` / `unknown`. Correlation IDs and PII are never labels.
 - `SafeTelemetryHooks` swallows redaction/exporter failures so callers continue. It never writes financial audit or identity audit.
-- `mode: real-peers` returns `UNVERIFIED` until an assembled collector is wired; there is no silent fixture fallback.
+- `mode: real-peers` without `telemetry.collector_endpoint` / `OTEL_EXPORTER_OTLP_ENDPOINT` returns `UNVERIFIED`. When configured, spans are exported; success is `PASS`, export failure is `FAIL` — no silent fixture fallback.
 
 ## Identity helpers (SN-042)
 
@@ -122,7 +122,8 @@ These files are hashed into fixture `RunReport` artifacts. `make check` does not
 - [x] Failing exporter still records separate financial audit; hooks never replace audit.
 - [x] Identity §15 span/metric helpers with bounded labels; admin health projection gated (no live stats).
 - [x] `make -C packages/telemetry check` with module-local uv lock only.
-- [ ] Assembled real OTLP collector/Grafana/Tempo against product services (owner assembly).
+- [x] Real-peers collector export path (HTTP JSON batch to `/v1/traces`); PASS only on successful export.
+- [ ] Assembled OTLP protobuf Collector/Grafana/Tempo against product services (owner assembly).
 - [ ] Identity service path-dep + live emission on login/invite (optional follow-up).
 - [ ] FinHarness/FinBench admin eval wiring (M5/M8; independently gated — not SN-042 complete).
 

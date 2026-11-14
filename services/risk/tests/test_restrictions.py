@@ -29,6 +29,21 @@ def test_active_restriction_blocks_financial_actions(client):
     assert body["financial_approval_granted"] is False
 
 
+def test_workflow_service_can_lookup_blocks(client):
+    _seed(client)
+    response = client.get("/v1/risk/cases/case-demo-42/blocks", headers=auth("tok-workflow"))
+    assert response.status_code == 200
+    body = response.json()
+    assert body["blocks_financial_actions"] is True
+    assert body["financial_approval_granted"] is False
+
+
+def test_operator_cannot_lookup_blocks(client):
+    _seed(client)
+    response = client.get("/v1/risk/cases/case-demo-42/blocks", headers=auth("operator-token"))
+    assert response.status_code == 403
+
+
 def test_record_finding_and_clear_without_money_approval(client, workflow):
     investigation_id, restriction_id = _seed(client)
 

@@ -96,13 +96,13 @@ class HttpPolicyClient:
         principal: Principal,
         *,
         payload: dict[str, Any],
-        evidence_ids: list[str],
+        evidence: list[dict[str, Any]],
         approval: dict[str, Any] | None = None,
     ) -> PolicyResult:
         del principal
         body: dict[str, Any] = {
             "payload": payload,
-            "evidence_ids": evidence_ids,
+            "evidence": evidence,
         }
         if approval is not None:
             body["approval"] = approval

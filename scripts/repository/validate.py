@@ -17,6 +17,20 @@ REQUIRED = {
     "assembly_acceptance", "gate",
 }
 
+# Dependency/build trees are not repository-owned; skip even when names lack a leading dot.
+IGNORED_MARKDOWN_DIRS = frozenset({
+    "node_modules", "dist", "build", "coverage", "htmlcov", "vendor",
+    "venv", "__pycache__",
+})
+
+
+def is_ignored_markdown_path(relative):
+    """Return True when a Markdown path lives under a non-owned tree."""
+    return any(
+        part.startswith(".") or part in IGNORED_MARKDOWN_DIRS
+        for part in PurePosixPath(relative).parts
+    )
+
 
 def validate_tasks(tasks, root):
     """Return actionable errors for unsafe ownership or coupled task metadata."""
@@ -133,7 +147,7 @@ def validate_repository(root=REPOSITORY_ROOT):
                 if not file.is_file() or task["id"] not in file.read_text():
                     errors.append(f"{task['id']}: missing task-scoped {name}")
         for file in root.rglob("*.md"):
-            if any(part.startswith(".") for part in file.relative_to(root).parts):
+            if is_ignored_markdown_path(file.relative_to(root)):
                 continue
             text = file.read_text()
             if not valid_markdown_whitespace(text):

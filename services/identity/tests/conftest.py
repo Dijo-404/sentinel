@@ -39,6 +39,7 @@ def client(store: MemoryIdentityStore) -> TestClient:
             contract_version="sentinel.task-contracts.v1",
             database_url="",
             seed=False,
+            accept_link_base="http://127.0.0.1:3000",
         ),
         store=store,
     )

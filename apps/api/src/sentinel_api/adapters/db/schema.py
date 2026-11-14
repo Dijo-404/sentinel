@@ -110,6 +110,7 @@ workflow_outbox = Table(
     Column("payload_json", Text, nullable=False),
     Column("status", String(32), nullable=False, server_default=text("'PENDING'")),
     Column("detail", Text, nullable=False, server_default=text("''")),
+    Column("lease_expires_at", DateTime(timezone=True), nullable=True),
     Column("created_at", DateTime(timezone=True), nullable=False, server_default=func.now()),
     UniqueConstraint("tenant_id", "job_key", name="uq_workflow_job_key"),
 )

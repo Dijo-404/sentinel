@@ -52,7 +52,7 @@ class PolicyPort(Protocol):
         principal: Principal,
         *,
         payload: dict,
-        evidence_ids: list[str],
+        evidence: list[dict],
         approval: dict | None = None,
     ) -> PolicyResult: ...
 

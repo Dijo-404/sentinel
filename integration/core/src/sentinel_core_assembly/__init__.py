@@ -1,4 +1,4 @@
-"""core-assembly.v1: four-journey harness with fixture and strict real-peer modes."""
+"""core-assembly.v1: journey harness with fixture and strict real-peer modes."""
 
 from .application.assembly import run_assembly
 from .domain.types import (

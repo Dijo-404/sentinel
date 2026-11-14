@@ -5,8 +5,9 @@
 
 ### Fixed
 
-- Real-peers bootstrap refuses default `MemoryDisputeStore`; requires an injected
-  durable store so worker processes cannot wipe or split state.
+- Real-peers bootstrap refuses default `MemoryDisputeStore`; requires
+  `DISPUTES_DATABASE_URL` (sqlite) or an injected durable store so worker
+  processes cannot wipe or split state.
 
 ### Added
 

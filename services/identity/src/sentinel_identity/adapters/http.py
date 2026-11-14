@@ -326,6 +326,17 @@ def create_app(services: AppServices) -> FastAPI:
         except IdentityError as exc:
             return _error(exc, request_id)
 
+    # --- Sandbox invitation delivery (local demo inbox; not production email) ---
+
+    @app.post("/v1/sandbox/delivery/drain")
+    def sandbox_delivery_drain() -> dict:
+        return services.identity.flush_delivery_outbox()
+
+    @app.get("/v1/sandbox/inbox")
+    def sandbox_inbox(request: Request) -> dict:
+        email = request.query_params.get("email")
+        return services.identity.list_sandbox_inbox(work_email=email or None)
+
     return app
 
 

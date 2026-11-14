@@ -6,8 +6,8 @@ export const dynamic = "force-dynamic";
 
 /**
  * Portal BFF: forward case-api.v1 with the caller's identity session.
- * Never uses process-wide CASE_API_BEARER_TOKEN for portal users.
- * Optional CASE_API_BEARER_TOKEN is service-only fallback when no cookie.
+ * Requires sentinel_session; never falls back to CASE_API_BEARER_TOKEN.
+ * Service tokens belong on server-only clients, not this browser-facing route.
  */
 async function proxy(
   req: NextRequest,
@@ -15,9 +15,7 @@ async function proxy(
 ): Promise<NextResponse> {
   const { path } = await ctx.params;
   const jar = await cookies();
-  const session = jar.get(SESSION_COOKIE)?.value;
-  const serviceToken = process.env.CASE_API_BEARER_TOKEN;
-  const bearer = session ?? serviceToken;
+  const bearer = jar.get(SESSION_COOKIE)?.value;
   if (!bearer) {
     return NextResponse.json(
       {

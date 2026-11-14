@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Fixed — order reference identity + workflow outbox crash recovery
+
+- Canonical authorized `order_reference` remains `{subject_ref}/{customer_order_id}`
+  (e.g. `subject-a/DEMO-ORDER-42`). Intake value is preserved through CaseInput and
+  workflow outbox scheduling payloads; HTTP `POST /v1/runs` still uses the wire subset
+  (order identity loaded from CaseInput). Bare provider ids stay unbound.
+- Case create inserts the START outbox row in the same transaction as the case.
+- Workflow outbox claims set `lease_expires_at`; stale `CLAIMED` jobs (expired or null
+  lease) are reclaimable. Continuous delivery: `make -C apps/api flush-workflow` or
+  `sentinel-api flush-workflow --loop` (mutation-time flush remains as a best-effort hook).
+
 ### Fixed — real-peers identity session projection
 
 - `real-peers` + `IDENTITY_BASE_URL` / `SENTINEL_API_IDENTITY_BASE_URL`: resolve human

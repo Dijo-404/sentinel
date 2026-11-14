@@ -4,7 +4,13 @@ from __future__ import annotations
 
 import pytest
 from sqlalchemy import text
-from tests.conftest import DEMO_DIGEST, DEMO_PAYLOAD, auth_header, propose_and_approve
+from tests.conftest import (
+    DEMO_DIGEST,
+    DEMO_PAYLOAD,
+    auth_header,
+    propose_and_approve,
+    reservation_json,
+)
 
 pytestmark = pytest.mark.postgres
 
@@ -16,12 +22,10 @@ def test_happy_path_propose_decide_reserve_claim_outcome(app_client, tokens):
     reserved = app_client.post(
         "/v1/actions/reservations",
         headers=auth_header(tokens["workflow"]),
-        json={
-            "operation_key": "duplicate-demo-42-b",
-            "payload": DEMO_PAYLOAD,
-            "action_digest": DEMO_DIGEST,
-            "approval_id": approval["approval_id"],
-        },
+        json=reservation_json(
+            operation_key="duplicate-demo-42-b",
+            approval_id=approval["approval_id"],
+        ),
     )
     assert reserved.status_code == 201, reserved.text
     body = reserved.json()
@@ -32,12 +36,10 @@ def test_happy_path_propose_decide_reserve_claim_outcome(app_client, tokens):
     retry = app_client.post(
         "/v1/actions/reservations",
         headers=auth_header(tokens["workflow"]),
-        json={
-            "operation_key": "duplicate-demo-42-b",
-            "payload": DEMO_PAYLOAD,
-            "action_digest": DEMO_DIGEST,
-            "approval_id": approval["approval_id"],
-        },
+        json=reservation_json(
+            operation_key="duplicate-demo-42-b",
+            approval_id=approval["approval_id"],
+        ),
     )
     assert retry.status_code == 200
     assert retry.json() == body
@@ -143,12 +145,10 @@ def test_expired_approval_rejected(app_client, tokens, clock):
     reserved = app_client.post(
         "/v1/actions/reservations",
         headers=auth_header(tokens["workflow"]),
-        json={
-            "operation_key": "duplicate-demo-42-b",
-            "payload": DEMO_PAYLOAD,
-            "action_digest": DEMO_DIGEST,
-            "approval_id": approval["approval_id"],
-        },
+        json=reservation_json(
+            operation_key="duplicate-demo-42-b",
+            approval_id=approval["approval_id"],
+        ),
     )
     assert reserved.status_code == 409
     assert reserved.json()["code"] == "APPROVAL_EXPIRED"
@@ -215,12 +215,10 @@ def test_peer_stub_cases(engine, clock, tokens, guard):
         reserved = client.post(
             "/v1/actions/reservations",
             headers=auth_header(tokens["workflow"]),
-            json={
-                "operation_key": f"op-{case}",
-                "payload": DEMO_PAYLOAD,
-                "action_digest": DEMO_DIGEST,
-                "approval_id": approval["approval_id"],
-            },
+            json=reservation_json(
+                operation_key=f"op-{case}",
+                approval_id=approval["approval_id"],
+            ),
         )
         assert reserved.status_code in {403, 422, 503}, (case, reserved.text)
         assert proposed["status"] == "PROPOSED"

@@ -15,12 +15,16 @@ from sentinel_api.domain.types import CaseResult, DomainError
 
 
 def test_order_bound_to_subject_equal_or_prefixed():
+    # Canonical authorized form: {subject_ref}/{customer_order_id}
+    canonical = "subject-a/DEMO-ORDER-42"
+    assert order_bound_to_subject(canonical, "subject-a")
     assert order_bound_to_subject("subject-a", "subject-a")
-    assert order_bound_to_subject("subject-a/DEMO-ORDER-42", "subject-a")
     assert order_bound_to_subject("subject-a:42", "subject-a")
     assert not order_bound_to_subject("subject-ab", "subject-a")
+    # Bare provider order id is not bound — do not strip subject prefix to invent this.
     assert not order_bound_to_subject("DEMO-ORDER-42", "subject-a")
     assert not order_bound_to_subject("subject-b/ORDER", "subject-a")
+    assert "Canonical authorized form" in (order_bound_to_subject.__doc__ or "")
 
 
 def test_require_order_bound_fail_closed():

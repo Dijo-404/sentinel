@@ -5,8 +5,10 @@
 
 ### Fixed
 
-- Real-peers bootstrap refuses default `MemoryRequestStore`; requires an injected
-  durable store so worker processes cannot wipe or split state.
+- Real-peers bootstrap refuses default `MemoryRequestStore`; requires
+  `MERCHANT_REFUNDS_DATABASE_URL` (sqlite) or an injected durable store so worker
+  processes cannot wipe or split state.
+- Policy HTTP peer posts `evidence` objects (policy.v1), not bare `evidence_ids`.
 
 ### Added
 

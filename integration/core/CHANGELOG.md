@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+### Added — 14 November 2026 (finding #8 browser-to-credit)
+
+- Authority journeys `browser_to_credit` and `duplicate_approval_deny`: intake →
+  proposal → approval → reservation → dispatcher-role claim → verifier → customer
+  closure, plus conflicting-approval deny (no refund side effect).
+- Fixture doubles set `path=browser-to-credit-fixture` and
+  `sn009_authority_exercised=true` when those journeys pass; `assembled_mvp_claimed`
+  stays false.
+- Real-peer HTTP drivers gated by `SENTINEL_V1_AUTHORITY_PATH=1`; on success
+  `path=browser-to-credit`, `sn009_authority_exercised=true`.
+- Default real-peers still provider journeys only (`path=provider-sandbox-only`).
+- `SENTINEL_V1_REQUIRE_FULL_PATH=1` requires `path=browser-to-credit` after journeys.
+- Runbook / matrix / seeds / contract snapshot updated for honesty labels.
+
 ### Fixed — 14 November 2026 (RBAC fixture role catalog)
 
 - `_STAFF_ROLES` aligned with identity `STAFF_INVITABLE_ROLES` (dropped legacy `admin` alias).
@@ -55,6 +69,6 @@
 ### Implementation status
 
 - Module-local fixture harness and negative strict-mode diagnostics remain covered by `make -C integration/core check`.
-- HTTP journey drivers hit payment-provider only (`path=provider-sandbox-only`); they do not exercise SN-009 ledger authority.
-- Full multi-service live assembly depends on peer bring-up + simulator seed packs (#82) and is exercised via the runbook/script.
-- Passing fixture checks are not product release evidence. V1 sandbox PASS is not live-provider evidence.
+- Default HTTP drivers hit payment-provider only (`path=provider-sandbox-only`).
+- Authority HTTP path needs live peers + `SENTINEL_V1_AUTHORITY_PATH=1` (runbook).
+- Passing fixture / sandbox checks are not product release or live-provider evidence.

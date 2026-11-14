@@ -16,12 +16,16 @@ _DEFAULT_AUTH_TOKENS = (
     '"roles":["workflow"],"subject_refs":["subject-demo-42"],"case_ids":["case-demo-42"]},'
     '"tok-verifier":{"principal_id":"svc-verifier","tenant_id":"tenant-demo",'
     '"roles":["verifier"],"subject_refs":["subject-demo-42"],"case_ids":["case-demo-42"]},'
+    '"tok-risk-officer":{"principal_id":"risk-officer-demo","tenant_id":"tenant-demo",'
+    '"roles":["risk_officer"],"subject_refs":["subject-demo-42"],"case_ids":["case-demo-42"]},'
     '"workflow-token":{"principal_id":"svc-workflow","tenant_id":"tenant-demo",'
     '"roles":["workflow"],"subject_refs":["subject-demo"],"case_ids":["case-demo-42"]},'
     '"case-api-token":{"principal_id":"svc-case-api","tenant_id":"tenant-demo",'
     '"roles":["workflow"],"subject_refs":["subject-demo"],"case_ids":["case-demo-42"]},'
     '"verifier-token":{"principal_id":"svc-verifier","tenant_id":"tenant-demo",'
-    '"roles":["verifier"],"subject_refs":["subject-demo"],"case_ids":["case-demo-42"]}}'
+    '"roles":["verifier"],"subject_refs":["subject-demo"],"case_ids":["case-demo-42"]},'
+    '"risk-token":{"principal_id":"risk-1","tenant_id":"tenant-demo",'
+    '"roles":["risk_officer"],"subject_refs":["subject-demo"],"case_ids":["case-demo-42"]}}'
 )
 
 
@@ -42,6 +46,7 @@ class Settings(BaseSettings):
     peer_policy_url: str = ""
     peer_ledger_url: str = ""
     peer_verifier_url: str = ""
+    peer_risk_url: str = ""
     peer_model_url: str = ""
     outbound_bearer: str = "tok-workflow"
     host: str = "127.0.0.1"

@@ -49,6 +49,14 @@ TOKENS = {
         ("case-demo-42",),
         ("FRAUD",),
     ),
+    "tok-workflow": Principal(
+        "svc-workflow",
+        "tenant-demo",
+        ("workflow",),
+        ("subj-demo-1",),
+        ("*",),
+        (),
+    ),
 }
 
 

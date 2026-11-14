@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from sentinel_evaluation.adapters.assembly import RejectingRealAssemblyPeer, StubAssemblyPeer
+from sentinel_evaluation.adapters.assembly import HttpAssemblyPeer, StubAssemblyPeer
 from sentinel_evaluation.adapters.candidates import build_candidate
 from sentinel_evaluation.adapters.fixtures import FileFixtureDataset
 from sentinel_evaluation.adapters.http_candidate import HttpCandidateAdapter
@@ -15,6 +15,7 @@ def build_service(
     mode: str = "fixture",
     assembly_stub: str = "valid",
     candidate_url: str | None = None,
+    assembly_url: str | None = None,
     dataset_root: Path | None = None,
     output_dir: Path | None = None,
 ) -> EvaluateService:
@@ -24,11 +25,11 @@ def build_service(
     else:
         runner = build_candidate(candidate)
     if mode == "real-peers":
-        # Explicit stub selection exercises negative peer cases; no silent fixture fallback.
+        # Local reference doubles via stub name; live/HTTP via assembly_url (no fixture fallback).
         if assembly_stub and assembly_stub != "live":
             assembly = StubAssemblyPeer(assembly_stub)
         else:
-            assembly = RejectingRealAssemblyPeer(candidate_url)
+            assembly = HttpAssemblyPeer(assembly_url or candidate_url)
     else:
         assembly = StubAssemblyPeer(assembly_stub)
     return EvaluateService(dataset, runner, assembly, output_dir=output_dir)

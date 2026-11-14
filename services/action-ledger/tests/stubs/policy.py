@@ -23,10 +23,14 @@ class PolicyStub:
         *,
         guard: ReservationNetworkGuard | None = None,
         policy_version: str = "demo-policy-v1",
+        outcome: str = "ALLOW",
+        action_digest_override: str | None = None,
     ) -> None:
         self.case = case
         self.guard = guard
         self.policy_version = policy_version
+        self.outcome = outcome
+        self.action_digest_override = action_digest_override
         self.calls = 0
 
     def evaluate(
@@ -46,10 +50,14 @@ class PolicyStub:
             raise ValidationError("policy.v1 malformed", code="PEER_MALFORMED")
         if self.case == "unauthorized_or_out_of_scope":
             raise ForbiddenError("policy.v1 unauthorized_or_out_of_scope")
-        digest = action_digest(payload)
+        digest = (
+            self.action_digest_override
+            if self.action_digest_override is not None
+            else action_digest(payload)
+        )
         return {
-            "outcome": "REQUIRE_APPROVAL",
-            "reason_codes": ["SUPERVISOR_REQUIRED"],
+            "outcome": self.outcome,
+            "reason_codes": [] if self.outcome == "ALLOW" else ["POLICY_BLOCK"],
             "policy_version": self.policy_version,
             "action_digest": digest,
             "required_evidence": [],

@@ -8,6 +8,9 @@ SHA-256: `0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb`
 | Route | Request | Response |
 | --- | --- | --- |
 | `POST /v1/runs` | `WorkflowRequest` | `Ack`, 202 |
+| `POST /v1/workflow/risk-resume` | `RiskResumeRequest` | `Ack`, 202 |
+
+`RiskResumeRequest`: `{ event_type, investigation_id, case_id, restriction_id, tenant_id, financial_approval_granted: false }`. Auth: `risk_officer`. Clearance never grants money; starts re-evaluation only.
 
 ## Consumed (local stubs under `tests/stubs/`)
 
@@ -18,6 +21,7 @@ SHA-256: `0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb`
 | `policy.v1` | valid, unavailable, malformed, unauthorized_or_out_of_scope |
 | `action-ledger.v1` | valid, unavailable, malformed, unauthorized_or_out_of_scope |
 | `verifier.v1` | valid, unavailable, malformed, unauthorized_or_out_of_scope |
+| `risk.v1` blocks | valid, unavailable, malformed, unauthorized_or_out_of_scope |
 
 ## Real-peer adapter
 

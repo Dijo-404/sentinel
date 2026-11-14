@@ -63,16 +63,20 @@ Order references match simulator journey packs. If #82 is not on `main` yet, sim
 | merchant_mismatch | `JOURNEY-MISMATCH` | captured + unpaid order → `NEEDS_HUMAN` |
 | duplicate_payment | `DEMO-ORDER-42` / `TXN-B` / `refund-demo-1` | 150000 minor, timeout recover, credit → `VERIFIED_RESOLVED` |
 | refund_pending | `JOURNEY-REFUND-PENDING` / `refund-pending-1` | seeded provider `PENDING` ≠ customer credit |
+| browser_to_credit | `subject-demo-42/DEMO-ORDER-42` + ledger digest seed | intake→SN-009→dispatcher→verifier→closure |
+| duplicate_approval_deny | ledger operation `duplicate-approval-deny-demo` | conflicting decision denied; no refund |
 
 Assembly drivers fail closed if a seed is missing.
 
 ## Path honesty
 
-- Current `HttpPeerBundle` path: `provider-sandbox-only` (payment-provider HTTP).
+- Default real-peers `HttpPeerBundle` path: `provider-sandbox-only` (payment-provider HTTP).
+- With `SENTINEL_V1_AUTHORITY_PATH=1` and passing authority journeys: `path=browser-to-credit`,
+  `sn009_authority_exercised=true` (still `assembled_mvp_claimed=false`).
+- Fixture authority doubles: `path=browser-to-credit-fixture` when those journeys pass.
 - Fixture RBAC probes path: `rbac-fixture` (AUTH-01 register deny, admin invite, AUTH-06 decide deny).
-- Reports set `assembled_mvp_claimed=false`, `sn009_authority_exercised=false`.
 - `rbac-fixture` does **not** claim SN-009 authority or full money path.
-- `SENTINEL_V1_REQUIRE_FULL_PATH=1` fails closed while path remains provider-only.
+- `SENTINEL_V1_REQUIRE_FULL_PATH=1` requires `path=browser-to-credit`; fails on provider-only.
 - Peers advertise `mode=real-peers`; assembly still labels `payment_provider=simulator`.
 
 ## Evidence limits

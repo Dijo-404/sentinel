@@ -170,12 +170,14 @@ class HttpLedger:
         self._base, self._headers, self._timeout = _client(base_url, token)
 
     def create_proposal(self, request: ProposalRequest) -> ActionRecord:
+        # Top-level order_reference is optional metadata; ledger propose ignores extras.
+        body = request.model_dump(exclude_none=True)
         response = _request(
             "POST",
             f"{self._base}/v1/actions/proposals",
             self._headers,
             peer="action-ledger",
-            json=request.model_dump(exclude_none=True),
+            json=body,
             timeout=self._timeout,
         )
         try:
@@ -184,12 +186,14 @@ class HttpLedger:
             raise PeerError("MALFORMED", "ledger returned malformed ActionRecord", 502) from exc
 
     def reserve(self, request: ReservationRequest) -> ActionRecord:
+        # Ledger requires explicit top-level order_reference (not invented from txn).
+        body = request.model_dump(exclude_none=True)
         response = _request(
             "POST",
             f"{self._base}/v1/actions/reservations",
             self._headers,
             peer="action-ledger",
-            json=request.model_dump(exclude_none=True),
+            json=body,
             timeout=self._timeout,
         )
         try:
@@ -241,3 +245,32 @@ class HttpVerifier:
             return VerificationResult.model_validate(response.json())
         except Exception as exc:
             raise PeerError("MALFORMED", "verifier returned malformed assessment", 502) from exc
+
+
+class HttpRisk:
+    """Hold lookup against risk.v1. Never treats clearance as money approval."""
+
+    def __init__(self, base_url: str, token: str) -> None:
+        self._base, self._headers, self._timeout = _client(base_url, token)
+
+    def blocks_financial_actions(self, case_id: str) -> bool:
+        response = _request(
+            "GET",
+            f"{self._base}/v1/risk/cases/{case_id}/blocks",
+            self._headers,
+            peer="risk",
+            timeout=self._timeout,
+        )
+        try:
+            body = response.json()
+        except Exception as exc:
+            raise PeerError("MALFORMED", "risk returned non-JSON blocks", 502) from exc
+        if not isinstance(body, dict) or "blocks_financial_actions" not in body:
+            raise PeerError("MALFORMED", "risk returned malformed CaseBlocks", 502)
+        if body.get("financial_approval_granted") is True:
+            raise PeerError(
+                "MALFORMED",
+                "risk blocks must never claim financial_approval_granted",
+                502,
+            )
+        return bool(body["blocks_financial_actions"])

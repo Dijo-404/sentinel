@@ -1,20 +1,58 @@
-"""CLI entry for local preview helpers."""
+"""CLI entry for local preview helpers and continuous workflow delivery."""
 
 from __future__ import annotations
 
 import argparse
-
-from sentinel_api import CONTRACT_HASH, CONTRACT_VERSION, __version__
+import time
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="sentinel-api")
-    parser.add_argument("command", choices=["version", "contract"])
+    parser.add_argument(
+        "command",
+        choices=["version", "contract", "flush-workflow"],
+    )
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help="flush-workflow: single pass then exit (default for non-loop)",
+    )
+    parser.add_argument(
+        "--loop",
+        action="store_true",
+        help="flush-workflow: reclaim/deliver forever until interrupted",
+    )
+    parser.add_argument(
+        "--interval",
+        type=float,
+        default=2.0,
+        help="flush-workflow loop sleep seconds (default 2)",
+    )
     args = parser.parse_args(argv)
     if args.command == "version":
+        from sentinel_api import __version__
+
         print(__version__)
         return 0
-    print(f"{CONTRACT_VERSION} {CONTRACT_HASH}")
+    if args.command == "contract":
+        from sentinel_api import CONTRACT_HASH, CONTRACT_VERSION
+
+        print(f"{CONTRACT_VERSION} {CONTRACT_HASH}")
+        return 0
+
+    # flush-workflow: continuous reclaim of stale CLAIMED + PENDING delivery.
+    from sentinel_api.bootstrap import build_app
+
+    app = build_app()
+    service = app.state.service
+    if args.loop and not args.once:
+        while True:
+            n = service.flush_workflow()
+            if n:
+                print(f"delivered={n}", flush=True)
+            time.sleep(max(args.interval, 0.1))
+    n = service.flush_workflow()
+    print(f"delivered={n}")
     return 0
 
 

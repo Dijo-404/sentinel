@@ -150,6 +150,33 @@ class PrivilegedChangeRequest:
 
 
 @dataclass(frozen=True)
+class DeliveryOutboxItem:
+    """Sandbox invitation delivery row (durable secret + optional acceptance link)."""
+
+    delivery_id: str
+    invitation_id: str
+    work_email: str
+    raw_token: str
+    status: str  # pending | delivered
+    created_at: datetime
+    delivered_at: datetime | None = None
+    acceptance_link: str | None = None
+
+    def to_inbox(self) -> dict[str, Any]:
+        return {
+            "delivery_id": self.delivery_id,
+            "invitation_id": self.invitation_id,
+            "work_email": self.work_email,
+            "subject": "Sentinel staff invitation (sandbox)",
+            "acceptance_link": self.acceptance_link,
+            "token": self.raw_token,
+            "status": self.status,
+            "delivered_at": self.delivered_at.isoformat() if self.delivered_at else None,
+            "evidence_label": "sandbox_inbox",
+        }
+
+
+@dataclass(frozen=True)
 class AuditEvent:
     event_id: str
     actor_user_id: str | None
