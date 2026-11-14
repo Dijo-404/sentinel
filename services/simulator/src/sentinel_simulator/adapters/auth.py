@@ -29,8 +29,9 @@ def default_token_map(
     verifier_token: str = "tok-verifier",
     dispatcher_token: str = "tok-dispatcher",
     sandbox_admin_token: str = "tok-sandbox-admin",
+    include_aliases: bool = True,
 ) -> TokenMap:
-    """Canonical sandbox tokens plus legacy *-demo aliases."""
+    """Canonical sandbox tokens; legacy *-demo aliases only on loopback binds."""
     scope = (subject_ref,)
     cases = (case_id,)
     workflow = Principal(
@@ -66,10 +67,14 @@ def default_token_map(
         verifier_token: verifier,
         dispatcher_token: dispatcher,
         sandbox_admin_token: sandbox_admin,
-        # Legacy aliases (same principals).
-        "tok-workflow-demo": workflow,
-        "tok-verifier-demo": verifier,
-        "tok-dispatcher-demo": dispatcher,
-        "tok-sandbox-admin-demo": sandbox_admin,
     }
+    if include_aliases:
+        tokens.update(
+            {
+                "tok-workflow-demo": workflow,
+                "tok-verifier-demo": verifier,
+                "tok-dispatcher-demo": dispatcher,
+                "tok-sandbox-admin-demo": sandbox_admin,
+            }
+        )
     return TokenMap(tokens)

@@ -5,6 +5,10 @@ import os
 from fastapi import FastAPI
 
 from sentinel_simulator.adapters.auth import default_token_map
+from sentinel_simulator.adapters.bind_safety import (
+    assert_loopback_or_non_demo,
+    is_loopback_host,
+)
 from sentinel_simulator.adapters.http import mount_routes
 from sentinel_simulator.adapters.memory import InMemoryStore
 from sentinel_simulator.adapters.seed import default_seed
@@ -46,6 +50,7 @@ def create_app(
         refunds=seed.refunds,
     )
     is_sandbox = sandbox_enabled() if sandbox is None else sandbox
+    bind_host = os.environ.get("SIMULATOR_HOST", "127.0.0.1")
     simulator = PaymentSimulator(
         memory,
         sandbox=is_sandbox,
@@ -60,7 +65,9 @@ def create_app(
         verifier_token=os.environ.get("SIMULATOR_TOKEN_VERIFIER", "tok-verifier"),
         dispatcher_token=os.environ.get("SIMULATOR_TOKEN_DISPATCHER", "tok-dispatcher"),
         sandbox_admin_token=os.environ.get("SIMULATOR_TOKEN_SANDBOX_ADMIN", "tok-sandbox-admin"),
+        include_aliases=is_loopback_host(bind_host),
     )
+    assert_loopback_or_non_demo(bind_host, tokens.tokens.keys())
     app = FastAPI(title="sentinel-simulator", version="0.1.0")
     app.state.simulator = simulator
     app.state.store = memory

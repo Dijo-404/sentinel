@@ -1,6 +1,7 @@
 # SN-011 changelog
 
 ## Unreleased
+- Refuse non-loopback HTTP bind while demo/sandbox bearer tokens remain configured.
 
 ### Changed — 14 November 2026
 

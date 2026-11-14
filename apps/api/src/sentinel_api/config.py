@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     verifier_base_url: str = ""
     token_map_path: str = "fixtures/auth_tokens.json"
     service_token: str = "tok-case-api"
+    host: str = "127.0.0.1"
 
     def token_path(self, base: Path) -> Path:
         path = Path(self.token_map_path)

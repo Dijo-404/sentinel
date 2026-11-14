@@ -28,11 +28,22 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "serve":
         import uvicorn
 
+        from sentinel_workflow.adapters.bind_safety import (
+            UnsafeBindError,
+            assert_loopback_or_non_demo,
+        )
         from sentinel_workflow.bootstrap import build_container
 
         container = build_container()
         host = args.host or container.settings.host
         port = args.port or container.settings.port
+        try:
+            tokens = list(container.settings.token_map_raw().keys())
+            tokens.append(container.settings.outbound_bearer)
+            assert_loopback_or_non_demo(host, tokens)
+        except UnsafeBindError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
         uvicorn.run(container.app, host=host, port=port)
         return 0
 
