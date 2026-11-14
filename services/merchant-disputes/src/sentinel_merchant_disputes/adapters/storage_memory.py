@@ -29,6 +29,14 @@ class MemoryDisputeStore:
     def get(self, dispute_id: str) -> DisputeCase | None:
         return self._disputes.get(dispute_id)
 
+    def list(self, *, tenant_id: str, merchant_ref: str) -> tuple[DisputeCase, ...]:
+        items = [
+            dispute
+            for dispute in self._disputes.values()
+            if dispute.tenant_id == tenant_id and dispute.merchant_ref == merchant_ref
+        ]
+        return tuple(sorted(items, key=lambda d: d.dispute_id))
+
     def save(self, dispute: DisputeCase) -> DisputeCase:
         if dispute.dispute_id not in self._disputes:
             raise ConflictError("Unknown dispute")

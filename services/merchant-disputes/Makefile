@@ -1,6 +1,6 @@
 UV ?= uv
 
-.PHONY: setup check preview
+.PHONY: setup check preview migrate seed
 setup:
 	$(UV) sync --frozen
 
@@ -11,3 +11,9 @@ check: setup
 
 preview: setup
 	$(UV) run --frozen sentinel-merchant-disputes serve
+
+migrate: setup
+	$(UV) run --frozen sentinel-merchant-disputes migrate
+
+seed: setup
+	$(UV) run --frozen sentinel-merchant-disputes seed
