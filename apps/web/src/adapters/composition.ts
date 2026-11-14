@@ -4,6 +4,7 @@ import { createBffCaseClient } from "./bff-case-client";
 import { createCaseApiStub } from "./fixture-case-client";
 import { createVoiceStub } from "../../tests/stubs/voice";
 import { createRealPeerCaseClient } from "./real-peer-case-client";
+import { createBffVoiceClient } from "./real-peer-voice-client";
 
 export type ShellRuntime = {
   config: ShellConfig;
@@ -104,13 +105,13 @@ export function createShellRuntime(
   }
 
   let voiceClient: VoiceClient | null = null;
-  if (overrides && "voiceClient" in overrides) {
-    voiceClient = overrides.voiceClient ?? null;
+  if (overrides?.voiceClient !== undefined) {
+    voiceClient = overrides.voiceClient;
   } else if (config.voiceEnabled) {
     voiceClient =
       config.mode === "fixture"
         ? createVoiceStub("valid")
-        : createVoiceStub("unavailable");
+        : createBffVoiceClient({ fetchImpl: overrides?.fetchImpl });
   }
 
   return { config, caseClient, voiceClient };

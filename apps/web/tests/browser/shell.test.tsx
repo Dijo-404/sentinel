@@ -252,7 +252,7 @@ describe("standalone browser checks", () => {
     }
   });
 
-  it("voice slot disabled by default; enabled substitute uses local client", async () => {
+  it("voice slot disabled by default; enabled peer labels evidence_mode", async () => {
     const user = userEvent.setup();
     render(<LocalVoiceSubstitute enabled={false} client={null} />);
     expect(screen.getByTestId("voice-slot")).toHaveTextContent(
@@ -264,12 +264,18 @@ describe("standalone browser checks", () => {
       language: "en-IN",
       ambiguous: false,
       reason_codes: [],
+      evidence_mode: "recorded",
     }));
     render(<LocalVoiceSubstitute enabled client={{ transcribe }} />);
     await user.click(screen.getByRole("checkbox"));
     await user.type(screen.getByLabelText("Voice text fallback"), "paid twice");
     await user.click(screen.getByRole("button", { name: "Transcribe" }));
-    expect(await screen.findByRole("status")).toHaveTextContent("paid twice");
+    expect(await screen.findByTestId("voice-slot-result")).toHaveTextContent(
+      "paid twice",
+    );
+    expect(screen.getByTestId("voice-evidence-mode")).toHaveTextContent(
+      "evidence_mode=recorded",
+    );
 
     render(
       <LocalVoiceSubstitute

@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Added — 15 November 2026 (voice peer slot)
+
+- BFF session proxy `/api/bff/voice` → `VOICE_BASE_URL` (default `:8017`).
+- Real-peer voice client (`createBffVoiceClient`); composition wires it when
+  `NEXT_PUBLIC_VOICE_ENABLED=true` in real-peers (fixture keeps stub).
+- Intake voice slot labels `evidence_mode` recorded vs live; peer down stays
+  visible (`PEER_UNAVAILABLE`). `.env.example` enables voice for product demo.
+- Tests: `tests/bff-voice-route.test.ts`, `tests/voice-peer-client.test.ts`
+  (no SARVAM key).
+
 ### Added — 15 November 2026 (SN-013 approval-ui in real-peers)
 
 - `approval-slot` mounts `ApprovalPanel` from `sentinel-approval-ui` when
