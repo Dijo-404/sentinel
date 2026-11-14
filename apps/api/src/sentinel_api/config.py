@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     evidence_base_url: str = ""
     ledger_base_url: str = ""
     verifier_base_url: str = ""
+    identity_base_url: str = ""
     token_map_path: str = "fixtures/auth_tokens.json"
     identity_sessions_path: str = "fixtures/identity_sessions.json"
     service_token: str = "tok-case-api"
