@@ -6,6 +6,7 @@ import httpx
 
 from sentinel_core_assembly.adapters.config import AssemblyConfig
 from sentinel_core_assembly.adapters.reference import HttpPeerBundle, ReferenceBundle
+from sentinel_core_assembly.adapters.sandbox_matrix import default_tokens
 from sentinel_core_assembly.application.ports import JourneyPeers
 from sentinel_core_assembly.domain.types import CONTRACT_SHA256, CONTRACT_VERSION
 
@@ -19,6 +20,13 @@ def build_peers(config: AssemblyConfig) -> JourneyPeers:
         return ReferenceBundle()
     if config.mode == "real-peers":
         # Empty endpoint strings are omitted from probes; assembly reports PEER_MISSING.
-        client = httpx.Client(timeout=2.0)
-        return HttpPeerBundle(endpoints=dict(config.peer_endpoints), client=client)
+        client = httpx.Client(timeout=10.0)
+        tokens = dict(config.tokens) if config.tokens else default_tokens()
+        return HttpPeerBundle(
+            endpoints=dict(config.peer_endpoints),
+            client=client,
+            tokens=tokens,
+            tenant_id=config.tenant_id,
+            case_id=config.case_id,
+        )
     raise ValueError("UNSUPPORTED_MODE")

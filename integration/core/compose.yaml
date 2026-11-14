@@ -1,0 +1,26 @@
+# V1 local sandbox data plane (Postgres). Application peers start via the runbook.
+# Usage: docker compose -f integration/core/compose.yaml up -d
+# No production credentials. Demo passwords only.
+
+name: sentinel-v1-sandbox
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: sentinel
+      POSTGRES_PASSWORD: sentinel
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - sentinel_v1_pg:/var/lib/postgresql/data
+      - ./compose/init-databases.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sentinel -d postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  sentinel_v1_pg:

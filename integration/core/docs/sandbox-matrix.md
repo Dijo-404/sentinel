@@ -2,7 +2,9 @@
 
 **Label:** sandbox / synthetic only. No production credentials, no live payments.
 
-**Source of truth:** [../fixtures/sandbox-tokens.json](../fixtures/sandbox-tokens.json)
+**Source of truth:** [../fixtures/sandbox-tokens.json](../fixtures/sandbox-tokens.json) (`tok-*` → principal; shared with #84).
+
+Assembly extras (role→token lookup, base URLs, journey seeds, path label): [../fixtures/sandbox-assembly.json](../fixtures/sandbox-assembly.json).
 
 Use this matrix so local `mode=real-peers` services share one tenant, case, port map, and opaque bearer strings.
 
@@ -14,6 +16,7 @@ Use this matrix so local `mode=real-peers` services share one tenant, case, port
 | `case_id` | `case-demo-42` |
 | `subject_ref` | `subject-demo-42` |
 | `merchant_ref` | `merchant-demo-1` |
+| `payment_provider` | `simulator` (never claim live) |
 
 ## Local ports (`127.0.0.1`)
 
@@ -43,9 +46,25 @@ Same string is accepted by every peer that needs that role (plus cheap legacy al
 | `tok-supervisor` | approval decisions |
 | `tok-sandbox-admin` | simulator admin / demo-reset |
 
-## Module wiring
+## Journey seed keys (simulator #82)
 
-Each peer's `.env.example` and fixture token map should accept the canonical strings above. Older demo names (`token-workflow-demo`, `workflow-demo-token`, `demo-tenant-a`, `tenant-demo-1`, …) may remain as aliases during transition; new local runs should prefer this matrix.
+Order references match simulator journey packs. If #82 is not on `main` yet, simulator must expose these same keys.
+
+| Journey | Seed key | Expectation |
+| --- | --- | --- |
+| pending | `JOURNEY-PENDING` | payment `PENDING` → `WAITING_ON_EVIDENCE` |
+| merchant_mismatch | `JOURNEY-MISMATCH` | captured + unpaid order → `NEEDS_HUMAN` |
+| duplicate_payment | `DEMO-ORDER-42` / `TXN-B` / `refund-demo-1` | 150000 minor, timeout recover, credit → `VERIFIED_RESOLVED` |
+| refund_pending | `JOURNEY-REFUND-PENDING` / `refund-pending-1` | seeded provider `PENDING` ≠ customer credit |
+
+Assembly drivers fail closed if a seed is missing.
+
+## Path honesty
+
+- Current `HttpPeerBundle` path: `provider-sandbox-only` (payment-provider HTTP).
+- Reports set `assembled_mvp_claimed=false`, `sn009_authority_exercised=false`.
+- `SENTINEL_V1_REQUIRE_FULL_PATH=1` fails closed while path remains provider-only.
+- Peers advertise `mode=real-peers`; assembly still labels `payment_provider=simulator`.
 
 ## Evidence limits
 

@@ -109,9 +109,12 @@ class RunReport:
     checks: tuple[CheckResult, ...]
     output_artifacts: tuple[ArtifactRef, ...] = ()
     assembled_mvp_claimed: bool = False
+    payment_provider: str | None = None
+    path: str | None = None
+    sn009_authority_exercised: bool = False
 
     def as_dict(self) -> dict[str, Any]:
-        return {
+        payload: dict[str, Any] = {
             "contract_version": self.contract_version,
             "run_id": self.run_id,
             "mode": self.mode,
@@ -119,9 +122,16 @@ class RunReport:
             "checks": [c.as_dict() for c in self.checks],
             "output_artifacts": [a.as_dict() for a in self.output_artifacts],
             "assembled_mvp_claimed": self.assembled_mvp_claimed,
+            "sn009_authority_exercised": self.sn009_authority_exercised,
             "port": PORT,
             "contract_sha256": CONTRACT_SHA256,
         }
+        if self.payment_provider is not None:
+            # real-peers against mock sandbox still labels provider=simulator (not live).
+            payload["payment_provider"] = self.payment_provider
+        if self.path is not None:
+            payload["path"] = self.path
+        return payload
 
 
 @dataclass(frozen=True)
