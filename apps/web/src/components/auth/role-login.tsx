@@ -45,7 +45,7 @@ export function RoleLogin({ role = "customer", next }: Props) {
         </p>
       </div>
 
-      <form action={formAction} className="stack" noValidate>
+      <form action={formAction} className="stack">
         {next ? <input type="hidden" name="next" value={next} /> : null}
 
         <label>

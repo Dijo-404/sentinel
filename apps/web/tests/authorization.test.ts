@@ -129,8 +129,10 @@ describe("requireRole unauthenticated redirect", () => {
   });
 
   it("redirects unauthenticated access to role login", async () => {
-    await expect(requireRole("admin")).rejects.toThrow("REDIRECT:/admin/login");
-    expect(redirectMock).toHaveBeenCalledWith("/admin/login");
+    await expect(requireRole("admin")).rejects.toThrow(
+      "REDIRECT:/login?portal=admin",
+    );
+    expect(redirectMock).toHaveBeenCalledWith("/login?portal=admin");
   });
 });
 

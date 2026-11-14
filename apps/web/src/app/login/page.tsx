@@ -1,5 +1,7 @@
+import { redirect } from "next/navigation";
 import { RoleLogin } from "@/components/auth/role-login";
 import type { PortalRole } from "../../../tests/stubs/identity";
+import { getAuthSession, portalPath } from "@/lib/server/auth";
 
 const PORTALS: PortalRole[] = [
   "customer",
@@ -24,6 +26,10 @@ export default async function LoginPage({
 }) {
   const params = await searchParams;
   const role = parsePortal(params.portal);
+  const session = await getAuthSession();
+  if (session) {
+    redirect(portalPath(session.assignment.role));
+  }
 
   return (
     <div className="auth-page auth-page--night">

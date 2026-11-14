@@ -456,8 +456,10 @@ button:disabled {
 }
 
 .landing-nav__links {
-  display: none;
+  display: flex;
   gap: 1.25rem;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .landing-nav__links a {
@@ -476,9 +478,9 @@ button:disabled {
   align-items: center;
 }
 
-@media (min-width: 800px) {
+@media (max-width: 719px) {
   .landing-nav__links {
-    display: flex;
+    display: none;
   }
 }
 

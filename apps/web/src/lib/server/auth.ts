@@ -41,7 +41,7 @@ export function portalPath(role: PortalRole): string {
 }
 
 export function loginPath(role: PortalRole): string {
-  return `/${role}/login`;
+  return `/login?portal=${role}`;
 }
 
 /**
