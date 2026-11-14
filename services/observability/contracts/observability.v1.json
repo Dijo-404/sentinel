@@ -1,0 +1,66 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "component": "observability",
+  "port": "observability.v1",
+  "sha256_baseline": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb",
+  "aligns_with": "telemetry.v1 RecordedSpan name/attributes/events",
+  "produces": "SignalFeed",
+  "consumes": [],
+  "routes": [
+    {
+      "method": "POST",
+      "path": "/v1/ingest",
+      "roles": ["platform_admin", "sandbox-admin"],
+      "body": "signals[] | spans[]",
+      "response": "{ accepted, financial_audit: false }",
+      "notes": "Sandbox ingest; span fields match telemetry RecordedSpan."
+    },
+    {
+      "method": "GET",
+      "path": "/v1/signals",
+      "roles": ["platform_admin", "sandbox-admin"],
+      "response": "SignalFeed",
+      "read_only": true,
+      "notes": "Newest first, max 50. financial_audit always false."
+    },
+    {
+      "method": "GET",
+      "path": "/v1/spans",
+      "roles": ["platform_admin", "sandbox-admin"],
+      "response": "{ spans: RecordedSpan[], financial_audit: false }",
+      "read_only": true
+    },
+    {
+      "method": "GET",
+      "path": "/healthz"
+    },
+    {
+      "method": "GET",
+      "path": "/readyz"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/capabilities"
+    }
+  ],
+  "Signal": {
+    "signal_id": "string",
+    "kind": "span|metric",
+    "name": "string",
+    "attributes": "object",
+    "events": "array",
+    "recorded_at": "string"
+  },
+  "SignalFeed": {
+    "signals": "Signal[]",
+    "financial_audit": false
+  },
+  "compatibility_checklist": [
+    "Fixture mode labeled; real-peers never falls back to fixtures",
+    "Seed refuses non-tenant-demo sandbox rows",
+    "Unauthorized missing/unknown token returns 403 FORBIDDEN",
+    "Operator role denied; platform_admin/sandbox-admin allowed",
+    "financial_audit and financial_authority always false",
+    "Never claims or stores authoritative financial audit"
+  ]
+}
