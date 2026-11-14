@@ -306,7 +306,7 @@ class DispatchWorker:
                 saved = replace(
                     job,
                     phase="SUPERSEDED",
-                    outcome_status=job.outcome_status,
+                    outcome_status="ESCALATED",
                     reason_code="LEASE_MISMATCH",
                     provider_status=refund.status if refund is not None else job.provider_status,
                 )
