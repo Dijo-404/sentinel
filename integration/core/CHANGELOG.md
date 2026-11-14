@@ -9,6 +9,10 @@
 - `timeout_recovered` uses actual `timeout_seen` only (no `or True`).
 - Honest labels: `path=provider-sandbox-only`, `sn009_authority_exercised=false`; `SENTINEL_V1_REQUIRE_FULL_PATH=1` fails closed.
 
+### Added — 14 November 2026
+
+- Canonical sandbox identity matrix docs (`docs/sandbox-matrix.md`) and fixture (`fixtures/sandbox-tokens.json`): `tenant-demo` / `case-demo-42`, shared `tok-*` bearers, local port map. Refs #77 / #84.
+
 ### Added — 14 November 2026 (V1 #78)
 
 - Real HTTP journey drivers on `HttpPeerBundle` (pending, merchant_mismatch, duplicate_payment, refund_pending); `NOT_WIRED` removed.
