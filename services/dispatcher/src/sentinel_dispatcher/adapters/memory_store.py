@@ -20,5 +20,6 @@ class MemoryWorkerStore:
         return [
             job
             for (tenant, _), job in self._jobs.items()
-            if tenant == tenant_id and job.phase not in {"OUTCOME_REPORTED", "ESCALATED"}
+            if tenant == tenant_id
+            and job.phase not in {"OUTCOME_REPORTED", "ESCALATED", "SUPERSEDED"}
         ]

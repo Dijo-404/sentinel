@@ -24,6 +24,7 @@ JobPhase = Literal[
     "RECONCILING",
     "OUTCOME_REPORTED",
     "ESCALATED",
+    "SUPERSEDED",
 ]
 
 

@@ -10,6 +10,9 @@ from sentinel_dispatcher.domain.types import Command, OutcomeRequest, PeerError
 
 StubMode = Literal["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
 
+# Dispatcher path may only report these; authoritative FAILED_FINAL is ledger-owned.
+_DISPATCHER_OUTCOME_STATUSES = frozenset({"PENDING", "OUTCOME_UNKNOWN", "ESCALATED"})
+
 
 class StubLedger:
     def __init__(
@@ -32,6 +35,7 @@ class StubLedger:
                 "provider_ref": command.provider_ref,
                 "payload": dict(command.payload),
                 "action_digest": command.action_digest,
+                "lease_id": command.lease_id,
                 "status": "DISPATCHING",
             }
 
@@ -43,6 +47,7 @@ class StubLedger:
             "provider_ref": command.provider_ref,
             "payload": dict(command.payload),
             "action_digest": command.action_digest,
+            "lease_id": command.lease_id,
             "status": "DISPATCHING",
         }
 
@@ -59,10 +64,28 @@ class StubLedger:
         if action_id not in self.actions:
             raise PeerError("NOT_FOUND", "Unknown action", status_code=404)
         body = outcome.as_dict()
+        if body["status"] not in _DISPATCHER_OUTCOME_STATUSES:
+            raise PeerError(
+                "INVALID_OUTCOME",
+                "Dispatcher may only report PENDING, OUTCOME_UNKNOWN, or ESCALATED",
+                status_code=422,
+            )
+        expected_lease = self.actions[action_id].get("lease_id")
+        reported_lease = body.get("lease_id")
+        lease_mismatch = (
+            expected_lease is not None
+            and reported_lease is not None
+            and reported_lease != expected_lease
+        )
+        if lease_mismatch:
+            raise PeerError(
+                "LEASE_MISMATCH",
+                "Outcome lease_id does not match the active claim lease",
+                status_code=409,
+            )
         record = deepcopy(self.actions[action_id])
-        # Authoritative final failure alone may release; never lease expiry.
-        if body["status"] == "FAILED_FINAL" and body.get("reason_code") == "PROVIDER_FAILED_FINAL":
-            self.reservations_held.discard(action_id)
+        # Dispatcher outcomes never release reservations; only authoritative ledger
+        # FAILED_FINAL (outside this stub path) may release.
         record["status"] = body["status"]
         record["last_outcome"] = body
         self.actions[action_id] = record

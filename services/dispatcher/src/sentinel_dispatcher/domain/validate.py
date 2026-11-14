@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from sentinel_dispatcher.domain.digest import action_digest
@@ -43,16 +43,26 @@ def outcome_event_key(action_id: str, phase: str) -> str:
     return f"dispatcher:{action_id}:{phase}"
 
 
-def refund_evidence(refund: Mapping[str, Any], *, evidence_id: str, case_id: str) -> dict[str, Any]:
+def _rfc3339_z(value: datetime) -> str:
+    return value.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def refund_evidence(
+    refund: Mapping[str, Any],
+    *,
+    evidence_id: str,
+    case_id: str,
+    observed_at: datetime | None = None,
+) -> dict[str, Any]:
     """Synthetic dispatch-side evidence envelope; verifier owns authoritative confirmation."""
-    observed = "2026-11-13T12:00:00Z"
+    instant = (observed_at or datetime(2026, 11, 13, 12, 0, tzinfo=UTC)).astimezone(UTC)
     return {
         "evidence_id": evidence_id,
         "case_id": case_id,
         "source": "dispatcher.v1/simulated-provider",
         "subject_ref": "synthetic-customer",
-        "observed_at": observed,
-        "expires_at": "2026-11-13T18:00:00Z",
+        "observed_at": _rfc3339_z(instant),
+        "expires_at": _rfc3339_z(instant + timedelta(hours=6)),
         "digest": "dispatcher-simulated-refund-digest",
         "verification_status": "UNVERIFIED",
         "facts": {"kind": "REFUND", "refund": dict(refund)},

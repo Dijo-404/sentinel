@@ -105,7 +105,7 @@ class PostgresWorkerStore:
                    provider_status, outcome_status, reason_code
             FROM "{self._schema}".dispatch_jobs
             WHERE tenant_id = :tenant_id
-              AND phase NOT IN ('OUTCOME_REPORTED', 'ESCALATED')
+              AND phase NOT IN ('OUTCOME_REPORTED', 'ESCALATED', 'SUPERSEDED')
             ORDER BY created_at ASC
             """
         )
