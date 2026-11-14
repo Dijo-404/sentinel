@@ -4,6 +4,11 @@ This file tracks coordinated repository/release changes. Each independent module
 
 ## Unreleased
 
+### Added — 14 November 2026
+
+- Role/RBAC product spec [`docs/roles.md`](docs/roles.md) and implementation plan [`docs/superpowers/plans/2026-11-14-role-portals-identity.md`](docs/superpowers/plans/2026-11-14-role-portals-identity.md).
+- Task plan/register entries for SN-035 (`services/identity`) and SN-036 (`services/risk`); brief SN-037–042 follow-on notes pointing at merged identity/risk/web/case-api claim work without claiming SN-039+ completion.
+
 ### Changed — 14 November 2026
 
 - Rewrote root README around useful money-path / authority / evidence-ladder diagrams; kept V1 sandbox honesty (`provider-sandbox-only`); dropped documentation-only noise from the env table.
