@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Added — sandbox verify / MFA / password reset
+
+- `POST /v1/auth/verify/request|confirm`, `/v1/auth/mfa/challenge|verify`,
+  `/v1/auth/password/forgot|reset`.
+- `identity.auth_challenges` + append-only `identity.auth_delivery_log`
+  (loopback channel); `users.email_verified_at`.
+- MFA / verify / reset codes are hashed at rest. Plaintext appears only via
+  store peek helper or `IDENTITY_EXPOSE_SANDBOX_CODES=true` (fixture/module
+  checks). Flag is refused in `real-peers` mode. Public JSON never includes
+  codes by default. Forgot always returns 202 (no email enumeration).
+
 ### Added — notifications inbox
 
 - `GET /v1/auth/notifications` returns the caller's inbox (newest first, max 50).

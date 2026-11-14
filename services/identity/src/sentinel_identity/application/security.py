@@ -54,5 +54,12 @@ def mint_token() -> str:
     return secrets.token_urlsafe(32)
 
 
+def mint_numeric_code(*, digits: int = 6) -> str:
+    """Sandbox MFA / verify / reset code (numeric string, zero-padded)."""
+    if digits < 4 or digits > 10:
+        raise ValueError("digits must be between 4 and 10")
+    return f"{secrets.randbelow(10**digits):0{digits}d}"
+
+
 def hash_token(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()

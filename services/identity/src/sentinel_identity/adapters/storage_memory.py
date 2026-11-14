@@ -11,6 +11,8 @@ from threading import RLock
 from ..application.errors import ConflictError, ForbiddenError
 from ..domain.models import (
     AuditEvent,
+    AuthChallenge,
+    AuthDeliveryLogEntry,
     DeliveryOutboxItem,
     Invitation,
     Notification,
@@ -35,6 +37,8 @@ class MemoryIdentityStore:
         self.privileged_changes: dict[str, PrivilegedChangeRequest] = {}
         self.audit: list[AuditEvent] = []
         self.notifications: dict[str, Notification] = {}
+        self.auth_challenges: dict[str, AuthChallenge] = {}
+        self.auth_delivery_log: dict[str, AuthDeliveryLogEntry] = {}
         self._delivery_outbox: dict[str, DeliveryOutboxItem] = {}
         self._delivery_by_invitation: dict[str, str] = {}
 
@@ -327,6 +331,78 @@ class MemoryIdentityStore:
     def list_notifications(self, user_id: str, *, limit: int = 50) -> tuple[Notification, ...]:
         rows = [n for n in self.notifications.values() if n.user_id == user_id]
         rows.sort(key=lambda n: n.created_at.isoformat(), reverse=True)
+        return tuple(rows[:limit])
+
+    def create_auth_challenge(self, challenge: AuthChallenge) -> AuthChallenge:
+        with self._lock:
+            if challenge.challenge_id in self.auth_challenges:
+                raise ValueError("challenge_id already exists")
+            self.auth_challenges[challenge.challenge_id] = challenge
+            return challenge
+
+    def save_auth_challenge(self, challenge: AuthChallenge) -> AuthChallenge:
+        with self._lock:
+            self.auth_challenges[challenge.challenge_id] = challenge
+            return challenge
+
+    def get_active_auth_challenge(
+        self, *, user_id: str, challenge_type: str, at: datetime
+    ) -> AuthChallenge | None:
+        rows = [
+            c
+            for c in self.auth_challenges.values()
+            if c.user_id == user_id
+            and c.challenge_type == challenge_type
+            and c.consumed_at is None
+            and c.expires_at > at
+        ]
+        if not rows:
+            return None
+        rows.sort(key=lambda c: c.created_at.isoformat(), reverse=True)
+        return rows[0]
+
+    def append_auth_delivery(
+        self,
+        *,
+        challenge_id: str,
+        user_id: str,
+        destination: str,
+        purpose: str,
+        raw_code: str,
+        at: datetime,
+    ) -> AuthDeliveryLogEntry:
+        with self._lock:
+            entry = AuthDeliveryLogEntry(
+                log_id=str(uuid.uuid4()),
+                channel="loopback",
+                destination=destination,
+                purpose=purpose,
+                challenge_id=challenge_id,
+                user_id=user_id,
+                created_at=at,
+                raw_code=raw_code,
+            )
+            self.auth_delivery_log[entry.log_id] = entry
+            return entry
+
+    def peek_auth_sandbox_code(self, *, user_id: str, purpose: str) -> str | None:
+        rows = [
+            e
+            for e in self.auth_delivery_log.values()
+            if e.user_id == user_id and e.purpose == purpose and e.raw_code
+        ]
+        if not rows:
+            return None
+        rows.sort(key=lambda e: e.created_at.isoformat(), reverse=True)
+        return rows[0].raw_code
+
+    def list_auth_delivery_log(
+        self, *, user_id: str | None = None, limit: int = 50
+    ) -> tuple[AuthDeliveryLogEntry, ...]:
+        rows = list(self.auth_delivery_log.values())
+        if user_id is not None:
+            rows = [e for e in rows if e.user_id == user_id]
+        rows.sort(key=lambda e: e.created_at.isoformat(), reverse=True)
         return tuple(rows[:limit])
 
     def append_audit(self, event: AuditEvent) -> AuditEvent:

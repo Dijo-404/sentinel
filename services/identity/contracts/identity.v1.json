@@ -91,6 +91,55 @@
     },
     {
       "method": "POST",
+      "path": "/v1/auth/verify/request",
+      "auth": "Bearer session",
+      "request": {},
+      "response": "{ status: accepted, sandbox_code? }",
+      "notes": "Creates email_verify challenge; sandbox_code only when IDENTITY_EXPOSE_SANDBOX_CODES=true"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/auth/verify/confirm",
+      "auth": "Bearer session",
+      "request": { "code": "string" },
+      "response": "{ user, email_verified: true }",
+      "notes": "Marks email_verified_at; invalid code → 400 INVALID_CHALLENGE"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/auth/mfa/challenge",
+      "auth": "Bearer session",
+      "response": "{ status: accepted, sandbox_code? }",
+      "notes": "Sandbox numeric loopback code (not production TOTP)"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/auth/mfa/verify",
+      "auth": "Bearer session",
+      "request": { "code": "string" },
+      "response": "{ mfa_verified: true, mfa_verified_at }",
+      "notes": "Sets session.mfa_verified_at"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/auth/password/forgot",
+      "request": { "email": "string" },
+      "response": "{ status: accepted, sandbox_code? }",
+      "notes": "Always 202; never enumerates whether email exists; sandbox_code only for known active users when expose flag on"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/auth/password/reset",
+      "request": {
+        "email": "string",
+        "code": "string",
+        "new_password": "string"
+      },
+      "response": "{ status: reset }",
+      "notes": "200 on success; 400 INVALID_CHALLENGE for unknown email / bad code (same message); revokes sessions"
+    },
+    {
+      "method": "POST",
       "path": "/v1/auth/accept-invitation",
       "request": {
         "token": "string",

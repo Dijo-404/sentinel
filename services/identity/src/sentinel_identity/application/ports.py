@@ -7,6 +7,8 @@ from typing import Protocol
 
 from ..domain.models import (
     AuditEvent,
+    AuthChallenge,
+    AuthDeliveryLogEntry,
     DeliveryOutboxItem,
     Invitation,
     Notification,
@@ -124,6 +126,31 @@ class IdentityStore(Protocol):
     def save_notification(self, notification: Notification) -> Notification: ...
 
     def list_notifications(self, user_id: str, *, limit: int = 50) -> tuple[Notification, ...]: ...
+
+    def create_auth_challenge(self, challenge: AuthChallenge) -> AuthChallenge: ...
+
+    def save_auth_challenge(self, challenge: AuthChallenge) -> AuthChallenge: ...
+
+    def get_active_auth_challenge(
+        self, *, user_id: str, challenge_type: str, at: datetime
+    ) -> AuthChallenge | None: ...
+
+    def append_auth_delivery(
+        self,
+        *,
+        challenge_id: str,
+        user_id: str,
+        destination: str,
+        purpose: str,
+        raw_code: str,
+        at: datetime,
+    ) -> AuthDeliveryLogEntry: ...
+
+    def peek_auth_sandbox_code(self, *, user_id: str, purpose: str) -> str | None: ...
+
+    def list_auth_delivery_log(
+        self, *, user_id: str | None = None, limit: int = 50
+    ) -> tuple[AuthDeliveryLogEntry, ...]: ...
 
     def append_audit(self, event: AuditEvent) -> AuditEvent: ...
 

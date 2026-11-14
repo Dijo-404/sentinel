@@ -175,6 +175,94 @@ def create_app(services: AppServices) -> FastAPI:
         except IdentityError as exc:
             return _error(exc, request_id)
 
+    @app.post("/v1/auth/verify/request")
+    async def verify_request(request: Request) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            await _json_object(request)
+            return JSONResponse(
+                services.identity.request_email_verify(
+                    session_token=_bearer(request), request_id=request_id
+                ),
+                status_code=202,
+            )
+        except IdentityError as exc:
+            return _error(exc, request_id)
+
+    @app.post("/v1/auth/verify/confirm")
+    async def verify_confirm(request: Request) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            body = await _json_object(request)
+            return JSONResponse(
+                services.identity.confirm_email_verify(
+                    session_token=_bearer(request),
+                    code=str(body.get("code", "")),
+                    request_id=request_id,
+                )
+            )
+        except IdentityError as exc:
+            return _error(exc, request_id)
+
+    @app.post("/v1/auth/mfa/challenge")
+    def mfa_challenge(request: Request) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            return JSONResponse(
+                services.identity.request_mfa_challenge(
+                    session_token=_bearer(request), request_id=request_id
+                ),
+                status_code=202,
+            )
+        except IdentityError as exc:
+            return _error(exc, request_id)
+
+    @app.post("/v1/auth/mfa/verify")
+    async def mfa_verify(request: Request) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            body = await _json_object(request)
+            return JSONResponse(
+                services.identity.verify_mfa(
+                    session_token=_bearer(request),
+                    code=str(body.get("code", "")),
+                    request_id=request_id,
+                )
+            )
+        except IdentityError as exc:
+            return _error(exc, request_id)
+
+    @app.post("/v1/auth/password/forgot")
+    async def password_forgot(request: Request) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            body = await _json_object(request)
+            return JSONResponse(
+                services.identity.forgot_password(
+                    email=str(body.get("email", "")),
+                    request_id=request_id,
+                ),
+                status_code=202,
+            )
+        except IdentityError as exc:
+            return _error(exc, request_id)
+
+    @app.post("/v1/auth/password/reset")
+    async def password_reset(request: Request) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            body = await _json_object(request)
+            return JSONResponse(
+                services.identity.reset_password(
+                    email=str(body.get("email", "")),
+                    code=str(body.get("code", "")),
+                    new_password=str(body.get("new_password", "")),
+                    request_id=request_id,
+                )
+            )
+        except IdentityError as exc:
+            return _error(exc, request_id)
+
     @app.post("/v1/auth/accept-invitation")
     async def accept_invitation(request: Request) -> JSONResponse:
         request_id = _request_id(request)

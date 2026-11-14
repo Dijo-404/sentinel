@@ -20,6 +20,7 @@ class User:
     updated_at: datetime
     tenant_id: str | None = None  # home tenant hint for seeds
     preferred_language: str = ""
+    email_verified_at: datetime | None = None
 
     def to_public(self) -> dict[str, Any]:
         return {
@@ -30,6 +31,9 @@ class User:
             "preferred_language": self.preferred_language,
             "status": self.status,
             "authz_version": self.authz_version,
+            "email_verified_at": (
+                self.email_verified_at.isoformat() if self.email_verified_at else None
+            ),
         }
 
 
@@ -194,6 +198,39 @@ class Notification:
             "body": self.body,
             "created_at": self.created_at.isoformat(),
             "read_at": self.read_at.isoformat() if self.read_at else None,
+        }
+
+
+@dataclass(frozen=True)
+class AuthChallenge:
+    challenge_id: str
+    user_id: str
+    challenge_type: str  # email_verify | mfa | password_reset
+    code_hash: str
+    expires_at: datetime
+    created_at: datetime
+    consumed_at: datetime | None = None
+
+
+@dataclass(frozen=True)
+class AuthDeliveryLogEntry:
+    """Sandbox loopback delivery row. Public view never includes raw codes."""
+
+    log_id: str
+    channel: str
+    destination: str
+    purpose: str
+    challenge_id: str
+    user_id: str
+    created_at: datetime
+    raw_code: str = ""
+
+    def to_public(self) -> dict[str, Any]:
+        return {
+            "channel": self.channel,
+            "destination": self.destination,
+            "purpose": self.purpose,
+            "created_at": self.created_at.isoformat(),
         }
 
 

@@ -14,12 +14,17 @@ Contract: `sentinel.task-contracts.v1`, SHA-256
   password length ≥ 8)
 - Login / logout / me / `PATCH /v1/auth/me` profile (`display_name`,
   `preferred_language`; privilege fields rejected) / notifications inbox
-  (`GET /v1/auth/notifications`, `POST .../{id}/read`) / workspaces select with
-  hashed session tokens (multi-role login requires `requested_role` or returns 409)
+  (`GET /v1/auth/notifications`, `POST .../{id}/read`) / sandbox verify-email,
+  MFA challenge (numeric loopback code), forgot/reset password /
+  workspaces select with hashed session tokens (multi-role login requires
+  `requested_role` or returns 409)
 - Platform Admin invite / grant / revoke / suspend / reactivate / list / audit
 - Accept invitation (single-use; deny expired/revoked/mismatched; new password ≥ 8)
 - Sandbox invite delivery: durable outbox + `GET /v1/sandbox/inbox` acceptance links
   (local demo only; set `IDENTITY_ACCEPT_LINK_BASE`, default `http://127.0.0.1:3000`)
+- Sandbox auth challenges: loopback delivery log; codes never in public JSON unless
+  `IDENTITY_EXPOSE_SANDBOX_CODES=true` (module checks only; blocked in real-peers).
+  Forgot password always 202 (no email enumeration).
 - `GET /v1/merchant-memberships` for merchant-teams identity peer projection
 - `GET /v1/ops/team` supervisor-safe tenant roster (operator + supervisor only;
   not full `/v1/admin/users`)
