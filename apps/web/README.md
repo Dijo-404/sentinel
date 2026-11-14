@@ -42,8 +42,22 @@ See `.env.example`.
 | `CASE_API_BASE_URL` | Required in real-peers mode |
 | `CASE_API_BEARER_TOKEN` | Optional service-only fallback (server); portals use session cookie |
 | `IDENTITY_BASE_URL` | Required in real-peers mode (default `http://127.0.0.1:8012`) |
+| `IDENTITY_SANDBOX` / `SENTINEL_V1_SANDBOX` | Server-only: after verify/MFA/forgot, fetch sandbox inbox codes |
+| `IDENTITY_SANDBOX_TOKEN` | Server-only token for password-reset inbox (never `NEXT_PUBLIC_*`) |
 
 Real-peer failures are visible. Never put bearers, identity passwords, or session tokens in `NEXT_PUBLIC_*`. Fixture auth uses `tests/stubs/identity` seeded users. Real-peers calls identity.v1 (`/v1/auth/login|me|workspaces|accept-invitation`, register, admin invite) via the server-only identity client; the httpOnly `sentinel_session` cookie stores the identity `session_token`. Portal case-api traffic goes through `/api/bff/case/**`, which forwards that session as the case-api bearer (one principal per request). Supervisor Team uses `/api/bff/identity/**` → `GET /v1/ops/team` (supervisor-safe tenant roster; does **not** call `/v1/admin/users`, which remains platform_admin-only).
+
+### Sandbox auth challenge demo
+
+With identity `IDENTITY_SANDBOX=1` (or `SENTINEL_V1_SANDBOX=1`) and matching web
+server env + `IDENTITY_SANDBOX_TOKEN`:
+
+1. Sign in → `/auth/verify` or `/auth/mfa` → Request challenge.
+2. Server action calls `GET /v1/auth/sandbox/latest-code` and shows the code
+   (no `IDENTITY_EXPOSE_SANDBOX_CODES` required; works in real-peers Postgres).
+3. Forgot password → server action may call
+   `GET /v1/auth/sandbox/password-reset-code` with the server token and show the
+   code on the success banner → `/auth/reset-password`.
 
 ### Fixture demo credentials (synthetic only)
 

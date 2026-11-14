@@ -53,6 +53,7 @@ export function createRealPeerIdentityClient(
     init?: {
       body?: unknown;
       bearer?: string;
+      headers?: Record<string, string>;
       okStatuses?: number[];
     },
   ): Promise<{ status: number; json: unknown; requestId: string }> {
@@ -66,6 +67,7 @@ export function createRealPeerIdentityClient(
           "X-Request-Id": requestId,
           ...(init?.bearer ? { Authorization: `Bearer ${init.bearer}` } : {}),
           ...(init?.body ? { "Content-Type": "application/json" } : {}),
+          ...(init?.headers ?? {}),
         },
         body: init?.body ? JSON.stringify(init.body) : undefined,
       });
@@ -458,6 +460,30 @@ export function createRealPeerIdentityClient(
         },
       );
       return mapChallengeAccepted(json, requestId);
+    },
+
+    async sandboxLatestCode(sessionToken, purpose) {
+      const { json, requestId } = await request(
+        "GET",
+        `/v1/auth/sandbox/latest-code?purpose=${encodeURIComponent(purpose)}`,
+        {
+          bearer: sessionToken,
+          okStatuses: [200],
+        },
+      );
+      return mapSandboxCode(json, requestId);
+    },
+
+    async sandboxPasswordResetCode(email, sandboxToken) {
+      const { json, requestId } = await request(
+        "GET",
+        `/v1/auth/sandbox/password-reset-code?email=${encodeURIComponent(email)}`,
+        {
+          headers: { "X-Identity-Sandbox-Token": sandboxToken },
+          okStatuses: [200],
+        },
+      );
+      return mapSandboxCode(json, requestId);
     },
 
     async resetPassword(input) {
@@ -1029,7 +1055,32 @@ function mapChallengeAccepted(
   if (typeof body.sandbox_code === "string") {
     result.sandbox_code = body.sandbox_code;
   }
+  if (typeof body.sandbox_hint === "string") {
+    result.sandbox_hint = body.sandbox_hint;
+  }
   return result;
+}
+
+function mapSandboxCode(
+  json: unknown,
+  requestId: string,
+): { code: string } {
+  if (!json || typeof json !== "object") {
+    throw new PeerError(
+      "MALFORMED_PEER_RESPONSE",
+      "Sandbox code response is not an object",
+      requestId,
+    );
+  }
+  const body = json as Record<string, unknown>;
+  if (typeof body.code !== "string" || !body.code) {
+    throw new PeerError(
+      "MALFORMED_PEER_RESPONSE",
+      "Sandbox code response missing code",
+      requestId,
+    );
+  }
+  return { code: body.code };
 }
 
 function mapStaffUser(raw: unknown, requestId: string): IdentityUser {

@@ -34,6 +34,11 @@ export function ForgotPasswordForm() {
           role="status"
         >
           <p>{state.message}</p>
+          {state.sandbox_code ? (
+            <p className="muted" data-testid="forgot-sandbox-code">
+              Sandbox code: {state.sandbox_code}
+            </p>
+          ) : null}
           <p className="muted">
             Have a code?{" "}
             <Link href="/auth/reset-password">Reset password</Link>

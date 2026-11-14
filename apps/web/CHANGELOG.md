@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Fixed — fetch sandbox codes for auth challenge UI
+
+- After verify/MFA/forgot, server actions call identity sandbox inbox GETs when
+  `IDENTITY_SANDBOX` or `SENTINEL_V1_SANDBOX` is set (server-only;
+  `IDENTITY_SANDBOX_TOKEN` for reset — never `NEXT_PUBLIC_*`).
+- Customer portal nav includes Profile + Notifications.
+
 ### Fixed — 15 November 2026 (strip profile password from client props)
 
 - Page boundary and `patchProfileAction` return `PublicProfileUser` via

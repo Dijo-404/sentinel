@@ -30,6 +30,8 @@ export const PORTAL_NAV: Record<PortalRole, NavItem[]> = {
     { href: "/customer/transactions", label: "Transactions" },
     { href: "/customer/report", label: "Report" },
     { href: "/customer/cases", label: "Cases" },
+    { href: "/customer/profile", label: "Profile" },
+    { href: "/customer/notifications", label: "Notifications" },
   ],
   merchant: [
     { href: "/merchant/dashboard", label: "Dashboard" },

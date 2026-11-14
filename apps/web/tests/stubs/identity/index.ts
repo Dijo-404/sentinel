@@ -44,6 +44,7 @@ export type IdentityNotification = {
 export type ChallengeAccepted = {
   status: "accepted";
   sandbox_code?: string;
+  sandbox_hint?: string;
 };
 
 export type PatchProfileInput = {

@@ -73,6 +73,16 @@ export type IdentityClient = {
     code: string,
   ): Promise<{ mfa_verified: true; mfa_verified_at: string }>;
   forgotPassword(email: string): Promise<ChallengeAccepted>;
+  /** Sandbox inbox: GET /v1/auth/sandbox/latest-code (session). */
+  sandboxLatestCode(
+    sessionCredential: string,
+    purpose: "email_verify" | "mfa",
+  ): Promise<{ code: string }>;
+  /** Sandbox inbox: GET /v1/auth/sandbox/password-reset-code (token header). */
+  sandboxPasswordResetCode(
+    email: string,
+    sandboxToken: string,
+  ): Promise<{ code: string }>;
   resetPassword(input: {
     email: string;
     code: string;
@@ -237,6 +247,21 @@ function wrapFixtureStub(stub: StubIdentity): IdentityClient {
       };
     },
     forgotPassword: async (email) => stub.forgotPassword(email),
+    // Fixture challenges already return sandbox_code; inbox helpers are real-peers.
+    sandboxLatestCode: async (_sessionId, purpose) => {
+      if (purpose === "email_verify") {
+        return { code: "fixture-verify" };
+      }
+      throw new PeerError(
+        "NOT_FOUND",
+        "Sandbox MFA code not available in fixture inbox",
+        "fixture-sandbox-latest",
+        404,
+      );
+    },
+    sandboxPasswordResetCode: async (_email, _sandboxToken) => ({
+      code: "fixture-reset",
+    }),
     resetPassword: async (input) => {
       const result = stub.resetPassword(input);
       if (!result.ok) {

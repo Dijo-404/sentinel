@@ -33,6 +33,18 @@ const FORGOT_GENERIC =
   "If an account exists for that email, reset instructions were sent.";
 const SESSION_REQUIRED = "Sign in to continue this step.";
 
+function truthyEnv(value: string | undefined): boolean {
+  return value === "1" || value === "true" || value === "True" || value === "yes";
+}
+
+/** Server-only: IDENTITY_SANDBOX or SENTINEL_V1_SANDBOX (never NEXT_PUBLIC). */
+function isIdentitySandbox(): boolean {
+  return (
+    truthyEnv(process.env.IDENTITY_SANDBOX) ||
+    truthyEnv(process.env.SENTINEL_V1_SANDBOX)
+  );
+}
+
 function peerFailure(err: unknown, fallback: string): ChallengeActionResult {
   if (err instanceof PeerError) {
     return {
@@ -42,6 +54,19 @@ function peerFailure(err: unknown, fallback: string): ChallengeActionResult {
     };
   }
   return { ok: false, message: fallback, peerError: true };
+}
+
+async function resolveSandboxCode(
+  existing: string | undefined,
+  fetchCode: () => Promise<{ code: string }>,
+): Promise<string | undefined> {
+  if (existing) return existing;
+  if (!isIdentitySandbox()) return undefined;
+  try {
+    return (await fetchCode()).code;
+  } catch {
+    return undefined;
+  }
 }
 
 export async function loginAction(
@@ -191,8 +216,23 @@ export async function forgotPasswordAction(
     return { ok: false, message: "Email is required." };
   }
   try {
-    await getIdentityClient().forgotPassword(email);
-    return { ok: true, message: FORGOT_GENERIC };
+    const client = getIdentityClient();
+    const result = await client.forgotPassword(email);
+    const token = process.env.IDENTITY_SANDBOX_TOKEN ?? "";
+    const sandbox_code = await resolveSandboxCode(
+      result.sandbox_code,
+      async () => {
+        if (!token) {
+          throw new Error("no sandbox token");
+        }
+        return client.sandboxPasswordResetCode(email, token);
+      },
+    );
+    return {
+      ok: true,
+      message: FORGOT_GENERIC,
+      ...(sandbox_code ? { sandbox_code } : {}),
+    };
   } catch (err) {
     return peerFailure(err, "Could not start password reset. Try again later.");
   }
@@ -249,11 +289,15 @@ export async function requestVerifyAction(
     return { ok: false, message: SESSION_REQUIRED };
   }
   try {
-    const result = await getIdentityClient().requestVerify(sessionId);
+    const client = getIdentityClient();
+    const result = await client.requestVerify(sessionId);
+    const sandbox_code = await resolveSandboxCode(result.sandbox_code, () =>
+      client.sandboxLatestCode(sessionId, "email_verify"),
+    );
     return {
       ok: true,
       message: "Verification code sent.",
-      sandbox_code: result.sandbox_code,
+      ...(sandbox_code ? { sandbox_code } : {}),
     };
   } catch (err) {
     return peerFailure(err, "Could not request verification.");
@@ -298,11 +342,15 @@ export async function mfaChallengeAction(
     return { ok: false, message: SESSION_REQUIRED };
   }
   try {
-    const result = await getIdentityClient().mfaChallenge(sessionId);
+    const client = getIdentityClient();
+    const result = await client.mfaChallenge(sessionId);
+    const sandbox_code = await resolveSandboxCode(result.sandbox_code, () =>
+      client.sandboxLatestCode(sessionId, "mfa"),
+    );
     return {
       ok: true,
       message: "MFA challenge issued.",
-      sandbox_code: result.sandbox_code,
+      ...(sandbox_code ? { sandbox_code } : {}),
     };
   } catch (err) {
     return peerFailure(err, "Could not start MFA challenge.");
