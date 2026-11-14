@@ -1,7 +1,7 @@
-import { OperatorDashboardClient } from "./dashboard-client";
-import { requireRole } from "@/lib/server/authorization";
+import { OpsCombinedOverview } from "@/components/dashboards/ops-combined-overview";
+import { requireAnyRole } from "@/lib/server/authorization";
 
 export default async function OperatorDashboardPage() {
-  const session = await requireRole("operator");
-  return <OperatorDashboardClient session={session} />;
+  const session = await requireAnyRole(["operator", "supervisor"], "operator");
+  return <OpsCombinedOverview session={session} />;
 }

@@ -12,6 +12,11 @@ const PATHS: Record<string, string> = {
   approvals: "M9 12l2 2 4-4M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z",
   history: "M3 12a9 9 0 109-9 9 9 0 00-6.4 2.6L3 8M3 3v5h5M12 7v5l3 2",
   audit: "M9 4h6v3H9zM6 6h12v15H6zM9 12h6M9 16h4",
+  messages: "M4 6h16v10H4zM8 20l4-4h8",
+  assistant: "M12 3a4 4 0 014 4v2h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v2l-4-2H8a2 2 0 01-2-2v-6a2 2 0 012-2h2V7a4 4 0 014-4z",
+  knowledge: "M4 5h7v14H4zM13 5h7v14h-7z",
+  activity: "M4 19V9M10 19V5M16 19v-7M22 19V11",
+  team: "M16 20v-1a4 4 0 00-4-4H7a4 4 0 00-4 4v1M9.5 11a3.5 3.5 0 100-7 3.5 3.5 0 000 7zM21 20v-1a4 4 0 00-3-3.9M16 4.1a3.5 3.5 0 010 6.8",
   holds: "M7 11V8a5 5 0 0110 0v3M5 11h14v10H5z",
   users:
     "M16 20v-1a4 4 0 00-4-4H7a4 4 0 00-4 4v1M9.5 11a3.5 3.5 0 100-7 3.5 3.5 0 000 7zM21 20v-1a4 4 0 00-3-3.9M16 4.1a3.5 3.5 0 010 6.8",
