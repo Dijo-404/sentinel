@@ -9,6 +9,22 @@ CONTRACT_VERSION = "sentinel.task-contracts.v1"
 
 STAFF_ROLES = frozenset({"viewer", "operator", "approver", "admin"})
 
+# Platform / identity-owned authorities. Merchant-teams projects membership only;
+# it must never mint these as local staff roles.
+PLATFORM_AUTHORITY_ROLES = frozenset(
+    {
+        "customer",
+        "merchant",
+        "supervisor",
+        "risk_officer",
+        "platform_admin",
+        "workflow",
+        "dispatcher",
+        "verifier",
+        "sandbox-admin",
+    }
+)
+
 
 @dataclass(frozen=True, slots=True)
 class Principal:
@@ -97,6 +113,45 @@ class CaseSnapshot:
     revision: int
     status: str
     contract_version: str
+
+
+@dataclass(frozen=True, slots=True)
+class IdentityMembership:
+    """Authoritative merchant membership row from identity.v1 (projection source)."""
+
+    membership_id: str
+    assignment_id: str
+    user_id: str
+    tenant_id: str
+    merchant_ref: str
+    display_name: str
+    subroles: tuple[str, ...]
+    status: str
+
+    def to_wire(self) -> dict[str, Any]:
+        return {
+            "membership_id": self.membership_id,
+            "assignment_id": self.assignment_id,
+            "user_id": self.user_id,
+            "tenant_id": self.tenant_id,
+            "merchant_ref": self.merchant_ref,
+            "display_name": self.display_name,
+            "subroles": list(self.subroles),
+            "status": self.status,
+        }
+
+    @classmethod
+    def from_wire(cls, body: dict[str, Any]) -> IdentityMembership:
+        return cls(
+            membership_id=str(body["membership_id"]),
+            assignment_id=str(body["assignment_id"]),
+            user_id=str(body["user_id"]),
+            tenant_id=str(body["tenant_id"]),
+            merchant_ref=str(body["merchant_ref"]),
+            display_name=str(body["display_name"]),
+            subroles=tuple(str(r) for r in body["subroles"]),
+            status=str(body["status"]),
+        )
 
 
 @dataclass(frozen=True, slots=True)

@@ -1,9 +1,30 @@
-# SN-034 changelog
+# SN-034 / SN-039 changelog
 
 ## Unreleased
-- Refuse non-loopback HTTP bind while demo/sandbox bearer tokens remain configured.
 
 ### Added
+
+- SN-039: identity.v1 membership client port, fixture stubs under
+  `tests/stubs/identity/`, HTTP adapter, and `POST /v1/staff/sync` projection
+  into the local staff store. Platform Admin / identity owns grants;
+  merchant-teams does not create competing platform roles.
+- `GET /v1/merchant/team` projection surface over local projected staff.
+- Optional `IDENTITY_BASE_URL` / `IDENTITY_TOKEN` in real-peers; fail closed
+  when configured identity is unavailable, unauthorized, or malformed.
+- AUTH-09 / AUTH-10 acceptance coverage: merchant approver cannot authorize
+  ledger money; merchant admin cannot grant platform roles.
+
+### Changed
+
+- Merchant staff roles remain viewer / operator / approver / admin only;
+  platform authorities (`platform_admin`, `supervisor`, `risk_officer`, …)
+  are rejected at normalize/project boundaries.
+
+## Prior
+
+- Refuse non-loopback HTTP bind while demo/sandbox bearer tokens remain configured.
+
+### Added (SN-034)
 
 - Independent `merchant-teams.v1` HTTP service: staff CRUD/deactivate, role
   assignment, advisory approval limits, append-only activity timeline.

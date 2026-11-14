@@ -1,4 +1,4 @@
-# Scoped agent rules: SN-034
+# Scoped agent rules: SN-034 / SN-039
 
 Read [repository AGENTS.md](../../AGENTS.md) and this module's [README](README.md) before editing. These rules supplement the root instructions.
 
@@ -7,14 +7,16 @@ Read [repository AGENTS.md](../../AGENTS.md) and this module's [README](README.m
 - Work only in `services/merchant-teams/` and any exact extra paths listed in the task. No broad parent-directory ownership.
 - Own the module's manifest/lockfile, configuration, migrations, code, contract snapshots, tests, fixtures, README and changelog.
 - No task-completion prerequisite; use local port doubles. Never wait for another agent's implementation or modify another module's state to make tests pass.
-- Use branch `feat/sn-034-merchant-teams` or an explicitly recorded alternative and a separate worktree.
+- Use branch `feat/sn-039-merchant-teams` (or `feat/sn-034-merchant-teams` for the original slice) and a separate worktree.
 
 ## Architecture and contracts
 
 - Business rules and use cases depend on narrow injected ports. Framework/provider/storage details stay in adapters and composition.
 - Consume the pinned `sentinel.task-contracts.v1` input from the task. Record SHA-256 `0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb`.
+- Identity owns merchant membership grants. This module projects memberships via `IdentityMembershipPort` and must not mint competing platform roles.
+- Merchant subroles only: `viewer`, `operator`, `approver`, `admin`. Advisory limits never authorize ledger money (AUTH-09/10).
 - No deep sibling imports, shared root application lockfile, cross-service SQL or unreviewed required contract changes.
-- Real-peer failure must stay visible; never silently enable fixture fallback. Keep optional ports optional in assembled MVP mode.
+- Real-peer failure must stay visible; never silently enable fixture fallback. Keep optional identity peer optional unless `IDENTITY_BASE_URL` is set.
 - Preserve the single action-ledger authority, authenticated scope and approval, integer money, stable references, financial audit and verified closure rules.
 - No real payment provider credentials, production customer data or live money movement.
 

@@ -87,6 +87,37 @@ def create_app(services: AppServices) -> FastAPI:
         except TeamsError as exc:
             return _error(exc, request_id)
 
+    @app.post("/v1/staff/sync")
+    async def sync_memberships(request: Request) -> JSONResponse:
+        """Project authoritative identity.v1 memberships into the local store."""
+        request_id = _request_id(request)
+        try:
+            principal = services.authenticator.authenticate(request.headers.get("authorization"))
+            body = await _json_object(request)
+            if set(body) - {"merchant_ref"}:
+                raise ValidationError("Undeclared fields are not permitted")
+            merchant_ref = body.get("merchant_ref")
+            if not merchant_ref or not isinstance(merchant_ref, str):
+                raise ValidationError("merchant_ref is required")
+            rows = services.staff.sync_memberships(principal, merchant_ref)
+            return JSONResponse({"staff": [row.to_wire() for row in rows]})
+        except TeamsError as exc:
+            return _error(exc, request_id)
+
+    @app.get("/v1/merchant/team")
+    def merchant_team(request: Request) -> JSONResponse:
+        """Authoritative membership projection surface (local projected staff)."""
+        request_id = _request_id(request)
+        try:
+            principal = services.authenticator.authenticate(request.headers.get("authorization"))
+            merchant_ref = request.query_params.get("merchant_ref")
+            if not merchant_ref:
+                raise ValidationError("merchant_ref query is required")
+            rows = services.staff.list_staff(principal, merchant_ref)
+            return JSONResponse({"staff": [row.to_wire() for row in rows]})
+        except TeamsError as exc:
+            return _error(exc, request_id)
+
     @app.get("/v1/staff/{staff_id}")
     def get_staff(staff_id: str, request: Request) -> JSONResponse:
         request_id = _request_id(request)
