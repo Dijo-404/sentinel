@@ -4,208 +4,242 @@
 
 # Sentinel
 
-**Policy-governed payment operations, from investigation to verified outcomes.**
+**Policy-governed payment operations: investigate → approve → dispatch → verify credit.**
 
 [![Repository checks](https://img.shields.io/github/actions/workflow/status/Dijo-404/sentinel/repository.yml?branch=main&style=for-the-badge&label=repository&color=555555)](https://github.com/Dijo-404/sentinel/actions/workflows/repository.yml)
 [![License](https://img.shields.io/badge/license-Apache_2.0-555555?style=for-the-badge)](LICENSE)
 ![Python](https://img.shields.io/badge/Python-3.11%2B-333333?style=for-the-badge&logo=python&logoColor=white)
 
-[Quick start](#quick-start) · [Usage](#usage) · [Documentation](#documentation) · [Contributing](#contributing)
+[How it works](#how-it-works) · [Quick start](#quick-start) · [Sandbox](#v1-sandbox) · [Docs](#documentation) · [Contributing](#contributing)
 
 </div>
 
 <br/>
 
-> [!NOTE]
-> **V1 sandbox-ready on `main`.** Thirty-four modules plus a local compose/runbook stack can run `real-peers` against the mock payment simulator (`payment_provider=simulator`, `path=provider-sandbox-only`). That proves peer probes and four provider-HTTP journeys — not SN-009 ledger authority, live rails, or external pilot acceptance. Strict assembled release evidence, live models, and pilots remain separate owner decisions.
+> [!IMPORTANT]
+> **What `main` proves today:** V1 is **sandbox-ready**. Local compose + runbook can run `real-peers` against the **mock payment simulator** (`payment_provider=simulator`, journey path `provider-sandbox-only`). That proves peer probes and four provider-HTTP journeys. It does **not** prove full SN-009 ledger authority end-to-end, live payment rails, live models, or external pilot acceptance.
 
-## Overview
+## What Sentinel is
 
-Sentinel is an AI teammate for payment operations teams handling exceptions such as duplicate payments and uncertain refund outcomes. It combines evidence collection, deterministic policy, exact supervisor approval, controlled simulator execution, and outcome verification. Optional merchant-operations modules cover settlement reconciliation, exception inboxes, refund requests, disputes, SLA tasks, analytics, multilingual drafts, and staff roles—still synthetic/simulator-backed only.
+Payment ops exception handling for cases like duplicate captures and ambiguous refunds. A model may **propose** a refund; it never authorizes money. Authorization is:
 
-### Features
+1. Fresh verified evidence  
+2. Deterministic policy  
+3. Exact supervisor approval (digest + revision bound)  
+4. Action-ledger reservation + stable `provider_ref`  
+5. Dispatcher provider write (only writer)  
+6. Verifier postconditions before “customer credited”
 
-- **Independent component work.** Thirty-four tasks have disjoint ownership, explicit interfaces, and no task-completion prerequisites.
-- **Pinned contracts.** Versioned wire types, canonical action digests, and synthetic examples let components develop against local doubles.
-- **Verifiable repository structure.** Standard-library checks validate task metadata, contract hashes, ownership, issue references, and documentation links.
-- **Explicit evidence boundaries.** Component checks, real-component assembly, simulated payments, and live inference have separate acceptance requirements.
+Optional merchant-ops modules (settlement, inbox, refunds drafts, disputes, SLA, analytics, teams, comms) stay advisory / tracking — they never become a second ledger.
 
-## Why Sentinel
+## How it works
 
-A provider accepting a refund request does not prove that the customer received credit. Retries after a timeout also need to preserve the original operation identity rather than create another refund.
+### Money path (intended runtime)
 
-Sentinel keeps financial authority in one action ledger, limits provider writes to the dispatcher, and requires authoritative postconditions before financial resolution. Models propose actions; deterministic server-side controls authorize them. The [architecture](docs/architecture.md) and [contract baseline](docs/independent-task-contracts.md) define these boundaries.
+```mermaid
+flowchart TD
+    UI[Web / approval UI] --> API[Case API]
+    API --> WF[Workflow]
+    WF --> EV[Evidence]
+    WF --> POL[Policy]
+    WF --> LED[Action ledger]
+    API --> LED
+    EV --> SIM[Payment simulator]
+    LED -->|claim outbox| DISP[Dispatcher]
+    DISP -->|create/lookup refund<br/>Idempotency-Key = provider_ref| SIM
+    DISP -->|PENDING / OUTCOME_UNKNOWN / ESCALATED| LED
+    SIM -->|signed webhook| VER[Verifier]
+    VER --> SIM
+    VER -->|PROVIDER_CONFIRMED / CREDIT_CONFIRMED / FAILED_FINAL| LED
+    VER --> API
+    WF --> API
+    M[Merchant-ops] --> API
+    M --> EV
+    M -.->|draft / request only| LED
+```
 
-## Requirements
+| Step | Who | Rule |
+| :--- | :--- | :--- |
+| Propose | Workflow → ledger | Canonical digest; idempotent `operation_key` |
+| Decide | Supervisor → ledger | Exact digest + case revision + policy version; expiry |
+| Reserve | Workflow → ledger | Evidence + policy outside TX; reserve/outbox/audit atomic |
+| Dispatch | Dispatcher | Only provider writer; never mint a second `provider_ref` |
+| Interim outcome | Dispatcher → ledger | `PENDING` / `OUTCOME_UNKNOWN` / `ESCALATED` only |
+| Final money | Verifier → ledger | Verified evidence; credit ≠ provider accept |
 
-| Requirement | Details |
+### Who owns money state
+
+```mermaid
+flowchart LR
+    subgraph authority [Authoritative money]
+        L[Action ledger<br/>approvals · eligibility · reservations<br/>actions · outbox · financial audit]
+    end
+    subgraph writers [Provider side effects]
+        D[Dispatcher<br/>bookkeeping only]
+        S[Simulator / provider]
+    end
+    subgraph never [Never a second ledger]
+        M[Merchant refunds / inbox / …]
+        W[Workflow checkpoints]
+        C[Case API revisions]
+    end
+    L -->|claim| D
+    D -->|write| S
+    D -->|outcome| L
+    M -.->|no table writes| L
+```
+
+Full layering and tables: [architecture](docs/architecture.md).
+
+### Build / evidence ladder
+
+```mermaid
+flowchart LR
+    A[Pinned contracts<br/>docs/independent-task-contracts.md] --> B[Module + local doubles]
+    B --> C["Module make check"]
+    C --> D[PR → owner merge]
+    D --> E[Sandbox assembly<br/>simulator journeys]
+    E --> F[Full ledger authority journeys]
+    F --> G[Strict release evidence]
+    G --> H[Live rails / pilot<br/>separate owner decision]
+```
+
+| Level | Command / artifact | Proves | Does not prove |
+| :--- | :--- | :--- | :--- |
+| Repo metadata | `make check` at repo root | Task ownership, contract hashes, docs links | Payment safety |
+| Component | `make -C <module> check` | Owned behavior + fail-closed peers | Multi-service MVP |
+| V1 sandbox | [sandbox runbook](integration/core/docs/sandbox-runbook.md) | Simulator HTTP journeys, peer probes | SN-009 money authority E2E |
+| Release / pilot | `release/`, `validation/` | Only when owner runs them | Implied by green module CI |
+
+## V1 sandbox
+
+| Fact | Value |
 | :--- | :--- |
-| **Environment** | A shell with Git, Python, and GNU Make; component requirements are documented separately. |
-| **Runtime** | Python 3.11+ for repository validation and regression tests. |
-| **Optional** | Authenticated GitHub CLI for issue coordination and explicit task publication. |
-| **Component tools** | Each module owns its dependencies, lockfile, and any database/container setup. |
-
-## Installation
-
-Clone the source. Repository checks require no package installation, database, or provider credentials:
+| Payment provider | Mock simulator only |
+| Journey path label | `provider-sandbox-only` |
+| Compose | [integration/core/compose.yaml](integration/core/compose.yaml) (Postgres data plane) |
+| Runbook | [integration/core/docs/sandbox-runbook.md](integration/core/docs/sandbox-runbook.md) |
+| Journeys | pending · merchant mismatch · duplicate payment · refund pending |
 
 ```bash
-git clone https://github.com/Dijo-404/sentinel.git
-cd sentinel
+# After following the runbook for peer bring-up:
+make -C integration/core check
+# Optional live stack: see sandbox-runbook.md (compose + journey script)
 ```
 
-There is no root application manifest or shared application lockfile. Follow the selected module's README for setup, `make check`, and local run/preview commands.
-
-### Updating
-
-From a clean checkout of your intended branch:
-
-```bash
-git pull --ff-only
-```
+**Bind / tokens:** loopback (`127.0.0.1`) may use synthetic `tok-*` demo bearers. Non-loopback bind refuses demo tokens — rotate secrets first.
 
 ## Quick start
 
 ```bash
-python3 --version       # confirm Python 3.11 or newer
-make --version          # confirm GNU Make is available
-make check              # validate repository metadata and run repository-tool tests
+git clone https://github.com/Dijo-404/sentinel.git
+cd sentinel
+python3 --version    # 3.11+
+make --version
+make check           # repository metadata + tool tests only
 ```
 
-A passing result confirms repository consistency. Application services have their own checks and acceptance evidence.
+No root app lockfile. Pick a module and follow its README:
 
-## Usage
+```bash
+make -C services/action-ledger check
+make -C services/dispatcher check
+make -C apps/api check
+```
 
-### Commands
+## Repository layout
 
-| Command | Description |
-| :--- | :--- |
-| `make check` | Run repository metadata validation and regression tests. |
-| `make validate` | Check task independence, ownership, contract hashes, issue references, and documentation. |
-| `make test` | Run repository-tool regression tests. |
-| `make check PYTHON=python3.12` | Use a selected Python interpreter for repository checks. |
+```text
+apps/           case API, web shell
+services/       ledger, dispatcher, verifier, workflow, evidence, policy,
+                simulator, voice, merchant-* , finharness-runtime
+packages/       contract-checks, persistence, telemetry, approval-ui,
+                finharness-*, indic-context, merchant-comms
+integration/    core assembly + sandbox runbook
+tooling/        optional module-check discovery
+evals/ replay/ benchmarks/ release/ validation/
+docs/           architecture, contracts, task register, Phase 1/2 specs
+scripts/ tests/ repository validation
+AGENTS.md       ownership, money rules, handoff
+```
 
-### Work on a component
-
-Choose a ready issue from the [Agents queue](https://github.com/Dijo-404/sentinel/issues?q=is%3Aissue%20is%3Aopen%20label%3Aagents), read its scope and current comments, and follow the [claim workflow](CONTRIBUTING.md). Use its feature branch and an independent worktree.
-
-Each task owns its manifest, lockfile, configuration, fixtures, tests, README, changelog, and module-local `make check`. No component waits for another task's implementation. Real-component assembly and end-to-end journey evidence remain separate owner-run steps; fixture peers cannot satisfy product release.
+Thirty-four independent tasks (SN-001–034). Each owns its root, lockfile, migrations, tests, and changelog. Register: [docs/task-register.md](docs/task-register.md).
 
 ## Configuration
 
-The root [.env.example](.env.example) documents intended development defaults. Repository checks do not load it, start services, or enforce runtime controls. Each implemented component owns its actual configuration schema and ignored local environment file.
+| Scope | What to use |
+| :--- | :--- |
+| Root | [.env.example](.env.example) is **documentation only** — repo `make check` does not load it |
+| Runtime | Each module’s `.env.example` + README; fixture vs `real-peers` |
+| Modes | Fixture = injected doubles. Real-peers = fail closed (no silent fixture fallback) |
+| Money | Ledger alone owns financial TX state; env kill switches never replace auth |
 
-See the [configuration reference](docs/configuration.md) for fixture/real-peer modes, secret handling, database ownership, and startup validation requirements.
+Details: [docs/configuration.md](docs/configuration.md).
 
-### Environment variables
+Root Make vars that actually affect repo tooling:
 
 | Variable | Effect |
 | :--- | :--- |
-| `PYTHON` | Selects the interpreter used by repository Make targets; defaults to `python3`. |
-| `SENTINEL_ENV`, `SENTINEL_MODE` | Documentation-only root examples; consuming components must implement their own behavior. |
-| `SENTINEL_PAYMENT_PROVIDER`, `SENTINEL_LOG_LEVEL` | Documentation-only root examples; repository tooling does not read them. |
-
-## Privacy and safety
-
-- Repository checks use local files and need no model, voice, or payment credentials.
-- Component development uses synthetic data and simulator payment writes. External payment integrations and pilots require separate authorization.
-- Real-peer mode must report unavailable, malformed, unauthorized, or incompatible peers; fixture success cannot substitute for a failed real run.
-- Financial audit remains distinct from telemetry. Secrets and private identifiers must stay out of committed fixtures, logs, and metrics.
-
-## How it works
-
-```mermaid
-flowchart LR
-    A[Task and pinned contracts] --> B[Independent module and local doubles]
-    B --> C[Standalone component checks]
-    C --> D[Pull request and owner review]
-    D --> E[Separate real-component assembly]
-```
-
-Each module keeps business rules independent of frameworks and external systems, with adapters at its boundaries. Module tests prove behavior against their declared inputs; assembly checks later exercise selected real component versions. The [testing guide](docs/testing.md) explains what each level of evidence establishes.
-
-## Tech stack
-
-| Component | Tool |
-| :--- | :--- |
-| **Repository tooling** | [Python standard library](https://docs.python.org/3/library/) and [GNU Make](https://www.gnu.org/software/make/) |
-| **Repository CI** | [GitHub Actions](https://github.com/Dijo-404/sentinel/actions/workflows/repository.yml) with pinned actions |
-| **Application stack** | Module-local Python services/libraries and TypeScript UI; boundaries appear in the [architecture](docs/architecture.md). Phase 1/2 specs remain historical product intent. |
-
-## Project structure
-
-```text
-.
-├── apps/           # case API and web shell
-├── services/       # payment, policy, workflow, execution, verification, and merchant-ops components
-├── packages/       # contracts, persistence, UI, telemetry, SDK, Indic, and merchant-comms packages
-├── tooling/        # optional module-check discovery and aggregation
-├── integration/    # core journey and real-component assembly tooling
-├── evals/          # deterministic safety evaluations
-├── replay/         # isolated replay and candidate comparison
-├── benchmarks/     # optional FinBench-Indic extension
-├── release/        # MVP release-evidence verification
-├── validation/     # separately authorized sandbox-pilot validation
-├── scripts/        # repository validation and task-publication tools
-├── tests/          # repository-tool regression tests
-├── docs/           # contracts, specifications, architecture, and task register
-├── AGENTS.md       # agent ownership, safety, and handoff rules
-├── LICENSE         # Apache License 2.0
-└── README.md
-```
+| `PYTHON` | Interpreter for root `make check` / `validate` / `test` (default `python3`) |
 
 ## Development
 
-Read [AGENTS.md](AGENTS.md), [CONTRIBUTING.md](CONTRIBUTING.md), and the [architecture](docs/architecture.md) before editing. Component work stays inside the task's owned paths and uses module-local dependencies and migrations.
+1. Read [AGENTS.md](AGENTS.md) and [CONTRIBUTING.md](CONTRIBUTING.md).  
+2. Claim one `status:ready` issue from the [Agents queue](https://github.com/Dijo-404/sentinel/issues?q=is%3Aissue%20is%3Aopen%20label%3Aagents).  
+3. Use that issue’s feature branch + an independent worktree.  
+4. Stay inside owned paths; use contract stubs — do not wait on peers.  
+5. Run module `make check`, open PR into `main` with `Refs #N`, move issue to `status:review`.  
+6. Owner merges. Agents do not push `main` or enable auto-merge.
 
 ```bash
-make validate          # check repository metadata and local documentation links
-make test              # run repository-tool regression tests
+make validate   # independence, ownership, contract hashes, doc links
+make test       # repository-tool regression tests
 ```
 
-Keep claims and progress on the assigned GitHub issue. Component PRs target `main`; the owner reviews and merges. Update the owned module's documentation and changelog with exact commands, actual results, the pinned contract hash, and untested assembly boundaries.
+## Safety boundaries
 
-## Limitations
-
-- The root check validates repository metadata and tools, not payment safety, application behavior, or release readiness.
-- Phase 1 and Phase 2 specifications describe product intent; treat them as historical source material, not proof of assembled behavior.
-- Module `make check` proves the owned component with local stubs. It does not prove a multi-service MVP runtime or customer credit.
-- Optional voice, FinHarness, FinBench, and merchant-ops modules are not MVP release prerequisites.
-- Fixture checks do not establish real-component assembly, live inference quality, or external pilot acceptance.
+- Synthetic data and simulator writes only unless separately authorized.  
+- Models propose; authenticated identity + policy + approval + ledger + verified outcomes govern money.  
+- On timeout/crash: reconcile the **same** `provider_ref` — never mint another refund ID or release a reservation because a lease expired.  
+- Pending / provider-confirmed ≠ customer credit until verifier postconditions pass. Escalation ≠ resolution.  
+- Financial audit is unsampled and separate from telemetry.  
+- Browser `NEXT_PUBLIC_*` must never hold API bearers or secrets.
 
 ## Roadmap
 
-- [x] Repository structure, ownership rules, and independent task definitions.
-- [x] Pinned contract baseline, published issue register, and repository CI.
-- [x] Standalone component implementations for SN-001–034 (module-local checks on `main`).
-- [x] Local V1 sandbox bring-up (compose + peers + four simulator journeys; see `integration/core/docs/sandbox-runbook.md`).
-- [ ] Deepen assembly beyond `provider-sandbox-only` (case→workflow→ledger authority) and assembled failure suite.
-- [ ] Produce strict release evidence (evaluation, replay, tracing) against assembled components.
-- [ ] Complete separate owner decisions for live models, live provider adapter, and any external pilot.
+- [x] Independent tasks, pinned contracts, repository CI  
+- [x] Module implementations SN-001–034 on `main` (module-local checks)  
+- [x] Local V1 sandbox: compose + peers + four simulator journeys  
+- [ ] Assembly past `provider-sandbox-only` (case → workflow → ledger authority)  
+- [ ] Strict release evidence (eval, replay, tracing) on assembled peers  
+- [ ] Owner decisions: live models, live provider adapter, external pilot  
 
 ## Documentation
 
-| Guide | What's in it |
+| Guide | Use it for |
 | :--- | :--- |
-| [Architecture](docs/architecture.md) | Dependency direction, runtime boundaries, and state ownership. |
-| [Repository structure](docs/repository-structure.md) | Independent module roots and shared maintenance boundaries. |
-| [Configuration](docs/configuration.md) | Module configuration, secrets, modes, and database controls. |
-| [Testing](docs/testing.md) | Standalone, financial, assembly, and release evidence requirements. |
-| [Task register](docs/task-register.md) | All 34 tasks and their GitHub issues. |
-| [Contract baseline](docs/independent-task-contracts.md) | Versioned wire types, routes, digest fixtures, and failure semantics. |
-| [GitHub workflow](docs/github-workflow.md) | Claims, labels, review, publication, and platform limits. |
-| [Phase 1 specification](docs/sentinel-p1.md) | Planned MVP payment operations capabilities. |
-| [Phase 2 specification](docs/sentinel-p2.md) | Optional FinHarness and FinBench-Indic extensions. |
-| [Pitch deck](docs/Sentinel_Pitch_Deck.pdf) | Product presentation supplied with the specifications. |
-| [Changelog](CHANGELOG.md) | Coordinated repository and release changes. |
+| [Architecture](docs/architecture.md) | Layers, runtime arrows, state ownership |
+| [Repository structure](docs/repository-structure.md) | Module roots and shared boundaries |
+| [Configuration](docs/configuration.md) | Modes, secrets, databases |
+| [Testing](docs/testing.md) | What each evidence level means |
+| [Task register](docs/task-register.md) | All 34 tasks ↔ GitHub issues |
+| [Contract baseline](docs/independent-task-contracts.md) | Wire types, digests, failure codes |
+| [Sandbox runbook](integration/core/docs/sandbox-runbook.md) | Bring up V1 simulator stack |
+| [GitHub workflow](docs/github-workflow.md) | Claims, labels, review |
+| [Phase 1](docs/sentinel-p1.md) / [Phase 2](docs/sentinel-p2.md) | Planned product intent (not proof of behavior) |
+| [Pitch deck](docs/Sentinel_Pitch_Deck.pdf) | Product narrative |
+| [Changelog](CHANGELOG.md) | Coordinated repo-level changes |
 
-## Contributing
+## Limitations
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a PR. Use [GitHub Issues](https://github.com/Dijo-404/sentinel/issues) for bugs and feature requests, and the [Agents queue](https://github.com/Dijo-404/sentinel/issues?q=is%3Aissue%20is%3Aopen%20label%3Aagents) for implementation tasks. Recheck assignment and comments before claiming an issue.
+- Root `make check` ≠ product safety or release readiness.  
+- Phase specs are historical intent, not assembled proof.  
+- Fixture / module green ≠ multi-service money path or customer credit.  
+- Voice, FinHarness, FinBench, merchant-ops are optional — not MVP release gates.
 
 ## License
 
-Released under the [Apache License 2.0](LICENSE).
+[Apache License 2.0](LICENSE).
 
 <br/>
 
