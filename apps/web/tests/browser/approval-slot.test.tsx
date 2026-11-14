@@ -1,5 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { ShellProvider } from "@/adapters/shell-context";
+import { loadShellConfig } from "@/adapters/composition";
 import { ApprovalSlot } from "@/slots/approval-slot";
 import { createApprovalUiStub } from "../stubs/approval-ui";
 
@@ -47,6 +49,33 @@ describe("ApprovalSlot mode selection", () => {
     expect(screen.getByTestId("decision-expires-at")).toHaveTextContent(
       "2026-12-31T23:59:59Z",
     );
+  });
+
+  it("ShellProvider real-peers supplies mode when ApprovalSlot omits prop", () => {
+    const ok = createApprovalUiStub("valid");
+    expect(ok.status).toBe("ok");
+    if (ok.status !== "ok") return;
+    render(
+      <ShellProvider
+        config={loadShellConfig({
+          NEXT_PUBLIC_SHELL_MODE: "real-peers",
+          CASE_API_BASE_URL: "http://127.0.0.1:9",
+        })}
+      >
+        <ApprovalSlot
+          state="ready"
+          props={ok.props}
+          now={() => new Date("2026-11-13T12:00:00Z")}
+        />
+      </ShellProvider>,
+    );
+    expect(screen.queryByTestId("approval-slot")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/local substitute/i),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Approval required" }),
+    ).toBeInTheDocument();
   });
 
   it("real-peers decide stays on injected case-api decide (BFF path)", async () => {

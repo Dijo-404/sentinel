@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Fixed — 15 November 2026 (evidence ApprovalSlot real-peers mode)
+
+- Supervisor case evidence passes `config.mode` + `reviewerId` into
+  `EvidencePanel` → `ApprovalSlot`. Slot also inherits ShellProvider mode when
+  prop omitted so real-peers cannot silently mount `LocalApprovalSubstitute`.
+- Test: evidence real-peers path asserts no `approval-ui.v1-local` data-slot.
+
 ### Added — 15 November 2026 (voice peer slot)
 
 - BFF session proxy `/api/bff/voice` → `VOICE_BASE_URL` (default `:8017`).
@@ -29,7 +36,7 @@
   `/api/bff/ops-activity` (mirror merchant-teams `_session-proxy`).
 - Replaced operator Activity / Knowledge / Assistant and customer Assistant
   stubs with peer-backed panels. Env: `ASSISTANT_BASE_URL` (:8026),
-  `KNOWLEDGE_BASE_URL` (:8034), `OPS_ACTIVITY_BASE_URL` (:8029).
+  `KNOWLEDGE_BASE_URL` (:8035), `OPS_ACTIVITY_BASE_URL` (:8029).
 - `data-testid`: `operator-activity`, `operator-activity-list`,
   `operator-knowledge`, `operator-knowledge-list`, `operator-assistant`,
   `operator-assistant-threads`, `operator-assistant-messages`,

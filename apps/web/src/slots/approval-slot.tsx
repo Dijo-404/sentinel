@@ -1,5 +1,6 @@
 "use client";
 
+import { useContext } from "react";
 import {
   ApprovalPanel,
   DecisionClientError,
@@ -7,13 +8,18 @@ import {
   type DecideClient,
 } from "sentinel-approval-ui";
 import type { ApprovalSlotProps } from "@/application/ports";
+import { ShellContext } from "@/adapters/shell-context";
 import { PeerError } from "@/domain/types";
 import { LocalApprovalSubstitute } from "./local-approval-substitute";
 
 type SlotMode = "fixture" | "real-peers";
 
 type ModeFields = {
-  /** Fixture keeps local substitute; real-peers mounts SN-013 ApprovalPanel. */
+  /**
+   * Fixture keeps local substitute; real-peers mounts SN-013 ApprovalPanel.
+   * Prefer explicit prop. When omitted, inherits ShellProvider config.mode so
+   * real-peers cannot silently fall back to LocalApprovalSubstitute.
+   */
   mode?: SlotMode;
   /** Authenticated reviewer id for ApprovalPanel view-model (real-peers). */
   reviewerId?: string;
@@ -55,6 +61,11 @@ function wrapCaseApiDecide(decide: ApprovalSlotProps["decide"]): DecideClient {
 
 /** Documented approval-ui.v1 slot. Renders local substitute, SN-013 panel, or visible failure. */
 export function ApprovalSlot(input: Props) {
+  const shell = useContext(ShellContext);
+  const mode = input.mode ?? shell?.config.mode ?? "fixture";
+  const reviewerId =
+    input.reviewerId ?? shell?.config.principal.principal_id ?? "";
+
   if (input.state === "error") {
     return (
       <section
@@ -87,9 +98,7 @@ export function ApprovalSlot(input: Props) {
     );
   }
 
-  const mode = input.mode ?? "fixture";
   if (mode === "real-peers") {
-    const reviewerId = input.reviewerId ?? "";
     const { props } = input;
     return (
       <ApprovalPanel

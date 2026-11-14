@@ -38,6 +38,13 @@ type Props = {
    */
   enableApproval?: boolean;
   /**
+   * Shell mode for ApprovalSlot. real-peers mounts SN-013; omit only when
+   * ShellProvider supplies config.mode (otherwise defaults fixture).
+   */
+  mode?: "fixture" | "real-peers";
+  /** Authenticated reviewer id for ApprovalPanel (real-peers). */
+  reviewerId?: string;
+  /**
    * Optional override for tests. Production derives expiry from
    * action.approval.expires_at or evidence expires_at — never a fixed fixture date.
    */
@@ -57,6 +64,8 @@ export function EvidencePanel({
   caseId,
   caseClient,
   enableApproval = false,
+  mode,
+  reviewerId,
   decisionExpiresAt: decisionExpiresOverride,
   approvalSlot,
 }: Props) {
@@ -203,7 +212,9 @@ export function EvidencePanel({
           detail={approvalError}
         />
       ) : null}
-      {slot ? <ApprovalSlot {...slot} /> : null}
+      {slot ? (
+        <ApprovalSlot {...slot} mode={mode} reviewerId={reviewerId} />
+      ) : null}
     </div>
   );
 }

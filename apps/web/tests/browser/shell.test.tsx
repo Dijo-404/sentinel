@@ -211,6 +211,7 @@ describe("standalone browser checks", () => {
         caseId="case-demo-42"
         caseClient={createCaseApiStub("valid")}
         enableApproval
+        mode="fixture"
       />,
     );
     await waitFor(() => {
@@ -230,6 +231,31 @@ describe("standalone browser checks", () => {
     expect(
       screen.queryByText("2026-12-31T23:59:59Z"),
     ).not.toBeInTheDocument();
+  });
+
+  it("evidence real-peers approval does not use local substitute data-slot", async () => {
+    render(
+      <EvidencePanel
+        caseId="case-demo-42"
+        caseClient={createCaseApiStub("valid")}
+        enableApproval
+        mode="real-peers"
+        reviewerId="supervisor-demo-1"
+      />,
+    );
+    await waitFor(() => {
+      expect(
+        screen.getByRole("heading", { name: "Approval required" }),
+      ).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId("approval-slot")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/local substitute/i),
+    ).not.toBeInTheDocument();
+    expect(
+      document.querySelector('[data-slot="approval-ui.v1-local"]'),
+    ).toBeNull();
+    expect(screen.getByTestId("approve")).toBeInTheDocument();
   });
 
   it("approval slot shows local substitute; peer failure stays visible", () => {
