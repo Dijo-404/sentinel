@@ -14,6 +14,8 @@
 
 ### Added
 
+- `PostgresMetricsSnapshotStore` + schema `merchant_analytics.merchant_metrics_snapshots`.
+- `sentinel-merchant-analytics seed` / `make seed` for synthetic matrix snapshot.
 - Independent `merchant-analytics.v1` HTTP service with read-only
   `GET /v1/merchants/{merchant_ref}/metrics`.
 - Domain aggregates: exception rate, unresolved minor units, refund aging buckets,

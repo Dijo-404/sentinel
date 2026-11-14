@@ -42,15 +42,6 @@ make check
 for snapshot proofs). Checks use only this module, local fixtures under `fixtures/`,
 and stubs under `tests/stubs/`. No sibling Sentinel services or payment credentials.
 
-Sandbox seed (requires `MERCHANT_ANALYTICS_DATABASE_URL`):
-
-```sh
-make seed
-```
-
-Writes one row for `merchant-demo-1` / matrix window from
-`contracts/expected-metrics.json` (refuses non-`tenant-demo`).
-
 ## Local peer doubles
 
 | Port | Location | Behaviors |
@@ -74,15 +65,15 @@ make preview
 ```
 
 `MERCHANT_ANALYTICS_MODE=real-peers` with `MERCHANT_ANALYTICS_DATABASE_URL` serves
-metrics from Postgres snapshots only (no live peer invent, no fixture fallback).
-Missing snapshot → `404` / `SNAPSHOT_NOT_FOUND`. DB down → `503` /
-`PEER_UNAVAILABLE`. Without a database URL, real-peers still requires `CASE_API_*`
-and `EVIDENCE_*` and fails closed on bad peers. Real-peer assembly remains
-unverified until owner-run integration.
+metrics from `merchant_analytics.merchant_metrics_snapshots` only (no live peer invent,
+no fixture fallback). Missing snapshot → `404` / `SNAPSHOT_NOT_FOUND`. DB down → `503` /
+`PEER_UNAVAILABLE`. Without a database URL, real-peers still requires `CASE_API_*` and
+`EVIDENCE_*` and fails closed on bad peers. Real-peer assembly remains unverified until
+owner-run integration.
 
 ### Seed (sandbox)
 
-Requires `MERCHANT_ANALYTICS_DATABASE_URL` and refuses non-`tenant-demo` /
+Requires `MERCHANT_ANALYTICS_DATABASE_URL`. Refuses non-`tenant-demo` /
 non-`merchant-demo-1` payloads:
 
 ```sh
@@ -99,4 +90,4 @@ Writes one row for the matrix window in `contracts/expected-metrics.json`.
 - [x] Integer minor units; exception rate as fixed decimal string
 - [x] Unauthorized merchant scope and unavailable peers fail closed
 - [x] Real-peer HTTP adapters never fall back to fixtures
-- [x] Optional Postgres snapshot store + `make seed` for portal real-peers
+- [x] Postgres snapshot store + `make seed` for portal real-peers
