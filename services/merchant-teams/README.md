@@ -18,11 +18,15 @@ Contract: `sentinel.task-contracts.v1`, SHA-256
 - Consume `case-api.v1` when recording `CASE_*` activity (local stubs for checks)
 - Project `identity.v1` merchant memberships into the local store
   (`POST /v1/staff/sync`); Platform Admin / identity owns grants
+- `GET /v1/merchant/team` auto-syncs when identity is configured and labels
+  the list as a projection (`source`)
+- Sync deactivates local staff absent from identity (revoke)
 
 **Non-goals:** this module never creates approvals or reservations, never writes
 SN-009 ledger tables, and never calls payment providers. Advisory limits cannot
 authorize money. `POST /v1/staff/{id}/authorize` always returns 403. This module
-is not a second platform role authority.
+is not a second platform role authority. With `IDENTITY_BASE_URL` in real-peers,
+local create/update role mutations are rejected (projection-only).
 
 ## Standalone setup
 
@@ -53,7 +57,9 @@ fixture fallback.
 
 Optional: set `IDENTITY_BASE_URL` and `IDENTITY_TOKEN` to enable membership
 sync against identity.v1 (`GET /v1/merchant-memberships`). When configured,
-identity failures fail closed. See `contracts/real-peer-compat.md`.
+identity failures fail closed, sync revokes absent locals, team list
+auto-syncs, and local membership writes are projection-only. See
+`contracts/real-peer-compat.md`.
 
 ## Evidence labels
 

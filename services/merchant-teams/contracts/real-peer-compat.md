@@ -15,6 +15,10 @@ SHA-256: `0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb`
 
 ## Consumed peer: `identity.v1` (optional; enabled when `IDENTITY_BASE_URL` set)
 
+When enabled in `real-peers`, identity is authoritative for membership grants:
+local create / role / display-name updates are rejected; `POST /v1/staff/sync`
+and `GET /v1/merchant/team` project and revoke against the peer response.
+
 | Check | Expected |
 | --- | --- |
 | `GET /v1/merchant-memberships?tenant_id=&merchant_ref=` | 200 `{ contract_version, memberships[] }` |
@@ -28,7 +32,7 @@ SHA-256: `0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb`
 ## Produced wire types
 
 - `MerchantStaff` — optional `approval_limit_minor` / `currency` omitted when unset
-- `StaffActivity` — append-only timeline events (includes `MEMBERSHIP_PROJECTED` / `MEMBERSHIP_SYNCED`)
+- `StaffActivity` — append-only timeline events (includes `MEMBERSHIP_PROJECTED` / `MEMBERSHIP_SYNCED` / `MEMBERSHIP_REVOKED`)
 
 ## Explicit non-goals
 

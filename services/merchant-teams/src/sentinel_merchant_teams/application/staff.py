@@ -16,6 +16,7 @@ from ..domain.types import (
 )
 from .errors import (
     ConfigurationError,
+    ConflictError,
     FinancialAuthorityDenied,
     NotFoundError,
     UnauthorizedError,
@@ -57,11 +58,20 @@ class StaffService:
         cases: CaseApiPort,
         clock: Clock,
         identity: IdentityMembershipPort | None = None,
+        *,
+        identity_authoritative: bool = False,
     ):
         self._store = store
         self._cases = cases
         self._clock = clock
         self._identity = identity
+        self._identity_authoritative = identity_authoritative
+
+    def _reject_local_membership_write(self) -> None:
+        if self._identity_authoritative:
+            raise ConflictError(
+                "identity peer is authoritative; local membership writes are projection-only"
+            )
 
     def create(
         self,
@@ -76,6 +86,7 @@ class StaffService:
     ) -> MerchantStaff:
         _require_manager(principal)
         _require_merchant(principal, merchant_ref)
+        self._reject_local_membership_write()
         if not display_name or not display_name.strip():
             raise ValidationError("display_name is required")
         try:
@@ -134,6 +145,21 @@ class StaffService:
             tenant_id=principal.tenant_id, merchant_ref=merchant_ref
         )
 
+    def list_team(
+        self, principal: Principal, merchant_ref: str
+    ) -> tuple[tuple[MerchantStaff, ...], str]:
+        """Membership projection surface.
+
+        When an identity peer is configured, refresh from identity first.
+        Response source labels the list as a projection, not a grant authority.
+        """
+        if self._identity is not None:
+            self.sync_memberships(principal, merchant_ref)
+            rows = self.list_staff(principal, merchant_ref)
+            return rows, "identity_projection"
+        rows = self.list_staff(principal, merchant_ref)
+        return rows, "local_projection"
+
     def update(
         self,
         principal: Principal,
@@ -146,6 +172,8 @@ class StaffService:
         clear_approval_limit: bool = False,
     ) -> MerchantStaff:
         staff = self.get(principal, staff_id)
+        if roles is not None or display_name is not None:
+            self._reject_local_membership_write()
         if not staff.active:
             raise ValidationError("Inactive staff cannot be updated")
 
@@ -298,7 +326,10 @@ class StaffService:
     def sync_memberships(
         self, principal: Principal, merchant_ref: str
     ) -> tuple[MerchantStaff, ...]:
-        """Project identity.v1 memberships into the local store (read model only)."""
+        """Project identity.v1 memberships into the local store (read model only).
+
+        Local staff absent from the identity response are deactivated (revoked).
+        """
         _require_manager(principal)
         _require_merchant(principal, merchant_ref)
         if self._identity is None:
@@ -310,6 +341,7 @@ class StaffService:
             principal=principal,
         )
         projected: list[MerchantStaff] = []
+        seen_ids: set[str] = set()
         for membership in memberships:
             if membership.tenant_id != principal.tenant_id:
                 raise ValidationError("identity membership tenant mismatch")
@@ -321,6 +353,7 @@ class StaffService:
                 raise ValidationError(str(exc)) from exc
 
             staff_id = membership.membership_id
+            seen_ids.add(staff_id)
             existing = self._store.get(tenant_id=principal.tenant_id, staff_id=staff_id)
             staff = MerchantStaff(
                 staff_id=staff_id,
@@ -351,4 +384,21 @@ class StaffService:
                 )
             )
             projected.append(saved)
+
+        for local in self._store.list_for_merchant(
+            tenant_id=principal.tenant_id, merchant_ref=merchant_ref
+        ):
+            if local.staff_id in seen_ids or not local.active:
+                continue
+            saved = self._store.save(replace(local, active=False))
+            self._store.append_activity(
+                StaffActivity(
+                    event_id=_new_event_id(),
+                    staff_id=saved.staff_id,
+                    at=_rfc3339(self._clock),
+                    kind="MEMBERSHIP_REVOKED",
+                    subject_ref=saved.merchant_ref,
+                    summary=f"Revoked local staff {saved.display_name}; absent from identity",
+                )
+            )
         return tuple(projected)
