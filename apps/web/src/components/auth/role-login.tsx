@@ -1,28 +1,44 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import type { PortalRole } from "../../../tests/stubs/identity";
+import { ROLE_LABELS } from "../../../tests/stubs/identity";
 import { PORTAL_META } from "@/lib/permissions";
 import { loginAction, type ActionResult } from "@/lib/server/auth-actions";
 
+const PORTALS: PortalRole[] = [
+  "customer",
+  "merchant",
+  "operator",
+  "supervisor",
+  "risk",
+  "admin",
+];
+
 type Props = {
-  role: PortalRole;
+  /** Preselected workspace (e.g. from `?portal=`). */
+  role?: PortalRole;
   next?: string;
 };
 
 const initial: ActionResult | null = null;
 
-export function RoleLogin({ role, next }: Props) {
-  const meta = PORTAL_META[role];
+export function RoleLogin({ role = "customer", next }: Props) {
+  const [selectedRole, setSelectedRole] = useState<PortalRole>(role);
+  const meta = PORTAL_META[selectedRole];
   const [state, formAction, pending] = useActionState(loginAction, initial);
-  const showRegister = role === "customer";
+  const showRegister = selectedRole === "customer";
 
   return (
-    <div className="auth-card panel stack" data-testid="role-login" data-role={role}>
+    <div
+      className="auth-card panel stack"
+      data-testid="role-login"
+      data-role={selectedRole}
+    >
       <div>
         <p className="brand auth-brand">Sentinel</p>
-        <h1>{meta.title}</h1>
+        <h1>Sign in</h1>
         <p className="muted">{meta.description}</p>
         <p className="fixture-banner" role="status">
           Demo authentication — fixture identity stub
@@ -30,11 +46,28 @@ export function RoleLogin({ role, next }: Props) {
       </div>
 
       <form action={formAction} className="stack" noValidate>
-        <input type="hidden" name="role" value={role} />
         {next ? <input type="hidden" name="next" value={next} /> : null}
 
         <label>
-          {role === "customer" ? "Email or mobile" : "Work email"}
+          Workspace
+          <select
+            name="role"
+            required
+            value={selectedRole}
+            onChange={(e) => setSelectedRole(e.target.value as PortalRole)}
+            data-testid="login-workspace"
+            aria-label="Workspace"
+          >
+            {PORTALS.map((r) => (
+              <option key={r} value={r}>
+                {ROLE_LABELS[r]}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label>
+          {selectedRole === "customer" ? "Email or mobile" : "Work email"}
           <input
             name="email"
             type="email"
@@ -106,6 +139,18 @@ export function RoleLogin({ role, next }: Props) {
           portal.
         </p>
       )}
+
+      <details className="demo-users" data-testid="demo-users">
+        <summary>Demo users</summary>
+        <ul>
+          <li>customer@example.test / demo-customer</li>
+          <li>merchant@example.test / demo-merchant</li>
+          <li>operator@example.test / demo-operator</li>
+          <li>supervisor@example.test / demo-supervisor</li>
+          <li>risk@example.test / demo-risk</li>
+          <li>admin@example.test / demo-admin</li>
+        </ul>
+      </details>
     </div>
   );
 }

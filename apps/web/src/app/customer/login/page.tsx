@@ -1,9 +1,5 @@
-import { RoleLogin } from "@/components/auth/role-login";
+import { redirect } from "next/navigation";
 
 export default function CustomerLoginPage() {
-  return (
-    <div className="auth-page">
-      <RoleLogin role="customer" />
-    </div>
-  );
+  redirect("/login?portal=customer");
 }
