@@ -101,7 +101,9 @@ export async function registerCustomerAction(
 
 export async function logoutAction(): Promise<void> {
   await logoutCurrentSession();
-  redirect("/");
+  // Land on shared login. Avoid racing a protected-layout requireRole
+  // re-fetch that would bounce an already-cleared session through loginPath.
+  redirect("/login");
 }
 
 export async function acceptInvitationAction(
