@@ -2,6 +2,7 @@ import type { CaseClient } from "@/application/ports";
 import {
   PeerError,
   isApiError,
+  type ActionRecord,
   type Approval,
   type Case,
   type CaseCreate,
@@ -12,6 +13,7 @@ import {
   type OpsCaseList,
 } from "@/domain/types";
 import {
+  validateActionRecord,
   validateCase,
   validateCaseCreated,
   validateEvidenceBundle,
@@ -20,6 +22,11 @@ import {
 
 export type RealPeerOptions = {
   baseUrl: string;
+  /**
+   * action-ledger.v1 base (direct URL or same-origin `/api/bff/ledger`).
+   * Required for getAction in real-peers.
+   */
+  ledgerBaseUrl?: string;
   /** Direct peer bearer (server session or service token). */
   bearerToken?: string;
   /**
@@ -37,6 +44,7 @@ export type RealPeerOptions = {
  */
 export function createRealPeerCaseClient(options: RealPeerOptions): CaseClient {
   const base = options.baseUrl.replace(/\/$/, "");
+  const ledgerBase = (options.ledgerBaseUrl ?? "").replace(/\/$/, "");
   const fetchImpl = options.fetchImpl ?? fetch;
   const authMode = options.authMode ?? "bearer";
 
@@ -57,7 +65,9 @@ export function createRealPeerCaseClient(options: RealPeerOptions): CaseClient {
     );
   }
 
-  async function request<T>(
+  async function requestAt<T>(
+    root: string,
+    peerLabel: string,
     method: string,
     path: string,
     init?: {
@@ -69,7 +79,7 @@ export function createRealPeerCaseClient(options: RealPeerOptions): CaseClient {
     const requestId = `web-${crypto.randomUUID()}`;
     let response: Response;
     try {
-      response = await fetchImpl(`${base}${path}`, {
+      response = await fetchImpl(`${root}${path}`, {
         method,
         headers: {
           ...(authMode === "bearer"
@@ -88,7 +98,7 @@ export function createRealPeerCaseClient(options: RealPeerOptions): CaseClient {
         "PEER_UNAVAILABLE",
         err instanceof Error
           ? err.message
-          : "Network failure contacting case API",
+          : `Network failure contacting ${peerLabel}`,
         requestId,
         503,
       );
@@ -124,13 +134,25 @@ export function createRealPeerCaseClient(options: RealPeerOptions): CaseClient {
           : response.status === 503
             ? "PEER_UNAVAILABLE"
             : "PEER_ERROR",
-        `Case API returned HTTP ${response.status}`,
+        `${peerLabel} returned HTTP ${response.status}`,
         requestId,
         response.status,
       );
     }
 
     return init!.validate(json, requestId);
+  }
+
+  async function request<T>(
+    method: string,
+    path: string,
+    init?: {
+      body?: unknown;
+      headers?: Record<string, string>;
+      validate: (json: unknown, requestId: string) => T;
+    },
+  ): Promise<T> {
+    return requestAt(base, "Case API", method, path, init);
   }
 
   return {
@@ -198,6 +220,23 @@ export function createRealPeerCaseClient(options: RealPeerOptions): CaseClient {
         { validate: validateEvidenceBundle },
       );
     },
+    getAction(actionId: string): Promise<ActionRecord> {
+      if (!ledgerBase) {
+        throw new PeerError(
+          "PEER_UNAVAILABLE",
+          "ACTION_LEDGER_BASE_URL (or ledger BFF) required to fetch proposal",
+          "cfg-missing-ledger",
+          503,
+        );
+      }
+      return requestAt(
+        ledgerBase,
+        "Action ledger",
+        "GET",
+        `/v1/actions/${encodeURIComponent(actionId)}`,
+        { validate: validateActionRecord },
+      );
+    },
     decide(actionId: string, decision: DecisionRequest): Promise<Approval> {
       return request(
         "POST",
@@ -223,6 +262,64 @@ export function createRealPeerCaseClient(options: RealPeerOptions): CaseClient {
         `/v1/ops/cases/${encodeURIComponent(caseId)}/escalate`,
         { body, validate: validateCase },
       );
+    },
+    getOperatorDashboard() {
+      return request("GET", "/v1/operator/dashboard", {
+        validate: (json, requestId) => {
+          if (!json || typeof json !== "object") {
+            throw new PeerError(
+              "MALFORMED_PEER_RESPONSE",
+              "Operator dashboard is not an object",
+              requestId,
+            );
+          }
+          return json as {
+            assigned_to_me: number;
+            unassigned: number;
+            escalated: number;
+            waiting_approval: number;
+            open_total: number;
+          };
+        },
+      });
+    },
+    getSupervisorDashboard() {
+      return request("GET", "/v1/supervisor/dashboard", {
+        validate: (json, requestId) => {
+          if (!json || typeof json !== "object") {
+            throw new PeerError(
+              "MALFORMED_PEER_RESPONSE",
+              "Supervisor dashboard is not an object",
+              requestId,
+            );
+          }
+          return json as {
+            waiting_approval_cases: number;
+            escalated_cases: number;
+            pending_approvals: number;
+            label: string;
+          };
+        },
+      });
+    },
+    getCustomerDashboard() {
+      return request("GET", "/v1/customer/dashboard", {
+        validate: (json, requestId) => {
+          if (!json || typeof json !== "object") {
+            throw new PeerError(
+              "MALFORMED_PEER_RESPONSE",
+              "Customer dashboard is not an object",
+              requestId,
+            );
+          }
+          return json as {
+            open_cases: number;
+            needs_input: number;
+            waiting_approval: number;
+            verified_resolved: number;
+          };
+        },
+      });
     },
   };
 }

@@ -31,20 +31,19 @@ const sessionStub = {
 } satisfies AuthSession;
 
 describe("merchant dashboard viz", () => {
-  it("renders merchant-dashboard with fixture banner and KPI labels", () => {
+  it("renders merchant-dashboard with fixture banner and unavailable metrics — no fake KPIs", () => {
     render(<MerchantOverview session={sessionStub} />);
 
     expect(screen.getByTestId("merchant-dashboard")).toBeInTheDocument();
     expect(screen.getByTestId("fixture-banner")).toHaveTextContent(
       "Simulator / fixture — not live production metrics",
     );
-    expect(screen.getByText("Captured volume")).toBeInTheDocument();
-    expect(screen.getByText("Open exceptions")).toBeInTheDocument();
-    expect(screen.getByText("Pending refund requests")).toBeInTheDocument();
-    expect(screen.getByText("Settlement status")).toBeInTheDocument();
-    expect(screen.getByTestId("chart-card")).toHaveTextContent(
-      "Volume vs refund requests",
+    expect(screen.getByTestId("state-empty")).toHaveTextContent(
+      "Merchant metrics unavailable",
     );
+    expect(screen.queryByText("Captured volume")).not.toBeInTheDocument();
+    expect(screen.queryByText("$128,400")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("chart-card")).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /approve|execute/i }),
     ).toBeNull();

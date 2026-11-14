@@ -8,7 +8,12 @@ import subprocess
 import tempfile
 import unittest
 
-from scripts.repository.validate import validate_tasks, valid_markdown_whitespace
+from scripts.repository.validate import (
+    is_ignored_markdown_path,
+    validate_repository,
+    validate_tasks,
+    valid_markdown_whitespace,
+)
 from scripts.repository.tasks import index_issues, merge_issue_maps, render_issue, require_commit_files
 
 
@@ -21,6 +26,33 @@ class RepositoryTests(unittest.TestCase):
         self.assertFalse(valid_markdown_whitespace("Text \n"))
         self.assertFalse(valid_markdown_whitespace("Text\t\n"))
         self.assertFalse(valid_markdown_whitespace("Missing newline"))
+
+    def test_markdown_scan_skips_dependency_and_build_trees(self):
+        self.assertTrue(is_ignored_markdown_path("node_modules/pkg/README.md"))
+        self.assertTrue(is_ignored_markdown_path("apps/web/node_modules/x/CHANGELOG.md"))
+        self.assertTrue(is_ignored_markdown_path(".venv/lib/README.md"))
+        self.assertTrue(is_ignored_markdown_path("dist/docs/index.md"))
+        self.assertTrue(is_ignored_markdown_path("build/out.md"))
+        self.assertTrue(is_ignored_markdown_path("coverage/lcov-report/index.md"))
+        self.assertTrue(is_ignored_markdown_path(".git/hooks/README.md"))
+        self.assertFalse(is_ignored_markdown_path("docs/architecture.md"))
+        self.assertFalse(is_ignored_markdown_path("services/workflow/README.md"))
+
+    def test_validate_repository_ignores_node_modules_markdown(self):
+        junk_dir = ROOT / "node_modules" / "dep-docs"
+        junk = junk_dir / "README.md"
+        junk_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            junk.write_text("bad trailing space \nno final rules\n")
+            errors = validate_repository(ROOT)
+            self.assertFalse(any("node_modules" in error for error in errors), errors)
+        finally:
+            junk.unlink(missing_ok=True)
+            try:
+                junk_dir.rmdir()
+                junk_dir.parent.rmdir()
+            except OSError:
+                pass
 
     def setUp(self):
         self.tasks = json.loads((ROOT / "docs/tasks.json").read_text())

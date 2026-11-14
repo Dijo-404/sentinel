@@ -8,6 +8,7 @@ import {
 } from "@/components/approvals/supervisor-decision-workspace";
 import { createCaseApiStub } from "../stubs/case-api";
 import { createApprovalUiStub } from "../stubs/approval-ui";
+import { PeerError } from "@/domain/types";
 
 describe("supervisor approvals", () => {
   it("queue lists waiting cases and links to decision workspace", async () => {
@@ -113,5 +114,57 @@ describe("supervisor approvals", () => {
       "fixture fallback is not used",
     );
     expect(screen.queryByTestId("approval-approve")).not.toBeInTheDocument();
+  });
+
+  it("real-peers fails closed when getAction unavailable — no silent demo digest", async () => {
+    const client = createCaseApiStub("valid");
+    client.getAction = async () => {
+      throw new PeerError(
+        "PEER_UNAVAILABLE",
+        "Ledger proposal unavailable",
+        "req-action-down",
+        503,
+      );
+    };
+    render(
+      <SupervisorDecisionWorkspace
+        actionId="action-demo-1"
+        caseClient={client}
+        mode="real-peers"
+      />,
+    );
+    expect(await screen.findByTestId("state-error")).toHaveTextContent(
+      "Decision unavailable",
+    );
+    expect(screen.getByTestId("state-error")).toHaveTextContent(
+      "PEER_UNAVAILABLE",
+    );
+    expect(screen.queryByTestId("approval-approve")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("approval-action-digest")).not.toBeInTheDocument();
+  });
+
+  it("real-peers uses getAction digest and evidence expiry — not FIXTURE_DECISION_EXPIRES_AT", async () => {
+    const client = createCaseApiStub("valid");
+    const getAction = vi.fn(client.getAction.bind(client));
+    client.getAction = getAction;
+    render(
+      <SupervisorDecisionWorkspace
+        actionId="action-demo-1"
+        caseClient={client}
+        mode="real-peers"
+      />,
+    );
+    await waitFor(() => {
+      expect(
+        screen.getByTestId("supervisor-decision-workspace"),
+      ).toBeInTheDocument();
+    });
+    expect(getAction).toHaveBeenCalledWith("action-demo-1");
+    expect(
+      screen.getByTestId("approval-decision-expires-at"),
+    ).toHaveTextContent("2026-11-14T12:00:00Z");
+    expect(
+      screen.getByTestId("approval-decision-expires-at"),
+    ).not.toHaveTextContent(FIXTURE_DECISION_EXPIRES_AT);
   });
 });

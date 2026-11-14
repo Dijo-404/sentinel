@@ -74,6 +74,13 @@ class CaseService:
         message_id = self._ids.new_id("msg")
         event_id = self._ids.new_id("evt")
         occurred = self._rfc3339()
+        start_job = WorkflowRequest(
+            case_id=case_id,
+            case_revision=1,
+            job_key=f"start:{case_id}:1",
+            event="START",
+            order_reference=create.order_reference,
+        )
         created, case, reused = self._repo.create_case(
             principal=principal,
             create=create,
@@ -82,16 +89,10 @@ class CaseService:
             message_id=message_id,
             event_id=event_id,
             occurred_at=occurred,
+            start_job=start_job,
         )
         if not reused:
-            self._schedule_workflow(
-                principal.tenant_id,
-                case.case_id,
-                case.revision,
-                f"start:{case.case_id}:{case.revision}",
-                "START",
-            )
-            self._flush_workflow()
+            self.flush_workflow()
         return created, 202
 
     def get_case(self, principal: Principal, case_id: str) -> Case:
@@ -136,8 +137,9 @@ class CaseService:
             case.revision,
             f"input:{case.case_id}:{case.revision}",
             "INPUT",
+            order_reference=str(meta["order_reference"]),
         )
-        self._flush_workflow()
+        self.flush_workflow()
         return case
 
     def list_events(self, principal: Principal, case_id: str, *, after: int) -> list[CaseEvent]:
@@ -207,8 +209,9 @@ class CaseService:
             request.case_revision,
             f"decision:{action_id}:{request.action_digest}:{request.case_revision}",
             "DECISION",
+            order_reference=str(meta["order_reference"]),
         )
-        self._flush_workflow()
+        self.flush_workflow()
         return approval
 
     def escalate(self, principal: Principal, case_id: str, body: dict) -> Case:
@@ -417,20 +420,26 @@ class CaseService:
         revision: int,
         job_key: str,
         event: str,
+        *,
+        order_reference: str | None = None,
     ) -> None:
         request = WorkflowRequest(
             case_id=case_id,
             case_revision=revision,
             job_key=job_key,
             event=event,  # type: ignore[arg-type]
+            order_reference=order_reference,
         )
         self._repo.enqueue_workflow(tenant_id=tenant_id, request=request)
 
-    def _flush_workflow(self) -> None:
+    def flush_workflow(self) -> int:
+        """Deliver claimed outbox jobs. Safe for continuous workers and mutation hooks."""
+        delivered = 0
         for row_id, request in self._repo.claim_workflow_jobs():
             try:
                 self._workflow.start_run(request, authorization=self._service_authorization)
                 self._repo.mark_workflow_job(job_row_id=row_id, status="DELIVERED")
+                delivered += 1
             except DomainError as exc:
                 if exc.http_status == 503:
                     self._repo.mark_workflow_job(
@@ -440,3 +449,4 @@ class CaseService:
                     self._repo.mark_workflow_job(
                         job_row_id=row_id, status="FAILED", detail=exc.code
                     )
+        return delivered

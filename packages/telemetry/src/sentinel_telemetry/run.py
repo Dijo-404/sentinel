@@ -6,6 +6,11 @@ import hashlib
 import json
 from pathlib import Path
 
+from .collector_export import (
+    CollectorExportError,
+    export_spans_to_collector,
+    resolve_collector_endpoint,
+)
 from .contracts import (
     COMPONENT_VERSION,
     CONTRACT_SHA256,
@@ -29,6 +34,7 @@ SUPPORTED_PARAMETERS = frozenset(
         "telemetry.service_name",
         "telemetry.environment",
         "telemetry.require_otel_spans",
+        "telemetry.collector_endpoint",
     }
 )
 
@@ -72,20 +78,11 @@ def run(input_data: RunInput | dict) -> RunReport:
     output_artifacts: list[ArtifactRef] = []
 
     if parsed.mode == "real-peers":
-        checks.append(
-            CheckResult(
-                name="real_peer_collector",
-                status="UNVERIFIED",
-                reason_code="REAL_PEER_COLLECTOR_NOT_ASSEMBLED",
-            )
-        )
-        return RunReport(
-            contract_version="sentinel.task-contracts.v1",
-            run_id=parsed.run_id,
-            mode=parsed.mode,
-            status="UNVERIFIED",
-            checks=checks,
-            output_artifacts=[],
+        return _run_real_peers(
+            parsed,
+            service_name=service_name,
+            environment=environment,
+            require_otel=require_otel,
         )
 
     collector = MemoryCollector()
@@ -104,6 +101,87 @@ def run(input_data: RunInput | dict) -> RunReport:
     finally:
         bridge.shutdown()
 
+    checks.extend(
+        _correlation_and_isolation_checks(
+            collector=collector,
+            audit=audit,
+            otel_count=otel_count,
+            require_otel=require_otel,
+            service_name=service_name,
+            environment=environment,
+        )
+    )
+
+    export_payload = {
+        "contract_version": CONTRACT_VERSION,
+        "port": PORT,
+        "baseline_sha256": CONTRACT_SHA256,
+        "run_id": parsed.run_id,
+        "spans": [
+            {"name": s.name, "attributes": dict(s.attributes), "events": list(s.events)}
+            for s in collector.spans
+        ],
+        "metrics": [
+            {"name": m.name, "value": m.value, "labels": dict(m.labels)} for m in collector.metrics
+        ],
+        "financial_audit_separate": [
+            {
+                "event_key": a.event_key,
+                "action_id": a.action_id,
+                "outcome": a.outcome,
+            }
+            for a in audit.records
+        ],
+    }
+    export_text = json.dumps(export_payload, sort_keys=True, separators=(",", ":"))
+    output_artifacts.append(
+        ArtifactRef(
+            kind="telemetry-export",
+            uri="fixture://telemetry-export",
+            sha256=_sha256_text(export_text),
+            component_version=COMPONENT_VERSION,
+            evidence_mode="fixture",
+        )
+    )
+
+    example_dir = _package_root() / "example"
+    for name, kind in (
+        ("otel-collector.yaml", "collector-example"),
+        ("grafana-dashboard.json", "dashboard-example"),
+    ):
+        path = example_dir / name
+        if path.is_file():
+            output_artifacts.append(
+                ArtifactRef(
+                    kind=kind,
+                    uri=str(path.relative_to(_package_root())),
+                    sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
+                    component_version=COMPONENT_VERSION,
+                    evidence_mode="fixture",
+                )
+            )
+
+    status = "PASS" if all(c.status == "PASS" for c in checks) else "FAIL"
+    return RunReport(
+        contract_version="sentinel.task-contracts.v1",
+        run_id=parsed.run_id,
+        mode=parsed.mode,
+        status=status,
+        checks=checks,
+        output_artifacts=output_artifacts,
+    )
+
+
+def _correlation_and_isolation_checks(
+    *,
+    collector: MemoryCollector,
+    audit: MemoryFinancialAudit,
+    otel_count: int,
+    require_otel: bool,
+    service_name: str,
+    environment: str,
+) -> list[CheckResult]:
+    checks: list[CheckResult] = []
     span_names = {span.name for span in collector.spans}
     correlation_ok = all(
         span.attributes.get("request_id") == "request-demo-1"
@@ -182,62 +260,122 @@ def run(input_data: RunInput | dict) -> RunReport:
         and len(audit.records) == 1
     )
     checks.append(_check("audit_isolation", isolation_ok, "AUDIT_UNSAMPLED", "AUDIT_SUPPRESSED"))
+    return checks
+
+
+def _run_real_peers(
+    parsed: RunInput,
+    *,
+    service_name: str,
+    environment: str,
+    require_otel: bool,
+) -> RunReport:
+    """
+    Real-peers: export only when a collector endpoint is configured.
+
+    No silent fixture PASS. Successful export → PASS with real-component evidence.
+    Missing endpoint → UNVERIFIED. Export failure → FAIL.
+    """
+    endpoint = resolve_collector_endpoint(parsed.parameters)
+    if not endpoint:
+        return RunReport(
+            contract_version="sentinel.task-contracts.v1",
+            run_id=parsed.run_id,
+            mode=parsed.mode,
+            status="UNVERIFIED",
+            checks=[
+                CheckResult(
+                    name="real_peer_collector",
+                    status="UNVERIFIED",
+                    reason_code="REAL_PEER_COLLECTOR_NOT_ASSEMBLED",
+                )
+            ],
+            output_artifacts=[],
+        )
+
+    collector = MemoryCollector()
+    bridge = OTelMemoryBridge(collector, service_name=service_name)
+    hooks = SafeTelemetryHooks(
+        bridge,
+        bridge,
+        failure_log=collector,
+        service_name=service_name,
+        environment=environment,
+    )
+    audit = MemoryFinancialAudit()
+    try:
+        produce_correlated_journey(hooks, audit)
+        otel_count = len(bridge.otel_spans)
+    finally:
+        bridge.shutdown()
+
+    checks = _correlation_and_isolation_checks(
+        collector=collector,
+        audit=audit,
+        otel_count=otel_count,
+        require_otel=require_otel,
+        service_name=service_name,
+        environment=environment,
+    )
+
+    try:
+        export_uri = export_spans_to_collector(
+            endpoint,
+            list(collector.spans),
+            list(collector.metrics),
+            run_id=parsed.run_id,
+            service_name=service_name,
+        )
+        checks.append(
+            CheckResult(
+                name="real_peer_collector",
+                status="PASS",
+                reason_code="COLLECTOR_EXPORT_OK",
+            )
+        )
+        evidence_mode = "real-component"
+    except CollectorExportError:
+        checks.append(
+            CheckResult(
+                name="real_peer_collector",
+                status="FAIL",
+                reason_code="COLLECTOR_EXPORT_FAILED",
+            )
+        )
+        export_uri = endpoint
+        evidence_mode = "real-component"
 
     export_payload = {
         "contract_version": CONTRACT_VERSION,
         "port": PORT,
         "baseline_sha256": CONTRACT_SHA256,
         "run_id": parsed.run_id,
-        "spans": [
-            {"name": s.name, "attributes": dict(s.attributes), "events": list(s.events)}
-            for s in collector.spans
-        ],
-        "metrics": [
-            {"name": m.name, "value": m.value, "labels": dict(m.labels)} for m in collector.metrics
-        ],
-        "financial_audit_separate": [
-            {
-                "event_key": a.event_key,
-                "action_id": a.action_id,
-                "outcome": a.outcome,
-            }
-            for a in audit.records
-        ],
+        "collector_endpoint": endpoint,
+        "export_uri": export_uri,
+        "span_count": len(collector.spans),
     }
     export_text = json.dumps(export_payload, sort_keys=True, separators=(",", ":"))
-    output_artifacts.append(
+    artifacts = [
         ArtifactRef(
             kind="telemetry-export",
-            uri="fixture://telemetry-export",
+            uri=export_uri,
             sha256=_sha256_text(export_text),
             component_version=COMPONENT_VERSION,
-            evidence_mode="fixture",
+            evidence_mode=evidence_mode,  # type: ignore[arg-type]
         )
-    )
+    ]
 
-    example_dir = _package_root() / "example"
-    for name, kind in (
-        ("otel-collector.yaml", "collector-example"),
-        ("grafana-dashboard.json", "dashboard-example"),
-    ):
-        path = example_dir / name
-        if path.is_file():
-            output_artifacts.append(
-                ArtifactRef(
-                    kind=kind,
-                    uri=str(path.relative_to(_package_root())),
-                    sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
-                    component_version=COMPONENT_VERSION,
-                    evidence_mode="fixture",
-                )
-            )
-
-    status = "PASS" if all(c.status == "PASS" for c in checks) else "FAIL"
+    if any(c.status == "FAIL" for c in checks):
+        status = "FAIL"
+    elif any(c.status == "UNVERIFIED" for c in checks):
+        status = "UNVERIFIED"
+    else:
+        status = "PASS"
     return RunReport(
         contract_version="sentinel.task-contracts.v1",
         run_id=parsed.run_id,
         mode=parsed.mode,
-        status=status,
+        status=status,  # type: ignore[arg-type]
         checks=checks,
-        output_artifacts=output_artifacts,
+        output_artifacts=artifacts,
     )

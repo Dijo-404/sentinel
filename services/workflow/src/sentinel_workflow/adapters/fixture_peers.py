@@ -253,8 +253,10 @@ class FixtureLedger:
     def __init__(self, behavior: Behavior = "valid") -> None:
         self.behavior = behavior
         self.by_operation: dict[str, ActionRecord] = {}
+        self.order_references: dict[str, str] = {}
         self.proposal_calls = 0
         self.reserve_calls = 0
+        self.last_reserve: ReservationRequest | None = None
 
     def create_proposal(self, request: ProposalRequest) -> ActionRecord:
         self._guard()
@@ -264,6 +266,8 @@ class FixtureLedger:
                 raise PeerError("CONFLICT", "operation_key conflict", 409)
             return deepcopy(existing)
         self.proposal_calls += 1
+        if request.order_reference:
+            self.order_references[request.operation_key] = request.order_reference
         action_id = f"action-{len(self.by_operation) + 1}"
         provider_ref = f"refund-{len(self.by_operation) + 1}"
         record = ActionRecord(
@@ -278,6 +282,16 @@ class FixtureLedger:
 
     def reserve(self, request: ReservationRequest) -> ActionRecord:
         self._guard()
+        order_reference = (request.order_reference or "").strip() or self.order_references.get(
+            request.operation_key, ""
+        )
+        if not order_reference:
+            raise PeerError(
+                "ORDER_REFERENCE_REQUIRED",
+                "order_reference required for reservation evidence",
+                422,
+            )
+        self.last_reserve = request
         existing = self.by_operation.get(request.operation_key)
         if existing is None:
             existing = self.create_proposal(
@@ -285,6 +299,7 @@ class FixtureLedger:
                     operation_key=request.operation_key,
                     payload=request.payload,
                     action_digest=request.action_digest,
+                    order_reference=order_reference,
                 )
             )
         if existing.status == "RESERVED" and existing.approval is not None:
@@ -381,3 +396,25 @@ class FixtureVerifier:
             raise PeerError("UNAUTHORIZED", "out of scope", 403)
         if self.behavior == "malformed":
             raise PeerError("MALFORMED", "malformed verifier", 502)
+
+
+class FixtureRisk:
+    """Hold lookup double. Default: no active restriction (unblocked)."""
+
+    def __init__(
+        self,
+        behavior: Behavior = "valid",
+        *,
+        blocked_cases: set[str] | None = None,
+    ) -> None:
+        self.behavior = behavior
+        self.blocked_cases = set(blocked_cases or ())
+
+    def blocks_financial_actions(self, case_id: str) -> bool:
+        if self.behavior == "unavailable":
+            raise PeerUnavailableError("risk")
+        if self.behavior == "unauthorized_or_out_of_scope":
+            raise PeerError("UNAUTHORIZED", "out of scope", 403)
+        if self.behavior == "malformed":
+            raise PeerError("MALFORMED", "malformed risk blocks", 502)
+        return case_id in self.blocked_cases

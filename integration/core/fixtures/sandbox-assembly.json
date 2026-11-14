@@ -7,8 +7,11 @@
     "Assembly extras on top of fixtures/sandbox-tokens.json (#84 identity shape: tok-* → principal).",
     "role_tokens keeps role→bearer lookup for HttpPeerBundle; do not invert the #84 tokens map.",
     "journey_seeds order_reference values match simulator #82 packs (JOURNEY-* / DEMO-ORDER-42).",
-    "HttpPeerBundle drives payment-provider HTTP only — not case→workflow→ledger→dispatcher money authority.",
-    "SENTINEL_V1_REQUIRE_FULL_PATH=1 fails closed while path remains provider-sandbox-only.",
+    "Default real-peers HttpPeerBundle runs provider journeys (path=provider-sandbox-only).",
+    "Authority journeys browser_to_credit / duplicate_approval_deny need SENTINEL_V1_AUTHORITY_PATH=1;",
+    "when those postconditions pass, path=browser-to-credit and sn009_authority_exercised=true.",
+    "Fixture doubles use path=browser-to-credit-fixture when authority journeys pass; never MVP release.",
+    "SENTINEL_V1_REQUIRE_FULL_PATH=1 requires path=browser-to-credit (fails on provider-sandbox-only).",
     "identity.v1 (8012) and risk.v1 (8013) are optional RBAC peers; fixture RBAC probes use path=rbac-fixture.",
     "rbac-fixture does not set sn009_authority_exercised and is not a full money-path claim."
   ],
@@ -61,6 +64,32 @@
       "provider_ref": "refund-pending-1",
       "amount_minor": 150000,
       "seeded": true
+    },
+    "browser_to_credit": {
+      "order_reference": "subject-demo-42/DEMO-ORDER-42",
+      "case_id": "case-demo-42",
+      "case_revision": 1,
+      "closure_revision": 2,
+      "transaction_ref": "TXN-B",
+      "amount_minor": 150000,
+      "currency": "INR",
+      "policy_version": "demo-policy-v1",
+      "action_digest": "d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993",
+      "operation_key": "browser-to-credit-demo",
+      "provider_ref": "refund-authority-1",
+      "evidence_ids": ["evidence-payment-b", "evidence-order"],
+      "expires_at": "2099-01-01T00:00:00Z"
+    },
+    "duplicate_approval_deny": {
+      "case_id": "case-demo-42",
+      "case_revision": 1,
+      "transaction_ref": "TXN-B",
+      "amount_minor": 150000,
+      "currency": "INR",
+      "policy_version": "demo-policy-v1",
+      "action_digest": "d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993",
+      "operation_key": "duplicate-approval-deny-demo",
+      "expires_at": "2099-01-01T00:00:00Z"
     }
   }
 }

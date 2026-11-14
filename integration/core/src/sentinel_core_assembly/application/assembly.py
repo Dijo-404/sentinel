@@ -5,11 +5,18 @@ from __future__ import annotations
 import os
 from hashlib import sha256
 
+from sentinel_core_assembly.adapters.authority_path import authority_path_enabled
 from sentinel_core_assembly.domain.journeys import evaluate_journey, expectation_for
 from sentinel_core_assembly.domain.types import (
+    AUTHORITY_FIXTURE_PATH,
+    AUTHORITY_JOURNEYS,
+    AUTHORITY_PATH,
     CONTRACT_SHA256,
     CONTRACT_VERSION,
+    FIXTURE_PATH,
     JOURNEYS,
+    PROVIDER_JOURNEYS,
+    PROVIDER_ONLY_PATH,
     REQUIRED_PEERS,
     ArtifactRef,
     CheckResult,
@@ -21,9 +28,6 @@ from .ports import JourneyPeers
 
 # V1 sandbox assembly always labels the payment peer as simulator (not live rails).
 _SANDBOX_PAYMENT_PROVIDER = "simulator"
-# HttpPeerBundle exercises payment-provider HTTP only — not case→workflow→ledger→SN-009.
-_PROVIDER_ONLY_PATH = "provider-sandbox-only"
-_FIXTURE_PATH = "fixture-reference"
 
 
 def _digest(payload: str) -> str:
@@ -111,14 +115,31 @@ def probe_peers(peers: JourneyPeers, mode: str) -> list[CheckResult]:
     return checks
 
 
-def run_journeys(peers: JourneyPeers, selected: tuple[str, ...] = JOURNEYS) -> list[CheckResult]:
+def selected_journeys(run: RunInput) -> tuple[str, ...]:
+    """Fixture runs provider + authority; real-peers need AUTHORITY_PATH env for SN-009."""
+    raw = run.parameters.get("journeys")
+    if isinstance(raw, str) and raw:
+        return tuple(part.strip() for part in raw.split(",") if part.strip())
+    if run.mode == "fixture":
+        return JOURNEYS
+    if authority_path_enabled():
+        return JOURNEYS
+    return PROVIDER_JOURNEYS
+
+
+def run_journeys(
+    peers: JourneyPeers, selected: tuple[str, ...] = JOURNEYS
+) -> tuple[list[CheckResult], bool]:
     drivers = {
         "pending": peers.run_pending,
         "merchant_mismatch": peers.run_merchant_mismatch,
         "duplicate_payment": peers.run_duplicate_payment,
         "refund_pending": peers.run_refund_pending,
+        "browser_to_credit": peers.run_browser_to_credit,
+        "duplicate_approval_deny": peers.run_duplicate_approval_deny,
     }
     checks: list[CheckResult] = []
+    sn009_exercised = False
     for journey in selected:
         if journey not in drivers:
             checks.append(CheckResult(f"journey.{journey}", "FAIL", "UNKNOWN_JOURNEY"))
@@ -130,12 +151,25 @@ def run_journeys(peers: JourneyPeers, selected: tuple[str, ...] = JOURNEYS) -> l
                 CheckResult(f"journey.{journey}", "FAIL", f"JOURNEY_ERROR:{type(exc).__name__}")
             )
             continue
-        checks.append(evaluate_journey(outcome, expectation_for(journey)))
-    return checks
+        result = evaluate_journey(outcome, expectation_for(journey))
+        checks.append(result)
+        if (
+            result.status == "PASS"
+            and journey in AUTHORITY_JOURNEYS
+            and bool(outcome.get("sn009_authority_exercised"))
+        ):
+            sn009_exercised = True
+    return checks, sn009_exercised
+
+
+def derive_path(mode: str, sn009_exercised: bool) -> str:
+    if mode == "fixture":
+        return AUTHORITY_FIXTURE_PATH if sn009_exercised else FIXTURE_PATH
+    return AUTHORITY_PATH if sn009_exercised else PROVIDER_ONLY_PATH
 
 
 def require_full_path_gate(run: RunInput, path: str) -> list[CheckResult]:
-    """Fail closed when operator demands full MVP path but harness is provider-only."""
+    """Fail closed when operator demands full MVP path but harness did not exercise it."""
     required = os.environ.get("SENTINEL_V1_REQUIRE_FULL_PATH", "").strip() == "1"
     if not required:
         return [
@@ -145,7 +179,9 @@ def require_full_path_gate(run: RunInput, path: str) -> list[CheckResult]:
                 "PATH_LABELED" if run.mode == "real-peers" else "FIXTURE_PATH_OK",
             )
         ]
-    if path == _PROVIDER_ONLY_PATH:
+    if path == AUTHORITY_PATH:
+        return [CheckResult("assembly.path", "PASS", "FULL_PATH_SATISFIED")]
+    if path == PROVIDER_ONLY_PATH:
         return [
             CheckResult(
                 "assembly.path",
@@ -153,34 +189,36 @@ def require_full_path_gate(run: RunInput, path: str) -> list[CheckResult]:
                 "FULL_PATH_REQUIRED_BUT_PROVIDER_SANDBOX_ONLY",
             )
         ]
-    return [CheckResult("assembly.path", "PASS", "FULL_PATH_SATISFIED")]
+    return [
+        CheckResult(
+            "assembly.path",
+            "FAIL",
+            "FULL_PATH_REQUIRED_BUT_NOT_REAL_AUTHORITY",
+        )
+    ]
 
 
 def run_assembly(run: RunInput, peers: JourneyPeers) -> RunReport:
-    path = _PROVIDER_ONLY_PATH if run.mode == "real-peers" else _FIXTURE_PATH
     checks = validate_input(run)
     if any(c.status == "FAIL" for c in checks):
-        return _report(run, checks, (), path=path)
+        return _report(run, checks, (), path=derive_path(run.mode, False), sn009=False)
 
     checks.extend(reject_fixture_as_real(run))
     if any(c.status == "FAIL" for c in checks):
-        return _report(run, checks, (), path=path)
-
-    checks.extend(require_full_path_gate(run, path))
-    if any(c.status == "FAIL" for c in checks):
-        return _report(run, checks, (), path=path)
+        return _report(run, checks, (), path=derive_path(run.mode, False), sn009=False)
 
     checks.extend(probe_peers(peers, run.mode))
     if run.mode == "real-peers" and any(c.status == "FAIL" for c in checks):
-        return _report(run, checks, (), path=path)
+        return _report(run, checks, (), path=derive_path(run.mode, False), sn009=False)
 
-    selected = JOURNEYS
-    raw = run.parameters.get("journeys")
-    if isinstance(raw, str) and raw:
-        selected = tuple(part.strip() for part in raw.split(",") if part.strip())
-    checks.extend(run_journeys(peers, selected))
+    selected = selected_journeys(run)
+    journey_checks, sn009 = run_journeys(peers, selected)
+    checks.extend(journey_checks)
+    path = derive_path(run.mode, sn009)
 
-    # Local harness success never claims assembled MVP / product release / SN-009 authority.
+    checks.extend(require_full_path_gate(run, path))
+
+    # Local harness success never claims assembled MVP / product release.
     checks.append(
         CheckResult(
             "assembly.mvp_claim",
@@ -197,7 +235,7 @@ def run_assembly(run: RunInput, peers: JourneyPeers) -> RunReport:
         component_version=str(run.parameters.get("component_version", "0.1.0")),
         evidence_mode=evidence_mode,
     )
-    return _report(run, checks, (artifact,), status=status, path=path)
+    return _report(run, checks, (artifact,), status=status, path=path, sn009=sn009)
 
 
 def _report(
@@ -206,13 +244,10 @@ def _report(
     artifacts: tuple[ArtifactRef, ...],
     status: str | None = None,
     path: str | None = None,
+    sn009: bool = False,
 ) -> RunReport:
     provider = _SANDBOX_PAYMENT_PROVIDER if run.mode == "real-peers" else None
-    report_path = (
-        path
-        if path is not None
-        else (_PROVIDER_ONLY_PATH if run.mode == "real-peers" else _FIXTURE_PATH)
-    )
+    report_path = path if path is not None else derive_path(run.mode, sn009)
     return RunReport(
         contract_version=CONTRACT_VERSION,
         run_id=run.run_id,
@@ -223,7 +258,7 @@ def _report(
         assembled_mvp_claimed=False,
         payment_provider=provider,
         path=report_path,
-        sn009_authority_exercised=False,
+        sn009_authority_exercised=sn009,
     )
 
 

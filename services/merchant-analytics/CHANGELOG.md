@@ -3,6 +3,11 @@
 ## Unreleased
 - Refuse non-loopback HTTP bind while demo/sandbox bearer tokens remain configured.
 
+### Fixed
+
+- `case_http` aligns to case-api.v1 Case fields; missing analytics-required
+  `opened_at`/`intent`/`evidence_ids` fail closed (no invented UNKNOWN/timestamps).
+
 ### Added
 
 - Independent `merchant-analytics.v1` HTTP service with read-only

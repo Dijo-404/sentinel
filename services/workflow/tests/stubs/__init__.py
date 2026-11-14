@@ -13,6 +13,9 @@ from sentinel_workflow.adapters.fixture_peers import (
     FixturePolicy as StubPolicy,
 )
 from sentinel_workflow.adapters.fixture_peers import (
+    FixtureRisk as StubRisk,
+)
+from sentinel_workflow.adapters.fixture_peers import (
     FixtureVerifier as StubVerifier,
 )
 
@@ -21,5 +24,6 @@ __all__ = [
     "StubEvidence",
     "StubLedger",
     "StubPolicy",
+    "StubRisk",
     "StubVerifier",
 ]

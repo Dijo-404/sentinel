@@ -24,6 +24,30 @@ def evaluate_journey(outcome: dict[str, object], expectation: JourneyExpectation
             return CheckResult(name, "FAIL", "TIMEOUT_RECOVERY_MISSING")
         if not outcome.get("credit_confirmed"):
             return CheckResult(name, "FAIL", "CREDIT_EVIDENCE_MISSING")
+    if expectation.journey == "browser_to_credit":
+        if not outcome.get("sn009_authority_exercised"):
+            return CheckResult(name, "FAIL", "SN009_AUTHORITY_NOT_EXERCISED")
+        if not outcome.get("credit_confirmed"):
+            return CheckResult(name, "FAIL", "CREDIT_EVIDENCE_MISSING")
+        if not outcome.get("customer_closed"):
+            return CheckResult(name, "FAIL", "CUSTOMER_CLOSURE_MISSING")
+        stages = outcome.get("stages") or []
+        required = (
+            "intake",
+            "proposal",
+            "approval",
+            "reservation",
+            "dispatcher",
+            "verifier",
+            "closure",
+        )
+        if any(stage not in stages for stage in required):
+            return CheckResult(name, "FAIL", "AUTHORITY_STAGES_INCOMPLETE")
+    if expectation.journey == "duplicate_approval_deny":
+        if not outcome.get("sn009_authority_exercised"):
+            return CheckResult(name, "FAIL", "SN009_AUTHORITY_NOT_EXERCISED")
+        if not outcome.get("duplicate_approval_denied"):
+            return CheckResult(name, "FAIL", "DUPLICATE_APPROVAL_NOT_DENIED")
     return CheckResult(name, "PASS", "POSTCONDITIONS_MET")
 
 

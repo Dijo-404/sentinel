@@ -112,7 +112,7 @@ class MerchantRefundService:
             raise ValidationError("evidence_ids required before submit")
 
         case = self.case_api.get_case(principal, request.case_id)
-        self._assert_evidence(principal, request)
+        evidence_objects = self._selected_evidence(principal, request)
 
         payload = RefundActionPayload(
             case_id=request.case_id,
@@ -127,7 +127,7 @@ class MerchantRefundService:
         policy_result = self.policy.evaluate(
             principal,
             payload=payload.as_dict(),
-            evidence_ids=list(request.evidence_ids),
+            evidence=evidence_objects,
         )
         if policy_result.action_digest != digest:
             raise ValidationError("Policy action_digest mismatch")
@@ -224,10 +224,11 @@ class MerchantRefundService:
             "reviewer_id": decision.reviewer_id,
             "expires_at": decision.expires_at,
         }
+        evidence_objects = self._selected_evidence(principal, request)
         policy_result = self.policy.evaluate(
             principal,
             payload=payload.as_dict(),
-            evidence_ids=list(request.evidence_ids),
+            evidence=evidence_objects,
             approval=approval_body,
         )
         if policy_result.outcome == "DENY":
@@ -284,10 +285,14 @@ class MerchantRefundService:
         self.store.put(updated)
         return updated
 
-    def _assert_evidence(self, principal: Principal, request: MerchantRefundRequest) -> None:
+    def _selected_evidence(
+        self, principal: Principal, request: MerchantRefundRequest
+    ) -> list[dict]:
+        """Load, validate, and return policy.v1 evidence objects for request ids."""
         bundle = self.evidence.get_case_evidence(principal, request.case_id)
         by_id = {item.evidence_id: item for item in bundle.evidence}
         now = self.clock.now_iso()
+        selected: list[dict] = []
         for evidence_id in request.evidence_ids:
             item = by_id.get(evidence_id)
             if item is None:
@@ -298,6 +303,8 @@ class MerchantRefundService:
                 raise ValidationError(f"Evidence not VERIFIED: {evidence_id}")
             if item.expires_at <= now:
                 raise ValidationError(f"Evidence expired: {evidence_id}")
+            selected.append(item.model_dump())
+        return selected
 
     def _load(self, principal: Principal, request_id: str) -> MerchantRefundRequest:
         request = self.store.get(principal.tenant_id, request_id)

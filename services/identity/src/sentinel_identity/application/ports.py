@@ -7,6 +7,7 @@ from typing import Protocol
 
 from ..domain.models import (
     AuditEvent,
+    DeliveryOutboxItem,
     Invitation,
     PrivilegedChangeRequest,
     RoleAssignment,
@@ -97,9 +98,23 @@ class IdentityStore(Protocol):
         """Atomic grant/revoke/activate: assignment + authz_version + optional session revoke."""
         ...
 
-    def record_delivery_secret(self, invitation_id: str, raw_token: str) -> None: ...
+    def record_delivery_secret(
+        self, invitation_id: str, raw_token: str, *, work_email: str
+    ) -> None:
+        """Persist invite plaintext for sandbox delivery outbox (not admin API)."""
+        ...
 
     def peek_delivery_secret(self, invitation_id: str) -> str | None: ...
+
+    def list_pending_deliveries(self) -> tuple[DeliveryOutboxItem, ...]: ...
+
+    def mark_delivery_delivered(
+        self, delivery_id: str, *, acceptance_link: str, at: datetime
+    ) -> None: ...
+
+    def list_sandbox_inbox(
+        self, *, work_email: str | None = None
+    ) -> tuple[DeliveryOutboxItem, ...]: ...
 
     def append_audit(self, event: AuditEvent) -> AuditEvent: ...
 

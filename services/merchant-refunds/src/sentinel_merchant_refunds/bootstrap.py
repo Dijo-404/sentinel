@@ -15,6 +15,7 @@ from sentinel_merchant_refunds.adapters.http_peers import (
 )
 from sentinel_merchant_refunds.adapters.ids import SecureIdGenerator
 from sentinel_merchant_refunds.adapters.memory_store import MemoryRequestStore
+from sentinel_merchant_refunds.adapters.sqlite_store import SqliteRequestStore
 from sentinel_merchant_refunds.application.service import MerchantRefundService
 from sentinel_merchant_refunds.domain.errors import PeerUnavailableError
 
@@ -46,9 +47,12 @@ def _resolve_peer_bearer(resolved_mode: str) -> str:
 def _resolve_store(resolved_mode: str, store):
     if store is not None:
         return store
+    database_url = os.environ.get("MERCHANT_REFUNDS_DATABASE_URL", "").strip()
+    if database_url:
+        return SqliteRequestStore.from_url(database_url)
     if resolved_mode == "real-peers":
         raise PeerUnavailableError(
-            "real-peers requires an injected durable store; "
+            "real-peers requires MERCHANT_REFUNDS_DATABASE_URL or an injected durable store; "
             "MemoryRequestStore defaults are not allowed across workers"
         )
     return MemoryRequestStore()

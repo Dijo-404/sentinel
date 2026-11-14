@@ -93,7 +93,8 @@
         "blocks_financial_actions": "bool",
         "financial_approval_granted": false
       },
-      "roles": ["risk_officer"]
+      "roles": ["risk_officer", "workflow"],
+      "notes": "Hold lookup for risk portal and workflow financial-path gate; never grants money"
     },
     {
       "method": "POST",

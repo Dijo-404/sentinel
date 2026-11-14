@@ -118,12 +118,21 @@ function validClient(): CaseClient {
       await this.getCase(caseId);
       return { events: events.filter((e) => e.sequence > after) };
     },
-    async listOpsCases(): Promise<OpsCaseList> {
+    async listOpsCases(query): Promise<OpsCaseList> {
+      if (query?.after) {
+        return { cases: [], next_cursor: undefined };
+      }
       return { cases: [{ ...demoCase }], next_cursor: undefined };
     },
     async getOpsEvidence(caseId: string): Promise<EvidenceBundle> {
       await this.getCase(caseId);
       return structuredClone(demoEvidence);
+    },
+    async getAction(actionId: string): Promise<ActionRecord> {
+      if (actionId !== demoAction.action_id) {
+        fail("NOT_FOUND", "Action not found", "req-action-404", 404);
+      }
+      return structuredClone(demoAction);
     },
     async decide(
       actionId: string,
@@ -162,6 +171,31 @@ function validClient(): CaseClient {
         contract_version: CONTRACT_VERSION,
       };
     },
+    async getOperatorDashboard() {
+      return {
+        assigned_to_me: 1,
+        unassigned: 0,
+        escalated: 0,
+        waiting_approval: 1,
+        open_total: 1,
+      };
+    },
+    async getSupervisorDashboard() {
+      return {
+        waiting_approval_cases: 1,
+        escalated_cases: 0,
+        pending_approvals: 0,
+        label: "fixture-projection",
+      };
+    },
+    async getCustomerDashboard() {
+      return {
+        open_cases: 1,
+        needs_input: 0,
+        waiting_approval: 1,
+        verified_resolved: 0,
+      };
+    },
   };
 }
 
@@ -180,8 +214,12 @@ function unavailableClient(): CaseClient {
     listEvents: boom,
     listOpsCases: boom,
     getOpsEvidence: boom,
+    getAction: boom,
     decide: boom,
     escalate: boom,
+    getOperatorDashboard: boom,
+    getSupervisorDashboard: boom,
+    getCustomerDashboard: boom,
   };
 }
 
@@ -205,6 +243,9 @@ function malformedClient(): CaseClient {
     async getOpsEvidence() {
       return { evidence: null } as unknown as EvidenceBundle;
     },
+    async getAction() {
+      return { action_id: "x" } as unknown as ActionRecord;
+    },
     async decide() {
       return { decision: "MAYBE" } as unknown as Approval;
     },
@@ -224,8 +265,12 @@ function unauthorizedClient(): CaseClient {
     listEvents: boom,
     listOpsCases: boom,
     getOpsEvidence: boom,
+    getAction: boom,
     decide: boom,
     escalate: boom,
+    getOperatorDashboard: boom,
+    getSupervisorDashboard: boom,
+    getCustomerDashboard: boom,
   };
 }
 

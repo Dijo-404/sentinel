@@ -9,5 +9,7 @@ Pinned baseline: `sentinel.task-contracts.v1` · SHA-256 `0db3ba2bba994f10d3060b
 | malformed | `tests/stubs/core_assembly/malformed.json` | fail closed `PEER_MALFORMED` |
 | unauthorized_or_out_of_scope | `tests/stubs/core_assembly/unauthorized_or_out_of_scope.json` | fail closed `PEER_UNAUTHORIZED` |
 
-Real assembled core-assembly peers remain owner-run / unverified for this component PR.
+Local reference peers: `StubAssemblyPeer` under `tests/stubs/`.
+HTTP path: `HttpAssemblyPeer` probes `/v1/capabilities` when `assembly_stub=live` + URL.
+Full product safety certification against a live assembled stack remains owner-run.
 Fixture-only assembly evidence is not release evidence.

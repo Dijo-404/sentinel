@@ -28,10 +28,10 @@ class StubPolicy:
         principal: Principal,
         *,
         payload: dict[str, Any],
-        evidence_ids: list[str],
+        evidence: list[dict[str, Any]],
         approval: dict[str, Any] | None = None,
     ) -> PolicyResult:
-        del principal, evidence_ids
+        del principal, evidence
         self.calls += 1
         self.last_payload = dict(payload)
         self._guard()

@@ -4,8 +4,17 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from tests.conftest import ACTION_ID, CASE_ID, PROVIDER_REF, TENANT, auth_header
+from tests.conftest import (
+    ACTION_ID,
+    CASE_ID,
+    NOW,
+    PROVIDER_REF,
+    TENANT,
+    auth_header,
+    signed_webhook,
+)
 
+from sentinel_verifier.application.service import RECHECK_INTERVAL
 from sentinel_verifier.domain.types import ProviderBinding, RecheckJob, Refund
 
 
@@ -143,4 +152,93 @@ def test_drain_due_rechecks_processes_scheduled_job(memory_client, tokens):
     assert len(memory_client.ledger.outcomes) == 1
     job = memory_client.store.get_recheck(TENANT, "job-drain-1")
     assert job is not None
+    # Provider confirmed without credit stays WAITING — keep polling.
+    assert job.status == "SCHEDULED"
+    expected_at = (NOW + RECHECK_INTERVAL).isoformat().replace("+00:00", "Z")
+    assert job.available_at == expected_at
+
+
+def test_pending_recheck_stays_scheduled_not_completed(memory_client, tokens, verification_request):
+    """Pending provider lookup must leave a future recheck, not mark complete empty."""
+    response = memory_client.post(
+        "/v1/rechecks",
+        headers={**auth_header(tokens["workflow"]), "Idempotency-Key": "recheck-pending"},
+        json=verification_request,
+    )
+    assert response.status_code == 202
+    job_id = response.json()["job_id"]
+    job = memory_client.store.get_recheck(TENANT, job_id)
+    assert job is not None
+    assert job.status == "SCHEDULED"
+    assert job.attempts == 1
+    expected_at = (NOW + RECHECK_INTERVAL).isoformat().replace("+00:00", "Z")
+    assert job.available_at == expected_at
+    assert memory_client.case_api.results == []
+    assert memory_client.ledger.get_action(ACTION_ID)["status"] == "PENDING"
+
+
+def test_credit_confirmed_recheck_delivers_case_result(
+    memory_client, tokens, verification_request, credit_confirmed
+):
+    """Webhook/recheck CREDIT_CONFIRMED path must attempt case closure delivery."""
+    del credit_confirmed
+    response = memory_client.post(
+        "/v1/rechecks",
+        headers={**auth_header(tokens["workflow"]), "Idempotency-Key": "recheck-credit"},
+        json=verification_request,
+    )
+    assert response.status_code == 202
+    job = memory_client.store.get_recheck(TENANT, response.json()["job_id"])
+    assert job is not None
     assert job.status == "COMPLETED"
+    assert memory_client.ledger.get_action(ACTION_ID)["status"] == "CREDIT_CONFIRMED"
+    assert len(memory_client.case_api.results) == 1
+    announced = memory_client.case_api.results[0]
+    assert announced["status"] == "VERIFIED_RESOLVED"
+    assert announced["reason_code"] == "CREDIT_CONFIRMED"
+    assert announced["event_key"] == f"verified-{ACTION_ID}-CREDIT_CONFIRMED"
+    assert memory_client.case_api.cases[CASE_ID]["status"] == "VERIFIED_RESOLVED"
+
+
+def test_webhook_credit_confirmed_delivers_case_result(
+    memory_client, tokens, verification_request, webhook_body, credit_confirmed
+):
+    del credit_confirmed
+    bind = memory_client.post(
+        "/v1/rechecks",
+        headers={**auth_header(tokens["workflow"]), "Idempotency-Key": "recheck-wh-bind"},
+        json=verification_request,
+    )
+    assert bind.status_code == 202
+    # Recheck already confirmed credit and announced; clear for webhook regression.
+    memory_client.case_api.results.clear()
+    memory_client.case_api.seed(CASE_ID, revision=1, status="WAITING_EXTERNAL")
+    memory_client.ledger.seed_action(
+        action_id=ACTION_ID, provider_ref=PROVIDER_REF, status="PROVIDER_CONFIRMED"
+    )
+    memory_client.ledger.outcomes.clear()
+
+    raw, sig = signed_webhook(webhook_body)
+    response = memory_client.post(
+        "/v1/webhooks/simulator",
+        content=raw,
+        headers={"X-Sentinel-Signature": sig, "Content-Type": "application/json"},
+    )
+    assert response.status_code == 202
+    assert memory_client.ledger.get_action(ACTION_ID)["status"] == "CREDIT_CONFIRMED"
+    assert len(memory_client.case_api.results) == 1
+    assert memory_client.case_api.results[0]["status"] == "VERIFIED_RESOLVED"
+
+
+def test_credit_confirmed_case_api_unavailable_fails_closed(
+    memory_client, tokens, verification_request, credit_confirmed
+):
+    del credit_confirmed
+    memory_client.case_api.mode = "unavailable"
+    response = memory_client.post(
+        "/v1/rechecks",
+        headers={**auth_header(tokens["workflow"]), "Idempotency-Key": "recheck-fail-closed"},
+        json=verification_request,
+    )
+    assert response.status_code == 503
+    assert memory_client.case_api.results == []

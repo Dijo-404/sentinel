@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+
 import httpx
 
 from sentinel_core_assembly.adapters.reference import HttpPeerBundle, PeerFault
@@ -296,6 +298,7 @@ def test_non_504_aborts_without_credit_confirm() -> None:
 
 def test_require_full_path_fails_closed(monkeypatch) -> None:
     monkeypatch.setenv("SENTINEL_V1_REQUIRE_FULL_PATH", "1")
+    monkeypatch.delenv("SENTINEL_V1_AUTHORITY_PATH", raising=False)
 
     def handler(request: httpx.Request) -> httpx.Response:
         if request.url.path.endswith("/v1/capabilities"):
@@ -307,6 +310,7 @@ def test_require_full_path_fails_closed(monkeypatch) -> None:
                     "mode": "real-peers",
                 },
             )
+        # Provider journeys fail; without AUTHORITY_PATH, path stays provider-only.
         return httpx.Response(500)
 
     report = run_assembly(
@@ -323,6 +327,7 @@ def test_require_full_path_fails_closed(monkeypatch) -> None:
                     evidence_mode="real-component",
                 ),
             ),
+            parameters={"journeys": "pending"},
         ),
         _bundle(handler),
     )
@@ -330,6 +335,306 @@ def test_require_full_path_fails_closed(monkeypatch) -> None:
     assert report.path == "provider-sandbox-only"
     assert report.sn009_authority_exercised is False
     assert "FULL_PATH_REQUIRED_BUT_PROVIDER_SANDBOX_ONLY" in {c.reason_code for c in report.checks}
+
+
+def test_authority_path_http_gated_without_env(monkeypatch) -> None:
+    monkeypatch.delenv("SENTINEL_V1_AUTHORITY_PATH", raising=False)
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(500)
+
+    try:
+        _bundle(handler).run_browser_to_credit()
+        raise AssertionError("expected PeerFault")
+    except PeerFault as exc:
+        assert exc.code == "AUTHORITY_PATH_GATED"
+
+
+def test_browser_to_credit_http_sets_sn009(monkeypatch) -> None:
+    monkeypatch.setenv("SENTINEL_V1_AUTHORITY_PATH", "1")
+    seed = journey_seed("browser_to_credit")
+    provider_ref = "refund-authority-live"
+    action_id = "action-authority-live"
+    approval_id = "approval-authority-live"
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        url = str(request.url)
+        method = request.method
+        if method == "POST" and url.endswith("/v1/cases"):
+            return httpx.Response(
+                202,
+                json={
+                    "case_id": seed["case_id"],
+                    "status": "RECEIVED",
+                    "status_url": "/v1/cases/x",
+                },
+            )
+        if method == "POST" and url.endswith("/v1/runs"):
+            return httpx.Response(
+                202, json={"contract_version": CONTRACT_VERSION, "job_id": "j1", "accepted": True}
+            )
+        if method == "POST" and url.endswith("/v1/actions/proposals"):
+            return httpx.Response(
+                201,
+                json={
+                    "action_id": action_id,
+                    "provider_ref": None,
+                    "status": "PROPOSED",
+                    "action_digest": seed["action_digest"],
+                    "payload": {},
+                },
+            )
+        if method == "POST" and f"/v1/actions/{action_id}/decisions" in url:
+            return httpx.Response(
+                200,
+                json={
+                    "approval_id": approval_id,
+                    "decision": "APPROVE",
+                    "action_digest": seed["action_digest"],
+                    "case_revision": seed["case_revision"],
+                    "policy_version": seed["policy_version"],
+                    "expires_at": seed["expires_at"],
+                    "reviewer_id": "supervisor-demo",
+                },
+            )
+        if method == "POST" and url.endswith("/v1/actions/reservations"):
+            return httpx.Response(
+                201,
+                json={
+                    "action_id": action_id,
+                    "provider_ref": provider_ref,
+                    "status": "RESERVED",
+                    "action_digest": seed["action_digest"],
+                    "payload": {},
+                },
+            )
+        if method == "POST" and url.endswith("/v1/actions/claims"):
+            return httpx.Response(
+                200,
+                json={
+                    "commands": [
+                        {
+                            "action_id": action_id,
+                            "provider_ref": provider_ref,
+                            "payload": {},
+                            "action_digest": seed["action_digest"],
+                            "lease_id": "lease-1",
+                            "lease_expires_at": "2099-01-01T00:00:00Z",
+                            "provider_capabilities": {},
+                        }
+                    ]
+                },
+            )
+        if method == "POST" and url.endswith("/v1/refunds"):
+            return httpx.Response(202, json={"provider_ref": provider_ref, "status": "PENDING"})
+        if method == "POST" and f"/v1/actions/{action_id}/outcomes" in url:
+            return httpx.Response(
+                200,
+                json={
+                    "action_id": action_id,
+                    "provider_ref": provider_ref,
+                    "status": "PROVIDER_CONFIRMED",
+                    "action_digest": seed["action_digest"],
+                    "payload": {},
+                },
+            )
+        if method == "POST" and url.endswith("/v1/assessments"):
+            return httpx.Response(200, json={"assessment_id": "assess-1"})
+        if method == "GET" and f"/v1/credits/{provider_ref}" in url:
+            return httpx.Response(200, json={"provider_ref": provider_ref, "confirmed": True})
+        if method == "POST" and "/v1/internal/cases/" in url and url.endswith("/results"):
+            return httpx.Response(200, json={"status": "VERIFIED_RESOLVED", "revision": 3})
+        if method == "GET" and f"/v1/admin/refunds/{provider_ref}/stats" in url:
+            return httpx.Response(200, json={"side_effect_count": 1})
+        return httpx.Response(404, json={"code": "NOT_FOUND"})
+
+    outcome = _bundle(handler).run_browser_to_credit()
+    assert outcome["sn009_authority_exercised"] is True
+    assert outcome["path"] == "browser-to-credit"
+    assert outcome["customer_closed"] is True
+    assert outcome["credit_confirmed"] is True
+    assert "dispatcher" in outcome["stages"]
+
+
+def test_duplicate_approval_deny_http(monkeypatch) -> None:
+    monkeypatch.setenv("SENTINEL_V1_AUTHORITY_PATH", "1")
+    seed = journey_seed("duplicate_approval_deny")
+    action_id = "action-dup-deny"
+    decisions = {"n": 0}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        url = str(request.url)
+        method = request.method
+        if method == "POST" and url.endswith("/v1/actions/proposals"):
+            return httpx.Response(
+                201,
+                json={
+                    "action_id": action_id,
+                    "status": "PROPOSED",
+                    "action_digest": seed["action_digest"],
+                    "payload": {},
+                    "provider_ref": None,
+                },
+            )
+        if method == "POST" and f"/v1/actions/{action_id}/decisions" in url:
+            decisions["n"] += 1
+            if decisions["n"] == 1:
+                return httpx.Response(
+                    200,
+                    json={
+                        "approval_id": "approval-1",
+                        "decision": "APPROVE",
+                        "action_digest": seed["action_digest"],
+                        "case_revision": 1,
+                        "policy_version": seed["policy_version"],
+                        "expires_at": seed["expires_at"],
+                        "reviewer_id": "supervisor-demo",
+                    },
+                )
+            return httpx.Response(409, json={"code": "CONFLICT", "message": "already decided"})
+        return httpx.Response(404)
+
+    outcome = _bundle(handler).run_duplicate_approval_deny()
+    assert outcome["duplicate_approval_denied"] is True
+    assert outcome["sn009_authority_exercised"] is True
+    assert outcome["path"] == "browser-to-credit"
+    assert outcome["refund_side_effect_count"] == 0
+
+
+def test_real_peers_authority_assembly_labels(monkeypatch) -> None:
+    monkeypatch.setenv("SENTINEL_V1_AUTHORITY_PATH", "1")
+    seed = journey_seed("browser_to_credit")
+    deny_seed = journey_seed("duplicate_approval_deny")
+    state = {"proposals": 0}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        url = str(request.url)
+        method = request.method
+        if request.url.path.endswith("/v1/capabilities"):
+            return httpx.Response(
+                200,
+                json={
+                    "contract_version": CONTRACT_VERSION,
+                    "component": "mock",
+                    "mode": "real-peers",
+                },
+            )
+        if method == "POST" and url.endswith("/v1/cases"):
+            return httpx.Response(
+                202, json={"case_id": seed["case_id"], "status": "RECEIVED", "status_url": "/x"}
+            )
+        if method == "POST" and url.endswith("/v1/runs"):
+            return httpx.Response(
+                202, json={"contract_version": CONTRACT_VERSION, "job_id": "j1", "accepted": True}
+            )
+        if method == "POST" and url.endswith("/v1/actions/proposals"):
+            state["proposals"] += 1
+            aid = f"action-{state['proposals']}"
+            return httpx.Response(
+                201,
+                json={
+                    "action_id": aid,
+                    "status": "PROPOSED",
+                    "action_digest": seed["action_digest"],
+                    "payload": {},
+                    "provider_ref": None,
+                },
+            )
+        if "/decisions" in url and method == "POST":
+            body = json.loads(request.content.decode()) if request.content else {}
+            if body.get("decision") == "REJECT":
+                return httpx.Response(409, json={"code": "CONFLICT"})
+            return httpx.Response(
+                200,
+                json={
+                    "approval_id": "approval-x",
+                    "decision": "APPROVE",
+                    "action_digest": body.get("action_digest", seed["action_digest"]),
+                    "case_revision": 1,
+                    "policy_version": seed["policy_version"],
+                    "expires_at": seed["expires_at"],
+                    "reviewer_id": "supervisor-demo",
+                },
+            )
+        if method == "POST" and url.endswith("/v1/actions/reservations"):
+            return httpx.Response(
+                201,
+                json={
+                    "action_id": "action-1",
+                    "provider_ref": "refund-authority-live",
+                    "status": "RESERVED",
+                    "action_digest": seed["action_digest"],
+                    "payload": {},
+                },
+            )
+        if method == "POST" and url.endswith("/v1/actions/claims"):
+            return httpx.Response(
+                200,
+                json={
+                    "commands": [
+                        {
+                            "action_id": "action-1",
+                            "provider_ref": "refund-authority-live",
+                            "payload": {},
+                            "action_digest": seed["action_digest"],
+                            "lease_id": "lease-1",
+                            "lease_expires_at": "2099-01-01T00:00:00Z",
+                            "provider_capabilities": {},
+                        }
+                    ]
+                },
+            )
+        if method == "POST" and url.endswith("/v1/refunds"):
+            return httpx.Response(
+                202, json={"provider_ref": "refund-authority-live", "status": "PENDING"}
+            )
+        if "/outcomes" in url and method == "POST":
+            return httpx.Response(
+                200,
+                json={
+                    "action_id": "action-1",
+                    "provider_ref": "refund-authority-live",
+                    "status": "PROVIDER_CONFIRMED",
+                    "action_digest": seed["action_digest"],
+                    "payload": {},
+                },
+            )
+        if method == "POST" and url.endswith("/v1/assessments"):
+            return httpx.Response(200, json={"assessment_id": "assess-1"})
+        if "/credits/" in url and method == "GET":
+            return httpx.Response(
+                200, json={"provider_ref": "refund-authority-live", "confirmed": True}
+            )
+        if "/results" in url and method == "POST":
+            return httpx.Response(200, json={"status": "VERIFIED_RESOLVED", "revision": 3})
+        if "/stats" in url:
+            return httpx.Response(200, json={"side_effect_count": 1})
+        return httpx.Response(404)
+
+    assert deny_seed["operation_key"]
+    report = run_assembly(
+        RunInput(
+            contract_version=CONTRACT_VERSION,
+            run_id="authority-labels",
+            mode="real-peers",
+            input_artifacts=(
+                ArtifactRef(
+                    kind="bundle",
+                    uri="memory://bundle",
+                    sha256="b" * 64,
+                    component_version="0.1.0",
+                    evidence_mode="real-component",
+                ),
+            ),
+            parameters={"journeys": "browser_to_credit,duplicate_approval_deny"},
+        ),
+        _bundle(handler),
+    )
+    assert report.status == "PASS", report.as_dict()
+    assert report.path == "browser-to-credit"
+    assert report.sn009_authority_exercised is True
+    assert report.assembled_mvp_claimed is False
+    assert report.payment_provider == "simulator"
 
 
 def test_missing_seed_fails_closed() -> None:

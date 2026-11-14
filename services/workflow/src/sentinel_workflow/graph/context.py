@@ -11,6 +11,7 @@ from sentinel_workflow.application.ports import (
     ModelPort,
     OutboxPort,
     PolicyPort,
+    RiskPort,
     VerifierPort,
 )
 
@@ -24,6 +25,7 @@ class GraphDeps:
     verifier: VerifierPort
     model: ModelPort
     outbox: OutboxPort
+    risk: RiskPort
     policy_version: str = "demo-policy-v1"
 
 

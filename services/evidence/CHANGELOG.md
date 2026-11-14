@@ -3,6 +3,14 @@
 ## Unreleased
 - Refuse non-loopback HTTP bind while demo/sandbox bearer tokens remain configured.
 
+### Fixed — cross-service order identity
+
+- Collect maps authorized case `order_reference` (`{subject_ref}/{customer_order_id}` or
+  `:` boundary) to the bare provider/simulator order key before payment-provider reads.
+  Authorized reference on the collect request/store row is unchanged. Malformed boundaries
+  fail closed. Fixture scenario markers moved to `#` so they do not collide with subject
+  boundaries.
+
 ### Changed — 14 November 2026
 
 - `.env.example` / test token map accept canonical `tok-workflow` / `tok-verifier` (legacy aliases kept). Refs #77.

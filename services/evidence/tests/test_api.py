@@ -44,7 +44,7 @@ def test_equal_amounts_alone_via_api(client):
         json={
             "case_id": "case-demo-42",
             "case_revision": 1,
-            "order_reference": "DEMO-ORDER-42:equal",
+            "order_reference": "DEMO-ORDER-42#equal",
         },
     )
     assert response.status_code == 200
@@ -60,7 +60,7 @@ def test_stale_fixture_unverified(client):
         json={
             "case_id": "case-demo-42",
             "case_revision": 1,
-            "order_reference": "DEMO-ORDER-42:stale",
+            "order_reference": "DEMO-ORDER-42#stale",
         },
     )
     assert response.status_code == 200
@@ -76,7 +76,7 @@ def test_conflicting_fixture(client):
         json={
             "case_id": "case-demo-42",
             "case_revision": 1,
-            "order_reference": "DEMO-ORDER-42:conflict",
+            "order_reference": "DEMO-ORDER-42#conflict",
         },
     )
     assert response.status_code == 200
@@ -92,7 +92,7 @@ def test_unavailable_provider(client):
         json={
             "case_id": "case-demo-42",
             "case_revision": 1,
-            "order_reference": "DEMO-ORDER-42:unavailable",
+            "order_reference": "DEMO-ORDER-42#unavailable",
         },
     )
     assert response.status_code == 503
@@ -106,7 +106,7 @@ def test_malformed_provider(client):
         json={
             "case_id": "case-demo-42",
             "case_revision": 1,
-            "order_reference": "DEMO-ORDER-42:malformed",
+            "order_reference": "DEMO-ORDER-42#malformed",
         },
     )
     assert response.status_code == 502
@@ -120,7 +120,7 @@ def test_unauthorized_provider(client):
         json={
             "case_id": "case-demo-42",
             "case_revision": 1,
-            "order_reference": "DEMO-ORDER-42:unauthorized",
+            "order_reference": "DEMO-ORDER-42#unauthorized",
         },
     )
     assert response.status_code == 403

@@ -8,6 +8,11 @@
 
 ### Fixed — 14 November 2026
 
+- Operator and supervisor overviews prefer `CaseClient.getOperatorDashboard` / `getSupervisorDashboard` aggregates; PeerError or missing port shows explicit unavailable — never page-scoped `listOpsCases` or fake KPIs.
+- Supervisor decision workspace loads authoritative `ActionRecord` via `getAction` (ledger BFF `/api/bff/ledger` → `GET /v1/actions/{id}`); real-peers fail closed without silent `demoAction` digests. Decision expiry from evidence freshness (fixture keeps labeled `FIXTURE_DECISION_EXPIRES_AT`).
+- Case timeline polls `listEvents` and wires message/escalate controls; operator queue paginates on `next_cursor` and links timeline to `/operator/cases/{id}` (not customer `/cases`).
+- Merchant and role portal dashboards withhold fake KPIs; customer uses scoped case-api dashboard when available, otherwise explicit unavailable.
+- Portal BFF `/api/bff/case/**` requires `sentinel_session` only; removed `CASE_API_BEARER_TOKEN` fallback so unauthenticated browser callers cannot borrow the service token (401, no upstream call).
 - Portal case-api calls use per-request `sentinel_session` via BFF `/api/bff/case/**` (and `getServerCaseClient`); ShellProvider no longer embeds process-wide `CASE_API_BEARER_TOKEN`. Service token remains optional server fallback only.
 - `requireRole` / `checkRole` / `requireAnyRole` enforce active `assignment.role` only (dual-role mismatch covered in tests).
 - Supervisor decision workspace loads action id from queue/case + refund evidence; removed `demoAction.action_id` hard-gate.

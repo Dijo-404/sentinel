@@ -12,7 +12,14 @@ from sentinel_harness_replay.adapters.candidates import (
     recording_from_outcome,
 )
 from sentinel_harness_replay.adapters.production_guard import ProductionGuard
-from sentinel_harness_replay.adapters.real_peers import RealPeerConfig
+from sentinel_harness_replay.adapters.real_peers import (
+    PeerMalformed,
+    PeerUnavailable,
+    RealFinbenchAdapter,
+    RealPeerConfig,
+    RealReplayAdapter,
+    RealRuntimeAdapter,
+)
 from sentinel_harness_replay.adapters.sandbox_simulator import SandboxSimulator
 from sentinel_harness_replay.adapters.scorer import DeterministicScorer
 from sentinel_harness_replay.adapters.virtual_clock import VirtualClock
@@ -317,40 +324,68 @@ def run_check() -> RunReport:
     return compare_candidates(run_id="harness-replay-self-check", mode="fixture")
 
 
+def _probe_configured_peer(
+    *,
+    name: str,
+    configured: bool,
+    adapter: Any,
+) -> CheckResult:
+    if not configured:
+        return CheckResult(
+            name=name,
+            status="FAIL",
+            reason_code="PEER_UNAVAILABLE",
+        )
+    try:
+        caps = adapter.capabilities()
+    except PeerUnavailable:
+        return CheckResult(name=name, status="FAIL", reason_code="PEER_UNAVAILABLE")
+    except PeerMalformed:
+        return CheckResult(name=name, status="FAIL", reason_code="PEER_MALFORMED")
+    except Exception:  # noqa: BLE001 — boundary: treat unknown peer faults as unavailable
+        return CheckResult(name=name, status="FAIL", reason_code="PEER_UNAVAILABLE")
+    mode = str(caps.get("mode") or "")
+    if mode == "fixture":
+        # Contacted peer, but fixture-labeled capabilities are not product evidence.
+        return CheckResult(
+            name=name,
+            status="UNVERIFIED",
+            reason_code="PEER_FIXTURE_LABELED",
+        )
+    return CheckResult(name=name, status="PASS", reason_code="PEER_CAPABILITIES_OK")
+
+
 def _real_peers_unverified(
     *,
     run_id: str,
     deps: HarnessReplayDeps,
     fixture: ReplayFixture,
 ) -> RunReport:
-    checks = (
-        CheckResult(
+    runtime = RealRuntimeAdapter(deps.peer_config.runtime_url)
+    finbench = RealFinbenchAdapter(deps.peer_config.finbench_url)
+    replay = RealReplayAdapter(deps.peer_config.replay_url)
+    checks = [
+        _probe_configured_peer(
             name="real-peers.finharness-runtime",
-            status="FAIL" if not deps.peer_config.runtime_configured else "UNVERIFIED",
-            reason_code="PEER_UNAVAILABLE"
-            if not deps.peer_config.runtime_configured
-            else "REAL_PEER_NOT_EXERCISED",
+            configured=deps.peer_config.runtime_configured,
+            adapter=runtime,
         ),
-        CheckResult(
+        _probe_configured_peer(
             name="real-peers.finbench",
-            status="FAIL" if not deps.peer_config.finbench_configured else "UNVERIFIED",
-            reason_code="PEER_UNAVAILABLE"
-            if not deps.peer_config.finbench_configured
-            else "REAL_PEER_NOT_EXERCISED",
+            configured=deps.peer_config.finbench_configured,
+            adapter=finbench,
         ),
-        CheckResult(
+        _probe_configured_peer(
             name="real-peers.replay",
-            status="FAIL" if not deps.peer_config.replay_configured else "UNVERIFIED",
-            reason_code="PEER_UNAVAILABLE"
-            if not deps.peer_config.replay_configured
-            else "REAL_PEER_NOT_EXERCISED",
+            configured=deps.peer_config.replay_configured,
+            adapter=replay,
         ),
         CheckResult(
             name="evidence.fixture_not_product",
             status="PASS",
             reason_code="FIXTURE_NOT_PRODUCT_EVIDENCE",
         ),
-    )
+    ]
     modes = HarnessReplayModes(
         run_mode="real-peers",
         seed=fixture.seed,
@@ -362,13 +397,18 @@ def _real_peers_unverified(
         real_finbench_adapter="configured" if deps.peer_config.finbench_configured else "absent",
         real_replay_adapter="configured" if deps.peer_config.replay_configured else "absent",
     )
-    status: Any = "FAIL" if any(c.status == "FAIL" for c in checks) else "UNVERIFIED"
+    if any(c.status == "FAIL" for c in checks):
+        status: Any = "FAIL"
+    elif any(c.status == "UNVERIFIED" for c in checks):
+        status = "UNVERIFIED"
+    else:
+        status = "PASS"
     return RunReport(
         contract_version=CONTRACT_VERSION,  # type: ignore[arg-type]
         run_id=run_id,
         mode="real-peers",
         status=status,
-        checks=checks,
+        checks=tuple(checks),
         output_artifacts=(),
         modes=modes,
         promotion=None,

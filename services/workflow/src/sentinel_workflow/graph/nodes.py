@@ -64,6 +64,21 @@ def _route_after_verify(
     return "escalate"
 
 
+def _order_reference(state: WorkflowState) -> str:
+    """Same source as evidence.collect; proposal stash covers restart without re-load."""
+    from_input = (state.get("case_input") or {}).get("order_reference") or ""
+    from_proposal = (state.get("proposal") or {}).get("order_reference") or ""
+    return str(from_input or from_proposal or "").strip()
+
+
+def _refund_payload(raw: dict[str, Any] | RefundAction) -> RefundAction:
+    """RefundAction wire fields only — order_reference is not part of the digest payload."""
+    if isinstance(raw, RefundAction):
+        return raw
+    body = {k: v for k, v in raw.items() if k != "order_reference"}
+    return RefundAction.model_validate(body)
+
+
 def load_input(state: WorkflowState, config: RunnableConfig) -> dict[str, Any]:
     deps = deps_from_config(config)
     case_input = deps.case_api.get_input(state["case_id"], state["case_revision"])
@@ -239,8 +254,13 @@ def plan(state: WorkflowState, config: RunnableConfig) -> dict[str, Any]:
     proposal.setdefault("case_revision", state["case_revision"])
     proposal.setdefault("evidence_ids", state.get("evidence_ids") or [])
     proposal.setdefault("policy_version", deps.policy_version)
-    digest = action_digest(proposal)
+    # Digest excludes order_reference (ledger canonical refund fields only).
+    digest_body = {k: v for k, v in proposal.items() if k != "order_reference"}
+    digest = action_digest(digest_body)
     operation_key = f"{state['case_id']}:{digest}"
+    order_reference = _order_reference(state)
+    if order_reference:
+        proposal["order_reference"] = order_reference
     return {
         "model_result": payload,
         "proposal": proposal,
@@ -274,8 +294,12 @@ def policy_check(state: WorkflowState, config: RunnableConfig) -> dict[str, Any]
     evidence = [Evidence.model_validate(e) for e in state.get("evidence") or []]
     raw_approval = state.get("approval")
     approval = ApprovalModel.model_validate(raw_approval) if raw_approval else None
+    # order_reference is workflow/ledger identity, not a digest/policy payload field.
+    policy_payload = {
+        k: v for k, v in (state.get("proposal") or {}).items() if k != "order_reference"
+    }
     request = PolicyRequest(
-        payload=state["proposal"],
+        payload=policy_payload,
         evidence=evidence,
         approval=approval,
     )
@@ -332,9 +356,13 @@ def policy_check(state: WorkflowState, config: RunnableConfig) -> dict[str, Any]
 def approval_gate(state: WorkflowState, config: RunnableConfig) -> dict[str, Any]:
     """Idempotent proposal, then interrupt. Reservation happens only after authenticated resume."""
     deps = deps_from_config(config)
-    proposal = RefundAction.model_validate(state["proposal"])
+    hold = _risk_hold_block(state, deps)
+    if hold is not None:
+        return hold
+    proposal = _refund_payload(state["proposal"])
     digest = state.get("action_digest") or action_digest(proposal.model_dump(exclude_none=True))
     operation_key = state.get("operation_key") or f"{state['case_id']}:{digest}"
+    order_reference = _order_reference(state)
     action_id = state.get("action_id")
     provider_ref = state.get("provider_ref")
     if not action_id:
@@ -344,6 +372,7 @@ def approval_gate(state: WorkflowState, config: RunnableConfig) -> dict[str, Any
                     operation_key=operation_key,
                     payload=proposal,
                     action_digest=digest,
+                    order_reference=order_reference or None,
                 )
             )
             action_id = record.action_id
@@ -434,9 +463,13 @@ def approval_gate(state: WorkflowState, config: RunnableConfig) -> dict[str, Any
 def execute_ledger(state: WorkflowState, config: RunnableConfig) -> dict[str, Any]:
     """Reserve (or propose+reserve) with stable operation_key — safe under node replay."""
     deps = deps_from_config(config)
-    proposal = RefundAction.model_validate(state["proposal"])
+    hold = _risk_hold_block(state, deps)
+    if hold is not None:
+        return hold
+    proposal = _refund_payload(state["proposal"])
     digest = state.get("action_digest") or action_digest(proposal.model_dump(exclude_none=True))
     operation_key = state.get("operation_key") or f"{state['case_id']}:{digest}"
+    order_reference = _order_reference(state)
     approval = state.get("approval")
     try:
         record_action_id = state.get("action_id")
@@ -447,17 +480,36 @@ def execute_ledger(state: WorkflowState, config: RunnableConfig) -> dict[str, An
                     operation_key=operation_key,
                     payload=proposal,
                     action_digest=digest,
+                    order_reference=order_reference or None,
                 )
             )
             record_action_id = record.action_id
             provider_ref = record.provider_ref
         if approval and approval.get("decision") == "APPROVE":
+            if not order_reference:
+                return {
+                    "action_id": record_action_id,
+                    "provider_ref": provider_ref,
+                    "operation_key": operation_key,
+                    "action_digest": digest,
+                    "status": "ESCALATED",
+                    "reason_code": "ORDER_REFERENCE_REQUIRED",
+                    "terminal": True,
+                    "pending_result": _pending(
+                        state,
+                        status="ESCALATED",
+                        reason_code="ORDER_REFERENCE_REQUIRED",
+                        evidence_ids=state.get("evidence_ids") or [],
+                        action_id=record_action_id,
+                    ),
+                }
             record = deps.ledger.reserve(
                 ReservationRequest(
                     operation_key=operation_key,
                     payload=proposal,
                     action_digest=digest,
                     approval_id=approval["approval_id"],
+                    order_reference=order_reference,
                 )
             )
             record_action_id = record.action_id
@@ -480,7 +532,7 @@ def execute_ledger(state: WorkflowState, config: RunnableConfig) -> dict[str, An
                     action_id=record_action_id,
                 ),
             }
-    except (PeerUnavailableError, PeerError) as exc:
+    except PeerUnavailableError as exc:
         return {
             "status": "ESCALATED",
             "reason_code": "LEDGER_PEER_FAILURE",
@@ -490,6 +542,24 @@ def execute_ledger(state: WorkflowState, config: RunnableConfig) -> dict[str, An
                 state,
                 status="ESCALATED",
                 reason_code="LEDGER_PEER_FAILURE",
+                evidence_ids=state.get("evidence_ids") or [],
+            ),
+        }
+    except PeerError as exc:
+        reason = (
+            "ORDER_REFERENCE_REQUIRED"
+            if exc.code == "ORDER_REFERENCE_REQUIRED"
+            else "LEDGER_PEER_FAILURE"
+        )
+        return {
+            "status": "ESCALATED",
+            "reason_code": reason,
+            "error": exc.message,
+            "terminal": True,
+            "pending_result": _pending(
+                state,
+                status="ESCALATED",
+                reason_code=reason,
                 evidence_ids=state.get("evidence_ids") or [],
             ),
         }
@@ -650,6 +720,65 @@ def wait_external(state: WorkflowState, config: RunnableConfig) -> dict[str, Any
 def operation_key_or(state: WorkflowState) -> str:
     digest = state.get("action_digest") or "none"
     return state.get("operation_key") or f"{state['case_id']}:{digest}"
+
+
+def _risk_hold_block(state: WorkflowState, deps: Any) -> dict[str, Any] | None:
+    """Fail closed on active restriction or required risk-peer failure. No money path."""
+    try:
+        blocked = deps.risk.blocks_financial_actions(state["case_id"])
+    except PeerUnavailableError:
+        return {
+            "status": "ESCALATED",
+            "reason_code": "RISK_PEER_UNAVAILABLE",
+            "terminal": True,
+            "pending_result": _pending(
+                state,
+                status="ESCALATED",
+                reason_code="RISK_PEER_UNAVAILABLE",
+                evidence_ids=state.get("evidence_ids") or [],
+                action_id=state.get("action_id"),
+            ),
+        }
+    except PeerError:
+        return {
+            "status": "ESCALATED",
+            "reason_code": "RISK_PEER_FAILURE",
+            "terminal": True,
+            "pending_result": _pending(
+                state,
+                status="ESCALATED",
+                reason_code="RISK_PEER_FAILURE",
+                evidence_ids=state.get("evidence_ids") or [],
+                action_id=state.get("action_id"),
+            ),
+        }
+    except WorkflowError:
+        return {
+            "status": "ESCALATED",
+            "reason_code": "RISK_PEER_FAILURE",
+            "terminal": True,
+            "pending_result": _pending(
+                state,
+                status="ESCALATED",
+                reason_code="RISK_PEER_FAILURE",
+                evidence_ids=state.get("evidence_ids") or [],
+                action_id=state.get("action_id"),
+            ),
+        }
+    if not blocked:
+        return None
+    return {
+        "status": "ESCALATED",
+        "reason_code": "RISK_HOLD_ACTIVE",
+        "terminal": True,
+        "pending_result": _pending(
+            state,
+            status="ESCALATED",
+            reason_code="RISK_HOLD_ACTIVE",
+            evidence_ids=state.get("evidence_ids") or [],
+            action_id=state.get("action_id"),
+        ),
+    }
 
 
 def _pending(

@@ -24,6 +24,8 @@ def test_contract_snapshot_matches_baseline() -> None:
         "merchant_mismatch",
         "duplicate_payment",
         "refund_pending",
+        "browser_to_credit",
+        "duplicate_approval_deny",
     }
     assert snapshot["compatibility"]["real_peer_fallback"] == "none"
 
@@ -50,6 +52,8 @@ def test_cli_check_exits_zero(capsys) -> None:
     assert payload["status"] == "PASS"
     assert payload["mode"] == "fixture"
     assert payload["assembled_mvp_claimed"] is False
+    assert payload["path"] == "browser-to-credit-fixture"
+    assert payload["sn009_authority_exercised"] is True
     assert payload["contract_sha256"] == CONTRACT_SHA256
 
 

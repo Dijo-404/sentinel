@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import uuid
 from copy import deepcopy
 from dataclasses import replace
 from datetime import datetime
@@ -10,6 +11,7 @@ from threading import RLock
 from ..application.errors import ConflictError, ForbiddenError
 from ..domain.models import (
     AuditEvent,
+    DeliveryOutboxItem,
     Invitation,
     PrivilegedChangeRequest,
     RoleAssignment,
@@ -31,7 +33,8 @@ class MemoryIdentityStore:
         self.invitations_by_hash: dict[str, str] = {}
         self.privileged_changes: dict[str, PrivilegedChangeRequest] = {}
         self.audit: list[AuditEvent] = []
-        self._delivery_secrets: dict[str, str] = {}
+        self._delivery_outbox: dict[str, DeliveryOutboxItem] = {}
+        self._delivery_by_invitation: dict[str, str] = {}
 
     def create_user(self, user: User) -> User:
         with self._lock:
@@ -244,11 +247,65 @@ class MemoryIdentityStore:
             if revoke_sessions:
                 self._revoke_sessions_unlocked(user.user_id, at=at)
 
-    def record_delivery_secret(self, invitation_id: str, raw_token: str) -> None:
-        self._delivery_secrets[invitation_id] = raw_token
+    def record_delivery_secret(
+        self, invitation_id: str, raw_token: str, *, work_email: str
+    ) -> None:
+        with self._lock:
+            existing_id = self._delivery_by_invitation.get(invitation_id)
+            if existing_id is not None:
+                return
+            delivery_id = str(uuid.uuid4())
+            invitation = self.invitations.get(invitation_id)
+            if invitation is None:
+                raise KeyError(f"invitation {invitation_id} not found")
+            item = DeliveryOutboxItem(
+                delivery_id=delivery_id,
+                invitation_id=invitation_id,
+                work_email=work_email,
+                raw_token=raw_token,
+                status="pending",
+                created_at=invitation.created_at,
+            )
+            self._delivery_outbox[delivery_id] = item
+            self._delivery_by_invitation[invitation_id] = delivery_id
 
     def peek_delivery_secret(self, invitation_id: str) -> str | None:
-        return self._delivery_secrets.get(invitation_id)
+        delivery_id = self._delivery_by_invitation.get(invitation_id)
+        if delivery_id is None:
+            return None
+        item = self._delivery_outbox.get(delivery_id)
+        return item.raw_token if item is not None else None
+
+    def list_pending_deliveries(self) -> tuple[DeliveryOutboxItem, ...]:
+        rows = [i for i in self._delivery_outbox.values() if i.status == "pending"]
+        rows.sort(key=lambda i: i.created_at)
+        return tuple(rows)
+
+    def mark_delivery_delivered(
+        self, delivery_id: str, *, acceptance_link: str, at: datetime
+    ) -> None:
+        with self._lock:
+            item = self._delivery_outbox.get(delivery_id)
+            if item is None:
+                raise KeyError(delivery_id)
+            if item.status == "delivered":
+                return
+            self._delivery_outbox[delivery_id] = replace(
+                item,
+                status="delivered",
+                delivered_at=at,
+                acceptance_link=acceptance_link,
+            )
+
+    def list_sandbox_inbox(
+        self, *, work_email: str | None = None
+    ) -> tuple[DeliveryOutboxItem, ...]:
+        rows = [i for i in self._delivery_outbox.values() if i.status == "delivered"]
+        if work_email is not None:
+            needle = work_email.strip().lower()
+            rows = [i for i in rows if i.work_email.lower() == needle]
+        rows.sort(key=lambda i: i.delivered_at or i.created_at, reverse=True)
+        return tuple(rows)
 
     def append_audit(self, event: AuditEvent) -> AuditEvent:
         with self._lock:

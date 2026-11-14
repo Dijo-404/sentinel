@@ -17,6 +17,10 @@
 
 ### Fixed — 14 November 2026
 
+- `reserve()` enforces policy.v1 `ALLOW` plus matching `action_digest` /
+  `policy_version` before the reservation TX; DENY/non-ALLOW raises
+  `POLICY_DENIED`. Require explicit `order_reference` (or proposal payload
+  identity); stop inventing `ORDER-{transaction_ref}`.
 - Unify claim/outcome lock order: always lock `actions` before updating `outbox` (avoids AB-BA deadlock).
 - `ReservationNetworkGuard` state is contextvars-scoped so FastAPI threadpool requests do not race a process singleton.
 - Eligibility supersession check requires `locked_elig.version == next_version` (ON CONFLICT bumps version).

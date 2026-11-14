@@ -29,8 +29,10 @@ uv run sentinel-workflow serve
 ```
 
 - `POST /v1/runs` → `Ack` 202 (`WorkflowRequest`)
+- `POST /v1/workflow/risk-resume` → `Ack` 202 (`RiskResumeRequest`, `risk_officer` only); re-evaluates case without money approval
 - Auth: synthetic bearer tokens from `WORKFLOW_AUTH_TOKENS` (empty `case_ids` deny; `"*"` allows all)
 - DECISION resume reads supervisor approval from `ledger.get_action(...).approval` only (no HTTP forge header)
+- Financial path consults risk hold lookup (`WORKFLOW_PEER_RISK_URL` in real-peers); active hold or peer failure escalates fail-closed
 - `GET /v1/capabilities` reports `mode: fixture|real-peers`
 - Fake model scenarios via `WORKFLOW_FAKE_MODEL_SCENARIO` (`proposal`, `needs_input`, `escalate`, `malformed`, `outage`)
 

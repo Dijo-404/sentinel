@@ -22,7 +22,14 @@ from sentinel_workflow.application.ports import (
     JobStorePort,
     OutboxPort,
 )
-from sentinel_workflow.domain.types import Ack, Approval, CaseResult, Principal, WorkflowRequest
+from sentinel_workflow.domain.types import (
+    Ack,
+    Approval,
+    CaseResult,
+    Principal,
+    RiskResumeRequest,
+    WorkflowRequest,
+)
 from sentinel_workflow.graph.context import CONFIG_KEY, GraphDeps
 
 logger = logging.getLogger(__name__)
@@ -38,6 +45,23 @@ class WorkflowService:
     deps: GraphDeps
     investigation_budget: int = 8
     model_retry_budget: int = 2
+
+    def accept_risk_resume(self, event: RiskResumeRequest, principal: Principal) -> Ack:
+        """Re-evaluate after restriction clearance. Never grants money authority."""
+        if event.financial_approval_granted:
+            raise ValidationError("risk-resume must not grant financial approval")
+        if event.event_type != "risk.restriction.cleared":
+            raise ValidationError("Unsupported risk resume event_type")
+        if principal.tenant_id != event.tenant_id:
+            raise UnauthorizedError("Tenant out of scope")
+        case = self.case_api.get_case(event.case_id)
+        request = WorkflowRequest(
+            case_id=event.case_id,
+            case_revision=case.revision,
+            job_key=f"risk-resume:{event.restriction_id}",
+            event="START",
+        )
+        return self.accept(request, principal, run_now=True)
 
     def accept(
         self,
@@ -218,6 +242,16 @@ def authorize_run(principal: Principal, case_id: str) -> None:
     roles = set(principal.roles)
     if not roles.intersection({"workflow", "verifier"}):
         raise UnauthorizedError("Role cannot invoke workflow runs")
+    _require_case_scope(principal, case_id)
+
+
+def authorize_risk_resume(principal: Principal, case_id: str) -> None:
+    if "risk_officer" not in principal.roles:
+        raise UnauthorizedError("Role cannot emit risk-resume")
+    _require_case_scope(principal, case_id)
+
+
+def _require_case_scope(principal: Principal, case_id: str) -> None:
     # Empty case_ids deny; "*" allows all; otherwise require exact case id.
     if not principal.case_ids:
         raise UnauthorizedError("Case out of scope")

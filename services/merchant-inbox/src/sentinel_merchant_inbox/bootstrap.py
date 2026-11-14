@@ -10,6 +10,7 @@ from sentinel_merchant_inbox.adapters.auth import TokenMap
 from sentinel_merchant_inbox.adapters.http import create_app
 from sentinel_merchant_inbox.adapters.http_peers import HttpCaseApiClient, HttpEvidenceClient
 from sentinel_merchant_inbox.adapters.memory_store import MemoryInboxStore
+from sentinel_merchant_inbox.adapters.sqlite_store import SqliteInboxStore
 from sentinel_merchant_inbox.application.service import MerchantInboxService
 from sentinel_merchant_inbox.contracts import parse_exception_item
 from sentinel_merchant_inbox.domain.errors import PeerUnavailableError
@@ -46,6 +47,29 @@ def _resolve_peer_token(resolved_mode: str) -> str:
     return token or DEMO_PEER_TOKEN
 
 
+def _resolve_store(
+    resolved_mode: str,
+    store,
+    *,
+    fixtures_path: Path | None,
+):
+    if store is not None:
+        return store
+    database_url = os.environ.get("MERCHANT_INBOX_DATABASE_URL", "").strip()
+    if database_url:
+        return SqliteInboxStore.from_url(database_url)
+    if resolved_mode == "real-peers":
+        raise PeerUnavailableError(
+            "real-peers refuses fixture records; inject a store or set MERCHANT_INBOX_DATABASE_URL"
+        )
+    fixture_path = fixtures_path or Path(
+        os.environ.get("MERCHANT_INBOX_FIXTURES_PATH", str(DEFAULT_FIXTURES))
+    )
+    if not fixture_path.is_absolute():
+        fixture_path = (Path.cwd() / fixture_path).resolve()
+    return _load_fixture_items(fixture_path)
+
+
 def build_app(
     *,
     store=None,
@@ -63,13 +87,7 @@ def build_app(
         path = (Path.cwd() / path).resolve()
     tokens = TokenMap.from_path(path)
 
-    if store is None:
-        fixture_path = fixtures_path or Path(
-            os.environ.get("MERCHANT_INBOX_FIXTURES_PATH", str(DEFAULT_FIXTURES))
-        )
-        if not fixture_path.is_absolute():
-            fixture_path = (Path.cwd() / fixture_path).resolve()
-        store = _load_fixture_items(fixture_path)
+    resolved_store = _resolve_store(resolved_mode, store, fixtures_path=fixtures_path)
 
     if case_api is None or evidence is None:
         if resolved_mode != "real-peers":
@@ -78,7 +96,7 @@ def build_app(
         case_api = case_api or HttpCaseApiClient(os.environ["CASE_API_BASE_URL"], token=token)
         evidence = evidence or HttpEvidenceClient(os.environ["EVIDENCE_BASE_URL"], token=token)
 
-    service = MerchantInboxService(store=store, case_api=case_api, evidence=evidence)
+    service = MerchantInboxService(store=resolved_store, case_api=case_api, evidence=evidence)
     return create_app(service=service, tokens=tokens, mode=resolved_mode)
 
 

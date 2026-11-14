@@ -15,7 +15,14 @@ from sentinel_workflow.adapters.settings import Settings
 from sentinel_workflow.application.service import WorkflowService
 from sentinel_workflow.graph.build import compile_workflow
 from sentinel_workflow.graph.context import GraphDeps
-from tests.stubs import StubCaseApi, StubEvidence, StubLedger, StubPolicy, StubVerifier
+from tests.stubs import (
+    StubCaseApi,
+    StubEvidence,
+    StubLedger,
+    StubPolicy,
+    StubRisk,
+    StubVerifier,
+)
 
 
 def build_test_app(
@@ -33,12 +40,14 @@ def build_test_app(
     policy: StubPolicy | None = None,
     ledger: StubLedger | None = None,
     verifier: StubVerifier | None = None,
+    risk: StubRisk | None = None,
 ):
     case_api = case_api or StubCaseApi()
     evidence = evidence or StubEvidence(missing=evidence_missing)
     policy = policy or StubPolicy()
     ledger = ledger or StubLedger()
     verifier = verifier or StubVerifier(assessment_status=verifier_status)
+    risk = risk or StubRisk()
     outbox = SqlOutbox(session_factory, max_attempts=outbox_max_attempts)
     deps = GraphDeps(
         case_api=case_api,
@@ -48,6 +57,7 @@ def build_test_app(
         verifier=verifier,
         model=FakeModelAdapter(scenario=model_scenario),
         outbox=outbox,
+        risk=risk,
     )
     graph = compile_workflow(checkpointer or MemorySaver())
     service = WorkflowService(
@@ -72,5 +82,6 @@ def build_test_app(
             "policy": policy,
             "ledger": ledger,
             "verifier": verifier,
+            "risk": risk,
         },
     )

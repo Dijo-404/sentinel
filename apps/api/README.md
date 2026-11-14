@@ -41,6 +41,27 @@ make -C apps/api preview
 
 Uses `SENTINEL_API_*` from the environment (see `.env.example`). Fixture mode wires in-process peers; `real-peers` requires peer base URLs and rejects unavailable/malformed/unauthorized peers without fixture fallback.
 
+## Workflow outbox worker
+
+Case mutations flush the workflow outbox opportunistically. For crash recovery and
+continuous delivery (reclaim of stale `CLAIMED` leases), run a dedicated worker:
+
+```sh
+make -C apps/api flush-workflow
+# or: uv run sentinel-api flush-workflow --loop --interval 2
+# single pass: uv run sentinel-api flush-workflow --once
+```
+
+Lease window: 30s (`WORKFLOW_JOB_LEASE_SECONDS`). Expired or null leases on `CLAIMED`
+rows are reclaimable.
+
+## Order reference
+
+Customer intake requires a subject-bound `order_reference`. Canonical form:
+`{subject_ref}/{customer_order_id}` (example `subject-a/DEMO-ORDER-42`). That exact
+string is stored on the case, CaseInput snapshots, and outbox scheduling payloads —
+not stripped to a bare provider id when enqueueing workflow.
+
 ## Auth
 
 `fixture` mode: composite principal resolution uses fixture identity session/BFF projections (`fixtures/identity_sessions.json`) for unknown bearers, with opaque service tokens from `fixtures/auth_tokens.json` taking precedence when present. `real-peers` mode: opaque TokenMap for workflow/dispatcher/verifier/`tok-*` service principals; when `IDENTITY_BASE_URL` (or `SENTINEL_API_IDENTITY_BASE_URL`) is set, unknown bearers are projected via identity `GET /v1/auth/me` (`active_assignment.role_id` → roles). Fail closed on identity unavailable/malformed responses; identity 401 falls through to TokenMap then denies. Non-loopback bind refuses identity session projection. Workflow/verifier principals deny empty `case_ids`; use explicit ids or `"*"`. Customer case create still requires `order_reference` bound to principal `subject_refs`.

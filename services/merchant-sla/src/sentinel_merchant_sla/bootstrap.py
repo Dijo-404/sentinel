@@ -12,17 +12,20 @@ from sentinel_merchant_sla.adapters.case_api_http import HttpCaseApi
 from sentinel_merchant_sla.adapters.clock import SystemClock
 from sentinel_merchant_sla.adapters.http_api import create_app
 from sentinel_merchant_sla.adapters.memory_store import MemorySlaStore
+from sentinel_merchant_sla.adapters.sqlite_store import SqliteSlaStore
 from sentinel_merchant_sla.application.errors import ConfigurationError, PeerUnavailableError
-from sentinel_merchant_sla.application.ports import CaseApiPort, Clock
+from sentinel_merchant_sla.application.ports import CaseApiPort, Clock, SlaStore
 from sentinel_merchant_sla.application.service import MerchantSlaService
 
 
-def _resolve_store(mode: str, store: MemorySlaStore | None):
+def _resolve_store(mode: str, store: SlaStore | None, database_url: str):
     if store is not None:
         return store
+    if database_url:
+        return SqliteSlaStore.from_url(database_url)
     if mode == "real-peers":
         raise PeerUnavailableError(
-            "real-peers requires an injected durable store; "
+            "real-peers requires MERCHANT_SLA_DATABASE_URL or an injected durable store; "
             "MemorySlaStore defaults are not allowed across workers"
         )
     return MemorySlaStore()
@@ -38,6 +41,7 @@ class Settings:
     principals_path: Path
     case_api_base_url: str
     case_api_token: str
+    database_url: str = ""
 
 
 def load_settings(
@@ -55,6 +59,7 @@ def load_settings(
         principals_path=path,
         case_api_base_url=os.environ.get("MERCHANT_SLA_CASE_API_BASE_URL", ""),
         case_api_token=os.environ.get("MERCHANT_SLA_CASE_API_TOKEN", ""),
+        database_url=os.environ.get("MERCHANT_SLA_DATABASE_URL", ""),
     )
 
 
@@ -80,14 +85,14 @@ def build_app(
     *,
     settings: Settings | None = None,
     clock: Clock | None = None,
-    store: MemorySlaStore | None = None,
+    store: SlaStore | None = None,
     case_api: CaseApiPort | None = None,
 ):
     cfg = settings or load_settings()
     tokens = TokenMap.from_path(cfg.principals_path)
     peer = build_case_api(cfg, case_api=case_api)
     service = MerchantSlaService(
-        store=_resolve_store(cfg.mode, store),
+        store=_resolve_store(cfg.mode, store, cfg.database_url),
         clock=clock or SystemClock(),
         case_api=peer,
     )

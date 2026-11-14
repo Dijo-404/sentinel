@@ -126,3 +126,56 @@ def test_http_provider_valid_path_no_fixture_fallback():
     assert len(snapshot.payments) == 1
     assert snapshot.order.order_reference == "DEMO-ORDER-42"
     assert snapshot.order_payload == json.dumps(order).encode()
+
+
+def test_http_provider_uses_bare_order_path():
+    """Collect derives bare ids; HTTP adapter must query that key, not a subject prefix."""
+
+    seen: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(str(request.url))
+        if request.url.path == "/v1/transactions":
+            return httpx.Response(
+                200,
+                content=json.dumps(
+                    {
+                        "payments": [
+                            {
+                                "transaction_ref": "TXN-A",
+                                "order_reference": "DEMO-ORDER-42",
+                                "subject_ref": "subj-demo-1",
+                                "status": "CAPTURED",
+                                "amount_minor": 150000,
+                                "currency": "INR",
+                            }
+                        ]
+                    }
+                ).encode(),
+            )
+        if request.url.path == "/v1/orders/DEMO-ORDER-42":
+            return httpx.Response(
+                200,
+                content=json.dumps(
+                    {
+                        "order_reference": "DEMO-ORDER-42",
+                        "subject_ref": "subj-demo-1",
+                        "fulfilled_order_count": 1,
+                        "merchant_confirmed_duplicate": False,
+                        "paid": True,
+                    }
+                ).encode(),
+            )
+        if request.url.path == "/v1/refunds":
+            return httpx.Response(200, content=json.dumps({"refunds": []}).encode())
+        return httpx.Response(404)
+
+    provider = HttpPaymentProvider(
+        base_url="http://provider.test",
+        token="tok",
+        client=httpx.Client(transport=_Transport(handler)),
+    )
+    provider.fetch_snapshot(order_reference="DEMO-ORDER-42", principal=PRINCIPAL)
+    assert any("/v1/orders/DEMO-ORDER-42" in url for url in seen)
+    assert any("order_reference=DEMO-ORDER-42" in url for url in seen)
+    assert not any("subject-a" in url for url in seen)

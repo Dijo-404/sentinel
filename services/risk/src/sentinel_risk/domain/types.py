@@ -57,6 +57,9 @@ class Principal:
     def is_risk_officer(self) -> bool:
         return "risk_officer" in self.roles
 
+    def is_workflow_service(self) -> bool:
+        return "workflow" in self.roles
+
 
 @dataclass(frozen=True, slots=True)
 class CaseSnapshot:

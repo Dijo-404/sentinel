@@ -37,6 +37,63 @@ def test_real_peers_unverified_without_assembled_collector() -> None:
     assert report.checks[0].reason_code == "REAL_PEER_COLLECTOR_NOT_ASSEMBLED"
 
 
+def test_real_peers_export_success_passes(monkeypatch) -> None:
+    class _Resp:
+        status = 200
+
+        def read(self) -> bytes:
+            return b"{}"
+
+        def getcode(self) -> int:
+            return 200
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+    def fake_urlopen(request, timeout=5.0):  # noqa: ARG001
+        assert request.full_url.endswith("/v1/traces")
+        assert request.data
+        return _Resp()
+
+    monkeypatch.setattr("sentinel_telemetry.collector_export.urllib.request.urlopen", fake_urlopen)
+    payload = {
+        "contract_version": CONTRACT_VERSION,
+        "run_id": "telemetry-real-export-1",
+        "mode": "real-peers",
+        "input_artifacts": [],
+        "parameters": {"telemetry.collector_endpoint": "http://127.0.0.1:4318"},
+    }
+    report = run(payload)
+    assert report.status == "PASS"
+    by_name = {c.name: c for c in report.checks}
+    assert by_name["real_peer_collector"].reason_code == "COLLECTOR_EXPORT_OK"
+    assert report.output_artifacts[0].evidence_mode == "real-component"
+
+
+def test_real_peers_export_failure_fails_closed(monkeypatch) -> None:
+    import urllib.error
+
+    def boom(request, timeout=5.0):  # noqa: ARG001
+        raise urllib.error.URLError("connection refused")
+
+    monkeypatch.setattr("sentinel_telemetry.collector_export.urllib.request.urlopen", boom)
+    payload = {
+        "contract_version": CONTRACT_VERSION,
+        "run_id": "telemetry-real-export-fail",
+        "mode": "real-peers",
+        "input_artifacts": [],
+        "parameters": {"telemetry.collector_endpoint": "http://127.0.0.1:4318"},
+    }
+    report = run(payload)
+    assert report.status == "FAIL"
+    by_name = {c.name: c for c in report.checks}
+    assert by_name["real_peer_collector"].reason_code == "COLLECTOR_EXPORT_FAILED"
+    assert all(a.evidence_mode != "fixture" for a in report.output_artifacts)
+
+
 def test_unsupported_parameter_fails_explicitly() -> None:
     with pytest.raises(TelemetryContractError):
         run(

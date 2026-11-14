@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import uuid
 from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
@@ -13,6 +14,7 @@ from sqlalchemy import Engine, create_engine, text
 from ..application.errors import ConflictError, ForbiddenError
 from ..domain.models import (
     AuditEvent,
+    DeliveryOutboxItem,
     Invitation,
     PrivilegedChangeRequest,
     RoleAssignment,
@@ -20,7 +22,7 @@ from ..domain.models import (
     User,
 )
 
-MIGRATION = Path(__file__).resolve().parents[3] / "migrations" / "0001_identity.sql"
+MIGRATIONS_DIR = Path(__file__).resolve().parents[3] / "migrations"
 
 
 def make_engine(database_url: str) -> Engine:
@@ -28,10 +30,11 @@ def make_engine(database_url: str) -> Engine:
 
 
 def ensure_schema(engine: Engine) -> None:
-    ddl = MIGRATION.read_text(encoding="utf-8")
     with engine.begin() as conn:
-        for stmt in _split_sql(ddl):
-            conn.execute(text(stmt))
+        for path in sorted(MIGRATIONS_DIR.glob("*.sql")):
+            ddl = path.read_text(encoding="utf-8")
+            for stmt in _split_sql(ddl):
+                conn.execute(text(stmt))
 
 
 def _split_sql(ddl: str) -> list[str]:
@@ -61,7 +64,6 @@ def _dt(value: Any) -> datetime:
 class PostgresIdentityStore:
     def __init__(self, engine: Engine) -> None:
         self._engine = engine
-        self._delivery_secrets: dict[str, str] = {}
 
     def create_user(self, user: User) -> User:
         with self._engine.begin() as conn:
@@ -467,11 +469,114 @@ class PostgresIdentityStore:
             if revoke_sessions:
                 _revoke_sessions(conn, user.user_id, at)
 
-    def record_delivery_secret(self, invitation_id: str, raw_token: str) -> None:
-        self._delivery_secrets[invitation_id] = raw_token
+    def record_delivery_secret(
+        self, invitation_id: str, raw_token: str, *, work_email: str
+    ) -> None:
+        with self._engine.begin() as conn:
+            existing = (
+                conn.execute(
+                    text(
+                        """
+                        SELECT delivery_id FROM identity.invitation_delivery_outbox
+                        WHERE invitation_id = :invitation_id
+                        """
+                    ),
+                    {"invitation_id": invitation_id},
+                )
+                .mappings()
+                .first()
+            )
+            if existing:
+                return
+            conn.execute(
+                text(
+                    """
+                    INSERT INTO identity.invitation_delivery_outbox (
+                        delivery_id, invitation_id, work_email, raw_token, status, created_at
+                    ) VALUES (
+                        :delivery_id, :invitation_id, :work_email, :raw_token, 'pending', now()
+                    )
+                    """
+                ),
+                {
+                    "delivery_id": str(uuid.uuid4()),
+                    "invitation_id": invitation_id,
+                    "work_email": work_email,
+                    "raw_token": raw_token,
+                },
+            )
 
     def peek_delivery_secret(self, invitation_id: str) -> str | None:
-        return self._delivery_secrets.get(invitation_id)
+        with self._engine.connect() as conn:
+            row = (
+                conn.execute(
+                    text(
+                        """
+                        SELECT raw_token FROM identity.invitation_delivery_outbox
+                        WHERE invitation_id = :invitation_id
+                        """
+                    ),
+                    {"invitation_id": invitation_id},
+                )
+                .mappings()
+                .first()
+            )
+        return str(row["raw_token"]) if row else None
+
+    def list_pending_deliveries(self) -> tuple[DeliveryOutboxItem, ...]:
+        with self._engine.connect() as conn:
+            rows = (
+                conn.execute(
+                    text(
+                        """
+                        SELECT * FROM identity.invitation_delivery_outbox
+                        WHERE status = 'pending'
+                        ORDER BY created_at ASC
+                        """
+                    )
+                )
+                .mappings()
+                .all()
+            )
+        return tuple(_delivery_from_row(r) for r in rows)
+
+    def mark_delivery_delivered(
+        self, delivery_id: str, *, acceptance_link: str, at: datetime
+    ) -> None:
+        with self._engine.begin() as conn:
+            conn.execute(
+                text(
+                    """
+                    UPDATE identity.invitation_delivery_outbox
+                    SET status = 'delivered',
+                        delivered_at = :at,
+                        acceptance_link = :acceptance_link
+                    WHERE delivery_id = :delivery_id
+                      AND status = 'pending'
+                    """
+                ),
+                {
+                    "delivery_id": delivery_id,
+                    "acceptance_link": acceptance_link,
+                    "at": at,
+                },
+            )
+
+    def list_sandbox_inbox(
+        self, *, work_email: str | None = None
+    ) -> tuple[DeliveryOutboxItem, ...]:
+        sql = """
+            SELECT * FROM identity.invitation_delivery_outbox
+            WHERE status = 'delivered'
+        """
+        params: dict[str, Any] = {}
+        if work_email is not None:
+            sql += " AND lower(work_email) = lower(:work_email)"
+            params["work_email"] = work_email
+        sql += " ORDER BY delivered_at DESC NULLS LAST, created_at DESC"
+        with self._engine.connect() as conn:
+            rows = conn.execute(text(sql), params).mappings().all()
+        return tuple(_delivery_from_row(r) for r in rows)
 
     def append_audit(self, event: AuditEvent) -> AuditEvent:
         with self._engine.begin() as conn:
@@ -734,4 +839,17 @@ def _audit_from_row(row: Any) -> AuditEvent:
         at=_dt(row["at"]),
         details=details or {},
         request_id=row["request_id"],
+    )
+
+
+def _delivery_from_row(row: Any) -> DeliveryOutboxItem:
+    return DeliveryOutboxItem(
+        delivery_id=str(row["delivery_id"]),
+        invitation_id=str(row["invitation_id"]),
+        work_email=row["work_email"],
+        raw_token=row["raw_token"],
+        status=row["status"],
+        created_at=_dt(row["created_at"]),
+        delivered_at=_dt(row["delivered_at"]) if row["delivered_at"] else None,
+        acceptance_link=row["acceptance_link"],
     )

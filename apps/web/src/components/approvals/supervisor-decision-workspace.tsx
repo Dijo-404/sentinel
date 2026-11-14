@@ -6,63 +6,7 @@ import type { CaseClient } from "@/application/ports";
 import type { ApprovalSlotProps } from "@/application/ports";
 import type { ActionRecord, Case, Evidence } from "@/domain/types";
 import { PeerError } from "@/domain/types";
-import { demoAction } from "@/adapters/fixture-case-client";
 import { ApprovalSlot } from "@/slots/approval-slot";
-
-/** Build action facts from queue/case + refund evidence (no demoAction hard-gate). */
-function actionFromQueueCase(
-  actionId: string,
-  caseRecord: Case,
-  evidence: Evidence[],
-): ActionRecord {
-  const refundEv = evidence.find(
-    (e) => e.facts.kind === "REFUND" && e.facts.refund.action_id === actionId,
-  );
-  const paymentEv = evidence.find((e) => e.facts.kind === "PAYMENT");
-  const refund =
-    refundEv && refundEv.facts.kind === "REFUND" ? refundEv.facts.refund : null;
-  const payment =
-    paymentEv && paymentEv.facts.kind === "PAYMENT"
-      ? paymentEv.facts.payment
-      : null;
-
-  // Known demo digest when the queue action matches the fixture record.
-  const digest =
-    actionId === demoAction.action_id
-      ? demoAction.action_digest
-      : (refundEv?.digest ?? demoAction.action_digest);
-  const policy_version =
-    actionId === demoAction.action_id
-      ? demoAction.payload.policy_version
-      : demoAction.payload.policy_version;
-
-  return {
-    action_id: actionId,
-    provider_ref:
-      refund?.provider_ref ??
-      (actionId === demoAction.action_id ? demoAction.provider_ref : ""),
-    action_digest: digest,
-    status: caseRecord.status === "ESCALATED" ? "ESCALATED" : "PROPOSED",
-    payload: {
-      action: "REQUEST_REFUND",
-      case_id: caseRecord.case_id,
-      case_revision: caseRecord.revision,
-      evidence_ids: caseRecord.evidence_ids,
-      policy_version,
-      transaction_ref:
-        refund?.transaction_ref ??
-        payment?.transaction_ref ??
-        demoAction.payload.transaction_ref,
-      amount_minor:
-        refund?.amount_minor ??
-        payment?.amount_minor ??
-        demoAction.payload.amount_minor,
-      currency:
-        refund?.currency ?? payment?.currency ?? demoAction.payload.currency,
-      destination: "ORIGINAL_PAYMENT_ROUTE",
-    },
-  };
-}
 import { UiState } from "@/components/ui-states";
 import { StatusChip } from "@/components/status-chip";
 import { labelCaseStatus } from "@/domain/status-labels";
@@ -71,6 +15,19 @@ import { MaskedRef } from "@/components/masked-ref";
 
 /** Stable fixture decision window shown and submitted verbatim (not minted on click). */
 export const FIXTURE_DECISION_EXPIRES_AT = "2026-12-31T23:59:59Z";
+
+/** Earliest evidence expiry — authoritative freshness bound for real-peers. */
+export function decisionExpiresFromEvidence(
+  evidence: Evidence[],
+  approvalExpiresAt?: string,
+): string | null {
+  if (approvalExpiresAt) return approvalExpiresAt;
+  const times = evidence
+    .map((e) => e.expires_at)
+    .filter((t): t is string => typeof t === "string" && t.length > 0);
+  if (times.length === 0) return null;
+  return times.reduce((a, b) => (a < b ? a : b));
+}
 
 type Props = {
   actionId: string;
@@ -86,6 +43,7 @@ type Props = {
 /**
  * Exact decision workspace: evidence context + approval-ui.v1 slot
  * wired to case-api decide (fixture stub or real-peer proxy).
+ * Real-peers loads ActionRecord via getAction (ledger); never demo digests.
  */
 export function SupervisorDecisionWorkspace({
   actionId,
@@ -97,6 +55,9 @@ export function SupervisorDecisionWorkspace({
   const [caseRecord, setCaseRecord] = useState<Case | null>(null);
   const [evidence, setEvidence] = useState<Evidence[]>([]);
   const [action, setAction] = useState<ActionRecord | null>(null);
+  const [decisionExpiresAt, setDecisionExpiresAt] = useState<string | null>(
+    null,
+  );
   const [error, setError] = useState<string | null>(null);
   const [permission, setPermission] = useState<string | null>(null);
   const [conflict, setConflict] = useState<string | null>(null);
@@ -107,7 +68,6 @@ export function SupervisorDecisionWorkspace({
     setError(null);
     setPermission(null);
     try {
-      // Fixture / list projection: resolve case that owns this action.
       const listed = await caseClient.listOpsCases({
         status: "WAITING_APPROVAL",
       });
@@ -120,14 +80,30 @@ export function SupervisorDecisionWorkspace({
           404,
         );
       }
-      const [c, bundle] = await Promise.all([
+      const [c, bundle, resolvedAction] = await Promise.all([
         caseClient.getCase(match.case_id),
         caseClient.getOpsEvidence(match.case_id),
+        caseClient.getAction(actionId),
       ]);
-      const resolvedAction = actionFromQueueCase(actionId, c, bundle.evidence);
+      const expires =
+        mode === "fixture"
+          ? FIXTURE_DECISION_EXPIRES_AT
+          : decisionExpiresFromEvidence(
+              bundle.evidence,
+              resolvedAction.approval?.expires_at,
+            );
+      if (!expires) {
+        throw new PeerError(
+          "PROPOSAL_UNAVAILABLE",
+          "Decision expiry unavailable — no evidence expires_at or approval window",
+          "req-supervisor-expiry-missing",
+          503,
+        );
+      }
       setCaseRecord(c);
       setEvidence(bundle.evidence);
       setAction(resolvedAction);
+      setDecisionExpiresAt(expires);
     } catch (err) {
       if (
         err instanceof PeerError &&
@@ -142,10 +118,11 @@ export function SupervisorDecisionWorkspace({
       setCaseRecord(null);
       setEvidence([]);
       setAction(null);
+      setDecisionExpiresAt(null);
     } finally {
       setLoading(false);
     }
-  }, [actionId, caseClient]);
+  }, [actionId, caseClient, mode]);
 
   useEffect(() => {
     void load();
@@ -166,7 +143,7 @@ export function SupervisorDecisionWorkspace({
   if (error) {
     return <UiState tone="error" title="Decision unavailable" detail={error} />;
   }
-  if (!caseRecord || !action) {
+  if (!caseRecord || !action || !decisionExpiresAt) {
     return (
       <UiState tone="empty" title="No proposal" detail="Nothing to decide." />
     );
@@ -180,7 +157,7 @@ export function SupervisorDecisionWorkspace({
         caseRecord,
         action,
         evidence,
-        decisionExpiresAt: FIXTURE_DECISION_EXPIRES_AT,
+        decisionExpiresAt,
         decide: (id, request) => caseClient.decide(id, request),
         onRefresh: () => setReloadKey((k) => k + 1),
         onConflict: (msg) => setConflict(msg),
@@ -204,7 +181,8 @@ export function SupervisorDecisionWorkspace({
           </p>
         ) : (
           <p className="fixture-banner" role="status">
-            Real-peer — case-api{" "}
+            Real-peer — ledger{" "}
+            <code className="mono">GET /v1/actions/…</code> + case-api{" "}
             <code className="mono">POST /v1/ops/actions/…/decisions</code>
           </p>
         )}

@@ -99,3 +99,9 @@ class DecisionStorePort(Protocol):
     def put_decision(self, thread_id: str, approval: Approval, principal_id: str) -> None: ...
 
     def get_decision(self, thread_id: str) -> dict[str, Any] | None: ...
+
+
+class RiskPort(Protocol):
+    """Authorized risk hold lookup. Fail closed when the peer is required."""
+
+    def blocks_financial_actions(self, case_id: str) -> bool: ...

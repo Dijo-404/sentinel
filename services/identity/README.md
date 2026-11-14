@@ -16,6 +16,8 @@ Contract: `sentinel.task-contracts.v1`, SHA-256
   login requires `requested_role` or returns 409)
 - Platform Admin invite / grant / revoke / suspend / reactivate / list / audit
 - Accept invitation (single-use; deny expired/revoked/mismatched; new password ≥ 8)
+- Sandbox invite delivery: durable outbox + `GET /v1/sandbox/inbox` acceptance links
+  (local demo only; set `IDENTITY_ACCEPT_LINK_BASE`, default `http://127.0.0.1:3000`)
 - `GET /v1/merchant-memberships` for merchant-teams identity peer projection
 - `authz_version` bump + session denial after revoke/suspend
 - Seeded synthetic accounts for six human roles + cross-tenant negative

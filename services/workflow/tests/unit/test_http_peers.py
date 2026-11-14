@@ -72,6 +72,43 @@ def test_http_evidence_unavailable(monkeypatch):
         HttpEvidence("http://peer", "token").collect("case-demo-42", 1, "DEMO-ORDER-42")
 
 
+def test_http_risk_blocks_lookup(monkeypatch):
+    from sentinel_workflow.adapters.peers_http import HttpRisk
+
+    def fake_request(method, url, headers=None, json=None, timeout=None):
+        assert "/v1/risk/cases/case-demo-42/blocks" in url
+        return FakeResponse(
+            200,
+            {
+                "case_id": "case-demo-42",
+                "blocks_financial_actions": True,
+                "financial_approval_granted": False,
+            },
+        )
+
+    monkeypatch.setattr(httpx, "request", fake_request)
+    assert HttpRisk("http://peer", "token").blocks_financial_actions("case-demo-42") is True
+
+
+def test_http_risk_rejects_approval_claim(monkeypatch):
+    from sentinel_workflow.adapters.peers_http import HttpRisk
+
+    def fake_request(method, url, headers=None, json=None, timeout=None):
+        return FakeResponse(
+            200,
+            {
+                "case_id": "case-demo-42",
+                "blocks_financial_actions": False,
+                "financial_approval_granted": True,
+            },
+        )
+
+    monkeypatch.setattr(httpx, "request", fake_request)
+    with pytest.raises(PeerError) as exc:
+        HttpRisk("http://peer", "token").blocks_financial_actions("case-demo-42")
+    assert exc.value.code == "MALFORMED"
+
+
 def test_http_policy_malformed(monkeypatch):
     from sentinel_workflow.domain.types import PolicyRequest
 

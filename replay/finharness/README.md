@@ -29,7 +29,7 @@ Requires Python ≥3.11 and `uv`. No database. No sibling Sentinel packages. No 
 3. **Safety gate:** a candidate with higher quality but critical safety regression is `REJECT` (`CRITICAL_SAFETY_REGRESSION_BLOCKS_PROMOTION`).
 4. **Live controls** stay immutable: policy/approval/auth/provider-mapping/production-path patches raise `LiveControlMutationBlocked`.
 5. Production write/notification route prefixes are blocked. Fixture evidence is never product release proof.
-6. `real-peers` mode without configured peer URLs fails closed (`PEER_UNAVAILABLE`); never silently falls back to fixtures.
+6. `real-peers` mode without configured peer URLs fails closed (`PEER_UNAVAILABLE`); with URLs it probes `/healthz` + `/v1/capabilities`. Never silently falls back to fixtures.
 
 ## Local peer doubles
 

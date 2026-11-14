@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Fixed — staff invitation delivery (finding #11)
+
+- Durable `invitation_delivery_outbox` (Postgres migration `0002` + memory stub):
+  plaintext invite tokens no longer live only in process memory.
+- Sandbox delivery consumer drains pending outbox into a local inbox with
+  acceptance links (`GET /v1/sandbox/inbox`, `POST /v1/sandbox/delivery/drain`).
+  No production email provider; evidence labeled `sandbox_inbox`.
+- Invite path auto-drains after enqueue so local demo can read the link after
+  restarts that preserve store state.
+
 ### Fixed — ponytail identity gaps
 
 - `GET /v1/merchant-memberships?tenant_id=&merchant_ref=` projects active

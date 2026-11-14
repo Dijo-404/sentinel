@@ -382,6 +382,8 @@ def test_result_idempotency_and_verified_resolution(client, app):
 
 def test_claim_workflow_jobs_exclusive(engine):
     """Atomic claim marks PENDING → CLAIMED; second claim gets nothing."""
+    from datetime import UTC, datetime, timedelta
+
     from sqlalchemy import text
 
     from sentinel_api.adapters.db.repository import SqlCaseRepository
@@ -393,12 +395,15 @@ def test_claim_workflow_jobs_exclusive(engine):
         case_revision=1,
         job_key="job-claim-1",
         event="START",
+        order_reference="subject-a/DEMO-ORDER-42",
     )
     repo.enqueue_workflow(tenant_id="tenant-demo", request=request)
 
-    first = repo.claim_workflow_jobs(limit=10)
+    now = datetime(2026, 11, 14, 12, 0, 0, tzinfo=UTC)
+    first = repo.claim_workflow_jobs(limit=10, now=now)
     assert len(first) == 1
     assert first[0][1].job_key == "job-claim-1"
+    assert first[0][1].order_reference == "subject-a/DEMO-ORDER-42"
 
     with engine.connect() as conn:
         status = conn.execute(
@@ -407,8 +412,128 @@ def test_claim_workflow_jobs_exclusive(engine):
         ).scalar_one()
     assert status == "CLAIMED"
 
-    second = repo.claim_workflow_jobs(limit=10)
+    # Active lease: not reclaimable yet.
+    second = repo.claim_workflow_jobs(limit=10, now=now + timedelta(seconds=5))
     assert second == []
+
+
+def test_stale_claimed_workflow_job_reclaimed_after_lease_expiry(engine):
+    """Simulated crash: CLAIMED with expired lease becomes claimable again."""
+    from datetime import UTC, datetime, timedelta
+
+    from sqlalchemy import text
+
+    from sentinel_api.adapters.db.repository import (
+        WORKFLOW_JOB_LEASE_SECONDS,
+        SqlCaseRepository,
+    )
+    from sentinel_api.domain.types import WorkflowRequest
+
+    repo = SqlCaseRepository(engine)
+    request = WorkflowRequest(
+        case_id="case-crash",
+        case_revision=1,
+        job_key="job-crash-1",
+        event="START",
+        order_reference="subject-a/DEMO-ORDER-42",
+    )
+    repo.enqueue_workflow(tenant_id="tenant-demo", request=request)
+
+    claimed_at = datetime(2026, 11, 14, 12, 0, 0, tzinfo=UTC)
+    first = repo.claim_workflow_jobs(limit=10, now=claimed_at)
+    assert len(first) == 1
+    # Crash: leave CLAIMED; do not mark DELIVERED.
+
+    after_lease = claimed_at + timedelta(seconds=WORKFLOW_JOB_LEASE_SECONDS + 1)
+    recovered = repo.claim_workflow_jobs(limit=10, now=after_lease)
+    assert len(recovered) == 1
+    assert recovered[0][1].job_key == "job-crash-1"
+    assert recovered[0][1].order_reference == "subject-a/DEMO-ORDER-42"
+
+    with engine.connect() as conn:
+        row = conn.execute(
+            text("SELECT status, lease_expires_at FROM workflow_outbox WHERE job_key = :k"),
+            {"k": "job-crash-1"},
+        ).one()
+    assert row[0] == "CLAIMED"
+    assert row[1] is not None
+
+
+def test_create_case_enqueues_start_job_atomically(engine):
+    """Case row and START outbox share one transaction (no separate enqueue race)."""
+    from sqlalchemy import text
+
+    from sentinel_api.adapters.db.repository import SqlCaseRepository
+    from sentinel_api.domain.types import CaseCreate, Principal, WorkflowRequest
+
+    repo = SqlCaseRepository(engine)
+    principal = Principal(
+        principal_id="cust-a",
+        tenant_id="tenant-demo",
+        roles=("customer",),
+        subject_refs=("subject-a",),
+        case_ids=(),
+    )
+    create = CaseCreate(
+        message="charged twice",
+        language="en-IN",
+        order_reference="subject-a/DEMO-ORDER-42",
+        channel="web",
+    )
+    start_job = WorkflowRequest(
+        case_id="case-atomic-1",
+        case_revision=1,
+        job_key="start:case-atomic-1:1",
+        event="START",
+        order_reference=create.order_reference,
+    )
+    created, case, reused = repo.create_case(
+        principal=principal,
+        create=create,
+        idempotency_key="atomic-1",
+        case_id="case-atomic-1",
+        message_id="msg-1",
+        event_id="evt-1",
+        occurred_at="2026-11-14T12:00:00Z",
+        start_job=start_job,
+    )
+    assert not reused
+    assert created.case_id == "case-atomic-1"
+    assert case.case_id == "case-atomic-1"
+
+    with engine.connect() as conn:
+        status = conn.execute(
+            text("SELECT status FROM workflow_outbox WHERE job_key = :k"),
+            {"k": "start:case-atomic-1:1"},
+        ).scalar_one()
+        payload = conn.execute(
+            text("SELECT payload_json FROM workflow_outbox WHERE job_key = :k"),
+            {"k": "start:case-atomic-1:1"},
+        ).scalar_one()
+    assert status == "PENDING"
+    assert json.loads(payload)["order_reference"] == "subject-a/DEMO-ORDER-42"
+
+
+def test_canonical_order_reference_preserved_through_input_and_outbox(client, app):
+    """Intake subject-prefixed order_reference is not stripped for CaseInput or START outbox."""
+    canonical = "subject-a/DEMO-ORDER-42"
+    assert CREATE["order_reference"] == canonical
+
+    created = _create(client, key="order-preserve-1").json()
+    case_id = created["case_id"]
+
+    snap = client.get(
+        f"/v1/internal/cases/{case_id}/input?revision=1",
+        headers=auth("token-workflow"),
+    )
+    assert snap.status_code == 200
+    assert snap.json()["order_reference"] == canonical
+
+    start_calls = [c for c in app.state.peers["workflow"].calls if c.event == "START"]
+    assert start_calls
+    assert start_calls[0].order_reference == canonical
+    # Wire body omits order_reference; CaseInput carries the authorized identity.
+    assert "order_reference" not in start_calls[0].to_wire_dict()
 
 
 def test_real_peer_http_clients_reject_bad_peers():

@@ -40,12 +40,14 @@ make check
 | Module | Behavior |
 | --- | --- |
 | `valid` | Two distinct captured payments, under-fulfilled order, merchant-confirmed duplicate |
-| order suffix `:equal` | Equal amounts without merchant confirmation → `EQUAL_AMOUNTS_INSUFFICIENT` (never `DUPLICATE_PAYMENT`) |
-| order suffix `:stale` | Expired snapshot → `UNVERIFIED` + `STALE_PROVIDER_SNAPSHOT` |
-| order suffix `:conflict` | Contradictory payment records → `CONFLICTING` |
-| `unavailable` / `:unavailable` | `PEER_UNAVAILABLE` (503) |
-| `malformed` / `:malformed` | `PEER_MALFORMED` (502) |
-| `unauthorized_or_out_of_scope` / `:unauthorized` | `PEER_UNAUTHORIZED` (403) |
+| order suffix `#equal` | Equal amounts without merchant confirmation → `EQUAL_AMOUNTS_INSUFFICIENT` (never `DUPLICATE_PAYMENT`) |
+| order suffix `#stale` | Expired snapshot → `UNVERIFIED` + `STALE_PROVIDER_SNAPSHOT` |
+| order suffix `#conflict` | Contradictory payment records → `CONFLICTING` |
+| `unavailable` / `#unavailable` | `PEER_UNAVAILABLE` (503) |
+| `malformed` / `#malformed` | `PEER_MALFORMED` (502) |
+| `unauthorized_or_out_of_scope` / `#unauthorized` | `PEER_UNAUTHORIZED` (403) |
+
+Authorized case `order_reference` may be `{subject_ref}/{customer_order_id}` (or `:`). Collect derives the bare provider key for payment-provider calls and keeps the authorized value on the collect request/store row. Fixture scenario markers use `#` so they never collide with subject boundaries.
 
 **Duplication rule:** `DUPLICATE_PAYMENT` requires `DISTINCT_TRANSACTION_REFS`, `MERCHANT_CONFIRMED_DUPLICATE`, and `ORDER_UNDERFULFILLED`. Equal `amount_minor` alone is never enough.
 

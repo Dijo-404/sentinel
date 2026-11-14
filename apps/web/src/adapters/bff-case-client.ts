@@ -11,6 +11,7 @@ export function createBffCaseClient(options?: {
 }): CaseClient {
   return createRealPeerCaseClient({
     baseUrl: "/api/bff/case",
+    ledgerBaseUrl: "/api/bff/ledger",
     authMode: "credentials",
     credentials: "same-origin",
     fetchImpl: options?.fetchImpl,

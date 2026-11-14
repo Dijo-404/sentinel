@@ -46,7 +46,14 @@ def validate_case_create(body: dict[str, Any]) -> CaseCreate:
 
 
 def order_bound_to_subject(order_reference: str, subject_ref: str) -> bool:
-    """True when order_reference equals subject_ref or is prefixed by it with a boundary."""
+    """True when order_reference equals subject_ref or is subject-prefixed with a boundary.
+
+    Canonical authorized form for customer intake: ``{subject_ref}/{customer_order_id}``
+    (example: ``subject-a/DEMO-ORDER-42``). Colon boundary (``subject-a:42``) also binds.
+    Bare provider ids (``DEMO-ORDER-42``) are not bound and must not be invented or stripped
+    into that shape at enqueue — preserve the authorized intake value through CaseInput
+    and workflow outbox scheduling payloads.
+    """
     if order_reference == subject_ref:
         return True
     return order_reference.startswith(f"{subject_ref}/") or order_reference.startswith(

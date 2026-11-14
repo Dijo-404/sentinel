@@ -97,20 +97,38 @@ SENTINEL_V1_SANDBOX=1 make check
 # or: SENTINEL_V1_SANDBOX=1 uv run --frozen pytest tests/test_sandbox_live.py
 ```
 
-Fail closed when a full case→workflow→ledger path is required (current drivers are provider-only):
+Default sandbox script runs **provider** journeys only (`path=provider-sandbox-only`).
+
+Full browser-to-credit / SN-009 authority HTTP (intake → proposal → approval →
+reservation → dispatcher claim → verifier → closure), plus duplicate-approval deny:
 
 ```sh
-SENTINEL_V1_REQUIRE_FULL_PATH=1 ./scripts/run_sandbox_journeys.sh  # expected FAIL
+SENTINEL_V1_AUTHORITY_PATH=1 ./scripts/run_sandbox_journeys.sh
+# on success: path=browser-to-credit, sn009_authority_exercised=true
+# still assembled_mvp_claimed=false (not product release)
+```
+
+Fail closed when full path is required but authority journeys did not pass:
+
+```sh
+SENTINEL_V1_REQUIRE_FULL_PATH=1 ./scripts/run_sandbox_journeys.sh  # FAIL without AUTHORITY_PATH success
+SENTINEL_V1_AUTHORITY_PATH=1 SENTINEL_V1_REQUIRE_FULL_PATH=1 ./scripts/run_sandbox_journeys.sh
 ```
 
 ## 5. Expected report labels
 
 - Peer probes: each required peer `mode=real-peers`
-- Report: `payment_provider=simulator`, `path=provider-sandbox-only`,
+- Provider-only: `payment_provider=simulator`, `path=provider-sandbox-only`,
   `assembled_mvp_claimed=false`, `sn009_authority_exercised=false`
+- With `SENTINEL_V1_AUTHORITY_PATH=1` and passing authority postconditions:
+  `path=browser-to-credit`, `sn009_authority_exercised=true`, still
+  `assembled_mvp_claimed=false`
+- Fixture doubles: `path=browser-to-credit-fixture` when authority journeys pass
 - Journeys: pending → `WAITING_ON_EVIDENCE`; merchant_mismatch → `NEEDS_HUMAN`;
   duplicate_payment → `VERIFIED_RESOLVED` (150000 + timeout recovery + credit);
-  refund_pending → `WAITING_ON_PROVIDER` with `credit_confirmed=false`
+  refund_pending → `WAITING_ON_PROVIDER` with `credit_confirmed=false`;
+  browser_to_credit → `VERIFIED_RESOLVED` + SN-009 stages; duplicate_approval_deny →
+  `NEEDS_HUMAN` with conflicting decision denied
 
 ## 5b. Fixture RBAC probes (SN-041)
 
@@ -131,8 +149,9 @@ and AUTH-06 (operator supervisor-decide denied; ledger untouched). Labels:
 
 ## 6. Evidence limits
 
-Passing sandbox assembly proves payment-provider HTTP drivers against the mock simulator.
-It does **not** exercise SN-009 ledger authority or the full case→workflow→dispatcher path.
+Provider-only sandbox PASS proves payment-provider HTTP drivers against the mock simulator.
+`SENTINEL_V1_AUTHORITY_PATH=1` PASS with `sn009_authority_exercised=true` proves the
+wired case→workflow→ledger→dispatcher-role→verifier→closure HTTP path against local
+peers + simulator — still **not** live rails, assembled MVP release, or pilot acceptance.
 Fixture RBAC probes prove local AUTH doubles only (`path=rbac-fixture`).
-It is **not** live-settlement or external pilot acceptance. Fixture `make check` alone
-is never product release evidence.
+Fixture `make check` alone is never product release evidence.

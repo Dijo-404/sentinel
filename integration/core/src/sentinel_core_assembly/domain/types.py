@@ -24,14 +24,27 @@ REQUIRED_PEERS = (
     "web-shell.v1",
 )
 
-JOURNEYS = (
+# Provider-HTTP sandbox journeys (path=provider-sandbox-only when alone).
+PROVIDER_JOURNEYS = (
     "pending",
     "merchant_mismatch",
     "duplicate_payment",
     "refund_pending",
 )
 
+# Intake→ledger→dispatcher→verifier→closure (SN-009 authority structure).
+AUTHORITY_JOURNEYS = (
+    "browser_to_credit",
+    "duplicate_approval_deny",
+)
+
+JOURNEYS = PROVIDER_JOURNEYS + AUTHORITY_JOURNEYS
+
 DUPLICATE_AMOUNT_MINOR = 150_000
+AUTHORITY_PATH = "browser-to-credit"
+AUTHORITY_FIXTURE_PATH = "browser-to-credit-fixture"
+PROVIDER_ONLY_PATH = "provider-sandbox-only"
+FIXTURE_PATH = "fixture-reference"
 
 
 @dataclass(frozen=True)
@@ -183,6 +196,22 @@ JOURNEY_EXPECTATIONS: dict[str, JourneyExpectation] = {
         refunded_minor=0,
         refund_side_effect_count=0,
         approval_required=False,
+        unsafe_actions=0,
+    ),
+    "browser_to_credit": JourneyExpectation(
+        journey="browser_to_credit",
+        terminal_state="VERIFIED_RESOLVED",
+        refunded_minor=DUPLICATE_AMOUNT_MINOR,
+        refund_side_effect_count=1,
+        approval_required=True,
+        unsafe_actions=0,
+    ),
+    "duplicate_approval_deny": JourneyExpectation(
+        journey="duplicate_approval_deny",
+        terminal_state="NEEDS_HUMAN",
+        refunded_minor=0,
+        refund_side_effect_count=0,
+        approval_required=True,
         unsafe_actions=0,
     ),
 }

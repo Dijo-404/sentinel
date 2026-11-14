@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { CaseClient } from "@/application/ports";
 import type { Case } from "@/domain/types";
 import { PeerError } from "@/domain/types";
@@ -18,21 +18,28 @@ type Props = {
 export function OperatorQueue({ caseClient }: Props) {
   const [loading, setLoading] = useState(true);
   const [cases, setCases] = useState<Case[]>([]);
+  const [nextCursor, setNextCursor] = useState<string | undefined>();
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [permission, setPermission] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      setLoading(true);
-      setError(null);
-      setPermission(null);
+  const loadPage = useCallback(
+    async (after?: string, append = false) => {
+      if (append) setLoadingMore(true);
+      else {
+        setLoading(true);
+        setError(null);
+        setPermission(null);
+      }
       try {
-        const result = await caseClient.listOpsCases();
-        if (cancelled) return;
-        setCases(result.cases);
+        const result = await caseClient.listOpsCases(
+          after ? { after } : undefined,
+        );
+        setCases((prev) =>
+          append ? [...prev, ...result.cases] : result.cases,
+        );
+        setNextCursor(result.next_cursor);
       } catch (err) {
-        if (cancelled) return;
         if (
           err instanceof PeerError &&
           (err.httpStatus === 403 || err.code === "FORBIDDEN")
@@ -43,15 +50,18 @@ export function OperatorQueue({ caseClient }: Props) {
         } else {
           setError(err instanceof Error ? err.message : "Load failed");
         }
+        if (!append) setCases([]);
       } finally {
-        if (!cancelled) setLoading(false);
+        setLoading(false);
+        setLoadingMore(false);
       }
-    }
-    void load();
-    return () => {
-      cancelled = true;
-    };
-  }, [caseClient]);
+    },
+    [caseClient],
+  );
+
+  useEffect(() => {
+    void loadPage();
+  }, [loadPage]);
 
   if (loading)
     return <UiState tone="loading" title="Loading operator queue…" />;
@@ -73,7 +83,7 @@ export function OperatorQueue({ caseClient }: Props) {
   }
 
   return (
-    <div className="stack">
+    <div className="stack" data-testid="operator-queue-list">
       <h1>Operator queue</h1>
       <p className="muted">
         Tenant-scoped cases. Escalation is a handoff, not resolution.
@@ -93,7 +103,9 @@ export function OperatorQueue({ caseClient }: Props) {
             {cases.map((c) => (
               <tr key={c.case_id}>
                 <td>
-                  <Link href={`/ops/cases/${c.case_id}/evidence`}>
+                  <Link
+                    href={`/operator/cases/${encodeURIComponent(c.case_id)}`}
+                  >
                     <MaskedRef
                       label="case_id"
                       masked={maskReference(c.case_id, "case-…")}
@@ -110,13 +122,28 @@ export function OperatorQueue({ caseClient }: Props) {
                     Open evidence
                   </Link>
                   {" · "}
-                  <Link href={`/cases/${c.case_id}`}>Timeline</Link>
+                  <Link
+                    href={`/operator/cases/${encodeURIComponent(c.case_id)}`}
+                    data-testid={`timeline-link-${c.case_id}`}
+                  >
+                    Timeline
+                  </Link>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      {nextCursor ? (
+        <button
+          type="button"
+          data-testid="queue-load-more"
+          disabled={loadingMore}
+          onClick={() => void loadPage(nextCursor, true)}
+        >
+          {loadingMore ? "Loading…" : "Load more"}
+        </button>
+      ) : null}
     </div>
   );
 }

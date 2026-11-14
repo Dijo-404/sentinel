@@ -122,6 +122,18 @@ class ReferenceBundle:
             "credit_confirmed": False,
         }
 
+    def run_browser_to_credit(self) -> dict[str, object]:
+        from sentinel_core_assembly.adapters.authority_path import run_browser_to_credit_fixture
+
+        return run_browser_to_credit_fixture(self.world)
+
+    def run_duplicate_approval_deny(self) -> dict[str, object]:
+        from sentinel_core_assembly.adapters.authority_path import (
+            run_duplicate_approval_deny_fixture,
+        )
+
+        return run_duplicate_approval_deny_fixture(self.world)
+
 
 @dataclass
 class MissingPeerBundle:
@@ -155,6 +167,12 @@ class MissingPeerBundle:
     def run_refund_pending(self) -> dict[str, object]:
         raise PeerFault("PEER_UNAVAILABLE", "Missing peer; journeys must not run")
 
+    def run_browser_to_credit(self) -> dict[str, object]:
+        raise PeerFault("PEER_UNAVAILABLE", "Missing peer; journeys must not run")
+
+    def run_duplicate_approval_deny(self) -> dict[str, object]:
+        raise PeerFault("PEER_UNAVAILABLE", "Missing peer; journeys must not run")
+
 
 @dataclass
 class IncompatiblePeerBundle:
@@ -186,14 +204,22 @@ class IncompatiblePeerBundle:
     def run_refund_pending(self) -> dict[str, object]:
         raise PeerFault("PEER_INCOMPATIBLE", "Incompatible peer")
 
+    def run_browser_to_credit(self) -> dict[str, object]:
+        raise PeerFault("PEER_INCOMPATIBLE", "Incompatible peer")
+
+    def run_duplicate_approval_deny(self) -> dict[str, object]:
+        raise PeerFault("PEER_INCOMPATIBLE", "Incompatible peer")
+
 
 @dataclass
 class HttpPeerBundle:
     """Real-peer adapter: probe HTTP /v1/capabilities; drive journeys over HTTP.
 
-    Never falls back to fixture ReferenceBundle. Current drivers hit payment-provider
-    HTTP only (path=provider-sandbox-only). They do not exercise case-api → workflow →
-    action-ledger (SN-009) → dispatcher authority. Labels must stay honest.
+    Never falls back to fixture ReferenceBundle. Provider journeys hit payment-provider
+    HTTP (path=provider-sandbox-only). Authority journeys
+    (browser_to_credit / duplicate_approval_deny) call case-api → workflow →
+    action-ledger (SN-009) → dispatcher-role claim → verifier → closure when
+    SENTINEL_V1_AUTHORITY_PATH=1. Labels stay honest; never claim MVP release.
     """
 
     endpoints: dict[str, str]
@@ -418,11 +444,26 @@ class HttpPeerBundle:
             "path": self.path,
         }
 
-    def _provider_base(self) -> str:
-        base = self.endpoints.get("payment-provider.v1", "").rstrip("/")
+    def run_browser_to_credit(self) -> dict[str, object]:
+        from sentinel_core_assembly.adapters.authority_path import run_browser_to_credit_http
+
+        return run_browser_to_credit_http(self)
+
+    def run_duplicate_approval_deny(self) -> dict[str, object]:
+        from sentinel_core_assembly.adapters.authority_path import (
+            run_duplicate_approval_deny_http,
+        )
+
+        return run_duplicate_approval_deny_http(self)
+
+    def _peer_base(self, port: str) -> str:
+        base = self.endpoints.get(port, "").rstrip("/")
         if not base:
-            raise PeerFault("PEER_MISSING", "payment-provider.v1 endpoint required")
+            raise PeerFault("PEER_MISSING", f"{port} endpoint required")
         return base
+
+    def _provider_base(self) -> str:
+        return self._peer_base("payment-provider.v1")
 
     def _headers(self, role: str) -> dict[str, str]:
         token = self.tokens.get(role, "")

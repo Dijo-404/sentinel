@@ -234,8 +234,22 @@ class WorkflowRequest:
     case_revision: int
     job_key: str
     event: Literal["START", "INPUT", "DECISION", "RECHECK"]
+    # Intake identity for outbox/scheduling; wire POST /v1/runs omits this (see to_wire_dict).
+    order_reference: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
+        data: dict[str, Any] = {
+            "case_id": self.case_id,
+            "case_revision": self.case_revision,
+            "job_key": self.job_key,
+            "event": self.event,
+        }
+        if self.order_reference is not None:
+            data["order_reference"] = self.order_reference
+        return data
+
+    def to_wire_dict(self) -> dict[str, Any]:
+        """workflow.v1 run body: order identity is loaded from CaseInput, not stripped here."""
         return {
             "case_id": self.case_id,
             "case_revision": self.case_revision,

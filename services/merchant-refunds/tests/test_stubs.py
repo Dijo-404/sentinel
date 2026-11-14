@@ -35,7 +35,11 @@ def test_evidence_stub_modes(mode):
 def test_policy_stub_modes(mode):
     stub = StubPolicy(mode=mode)  # type: ignore[arg-type]
     with pytest.raises(PeerError):
-        stub.evaluate(PRINCIPAL, payload={"action": "REQUEST_REFUND"}, evidence_ids=["e1"])
+        stub.evaluate(
+            PRINCIPAL,
+            payload={"action": "REQUEST_REFUND"},
+            evidence=[{"evidence_id": "e1"}],
+        )
 
 
 @pytest.mark.parametrize("mode", MODES)

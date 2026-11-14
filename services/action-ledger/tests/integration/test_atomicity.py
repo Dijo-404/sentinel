@@ -41,6 +41,7 @@ def test_failed_reservation_rolls_back_action_outbox_audit(app_client, tokens):
             "payload": payload,
             "action_digest": digest,
             "approval_id": approval["approval_id"],
+            "order_reference": "DEMO-ORDER-42",
         },
     )
     assert reserved.status_code == 409
@@ -84,6 +85,7 @@ def test_successful_reservation_writes_action_outbox_audit_together(app_client, 
             "payload": DEMO_PAYLOAD,
             "action_digest": DEMO_DIGEST,
             "approval_id": approval["approval_id"],
+            "order_reference": "DEMO-ORDER-42",
         },
     )
     assert reserved.status_code == 201
@@ -148,6 +150,7 @@ def test_payment_balance_reject_is_conflict(app_client, tokens, engine):
             "payload": DEMO_PAYLOAD,
             "action_digest": DEMO_DIGEST,
             "approval_id": approval["approval_id"],
+            "order_reference": "DEMO-ORDER-42",
         },
     )
     assert reserved.status_code == 201, reserved.text

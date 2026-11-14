@@ -9,6 +9,7 @@
 
 ### Fixed — 14 November 2026
 
+- Webhook/recheck `CREDIT_CONFIRMED` now persists an assessment and delivers `VERIFIED_RESOLVED` via case-api (stable `event_key`; fail closed if peer unavailable). Pending/waiting lookups reschedule the recheck (`SCHEDULED` + future `available_at`) instead of completing with nothing left. Finding #5.
 - Concurrent recheck with the same Idempotency-Key: atomic insert winner only processes; ledger `event_key` is stable (`verifier-{provider_ref}-{target}`) without job id.
 - Unprocessed inbox duplicates re-run provider reconciliation after crash-after-insert.
 - Real-peers bootstrap refuses demo webhook HMAC and demo peer bearer defaults.

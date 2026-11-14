@@ -28,6 +28,12 @@ export interface CaseClient {
     after?: string;
   }): Promise<OpsCaseList>;
   getOpsEvidence(caseId: string): Promise<EvidenceBundle>;
+  /**
+   * Authoritative ledger proposal (amount, digest, revision, policy_version).
+   * Real-peers: action-ledger GET /v1/actions/{id} (via ledger BFF when browser).
+   * Never reconstruct from demoAction digests.
+   */
+  getAction(actionId: string): Promise<ActionRecord>;
   decide(actionId: string, request: DecisionRequest): Promise<Approval>;
   escalate(
     caseId: string,
@@ -37,6 +43,26 @@ export interface CaseClient {
       owner_queue: string;
     },
   ): Promise<Case>;
+  /** Scoped case-api dashboard projection when available. */
+  getOperatorDashboard?(): Promise<{
+    assigned_to_me: number;
+    unassigned: number;
+    escalated: number;
+    waiting_approval: number;
+    open_total: number;
+  }>;
+  getSupervisorDashboard?(): Promise<{
+    waiting_approval_cases: number;
+    escalated_cases: number;
+    pending_approvals: number;
+    label: string;
+  }>;
+  getCustomerDashboard?(): Promise<{
+    open_cases: number;
+    needs_input: number;
+    waiting_approval: number;
+    verified_resolved: number;
+  }>;
 }
 
 /** Optional voice.v1 port. Disabled by default in composition. */

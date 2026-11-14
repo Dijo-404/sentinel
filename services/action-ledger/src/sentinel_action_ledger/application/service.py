@@ -60,6 +60,60 @@ def _scope_case(principal: Principal, case_id: str) -> None:
         raise ForbiddenError("Case outside principal scope")
 
 
+def _resolve_order_reference(
+    *,
+    order_reference: str | None,
+    payload: dict[str, Any],
+    store: LedgerStore,
+    tenant_id: str,
+    operation_key: str,
+) -> str:
+    """Require an explicit order identity; never invent ORDER-{transaction_ref}."""
+    candidate = (order_reference or "").strip()
+    if not candidate:
+        candidate = str(payload.get("order_reference") or "").strip()
+    if not candidate:
+        with store.transaction() as uow:
+            existing = uow.get_action_by_operation_key(tenant_id, operation_key)
+            if existing is not None:
+                candidate = str(existing.payload.get("order_reference") or "").strip()
+    if not candidate:
+        raise ValidationError(
+            "order_reference required for reservation evidence",
+            code="ORDER_REFERENCE_REQUIRED",
+        )
+    return candidate
+
+
+def _enforce_policy_allow(
+    policy_result: dict[str, Any],
+    *,
+    expected_digest: str,
+    expected_policy_version: str,
+) -> None:
+    """Reservation proceeds only on ALLOW with matching digest and policy_version."""
+    if not isinstance(policy_result, dict):
+        raise ConflictError("policy.v1 returned no result", code="POLICY_DENIED")
+    outcome = policy_result.get("outcome")
+    if outcome != "ALLOW":
+        raise ConflictError(
+            f"policy.v1 outcome {outcome!r} is not ALLOW",
+            code="POLICY_DENIED",
+        )
+    result_digest = policy_result.get("action_digest")
+    if result_digest != expected_digest:
+        raise ConflictError(
+            "policy.v1 action_digest does not match payload",
+            code="DIGEST_MISMATCH",
+        )
+    result_version = policy_result.get("policy_version")
+    if result_version != expected_policy_version:
+        raise ConflictError(
+            "policy.v1 policy_version does not match payload",
+            code="POLICY_MISMATCH",
+        )
+
+
 class ActionLedgerService:
     def __init__(
         self,
@@ -219,21 +273,34 @@ class ActionLedgerService:
             raise ValidationError("action_digest does not match payload", code="DIGEST_MISMATCH")
         _scope_case(principal, normalized["case_id"])
 
+        resolved_order = _resolve_order_reference(
+            order_reference=order_reference,
+            payload=normalized,
+            store=self._store,
+            tenant_id=principal.tenant_id,
+            operation_key=operation_key,
+        )
+
         # Network/evidence BEFORE the reservation transaction.
         evidence_items = list(
             self._evidence.collect(
                 principal=principal,
                 case_id=normalized["case_id"],
                 case_revision=normalized["case_revision"],
-                order_reference=order_reference or f"ORDER-{normalized['transaction_ref']}",
+                order_reference=resolved_order,
             )
         )
         snapshot = self._build_eligibility(principal, normalized, evidence_items)
         # Policy check also outside reservation TX (peer may be remote).
-        self._policy.evaluate(
+        policy_result = self._policy.evaluate(
             principal=principal,
             payload=normalized,
             evidence=evidence_items,
+        )
+        _enforce_policy_allow(
+            policy_result,
+            expected_digest=expected,
+            expected_policy_version=normalized["policy_version"],
         )
 
         now = self._clock.now()

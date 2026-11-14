@@ -61,6 +61,7 @@ evals/core/
 ## Independence
 
 - No sibling Sentinel service or unfinished peer import.
-- `core-assembly.v1` exercised only via `tests/stubs/`.
-- Real-peer mode rejects unavailable, malformed, and unauthorized assembly stubs without fixture fallback.
+- `core-assembly.v1` local reference peers via `tests/stubs/` (`StubAssemblyPeer`).
+- `HttpAssemblyPeer` probes configured `/v1/capabilities` when `assembly_stub=live`.
+- Real-peer mode rejects unavailable, malformed, and unauthorized peers without fixture fallback.
 - Assembled product journeys remain owner-run / unverified.

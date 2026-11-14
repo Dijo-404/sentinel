@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Changed (finding #13)
+
+- `mode: real-peers` exports correlated spans to a configured collector
+  (`telemetry.collector_endpoint` or `OTEL_EXPORTER_OTLP_ENDPOINT`).
+- Export success → `PASS` / `COLLECTOR_EXPORT_OK` with `evidence_mode: real-component`.
+- Export failure → `FAIL` / `COLLECTOR_EXPORT_FAILED` (no fixture promotion).
+- Missing endpoint still `UNVERIFIED` / `REAL_PEER_COLLECTOR_NOT_ASSEMBLED`.
+
 ### Added (SN-042)
 
 - Identity span/metric helpers (`identity.session.authenticate`, invite, role assign/revoke, session revoke) and §15.2 metric names with bounded labels.
@@ -18,10 +26,11 @@
 
 - `sentinel-telemetry` package implementing `telemetry.v1`: injected OTel hooks, allowlisted redaction, bounded-label metrics, synthetic correlation producers, and module-local collector/dashboard examples.
 - `make check` runs Ruff and pytest; fixture `run()` proves correlation, timeout/retry-suppression events, redaction rejection, and financial-audit isolation.
-- CLI: `sentinel-telemetry check|preview|run` with explicit `UNVERIFIED` real-peers status when no assembled collector is present.
+- CLI: `sentinel-telemetry check|preview|run` with explicit `UNVERIFIED` when no collector endpoint is configured.
 
 ### Implementation status
 
-- Standalone fixture evidence only. Real-peer Collector/Grafana assembly remains owner-verified and separate from this module check.
+- Fixture evidence + real-peers HTTP export path (PASS only on successful collector response).
+- Full OTLP protobuf Collector/Grafana/Tempo against product services remains owner-assembled.
 - FinHarness/FinBench admin eval surfaces remain independently gated; SN-042 does not claim them complete.
 - Identity service emission not wired in this change (README adoption path only).

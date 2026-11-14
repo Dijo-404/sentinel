@@ -18,12 +18,12 @@ from sentinel_core_assembly.domain.types import (
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures"
 
 
-def test_all_four_journeys_pass_with_local_reference_peers() -> None:
+def test_all_journeys_pass_with_local_reference_peers() -> None:
     peers = ReferenceBundle()
     report = run_assembly(
         RunInput(
             contract_version=CONTRACT_VERSION,
-            run_id="fixture-four-journeys",
+            run_id="fixture-all-journeys",
             mode="fixture",
         ),
         peers,
@@ -31,9 +31,35 @@ def test_all_four_journeys_pass_with_local_reference_peers() -> None:
     assert report.status == "PASS"
     assert report.assembled_mvp_claimed is False
     assert report.mode == "fixture"
+    assert report.path == "browser-to-credit-fixture"
+    assert report.sn009_authority_exercised is True
     names = {c.name for c in report.checks if c.name.startswith("journey.")}
     assert names == {f"journey.{j}" for j in JOURNEYS}
     assert all(c.status == "PASS" for c in report.checks if c.name.startswith("journey."))
+
+
+def test_browser_to_credit_fixture_exercises_authority_stages() -> None:
+    outcome = ReferenceBundle().run_browser_to_credit()
+    assert outcome["sn009_authority_exercised"] is True
+    assert outcome["customer_closed"] is True
+    assert outcome["credit_confirmed"] is True
+    assert set(outcome["stages"]) >= {
+        "intake",
+        "proposal",
+        "approval",
+        "reservation",
+        "dispatcher",
+        "verifier",
+        "closure",
+    }
+
+
+def test_duplicate_approval_deny_fixture() -> None:
+    outcome = ReferenceBundle().run_duplicate_approval_deny()
+    assert outcome["duplicate_approval_denied"] is True
+    assert outcome["refunded_minor"] == 0
+    assert outcome["sn009_authority_exercised"] is True
+    assert outcome["terminal_state"] == "NEEDS_HUMAN"
 
 
 def test_duplicate_payment_includes_150000_timeout_and_credit_recovery() -> None:

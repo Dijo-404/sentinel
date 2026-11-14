@@ -19,7 +19,9 @@
     "pending",
     "merchant_mismatch",
     "duplicate_payment",
-    "refund_pending"
+    "refund_pending",
+    "browser_to_credit",
+    "duplicate_approval_deny"
   ],
   "run_input": {
     "contract_version": "sentinel.task-contracts.v1",

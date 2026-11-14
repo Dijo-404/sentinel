@@ -41,7 +41,7 @@ def test_real_peers_refuses_demo_bearer(monkeypatch):
 
 def test_real_peers_refuses_default_memory_store(peers):
     case_api, evidence, policy, ledger = peers
-    with pytest.raises(PeerUnavailableError, match="injected durable store"):
+    with pytest.raises(PeerUnavailableError, match="durable store"):
         build_app(
             mode="real-peers",
             case_api=case_api,
@@ -53,8 +53,9 @@ def test_real_peers_refuses_default_memory_store(peers):
 
 def test_real_peers_env_mode_refuses_default_memory_store(monkeypatch, peers):
     monkeypatch.setenv("MERCHANT_REFUNDS_MODE", "real-peers")
+    monkeypatch.delenv("MERCHANT_REFUNDS_DATABASE_URL", raising=False)
     case_api, evidence, policy, ledger = peers
-    with pytest.raises(PeerUnavailableError, match="injected durable store"):
+    with pytest.raises(PeerUnavailableError, match="durable store"):
         build_app(
             case_api=case_api,
             evidence=evidence,
@@ -101,7 +102,11 @@ def test_http_peers_surface_error_status():
     policy = HttpPolicyClient("http://peer.test", token="t")
     policy._client = httpx.Client(transport=transport, base_url="http://peer.test")
     with pytest.raises(PeerError):
-        policy.evaluate(principal, payload={"action": "REQUEST_REFUND"}, evidence_ids=["e"])
+        policy.evaluate(
+            principal,
+            payload={"action": "REQUEST_REFUND"},
+            evidence=[{"evidence_id": "e"}],
+        )
 
     ledger = HttpLedgerClient("http://peer.test", token="t")
     ledger._client = httpx.Client(transport=transport, base_url="http://peer.test")

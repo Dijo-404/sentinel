@@ -6,6 +6,7 @@ import os
 from dataclasses import dataclass
 
 from .adapters.clock import SystemClock
+from .adapters.delivery_sandbox import DEFAULT_ACCEPT_LINK_BASE, SandboxDeliveryAdapter
 from .adapters.http import AppServices, create_app
 from .adapters.seed import load_seed_users
 from .adapters.storage_memory import MemoryIdentityStore
@@ -20,6 +21,7 @@ class Settings:
     contract_version: str
     database_url: str
     seed: bool
+    accept_link_base: str
 
     @classmethod
     def from_environ(cls, env: dict[str, str] | None = None) -> Settings:
@@ -32,6 +34,7 @@ class Settings:
             contract_version=source.get("IDENTITY_CONTRACT_VERSION", CONTRACT_VERSION),
             database_url=source.get("IDENTITY_DATABASE_URL", ""),
             seed=source.get("IDENTITY_SEED", "1") not in {"0", "false", "False"},
+            accept_link_base=source.get("IDENTITY_ACCEPT_LINK_BASE", DEFAULT_ACCEPT_LINK_BASE),
         )
 
 
@@ -64,8 +67,11 @@ def build_app(settings: Settings | None = None, *, store=None):
     if settings.seed:
         load_seed_users(identity_store, clock)
 
+    delivery = SandboxDeliveryAdapter(
+        identity_store, clock, accept_link_base=settings.accept_link_base
+    )
     services = AppServices(
-        identity=IdentityService(identity_store, clock),
+        identity=IdentityService(identity_store, clock, delivery=delivery),
         mode=mode,
     )
     return create_app(services)
