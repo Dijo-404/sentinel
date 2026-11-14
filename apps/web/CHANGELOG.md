@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Added — 15 November 2026 (operator Escalations + Messages from case-api)
+
+- Operator Escalations page loads via `listOpsCases({ status: "ESCALATED" })`
+  (never “Not available yet”); rows link to `/operator/cases/{caseId}`.
+- Operator Messages page loads via `listOpsMessages()`; shows case_id, text,
+  occurred_at; empty list stays honest.
+- Shared `EscalationsPanel` parameterized by `basePath` for supervisor reuse.
+- Fail closed: `data-testid="peer-error"` on peer/BFF failure;
+  `operator-escalations` / `operator-messages` when mount succeeds.
+- Browser tests: `tests/browser/operator-escalations-messages.test.tsx`.
+
 ### Added — 15 November 2026 (ops CaseClient messages / audit / HISTORY)
 
 - `CaseClient.listOpsMessages()` → `GET /v1/ops/messages` (real-peer + BFF + fixture stub).
