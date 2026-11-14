@@ -10,10 +10,13 @@ Contract: `sentinel.task-contracts.v1`, SHA-256
 
 ## Scope
 
-- Customer self-register (customer role only; privileged fields ignored/rejected)
-- Login / logout / me / workspaces select with hashed session tokens
+- Customer self-register (customer role only; privileged fields ignored/rejected;
+  password length ≥ 8)
+- Login / logout / me / workspaces select with hashed session tokens (multi-role
+  login requires `requested_role` or returns 409)
 - Platform Admin invite / grant / revoke / suspend / reactivate / list / audit
-- Accept invitation (single-use; deny expired/revoked/mismatched)
+- Accept invitation (single-use; deny expired/revoked/mismatched; new password ≥ 8)
+- `GET /v1/merchant-memberships` for merchant-teams identity peer projection
 - `authz_version` bump + session denial after revoke/suspend
 - Seeded synthetic accounts for six human roles + cross-tenant negative
 

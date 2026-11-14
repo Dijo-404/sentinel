@@ -148,6 +148,22 @@ def create_app(services: AppServices) -> FastAPI:
         except IdentityError as exc:
             return _error(exc, request_id)
 
+    @app.get("/v1/merchant-memberships")
+    def merchant_memberships(request: Request) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            tenant_id = request.query_params.get("tenant_id") or ""
+            merchant_ref = request.query_params.get("merchant_ref") or ""
+            return JSONResponse(
+                services.identity.list_merchant_memberships(
+                    session_token=_bearer(request),
+                    tenant_id=str(tenant_id),
+                    merchant_ref=str(merchant_ref),
+                )
+            )
+        except IdentityError as exc:
+            return _error(exc, request_id)
+
     # --- §12.2 Admin ---
 
     @app.get("/v1/admin/users")

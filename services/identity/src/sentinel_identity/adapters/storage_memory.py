@@ -82,6 +82,16 @@ class MemoryIdentityStore:
         rows = [a for a in self.assignments.values() if a.user_id == user_id]
         return tuple(sorted(rows, key=lambda a: a.granted_at.isoformat()))
 
+    def list_assignments_for_merchant(
+        self, *, tenant_id: str, merchant_ref: str
+    ) -> tuple[RoleAssignment, ...]:
+        rows = [
+            a
+            for a in self.assignments.values()
+            if a.tenant_id == tenant_id and a.merchant_ref == merchant_ref
+        ]
+        return tuple(sorted(rows, key=lambda a: a.granted_at.isoformat()))
+
     def create_session(self, session: SessionRecord) -> SessionRecord:
         with self._lock:
             self.sessions[session.session_id] = session

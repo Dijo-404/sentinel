@@ -172,6 +172,26 @@ class PostgresIdentityStore:
             )
         return tuple(_assignment_from_row(r) for r in rows)
 
+    def list_assignments_for_merchant(
+        self, *, tenant_id: str, merchant_ref: str
+    ) -> tuple[RoleAssignment, ...]:
+        with self._engine.connect() as conn:
+            rows = (
+                conn.execute(
+                    text(
+                        """
+                        SELECT * FROM identity.role_assignments
+                        WHERE tenant_id = :tenant_id AND merchant_ref = :merchant_ref
+                        ORDER BY granted_at
+                        """
+                    ),
+                    {"tenant_id": tenant_id, "merchant_ref": merchant_ref},
+                )
+                .mappings()
+                .all()
+            )
+        return tuple(_assignment_from_row(r) for r in rows)
+
     def create_session(self, session: SessionRecord) -> SessionRecord:
         with self._engine.begin() as conn:
             conn.execute(

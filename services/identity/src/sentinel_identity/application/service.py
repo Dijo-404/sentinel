@@ -16,6 +16,8 @@ from ..domain.models import (
     User,
 )
 from ..domain.roles import (
+    CONTRACT_VERSION,
+    MERCHANT_SUBROLES,
     PRIVILEGED_ROLES,
     assert_staff_role_grantable,
     permissions_for,
@@ -28,7 +30,14 @@ from .errors import (
     ValidationError,
 )
 from .ports import Clock, IdentityStore
-from .security import hash_password, hash_token, mint_token, normalize_email, verify_password
+from .security import (
+    assert_password_acceptable,
+    hash_password,
+    hash_token,
+    mint_token,
+    normalize_email,
+    verify_password,
+)
 
 SESSION_TTL = timedelta(hours=12)
 INVITE_TTL = timedelta(days=7)
@@ -70,6 +79,10 @@ class IdentityService:
         email_n = normalize_email(email)
         if not email_n or not password or not display_name.strip():
             raise ValidationError("email, password and display_name are required")
+        try:
+            assert_password_acceptable(password)
+        except ValueError as exc:
+            raise ValidationError(str(exc)) from exc
         if self._store.get_user_by_email(email_n):
             raise ConflictError("Account already exists")
         now = self._clock.now()
@@ -140,6 +153,8 @@ class IdentityService:
             selected = matches[0]
         elif len(assignments) == 1:
             selected = assignments[0]
+        else:
+            raise ConflictError("Multiple workspaces; requested_role required")
         token, session = self._issue_session(user, selected)
         self._audit(
             actor=user.user_id,
@@ -253,6 +268,10 @@ class IdentityService:
         if existing and existing.account_type == "customer":
             raise ForbiddenError("Customer accounts cannot accept staff invitations")
         if existing is None:
+            try:
+                assert_password_acceptable(password)
+            except ValueError as exc:
+                raise ValidationError(str(exc)) from exc
             user = User(
                 user_id=str(uuid.uuid4()),
                 account_type="staff",
@@ -337,6 +356,46 @@ class IdentityService:
             "active_assignment": active.to_workspace() if active else None,
             "permissions": perms,
         }
+
+    def list_merchant_memberships(
+        self,
+        *,
+        session_token: str,
+        tenant_id: str,
+        merchant_ref: str,
+    ) -> dict[str, Any]:
+        """Project merchant-scoped role assignments for merchant-teams.v1 peers."""
+        if not tenant_id.strip() or not merchant_ref.strip():
+            raise ValidationError("tenant_id and merchant_ref are required")
+        self._require_membership_reader(
+            session_token, tenant_id=tenant_id, merchant_ref=merchant_ref
+        )
+        rows = self._store.list_assignments_for_merchant(
+            tenant_id=tenant_id, merchant_ref=merchant_ref
+        )
+        memberships: list[dict[str, Any]] = []
+        for assignment in rows:
+            if assignment.status != "active":
+                continue
+            subroles = _subroles_for_merchant_assignment(assignment)
+            if not subroles:
+                continue
+            user = self._store.get_user(assignment.user_id)
+            if user is None or user.status != "active":
+                continue
+            memberships.append(
+                {
+                    "membership_id": assignment.assignment_id,
+                    "assignment_id": assignment.assignment_id,
+                    "user_id": assignment.user_id,
+                    "tenant_id": assignment.tenant_id,
+                    "merchant_ref": assignment.merchant_ref,
+                    "display_name": user.display_name,
+                    "subroles": subroles,
+                    "status": assignment.status,
+                }
+            )
+        return {"contract_version": CONTRACT_VERSION, "memberships": memberships}
 
     # --- Admin ---
 
@@ -821,6 +880,23 @@ class IdentityService:
             raise ForbiddenError("Platform Admin assignment required")
         return ctx
 
+    def _require_membership_reader(
+        self, session_token: str, *, tenant_id: str, merchant_ref: str
+    ) -> dict[str, Any]:
+        ctx = self.resolve_session(session_token)
+        active = ctx.get("active_assignment")
+        if not active:
+            raise ForbiddenError("Active assignment required")
+        if active["role_id"] == "platform_admin":
+            return ctx
+        if (
+            active["tenant_id"] == tenant_id
+            and active.get("merchant_ref") == merchant_ref
+            and active["role_id"] == "merchant"
+        ):
+            return ctx
+        raise ForbiddenError("Merchant membership read not authorized")
+
     def _require_user(self, user_id: str) -> User:
         user = self._store.get_user(user_id)
         if user is None:
@@ -889,3 +965,12 @@ class IdentityService:
             request_id=request_id,
         )
         self._store.append_audit(event)
+
+
+def _subroles_for_merchant_assignment(assignment: RoleAssignment) -> list[str]:
+    """Map identity role grant → merchant-teams subroles (never platform roles)."""
+    if assignment.role_id in MERCHANT_SUBROLES:
+        return [assignment.role_id]
+    if assignment.role_id == "merchant":
+        return ["admin"]
+    return []

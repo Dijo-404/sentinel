@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Fixed — ponytail identity gaps
+
+- `GET /v1/merchant-memberships?tenant_id=&merchant_ref=` projects active
+  merchant-scoped role assignments as `{contract_version, memberships[]}` for
+  merchant-teams real-peer sync (`platform_admin` or matching merchant staff).
+- Password floor: register + new-invite accept require length ≥ 8.
+- Login with multiple active assignments and no `requested_role` returns 409
+  without minting a session.
+
 ### Added — SN-040 peer principal catalog
 
 - Explicit money-path denylist for `merchant` / `risk_officer` / `platform_admin`;
