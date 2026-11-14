@@ -11,6 +11,9 @@ DEMO_BEARER_TOKENS = frozenset(
         "workflow-other-tenant-token",
         "operator-demo-token",
         "star-scope-demo-token",
+        "tok-merchant",
+        "tok-risk-officer",
+        "tok-platform-admin",
     }
 )
 

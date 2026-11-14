@@ -1,6 +1,13 @@
 # SN-005 changelog
 
 ## Unreleased
+
+### Added — SN-040 peer principal catalog
+
+- Additive fixture principals for `merchant` / `risk_officer` / `platform_admin`
+  (catalog only; evaluate stays workflow). Refs #103.
+- `contracts/COMPATIBILITY.md`.
+
 - Refuse non-loopback HTTP bind while demo/sandbox bearer tokens remain configured.
 
 ### Changed — 14 November 2026

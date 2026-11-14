@@ -10,11 +10,17 @@ DEMO_BEARER_TOKENS = frozenset(
         "tok-supervisor",
         "tok-dispatcher",
         "tok-verifier",
+        "tok-merchant",
+        "tok-risk-officer",
+        "tok-platform-admin",
         "token-workflow-demo",
         "token-supervisor-demo",
         "token-dispatcher-demo",
         "token-verifier-demo",
         "token-operator-demo",
+        "token-merchant-demo",
+        "token-risk-officer-demo",
+        "token-platform-admin-demo",
     }
 )
 

@@ -1,6 +1,14 @@
 # SN-009 changelog
 
 ## Unreleased
+
+### Added — SN-040 peer principal catalog
+
+- Additive `merchant` / `risk_officer` / `platform_admin` demo tokens and
+  `contracts/principals.json` catalog. Decide still requires exact `supervisor`.
+  Refs #103.
+- `contracts/COMPATIBILITY.md`; unit tests that extended humans fail `_require_roles(..., "supervisor")`.
+
 - Refuse non-loopback HTTP bind while demo/sandbox bearer tokens remain configured.
 
 ### Changed — 14 November 2026

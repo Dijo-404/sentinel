@@ -76,6 +76,51 @@
     "subject_refs": [],
     "case_ids": []
   },
+  "token-merchant": {
+    "principal_id": "merchant-1",
+    "tenant_id": "tenant-demo",
+    "roles": ["merchant"],
+    "subject_refs": ["merchant-demo-1"],
+    "case_ids": [],
+    "note": "SN-040: no financial.approval.decide"
+  },
+  "token-risk-officer": {
+    "principal_id": "risk-officer-1",
+    "tenant_id": "tenant-demo",
+    "roles": ["risk_officer"],
+    "subject_refs": [],
+    "case_ids": [],
+    "note": "SN-040: must not be treated as supervisor for decide"
+  },
+  "token-platform-admin": {
+    "principal_id": "platform-admin-1",
+    "tenant_id": "tenant-demo",
+    "roles": ["platform_admin"],
+    "subject_refs": ["*"],
+    "case_ids": [],
+    "note": "SN-040: not sandbox-admin; no money authority"
+  },
+  "tok-merchant": {
+    "principal_id": "merchant-1",
+    "tenant_id": "tenant-demo",
+    "roles": ["merchant"],
+    "subject_refs": ["merchant-demo-1"],
+    "case_ids": []
+  },
+  "tok-risk-officer": {
+    "principal_id": "risk-officer-1",
+    "tenant_id": "tenant-demo",
+    "roles": ["risk_officer"],
+    "subject_refs": [],
+    "case_ids": []
+  },
+  "tok-platform-admin": {
+    "principal_id": "platform-admin-1",
+    "tenant_id": "tenant-demo",
+    "roles": ["platform_admin"],
+    "subject_refs": ["*"],
+    "case_ids": []
+  },
   "token-workflow": {
     "principal_id": "workflow-1",
     "tenant_id": "tenant-demo",

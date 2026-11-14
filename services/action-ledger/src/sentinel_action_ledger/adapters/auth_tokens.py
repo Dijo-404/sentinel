@@ -44,6 +44,12 @@ def demo_principals(
     dispatcher = Principal("dispatcher-demo", tenant_id, ("dispatcher",), (), ("*",))
     verifier = Principal("verifier-demo", tenant_id, ("verifier",), (), ("*",))
     operator = Principal("operator-demo", tenant_id, ("operator",), subject, case)
+    # SN-040: catalog entries for new human roles — never supervisor / money roles.
+    merchant = Principal("merchant-demo", tenant_id, ("merchant",), subject, case)
+    risk_officer = Principal("risk-officer-demo", tenant_id, ("risk_officer",), subject, case)
+    platform_admin = Principal(
+        "platform-admin-demo", tenant_id, ("platform_admin",), ("*",), ("*",)
+    )
     canonical = {
         workflow_token or "tok-workflow": workflow,
         supervisor_token or "tok-supervisor": supervisor,
@@ -58,6 +64,12 @@ def demo_principals(
         "token-dispatcher-demo": dispatcher,
         "token-verifier-demo": verifier,
         "token-operator-demo": operator,
+        "token-merchant-demo": merchant,
+        "token-risk-officer-demo": risk_officer,
+        "token-platform-admin-demo": platform_admin,
+        "tok-merchant": merchant,
+        "tok-risk-officer": risk_officer,
+        "tok-platform-admin": platform_admin,
     }
     return {**canonical, **aliases}
 

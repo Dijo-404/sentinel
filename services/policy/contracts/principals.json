@@ -33,5 +33,26 @@
     "roles": ["workflow"],
     "subject_refs": ["subject-demo-42"],
     "case_ids": ["*"]
+  },
+  "tok-merchant": {
+    "principal_id": "merchant-demo",
+    "tenant_id": "tenant-demo",
+    "roles": ["merchant"],
+    "subject_refs": ["subject-demo-42"],
+    "case_ids": ["case-demo-42"]
+  },
+  "tok-risk-officer": {
+    "principal_id": "risk-officer-demo",
+    "tenant_id": "tenant-demo",
+    "roles": ["risk_officer"],
+    "subject_refs": ["subject-demo-42"],
+    "case_ids": ["case-demo-42"]
+  },
+  "tok-platform-admin": {
+    "principal_id": "platform-admin-demo",
+    "tenant_id": "tenant-demo",
+    "roles": ["platform_admin"],
+    "subject_refs": ["*"],
+    "case_ids": ["*"]
   }
 }

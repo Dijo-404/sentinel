@@ -1,0 +1,74 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "contract_sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb",
+  "catalog_extension": "sn-040-human-roles.v1",
+  "note": "Additive human roles for peer auth maps. Decide/reserve/provider writes stay exact role gates.",
+  "money_authority": {
+    "human_decide": ["supervisor"],
+    "service_reserve": ["workflow"],
+    "service_dispatch": ["dispatcher"],
+    "service_verify": ["verifier"]
+  },
+  "money_forbidden_human_roles": ["merchant", "risk_officer", "platform_admin", "customer", "operator"],
+  "principals": {
+    "tok-workflow": {
+      "principal_id": "workflow-demo",
+      "tenant_id": "tenant-demo",
+      "roles": ["workflow"],
+      "subject_refs": ["subject-demo-1"],
+      "case_ids": ["case-demo-42"]
+    },
+    "tok-supervisor": {
+      "principal_id": "supervisor-demo",
+      "tenant_id": "tenant-demo",
+      "roles": ["supervisor"],
+      "subject_refs": ["subject-demo-1"],
+      "case_ids": ["case-demo-42"]
+    },
+    "tok-dispatcher": {
+      "principal_id": "dispatcher-demo",
+      "tenant_id": "tenant-demo",
+      "roles": ["dispatcher"],
+      "subject_refs": [],
+      "case_ids": ["*"]
+    },
+    "tok-verifier": {
+      "principal_id": "verifier-demo",
+      "tenant_id": "tenant-demo",
+      "roles": ["verifier"],
+      "subject_refs": [],
+      "case_ids": ["*"]
+    },
+    "tok-operator": {
+      "principal_id": "operator-demo",
+      "tenant_id": "tenant-demo",
+      "roles": ["operator"],
+      "subject_refs": ["subject-demo-1"],
+      "case_ids": ["case-demo-42"]
+    },
+    "tok-merchant": {
+      "principal_id": "merchant-demo",
+      "tenant_id": "tenant-demo",
+      "roles": ["merchant"],
+      "subject_refs": ["subject-demo-1"],
+      "case_ids": ["case-demo-42"],
+      "note": "SN-040 catalog; no financial.approval.decide / ledger.reserve / provider write"
+    },
+    "tok-risk-officer": {
+      "principal_id": "risk-officer-demo",
+      "tenant_id": "tenant-demo",
+      "roles": ["risk_officer"],
+      "subject_refs": ["subject-demo-1"],
+      "case_ids": ["case-demo-42"],
+      "note": "SN-040 catalog; must not be treated as supervisor for decide"
+    },
+    "tok-platform-admin": {
+      "principal_id": "platform-admin-demo",
+      "tenant_id": "tenant-demo",
+      "roles": ["platform_admin"],
+      "subject_refs": ["*"],
+      "case_ids": ["*"],
+      "note": "SN-040 catalog; not sandbox-admin; no money authority"
+    }
+  }
+}

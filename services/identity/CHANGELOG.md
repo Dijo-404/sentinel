@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added — SN-040 peer principal catalog
+
+- Explicit money-path denylist for `merchant` / `risk_officer` / `platform_admin`;
+  supervisor alone holds `financial.approval.decide`. Refs #103.
+- `contracts/COMPATIBILITY.md` checklist; principals catalog metadata
+  (`catalog_extension`, `money_authority_roles`, `money_forbidden_roles`).
+- Unit coverage: extended roles cannot be treated as supervisor for decide.
+
 ### Fixed
 
 - Atomic invitation consume before assignment (AUTH-03 double-grant).

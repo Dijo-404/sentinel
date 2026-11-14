@@ -9,14 +9,23 @@ DEMO_BEARER_TOKENS = frozenset(
         "tok-case-api",
         "tok-workflow",
         "tok-verifier",
+        "tok-merchant",
+        "tok-risk-officer",
+        "tok-platform-admin",
         "token-case-api-demo",
         "token-workflow-demo",
         "token-operator-demo",
+        "token-merchant",
+        "token-risk-officer",
+        "token-platform-admin",
         # Fixture identity session credentials (apps/api/fixtures/identity_sessions.json).
         "sess-customer-a",
         "sess-operator-1",
         "sess-operator-2",
         "sess-supervisor-1",
+        "sess-merchant-1",
+        "sess-risk-officer-1",
+        "sess-platform-admin-1",
     }
 )
 

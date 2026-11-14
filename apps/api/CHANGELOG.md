@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added — SN-040 peer principal catalog
+
+- Fixture principals for `merchant` / `risk_officer` / `platform_admin` (opaque
+  tokens + identity sessions). Decide path still supervisor-only; extended
+  humans → 403 with ledger untouched. Refs #103.
+- `contracts/COMPATIBILITY.md` money-authority checklist.
+
 ### Fixed — 14 November 2026 (SN-037 review)
 
 - Fixture identity sessions wire only in `fixture` mode; `real-peers` uses opaque token map (future BFF). Refs #101.

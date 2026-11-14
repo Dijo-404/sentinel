@@ -1,8 +1,11 @@
 {
   "contract_version": "sentinel.task-contracts.v1",
   "contract_sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb",
+  "catalog_extension": "sn-040-human-roles.v1",
   "seed_password_env": "IDENTITY_DEMO_PASSWORD",
   "seed_password_default": "x",
+  "money_authority_roles": ["supervisor"],
+  "money_forbidden_roles": ["merchant", "risk_officer", "platform_admin", "customer", "operator"],
   "users": {
     "customer@example.test": {
       "principal_id": "11111111-1111-1111-1111-111111111101",
@@ -16,7 +19,8 @@
       "tenant_id": "tenant-demo",
       "roles": ["merchant"],
       "subject_refs": ["merchant-demo-1"],
-      "case_ids": []
+      "case_ids": [],
+      "note": "SN-040: human merchant; no ledger/provider money authority"
     },
     "operator@example.test": {
       "principal_id": "11111111-1111-1111-1111-111111111103",
@@ -30,21 +34,24 @@
       "tenant_id": "tenant-demo",
       "roles": ["supervisor"],
       "subject_refs": ["*"],
-      "case_ids": []
+      "case_ids": [],
+      "note": "sole human financial.approval.decide principal"
     },
     "risk@example.test": {
       "principal_id": "11111111-1111-1111-1111-111111111105",
       "tenant_id": "tenant-demo",
       "roles": ["risk_officer"],
       "subject_refs": [],
-      "case_ids": []
+      "case_ids": [],
+      "note": "SN-040: risk_officer must not be treated as supervisor for decide"
     },
     "admin@example.test": {
       "principal_id": "11111111-1111-1111-1111-111111111106",
       "tenant_id": "tenant-demo",
       "roles": ["platform_admin"],
       "subject_refs": ["*"],
-      "case_ids": []
+      "case_ids": [],
+      "note": "SN-040: platform_admin is not sandbox-admin and has no money authority"
     },
     "admin-reviewer@example.test": {
       "principal_id": "11111111-1111-1111-1111-111111111107",
@@ -52,7 +59,7 @@
       "roles": ["platform_admin"],
       "subject_refs": ["*"],
       "case_ids": [],
-      "note": "independent privileged-change reviewer"
+      "note": "independent privileged-change reviewer; no money authority"
     },
     "outsider@other.test": {
       "principal_id": "22222222-2222-2222-2222-222222222201",
