@@ -17,7 +17,7 @@
 <br/>
 
 > [!NOTE]
-> **Components on `main`.** Thirty-four independently owned modules (SN-001–034) are implemented with module-local checks. Wiring them into one local simulator-backed MVP runtime, release evidence against that assembly, live models, and any external pilot remain separate owner decisions. No live payment integration is claimed.
+> **V1 sandbox-ready on `main`.** Thirty-four modules plus a local compose/runbook stack can run `real-peers` against the mock payment simulator (`payment_provider=simulator`, `path=provider-sandbox-only`). That proves peer probes and four provider-HTTP journeys — not SN-009 ledger authority, live rails, or external pilot acceptance. Strict assembled release evidence, live models, and pilots remain separate owner decisions.
 
 ## Overview
 
@@ -178,10 +178,10 @@ Keep claims and progress on the assigned GitHub issue. Component PRs target `mai
 - [x] Repository structure, ownership rules, and independent task definitions.
 - [x] Pinned contract baseline, published issue register, and repository CI.
 - [x] Standalone component implementations for SN-001–034 (module-local checks on `main`).
-- [ ] Wire a local simulator-backed MVP across UI/API/workflow/ledger/dispatcher/verifier.
-- [ ] Exercise the four payment journeys and cross-service failure cases against that assembly.
+- [x] Local V1 sandbox bring-up (compose + peers + four simulator journeys; see `integration/core/docs/sandbox-runbook.md`).
+- [ ] Deepen assembly beyond `provider-sandbox-only` (case→workflow→ledger authority) and assembled failure suite.
 - [ ] Produce strict release evidence (evaluation, replay, tracing) against assembled components.
-- [ ] Complete separate owner decisions for live models, sandbox provider, and any external pilot.
+- [ ] Complete separate owner decisions for live models, live provider adapter, and any external pilot.
 
 ## Documentation
 
