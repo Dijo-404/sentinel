@@ -125,6 +125,30 @@ def create_app(services: AppServices) -> FastAPI:
         except IdentityError as exc:
             return _error(exc, request_id)
 
+    @app.get("/v1/auth/notifications")
+    def list_notifications(request: Request) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            return JSONResponse(
+                services.identity.list_notifications(session_token=_bearer(request))
+            )
+        except IdentityError as exc:
+            return _error(exc, request_id)
+
+    @app.post("/v1/auth/notifications/{notification_id}/read")
+    def mark_notification_read(request: Request, notification_id: str) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            return JSONResponse(
+                services.identity.mark_notification_read(
+                    session_token=_bearer(request),
+                    notification_id=notification_id,
+                    request_id=request_id,
+                )
+            )
+        except IdentityError as exc:
+            return _error(exc, request_id)
+
     @app.get("/v1/auth/workspaces")
     def workspaces(request: Request) -> JSONResponse:
         request_id = _request_id(request)

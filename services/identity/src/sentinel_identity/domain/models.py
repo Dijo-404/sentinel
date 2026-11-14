@@ -179,6 +179,25 @@ class DeliveryOutboxItem:
 
 
 @dataclass(frozen=True)
+class Notification:
+    notification_id: str
+    user_id: str
+    title: str
+    body: str
+    created_at: datetime
+    read_at: datetime | None = None
+
+    def to_public(self) -> dict[str, Any]:
+        return {
+            "notification_id": self.notification_id,
+            "title": self.title,
+            "body": self.body,
+            "created_at": self.created_at.isoformat(),
+            "read_at": self.read_at.isoformat() if self.read_at else None,
+        }
+
+
+@dataclass(frozen=True)
 class AuditEvent:
     event_id: str
     actor_user_id: str | None

@@ -9,6 +9,7 @@ from ..domain.models import (
     AuditEvent,
     DeliveryOutboxItem,
     Invitation,
+    Notification,
     PrivilegedChangeRequest,
     RoleAssignment,
     SessionRecord,
@@ -115,6 +116,14 @@ class IdentityStore(Protocol):
     def list_sandbox_inbox(
         self, *, work_email: str | None = None
     ) -> tuple[DeliveryOutboxItem, ...]: ...
+
+    def create_notification(self, notification: Notification) -> Notification: ...
+
+    def get_notification(self, notification_id: str) -> Notification | None: ...
+
+    def save_notification(self, notification: Notification) -> Notification: ...
+
+    def list_notifications(self, user_id: str, *, limit: int = 50) -> tuple[Notification, ...]: ...
 
     def append_audit(self, event: AuditEvent) -> AuditEvent: ...
 

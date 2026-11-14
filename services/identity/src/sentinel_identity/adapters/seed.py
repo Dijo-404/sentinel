@@ -9,7 +9,7 @@ from pathlib import Path
 
 from ..application.ports import Clock, IdentityStore
 from ..application.security import hash_password, normalize_email
-from ..domain.models import RoleAssignment, User
+from ..domain.models import Notification, RoleAssignment, User
 
 DEFAULT_SEED = Path(__file__).resolve().parents[3] / "fixtures" / "seed_users.json"
 
@@ -68,5 +68,22 @@ def load_seed_users(
                 "tenant_id": assignment.tenant_id,
                 "user_id": user.user_id,
             }
+        )
+    for row in payload.get("notifications", []):
+        notification_id = str(row["notification_id"])
+        if store.get_notification(notification_id) is not None:
+            continue
+        user_id = str(row["user_id"])
+        if store.get_user(user_id) is None:
+            continue
+        store.create_notification(
+            Notification(
+                notification_id=notification_id,
+                user_id=user_id,
+                title=str(row["title"]),
+                body=str(row["body"]),
+                created_at=now,
+                read_at=None,
+            )
         )
     return loaded

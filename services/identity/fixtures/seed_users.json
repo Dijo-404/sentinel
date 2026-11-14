@@ -75,5 +75,13 @@
       "role_id": "operator",
       "tenant_id": "tenant-other"
     }
+  ],
+  "notifications": [
+    {
+      "notification_id": "11111111-1111-1111-1111-111111111301",
+      "user_id": "11111111-1111-1111-1111-111111111101",
+      "title": "Welcome to Sentinel",
+      "body": "Your customer account is ready. Track cases and refund updates here."
+    }
   ]
 }

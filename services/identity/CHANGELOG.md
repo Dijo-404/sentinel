@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added — notifications inbox
+
+- `GET /v1/auth/notifications` returns the caller's inbox (newest first, max 50).
+- `POST /v1/auth/notifications/{id}/read` marks own notification read; other-user
+  or missing id → 404.
+- Migration `0004_notifications.sql` adds `identity.notifications`.
+- Sandbox seed includes ≥1 unread notification for `customer@example.test`.
+
 ### Added — self-service profile PATCH
 
 - `PATCH /v1/auth/me` updates `display_name` / `preferred_language` for the

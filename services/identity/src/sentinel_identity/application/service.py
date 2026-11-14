@@ -41,6 +41,7 @@ from .security import (
 
 SESSION_TTL = timedelta(hours=12)
 INVITE_TTL = timedelta(days=7)
+NOTIFICATION_LIST_LIMIT = 50
 OPS_TEAM_ROLES = frozenset({"operator", "supervisor"})
 OPS_TEAM_READERS = frozenset({"supervisor", "platform_admin"})
 
@@ -245,6 +246,38 @@ class IdentityService:
             details={k: updates[k] for k in ("display_name", "preferred_language") if k in updates},
         )
         return {"user": user.to_public()}
+
+    def list_notifications(self, *, session_token: str) -> dict[str, Any]:
+        session = self._require_session(session_token)
+        rows = self._store.list_notifications(session.user_id, limit=NOTIFICATION_LIST_LIMIT)
+        return {"notifications": [n.to_public() for n in rows]}
+
+    def mark_notification_read(
+        self,
+        *,
+        session_token: str,
+        notification_id: str,
+        request_id: str = "request-local",
+    ) -> dict[str, Any]:
+        session = self._require_session(session_token)
+        notification = self._store.get_notification(notification_id)
+        if notification is None or notification.user_id != session.user_id:
+            raise NotFoundError("Notification not found")
+        if notification.read_at is None:
+            notification = replace(notification, read_at=self._clock.now())
+            self._store.save_notification(notification)
+            self._audit(
+                actor=session.user_id,
+                action="notification.read",
+                target_type="notification",
+                target_id=notification.notification_id,
+                tenant_id=None,
+                request_id=request_id,
+            )
+        return {
+            "notification_id": notification.notification_id,
+            "read_at": notification.read_at.isoformat() if notification.read_at else None,
+        }
 
     def list_workspaces(self, *, session_token: str) -> dict[str, Any]:
         ctx = self.resolve_session(session_token)

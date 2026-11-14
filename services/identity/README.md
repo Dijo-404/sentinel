@@ -13,7 +13,8 @@ Contract: `sentinel.task-contracts.v1`, SHA-256
 - Customer self-register (customer role only; privileged fields ignored/rejected;
   password length ≥ 8)
 - Login / logout / me / `PATCH /v1/auth/me` profile (`display_name`,
-  `preferred_language`; privilege fields rejected) / workspaces select with
+  `preferred_language`; privilege fields rejected) / notifications inbox
+  (`GET /v1/auth/notifications`, `POST .../{id}/read`) / workspaces select with
   hashed session tokens (multi-role login requires `requested_role` or returns 409)
 - Platform Admin invite / grant / revoke / suspend / reactivate / list / audit
 - Accept invitation (single-use; deny expired/revoked/mismatched; new password ≥ 8)

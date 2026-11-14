@@ -13,6 +13,7 @@ from ..domain.models import (
     AuditEvent,
     DeliveryOutboxItem,
     Invitation,
+    Notification,
     PrivilegedChangeRequest,
     RoleAssignment,
     SessionRecord,
@@ -33,6 +34,7 @@ class MemoryIdentityStore:
         self.invitations_by_hash: dict[str, str] = {}
         self.privileged_changes: dict[str, PrivilegedChangeRequest] = {}
         self.audit: list[AuditEvent] = []
+        self.notifications: dict[str, Notification] = {}
         self._delivery_outbox: dict[str, DeliveryOutboxItem] = {}
         self._delivery_by_invitation: dict[str, str] = {}
 
@@ -306,6 +308,26 @@ class MemoryIdentityStore:
             rows = [i for i in rows if i.work_email.lower() == needle]
         rows.sort(key=lambda i: i.delivered_at or i.created_at, reverse=True)
         return tuple(rows)
+
+    def create_notification(self, notification: Notification) -> Notification:
+        with self._lock:
+            if notification.notification_id in self.notifications:
+                raise ValueError("notification_id already exists")
+            self.notifications[notification.notification_id] = notification
+            return notification
+
+    def get_notification(self, notification_id: str) -> Notification | None:
+        return self.notifications.get(notification_id)
+
+    def save_notification(self, notification: Notification) -> Notification:
+        with self._lock:
+            self.notifications[notification.notification_id] = notification
+            return notification
+
+    def list_notifications(self, user_id: str, *, limit: int = 50) -> tuple[Notification, ...]:
+        rows = [n for n in self.notifications.values() if n.user_id == user_id]
+        rows.sort(key=lambda n: n.created_at.isoformat(), reverse=True)
+        return tuple(rows[:limit])
 
     def append_audit(self, event: AuditEvent) -> AuditEvent:
         with self._lock:

@@ -16,6 +16,7 @@ from ..domain.models import (
     AuditEvent,
     DeliveryOutboxItem,
     Invitation,
+    Notification,
     PrivilegedChangeRequest,
     RoleAssignment,
     SessionRecord,
@@ -584,6 +585,84 @@ class PostgresIdentityStore:
             rows = conn.execute(text(sql), params).mappings().all()
         return tuple(_delivery_from_row(r) for r in rows)
 
+    def create_notification(self, notification: Notification) -> Notification:
+        with self._engine.begin() as conn:
+            conn.execute(
+                text(
+                    """
+                    INSERT INTO identity.notifications (
+                        notification_id, user_id, title, body, created_at, read_at
+                    ) VALUES (
+                        :notification_id, :user_id, :title, :body, :created_at, :read_at
+                    )
+                    """
+                ),
+                {
+                    "notification_id": notification.notification_id,
+                    "user_id": notification.user_id,
+                    "title": notification.title,
+                    "body": notification.body,
+                    "created_at": notification.created_at,
+                    "read_at": notification.read_at,
+                },
+            )
+        return notification
+
+    def get_notification(self, notification_id: str) -> Notification | None:
+        with self._engine.connect() as conn:
+            row = (
+                conn.execute(
+                    text(
+                        """
+                        SELECT * FROM identity.notifications
+                        WHERE notification_id = :notification_id
+                        """
+                    ),
+                    {"notification_id": notification_id},
+                )
+                .mappings()
+                .first()
+            )
+        return _notification_from_row(row) if row else None
+
+    def save_notification(self, notification: Notification) -> Notification:
+        with self._engine.begin() as conn:
+            conn.execute(
+                text(
+                    """
+                    UPDATE identity.notifications SET
+                        title=:title, body=:body, read_at=:read_at
+                    WHERE notification_id = :notification_id
+                    """
+                ),
+                {
+                    "notification_id": notification.notification_id,
+                    "title": notification.title,
+                    "body": notification.body,
+                    "read_at": notification.read_at,
+                },
+            )
+        return notification
+
+    def list_notifications(self, user_id: str, *, limit: int = 50) -> tuple[Notification, ...]:
+        with self._engine.connect() as conn:
+            rows = (
+                conn.execute(
+                    text(
+                        """
+                        SELECT * FROM identity.notifications
+                        WHERE user_id = :user_id
+                        ORDER BY created_at DESC
+                        LIMIT :limit
+                        """
+                    ),
+                    {"user_id": user_id, "limit": limit},
+                )
+                .mappings()
+                .all()
+            )
+        return tuple(_notification_from_row(r) for r in rows)
+
     def append_audit(self, event: AuditEvent) -> AuditEvent:
         with self._engine.begin() as conn:
             conn.execute(
@@ -752,6 +831,17 @@ def _user_from_row(row: Any) -> User:
         updated_at=_dt(row["updated_at"]),
         tenant_id=row["tenant_id"],
         preferred_language=str(row["preferred_language"]) if row.get("preferred_language") else "",
+    )
+
+
+def _notification_from_row(row: Any) -> Notification:
+    return Notification(
+        notification_id=str(row["notification_id"]),
+        user_id=str(row["user_id"]),
+        title=row["title"],
+        body=row["body"],
+        created_at=_dt(row["created_at"]),
+        read_at=_dt(row["read_at"]) if row["read_at"] else None,
     )
 
 

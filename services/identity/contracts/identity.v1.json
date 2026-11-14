@@ -64,6 +64,20 @@
     },
     {
       "method": "GET",
+      "path": "/v1/auth/notifications",
+      "auth": "Bearer session",
+      "response": "{ notifications[{notification_id,title,body,created_at,read_at|null}] }",
+      "notes": "Own inbox only; newest first; max 50"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/auth/notifications/{id}/read",
+      "auth": "Bearer session",
+      "response": "{ notification_id, read_at }",
+      "notes": "404 when notification missing or owned by another user"
+    },
+    {
+      "method": "GET",
       "path": "/v1/auth/workspaces",
       "auth": "Bearer session",
       "response": "{ workspaces, active_assignment? }"
