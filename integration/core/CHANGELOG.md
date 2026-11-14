@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added — 15 November 2026 (portal wave 0 seed gate)
+
+- `seed_sandbox` adapter + `sentinel-core-assembly seed-sandbox` CLI / `make seed-sandbox`.
+- Refuses non-`tenant-demo` (`SANDBOX_TENANT_REQUIRED`) and missing `SENTINEL_V1_SANDBOX`
+  (`SANDBOX_FLAG_REQUIRED`). Pending peer hooks report `SKIPPED` until module seeds land.
+
 ### Added — 14 November 2026 (finding #8 browser-to-credit)
 
 - Authority journeys `browser_to_credit` and `duplicate_approval_deny`: intake →

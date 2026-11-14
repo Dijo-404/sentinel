@@ -68,6 +68,18 @@ Order references match simulator journey packs. If #82 is not on `main` yet, sim
 
 Assembly drivers fail closed if a seed is missing.
 
+## DB seed orchestrator
+
+```sh
+# From integration/core — refuses unless tenant-demo + SENTINEL_V1_SANDBOX=1
+make seed-sandbox
+# or: SENTINEL_V1_SANDBOX=1 uv run --frozen sentinel-core-assembly seed-sandbox
+```
+
+Until peer `make seed` hooks register, the report status is `PASS` with per-peer
+`SKIPPED` entries (documented no-ops). Non-`tenant-demo` → `SANDBOX_TENANT_REQUIRED`.
+Missing sandbox flag → `SANDBOX_FLAG_REQUIRED`. Compose DB names: see [compose/init-databases.sql](../compose/init-databases.sql).
+
 ## Path honesty
 
 - Default real-peers `HttpPeerBundle` path: `provider-sandbox-only` (payment-provider HTTP).

@@ -56,6 +56,7 @@ Bring-up (Postgres compose + peer order + assembly command): [docs/sandbox-runbo
 ```sh
 docker compose -f compose.yaml up -d
 # start peers per runbook (simulator :8094, … web :3012)
+make seed-sandbox   # tenant-demo + SENTINEL_V1_SANDBOX only; peers may SKIP until hooked
 ./scripts/run_sandbox_journeys.sh
 ```
 

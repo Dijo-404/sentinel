@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import uuid
 
@@ -38,6 +39,11 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
 
     caps = sub.add_parser("capabilities", help="Print core-assembly.v1 capabilities")
     caps.add_argument("--mode", choices=("fixture", "real-peers"), default="fixture")
+
+    sub.add_parser(
+        "seed-sandbox",
+        help="Seed sandbox peer DBs (tenant-demo + SENTINEL_V1_SANDBOX only)",
+    )
     return parser.parse_args(argv)
 
 
@@ -72,6 +78,14 @@ def main(argv: list[str] | None = None) -> int:
         json.dump(payload, sys.stdout, indent=2, sort_keys=True)
         sys.stdout.write("\n")
         return 0
+
+    if args.command == "seed-sandbox":
+        from sentinel_core_assembly.adapters.seed_sandbox import seed_sandbox
+
+        report = seed_sandbox(dict(os.environ))
+        json.dump(report, sys.stdout, indent=2, sort_keys=True)
+        sys.stdout.write("\n")
+        return 0 if report.get("status") == "PASS" else 1
 
     mode = getattr(args, "mode", "") or config.mode
     if args.command == "check":
