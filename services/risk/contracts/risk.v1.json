@@ -1,0 +1,119 @@
+{
+  "port": "risk.v1",
+  "contract_version": "sentinel.task-contracts.v1",
+  "contract_sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb",
+  "wire_types": ["Investigation", "Finding", "RiskRestriction", "DashboardView"],
+  "investigation_statuses": ["OPEN", "UNDER_REVIEW", "AWAITING_EVIDENCE", "CLOSED"],
+  "finding_classifications": [
+    "LEGITIMATE",
+    "INSUFFICIENT_EVIDENCE",
+    "SUSPICIOUS",
+    "CONFIRMED_FRAUD"
+  ],
+  "restriction_statuses": ["ACTIVE", "CLEARED", "MAINTAINED"],
+  "restriction_decisions": ["CLEAR", "MAINTAIN", "CONFIRM_FRAUD"],
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/v1/capabilities",
+      "response": {
+        "contract_version": "string",
+        "component": "risk",
+        "mode": "fixture|real-peers",
+        "port": "risk.v1",
+        "financial_authority": false
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/v1/risk/dashboard",
+      "response": "DashboardView",
+      "roles": ["risk_officer"]
+    },
+    {
+      "method": "GET",
+      "path": "/v1/risk/investigations",
+      "response": {"investigations": ["Investigation"]},
+      "roles": ["risk_officer"]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/risk/investigations",
+      "request": {
+        "case_id": "string",
+        "reason_code": "string",
+        "queue_ref?": "string",
+        "severity?": "string",
+        "case_revision?": "int",
+        "evidence_ids?": ["string"],
+        "review_due_at?": "string"
+      },
+      "response": "Investigation",
+      "status": 201,
+      "roles": ["risk_officer"],
+      "notes": "Creates ACTIVE restriction with blocks_financial_actions=true"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/risk/investigations/{id}",
+      "response": "Investigation",
+      "roles": ["risk_officer"]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/risk/investigations/{id}/findings",
+      "request": {
+        "classification": "FindingClassification",
+        "evidence_ids": ["string"],
+        "notes?": "string",
+        "expected_revision?": "int"
+      },
+      "response": "Finding",
+      "status": 201,
+      "roles": ["risk_officer"]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/risk/restrictions/{id}/decision",
+      "request": {
+        "decision": "CLEAR|MAINTAIN|CONFIRM_FRAUD",
+        "reason": "string",
+        "evidence_ids?": ["string"],
+        "expected_revision?": "int"
+      },
+      "response": "RiskRestriction",
+      "roles": ["risk_officer"],
+      "notes": "CLEAR never sets financial_approval_granted; emits workflow resume only"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/risk/cases/{case_id}/blocks",
+      "response": {
+        "case_id": "string",
+        "blocks_financial_actions": "bool",
+        "financial_approval_granted": false
+      },
+      "roles": ["risk_officer"]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/ops/actions/{action_id}/decisions",
+      "response": {"code": "LEDGER_APPROVAL_FORBIDDEN"},
+      "status": 403,
+      "notes": "AUTH-21: risk service never approves ledger actions"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/ledger/approvals",
+      "response": {"code": "LEDGER_APPROVAL_FORBIDDEN"},
+      "status": 403,
+      "notes": "AUTH-21 deny surface"
+    }
+  ],
+  "invariants": [
+    "Restriction clearance never grants financial approval or writes ledger state.",
+    "ACTIVE/MAINTAINED restrictions set blocks_financial_actions=true.",
+    "Real-peer mode rejects unavailable, malformed, unauthorized peers with no fixture fallback.",
+    "risk_officer cannot assign roles or approve refunds."
+  ]
+}
