@@ -78,12 +78,14 @@ make seed-sandbox
 # or: SENTINEL_V1_SANDBOX=1 uv run --frozen sentinel-core-assembly seed-sandbox
 ```
 
-Wave 0–1 peers (`merchant-analytics`, `merchant-disputes`, `risk`) run that module’s
-`make seed` when the matching `*_DATABASE_URL` env is set; otherwise `SKIPPED` with
-the manual `make -C services/<peer> seed` hint. Other peers stay `SKIPPED` until
-hooked. Non-`tenant-demo` → `SANDBOX_TENANT_REQUIRED`. Missing sandbox flag →
-`SANDBOX_FLAG_REQUIRED`. After seed + serve, `make verify-wave0-1` /
-`./scripts/verify_wave0_1.sh` asserts HTTP 200 + seeded JSON (fails without seed).
+Wave peers (`merchant-analytics`, `merchant-disputes`, `risk`, `case-api`) run that
+module’s `make seed` when the matching `*_DATABASE_URL` / `SENTINEL_API_DATABASE_URL`
+env is set; otherwise `SKIPPED` with the manual `make -C <peer> seed` hint. Other
+peers stay `SKIPPED` until hooked. Non-`tenant-demo` → `SANDBOX_TENANT_REQUIRED`.
+Missing sandbox flag → `SANDBOX_FLAG_REQUIRED`. After seed + serve,
+`make verify-wave0-1` / `./scripts/verify_wave0_1.sh` asserts HTTP 200 + seeded JSON
+(fails without seed). Case-api seed leaves `case-seed-ops-escalated` (`ESCALATED`)
+and `case-seed-ops-history` (`CLOSED_NO_ACTION`) for ops messages / audit / HISTORY.
 Compose DB names: see [compose/init-databases.sql](../compose/init-databases.sql).
 
 ## Path honesty

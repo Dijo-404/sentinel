@@ -72,9 +72,10 @@ export SENTINEL_V1_SANDBOX=1 CORE_ASSEMBLY_TENANT_ID=tenant-demo
 export MERCHANT_ANALYTICS_DATABASE_URL=…   # see services/merchant-analytics/.env.example
 export DISPUTES_DATABASE_URL=…             # see services/merchant-disputes/.env.example
 export RISK_DATABASE_URL=…                 # see services/risk/.env.example (compose user risk/risk, db risk)
+export SENTINEL_API_DATABASE_URL=…         # see apps/api/.env.example (ops escalations/messages/history/audit)
 ```
 
-3. Seed (orchestrator invokes `make seed` when the three URLs are set; else SKIPPED with the same commands):
+3. Seed (orchestrator invokes `make seed` when peer URLs are set; else SKIPPED with the same commands):
 
 ```sh
 make -C integration/core seed-sandbox
@@ -82,6 +83,7 @@ make -C integration/core seed-sandbox
 # make -C services/merchant-analytics seed
 # make -C services/merchant-disputes seed
 # make -C services/risk seed
+# make -C apps/api seed
 ```
 
 4. Serve peers (loopback defaults): analytics `:8032`, disputes `:8030`, risk `:8013` (`make -C <module> preview`).

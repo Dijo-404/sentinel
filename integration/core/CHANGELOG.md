@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added — 15 November 2026 (case-api ops seed hook)
+
+- `seed_sandbox` invokes `make -C apps/api seed` when `SENTINEL_API_DATABASE_URL`
+  is set (ESCALATED + HISTORY ops surface rows for wave 2).
+
 ### Added — 15 November 2026 (portal wave 0–1 verify)
 
 - `verify_wave0_1` + `scripts/verify_wave0_1.sh` / `make verify-wave0-1` /

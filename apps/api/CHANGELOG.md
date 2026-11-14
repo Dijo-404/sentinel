@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Added — 15 November 2026 (ops surface sandbox seed)
+
+- `make seed` / `sentinel-api seed`: sandbox-only rows for `tenant-demo` —
+  `case-seed-ops-escalated` (`ESCALATED`) and `case-seed-ops-history`
+  (`CLOSED_NO_ACTION`) so ops messages, HISTORY, escalations, and audit-events
+  lists are non-empty after seed. Gate: `SENTINEL_V1_SANDBOX` (or
+  `SENTINEL_API_SANDBOX`) + Postgres `SENTINEL_API_DATABASE_URL`. Hooked from
+  `integration/core` `seed-sandbox` when the DSN is set.
+
 ### Fixed — 15 November 2026 (ops projection isolation + HISTORY coverage)
 
 - HISTORY tests cover both `VERIFIED_RESOLVED` and `CLOSED_NO_ACTION`; cross-tenant ops isolation for messages/audit/HISTORY.
