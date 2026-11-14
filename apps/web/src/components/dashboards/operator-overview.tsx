@@ -30,7 +30,8 @@ type Props = {
 type Kpis = {
   open: number;
   waiting: number;
-  overdue: number;
+  /** null when cases lack due times — never splice fixture overdue into case rows. */
+  overdue: number | null;
   interventions: number;
   source: "cases" | "fixture";
 };
@@ -140,22 +141,17 @@ export function OperatorOverview({
   const { kpis, slices, chartTitle } = useMemo(() => {
     if (cases !== null) {
       const derived = deriveOperatorKpis(cases);
-      const overdueFixture = fixtureKpis().overdue;
-      const slices =
-        cases.length > 0 ? statusHistogram(cases) : fixtureStatusSlices();
       return {
         kpis: {
           open: derived.open,
           waiting: derived.waiting,
           interventions: derived.interventions,
-          overdue: derived.overdue ?? overdueFixture,
+          overdue: derived.overdue,
           source: "cases" as const,
         },
-        slices,
-        chartTitle:
-          cases.length > 0
-            ? "Case status (scoped queue)"
-            : "Case status (simulator)",
+        // Empty list → empty chart; never invent fixtureStatusSlices.
+        slices: statusHistogram(cases),
+        chartTitle: "Case status (scoped queue)",
       };
     }
     const fallback = fixtureKpis();
@@ -165,6 +161,9 @@ export function OperatorOverview({
       chartTitle: "Case status (simulator)",
     };
   }, [cases]);
+
+  const showFixtureBanner =
+    mode === "fixture" || kpis.source === "fixture";
 
   if (loading) {
     return (
@@ -190,7 +189,7 @@ export function OperatorOverview({
         <p className="muted">
           Signed in as {session.user.email} · {session.assignment.label}
         </p>
-        <FixtureBanner />
+        {showFixtureBanner ? <FixtureBanner /> : null}
         {error ? (
           <p className="muted" role="status">
             Peer list unavailable — showing simulator KPIs ({error})
@@ -225,8 +224,14 @@ export function OperatorOverview({
         />
         <StatBlock
           label="Overdue"
-          value={String(kpis.overdue)}
-          caption={SIMULATOR_CAPTION}
+          value={kpis.overdue == null ? "—" : String(kpis.overdue)}
+          caption={
+            kpis.overdue == null
+              ? kpis.source === "cases"
+                ? "No due times"
+                : SIMULATOR_CAPTION
+              : SIMULATOR_CAPTION
+          }
         />
         <StatBlock
           label="Interventions"

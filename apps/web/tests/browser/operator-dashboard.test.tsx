@@ -116,6 +116,47 @@ describe("operator dashboard overview", () => {
     expect(screen.getByText("Open")).toBeInTheDocument();
     expect(screen.queryByTestId("approval-slot")).not.toBeInTheDocument();
   });
+
+  it("real-peers peer failure shows error — no silent fixture fill", async () => {
+    render(
+      <OperatorOverview
+        session={sessionStub}
+        caseClient={createCaseApiStub("unavailable")}
+        mode="real-peers"
+      />,
+    );
+
+    expect(await screen.findByTestId("state-error")).toHaveTextContent(
+      "Overview unavailable",
+    );
+    expect(screen.getByTestId("state-error")).toHaveTextContent("PEER_UNAVAILABLE");
+    expect(screen.queryByTestId("fixture-banner")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("operator-status-chart")).not.toBeInTheDocument();
+    expect(screen.queryByText("Simulator")).not.toBeInTheDocument();
+  });
+
+  it("empty cases keep empty chart and overdue dash — no fixture splice", async () => {
+    const empty = createCaseApiStub("valid");
+    empty.listOpsCases = async () => ({ cases: [] });
+    render(
+      <OperatorOverview
+        session={sessionStub}
+        caseClient={empty}
+        mode="real-peers"
+      />,
+    );
+
+    expect(await screen.findByTestId("operator-dashboard")).toBeInTheDocument();
+    expect(screen.queryByTestId("fixture-banner")).not.toBeInTheDocument();
+    expect(screen.getByText("Case status (scoped queue)")).toBeInTheDocument();
+    expect(screen.queryByText("Case status (simulator)")).not.toBeInTheDocument();
+    const overdue = screen.getByText("Overdue").closest("[data-testid=stat-block]");
+    expect(overdue).toHaveTextContent("—");
+    expect(overdue).toHaveTextContent("No due times");
+    const open = screen.getByText("Open").closest("[data-testid=stat-block]");
+    expect(open).toHaveTextContent("0");
+    expect(open).toHaveTextContent("From scoped cases");
+  });
 });
 
 describe("operator queue wire", () => {

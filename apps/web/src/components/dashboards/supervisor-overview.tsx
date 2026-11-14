@@ -54,8 +54,8 @@ const FIXTURE_PIPELINE: Record<CaseState, number> = {
 
 type Props = {
   session: AuthSession;
-  /** Optional override for tests; defaults to shell case client. */
-  caseClient?: CaseClient;
+  /** Optional override for tests; defaults to shell case client. Explicit null skips shell client. */
+  caseClient?: CaseClient | null;
 };
 
 type LoadState =
@@ -99,7 +99,8 @@ function fixtureReady(): Extract<LoadState, { status: "ready" }> {
 
 export function SupervisorOverview({ session, caseClient: caseClientProp }: Props) {
   const { caseClient: shellClient, config } = useShell();
-  const caseClient = caseClientProp ?? shellClient;
+  const caseClient =
+    caseClientProp === undefined ? shellClient : caseClientProp;
   const [load, setLoad] = useState<LoadState>({ status: "loading" });
   const [chartReady, setChartReady] = useState(false);
 
@@ -112,6 +113,16 @@ export function SupervisorOverview({ session, caseClient: caseClientProp }: Prop
     async function loadData() {
       setLoad({ status: "loading" });
       if (!caseClient) {
+        // Real-peers: never silent-fill fixture when peer client missing.
+        if (config.mode === "real-peers") {
+          if (!cancelled) {
+            setLoad({
+              status: "error",
+              detail: "PEER_UNAVAILABLE: Case client unavailable",
+            });
+          }
+          return;
+        }
         if (!cancelled) setLoad(fixtureReady());
         return;
       }
