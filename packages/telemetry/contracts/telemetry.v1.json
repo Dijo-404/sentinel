@@ -10,13 +10,21 @@
     "sanitize_attributes": "(Mapping) -> Mapping | RedactionError",
     "sanitize_metric_labels": "(Mapping) -> Mapping | RedactionError",
     "SafeTelemetryHooks": "injected span/event/metric hooks; failures do not raise into callers",
-    "produce_correlated_journey": "local synthetic request/approval/worker/provider producers"
+    "produce_correlated_journey": "local synthetic request/approval/worker/provider producers",
+    "emit_session_authenticate": "identity.session.authenticate + identity_login_attempts_total",
+    "emit_staff_invite": "identity.staff.invite + identity_staff_invitations_total",
+    "emit_role_change": "identity.role.assign|revoke + identity_role_changes_total",
+    "emit_session_revoke": "identity.session.revoke + identity_session_revocation_latency_seconds",
+    "emit_authz_denied": "identity_authz_denied_total",
+    "project_admin_observability_health": "gated redacted admin projection; no fake live stats"
   },
   "compatibility": {
     "required_version_mismatch": "configuration-error",
     "unsupported_parameters": "configuration-error",
     "real_peers_without_assembled_collector": "UNVERIFIED",
     "financial_audit": "separate-unsampled; telemetry never replaces or suppresses it",
-    "metric_labels": "bounded allowlist; no case/payment/customer identifiers"
+    "identity_audit": "separate authoritative family in identity.v1; not financial audit; not sampled telemetry",
+    "metric_labels": "bounded allowlist; no case/payment/customer identifiers or PII",
+    "finharness_finbench": "independently gated; not claimed complete by telemetry helpers"
   }
 }

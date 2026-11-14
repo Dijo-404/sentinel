@@ -42,6 +42,12 @@ ALLOWED_METRIC_LABELS = frozenset(
         "error_type",
         "queue",
         "event_kind",
+        # Identity §15.2 — bounded role/result/operation/permission/reason only.
+        "role",
+        "result",
+        "operation",
+        "permission",
+        "reason",
     }
 )
 
