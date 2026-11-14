@@ -1,13 +1,29 @@
 :root {
-  /* Monochrome graphite / white surfaces; blue primary (§13.1) */
-  --bg: #f3f4f6;
+  /* Mercury design tokens */
+  --night: #171721;
+  --night-raised: #1e1e2a;
+  --canvas: #fbfcfd;
   --surface: #ffffff;
-  --ink: #1c1f24;
-  --graphite: #2b3038;
-  --muted: #5c6570;
-  --line: #d0d5db;
-  --accent: #1a56db;
-  --accent-soft: #e8eefb;
+  --lavender: #edecfb;
+  --surface-tint: #fbfbff;
+  --primary: #5266eb;
+  --on-primary: #ffffff;
+  --periwinkle: #9cb4e8;
+  --ink: #28253b;
+  --ink-secondary: #554e7b;
+  --on-dark: #ededf3;
+  --fog: #c3c3cc;
+
+  /* Compat aliases used by existing chrome */
+  --bg: var(--canvas);
+  --graphite: var(--ink);
+  --muted: var(--ink-secondary);
+  --line: var(--fog);
+  --accent: var(--primary);
+  --accent-soft: var(--lavender);
+  --focus: var(--primary);
+
+  /* Domain status chip colors (data viz / chips only) */
   --warn: #9a5b00;
   --warn-soft: #fff1d6;
   --danger: #9b1c1c;
@@ -18,10 +34,11 @@
   --provider: #1a4f8b;
   --credit: #0f6b3a;
   --escalation: #8a1c3c;
-  --focus: #1a56db;
-  --radius: 6px;
-  --font: "IBM Plex Sans", "Segoe UI", sans-serif;
-  --mono: "IBM Plex Mono", "ui-monospace", monospace;
+
+  --radius: 12px;
+  --radius-pill: 32px;
+  --font: var(--font-inter), "Inter", "Segoe UI", sans-serif;
+  --mono: "ui-monospace", "SFMono-Regular", monospace;
 }
 
 * {
