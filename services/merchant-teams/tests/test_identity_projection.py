@@ -121,12 +121,14 @@ def test_local_membership_writes_denied_when_identity_authoritative(store, cases
             staff_id="staff-blocked",
         )
 
-    # Seed via sync (allowed), then deny role mutation.
+    # Seed via sync (allowed), then deny role mutation and deactivate.
     service.sync_memberships(OPERATOR, "merchant-demo-1")
     with pytest.raises(ConflictError, match="projection-only"):
         service.update(OPERATOR, "mm-demo-1", roles=["admin"])
     with pytest.raises(ConflictError, match="projection-only"):
         service.update(OPERATOR, "mm-demo-1", display_name="Renamed")
+    with pytest.raises(ConflictError, match="projection-only"):
+        service.deactivate(OPERATOR, "mm-demo-1")
 
 
 def test_http_sync_and_team_projection(client, auth_headers):
