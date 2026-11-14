@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Added — 15 November 2026 (portal wave 0–1 verify)
+
+- `verify_wave0_1` + `scripts/verify_wave0_1.sh` / `make verify-wave0-1` /
+  `sentinel-core-assembly verify-wave0-1`: HTTP 200 + seeded JSON for analytics
+  metrics, disputes list, risk investigations (fails closed without seed).
+- `seed_sandbox` invokes `make seed` for merchant-analytics / merchant-disputes /
+  risk when `*_DATABASE_URL` is set; otherwise SKIPPED with run-order docs.
+- README curl checklist + Wave 0–1 run order; matrix ports 8030 / 8032.
+
 ### Added — 15 November 2026 (portal wave 0 seed gate)
 
 - `seed_sandbox` adapter + `sentinel-core-assembly seed-sandbox` CLI / `make seed-sandbox`.

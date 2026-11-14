@@ -44,6 +44,13 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
         "seed-sandbox",
         help="Seed sandbox peer DBs (tenant-demo + SENTINEL_V1_SANDBOX only)",
     )
+    sub.add_parser(
+        "verify-wave0-1",
+        help=(
+            "HTTP 200 + seeded JSON from merchant-analytics metrics, "
+            "merchant-disputes list, risk investigations (fails without seed)"
+        ),
+    )
     return parser.parse_args(argv)
 
 
@@ -83,6 +90,14 @@ def main(argv: list[str] | None = None) -> int:
         from sentinel_core_assembly.adapters.seed_sandbox import seed_sandbox
 
         report = seed_sandbox(dict(os.environ))
+        json.dump(report, sys.stdout, indent=2, sort_keys=True)
+        sys.stdout.write("\n")
+        return 0 if report.get("status") == "PASS" else 1
+
+    if args.command == "verify-wave0-1":
+        from sentinel_core_assembly.adapters.verify_wave0_1 import verify_wave0_1
+
+        report = verify_wave0_1(dict(os.environ))
         json.dump(report, sys.stdout, indent=2, sort_keys=True)
         sys.stdout.write("\n")
         return 0 if report.get("status") == "PASS" else 1

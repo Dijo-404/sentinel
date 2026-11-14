@@ -31,6 +31,8 @@ Use this matrix so local `mode=real-peers` services share one tenant, case, port
 | verifier | 8011 |
 | identity (`services/identity`) | 8012 |
 | risk (`services/risk`) | 8013 |
+| merchant-disputes | 8030 |
+| merchant-analytics | 8032 |
 | payment simulator | 8094 |
 | web shell | 3012 |
 
@@ -76,9 +78,13 @@ make seed-sandbox
 # or: SENTINEL_V1_SANDBOX=1 uv run --frozen sentinel-core-assembly seed-sandbox
 ```
 
-Until peer `make seed` hooks register, the report status is `PASS` with per-peer
-`SKIPPED` entries (documented no-ops). Non-`tenant-demo` → `SANDBOX_TENANT_REQUIRED`.
-Missing sandbox flag → `SANDBOX_FLAG_REQUIRED`. Compose DB names: see [compose/init-databases.sql](../compose/init-databases.sql).
+Wave 0–1 peers (`merchant-analytics`, `merchant-disputes`, `risk`) run that module’s
+`make seed` when the matching `*_DATABASE_URL` env is set; otherwise `SKIPPED` with
+the manual `make -C services/<peer> seed` hint. Other peers stay `SKIPPED` until
+hooked. Non-`tenant-demo` → `SANDBOX_TENANT_REQUIRED`. Missing sandbox flag →
+`SANDBOX_FLAG_REQUIRED`. After seed + serve, `make verify-wave0-1` /
+`./scripts/verify_wave0_1.sh` asserts HTTP 200 + seeded JSON (fails without seed).
+Compose DB names: see [compose/init-databases.sql](../compose/init-databases.sql).
 
 ## Path honesty
 
