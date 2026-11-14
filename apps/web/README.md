@@ -93,7 +93,7 @@ Real-peer failures are visible. Never put bearers, identity passwords, or sessio
 | `/risk/queue` · `/holds` · `/transactions` · `/audit` · `/analytics` · `/reports` | Risk lists/KPIs via `/api/bff/risk` (fail closed) |
 | `/admin/dashboard` | Platform Admin |
 | `/admin/users` · `/admin/users/invite` | Staff directory + invite (stub) |
-| `/auth/*` | Shared auth scaffolds (verify, MFA, invitation, …) |
+| `/auth/workspaces` · `/auth/verify` · `/auth/mfa` · `/auth/forgot-password` · `/auth/reset-password` · `/auth/accept-invitation` | Identity auth flows (forgot/reset via IdentityClient server actions; workspaces/verify/MFA need session) |
 | `/unauthorized` | Role mismatch — authorized workspaces only |
 | `/intake` | Legacy customer text intake (requires customer session) |
 | `/cases/[caseId]` | Case timeline (requires customer session) |

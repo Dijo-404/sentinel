@@ -2,12 +2,14 @@
 
 import { redirect } from "next/navigation";
 import type { PortalRole } from "../../../tests/stubs/identity";
+import { PeerError } from "@/domain/types";
 import { getIdentityClient } from "./identity-client";
 import {
   acceptInvitationAccount,
   loginWithCredentials,
   logoutCurrentSession,
   portalPath,
+  readSessionId,
   registerCustomerAccount,
   safePortalRedirect,
   switchActiveAssignment,
@@ -21,6 +23,26 @@ export type ActionResult =
       message: string;
       workspaces?: Array<{ label: string; href: string }>;
     };
+
+/** Challenge / password flows — may flag peerError for UI peer-error region. */
+export type ChallengeActionResult =
+  | { ok: true; message: string; sandbox_code?: string }
+  | { ok: false; message: string; peerError?: boolean };
+
+const FORGOT_GENERIC =
+  "If an account exists for that email, reset instructions were sent.";
+const SESSION_REQUIRED = "Sign in to continue this step.";
+
+function peerFailure(err: unknown, fallback: string): ChallengeActionResult {
+  if (err instanceof PeerError) {
+    return {
+      ok: false,
+      message: err.message || fallback,
+      peerError: true,
+    };
+  }
+  return { ok: false, message: fallback, peerError: true };
+}
 
 export async function loginAction(
   _prev: ActionResult | null,
@@ -153,4 +175,165 @@ export async function switchWorkspaceAction(formData: FormData): Promise<void> {
     redirect("/unauthorized");
   }
   redirect(result.redirectTo);
+}
+
+/**
+ * Unauthenticated password forgot — calls IdentityClient directly.
+ * BFF session proxy 401s without cookie; do not route through it.
+ * Always returns the same generic message (no email enumeration).
+ */
+export async function forgotPasswordAction(
+  _prev: ChallengeActionResult | null,
+  formData: FormData,
+): Promise<ChallengeActionResult> {
+  const email = String(formData.get("email") ?? "").trim();
+  if (!email) {
+    return { ok: false, message: "Email is required." };
+  }
+  try {
+    await getIdentityClient().forgotPassword(email);
+    return { ok: true, message: FORGOT_GENERIC };
+  } catch (err) {
+    return peerFailure(err, "Could not start password reset. Try again later.");
+  }
+}
+
+/**
+ * Unauthenticated password reset — IdentityClient only (no session cookie).
+ */
+export async function resetPasswordAction(
+  _prev: ChallengeActionResult | null,
+  formData: FormData,
+): Promise<ChallengeActionResult> {
+  const email = String(formData.get("email") ?? "").trim();
+  const code = String(formData.get("code") ?? "").trim();
+  const new_password = String(formData.get("new_password") ?? "");
+  if (!email || !code || !new_password) {
+    return {
+      ok: false,
+      message: "Email, reset code, and new password are required.",
+    };
+  }
+  if (new_password.length < 8) {
+    return {
+      ok: false,
+      message: "Password must be at least 8 characters.",
+    };
+  }
+  try {
+    await getIdentityClient().resetPassword({ email, code, new_password });
+    return {
+      ok: true,
+      message: "Password updated. Sign in with your new password.",
+    };
+  } catch (err) {
+    if (err instanceof PeerError && err.httpStatus && err.httpStatus < 500) {
+      return {
+        ok: false,
+        message:
+          err.code === "INVALID_INPUT"
+            ? "Password must be at least 8 characters."
+            : "Invalid or expired reset code.",
+      };
+    }
+    return peerFailure(err, "Could not reset password. Try again later.");
+  }
+}
+
+export async function requestVerifyAction(
+  _prev: ChallengeActionResult | null,
+  _formData: FormData,
+): Promise<ChallengeActionResult> {
+  const sessionId = await readSessionId();
+  if (!sessionId) {
+    return { ok: false, message: SESSION_REQUIRED };
+  }
+  try {
+    const result = await getIdentityClient().requestVerify(sessionId);
+    return {
+      ok: true,
+      message: "Verification code sent.",
+      sandbox_code: result.sandbox_code,
+    };
+  } catch (err) {
+    return peerFailure(err, "Could not request verification.");
+  }
+}
+
+export async function confirmVerifyAction(
+  _prev: ChallengeActionResult | null,
+  formData: FormData,
+): Promise<ChallengeActionResult> {
+  const sessionId = await readSessionId();
+  if (!sessionId) {
+    return { ok: false, message: SESSION_REQUIRED };
+  }
+  const code = String(formData.get("code") ?? "").trim();
+  if (!code) {
+    return { ok: false, message: "Verification code is required." };
+  }
+  try {
+    await getIdentityClient().confirmVerify(sessionId, code);
+    return { ok: true, message: "Email verified." };
+  } catch (err) {
+    if (err instanceof PeerError && err.httpStatus && err.httpStatus < 500) {
+      return {
+        ok: false,
+        message:
+          err.code === "UNAUTHORIZED"
+            ? SESSION_REQUIRED
+            : "Invalid or expired verification code.",
+      };
+    }
+    return peerFailure(err, "Could not confirm verification.");
+  }
+}
+
+export async function mfaChallengeAction(
+  _prev: ChallengeActionResult | null,
+  _formData: FormData,
+): Promise<ChallengeActionResult> {
+  const sessionId = await readSessionId();
+  if (!sessionId) {
+    return { ok: false, message: SESSION_REQUIRED };
+  }
+  try {
+    const result = await getIdentityClient().mfaChallenge(sessionId);
+    return {
+      ok: true,
+      message: "MFA challenge issued.",
+      sandbox_code: result.sandbox_code,
+    };
+  } catch (err) {
+    return peerFailure(err, "Could not start MFA challenge.");
+  }
+}
+
+export async function mfaVerifyAction(
+  _prev: ChallengeActionResult | null,
+  formData: FormData,
+): Promise<ChallengeActionResult> {
+  const sessionId = await readSessionId();
+  if (!sessionId) {
+    return { ok: false, message: SESSION_REQUIRED };
+  }
+  const code = String(formData.get("code") ?? "").trim();
+  if (!code) {
+    return { ok: false, message: "MFA code is required." };
+  }
+  try {
+    await getIdentityClient().mfaVerify(sessionId, code);
+    return { ok: true, message: "MFA verified." };
+  } catch (err) {
+    if (err instanceof PeerError && err.httpStatus && err.httpStatus < 500) {
+      return {
+        ok: false,
+        message:
+          err.code === "UNAUTHORIZED"
+            ? SESSION_REQUIRED
+            : "Invalid or expired MFA code.",
+      };
+    }
+    return peerFailure(err, "Could not verify MFA.");
+  }
 }

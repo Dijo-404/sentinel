@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Added — 15 November 2026 (auth verify / MFA / reset / workspaces pages)
+
+- Replaced `/auth/workspaces`, `/auth/verify`, `/auth/mfa`,
+  `/auth/forgot-password`, `/auth/reset-password` placeholders with identity
+  flows. Client panels under `components/auth/`; no “Fixture placeholder”.
+- Forgot/reset use server actions → `getIdentityClient()` (not BFF session
+  proxy — unauthenticated requests would 401 without a cookie).
+- Workspaces list via `listWorkspaces` + `switchWorkspaceAction` cookie update;
+  verify/MFA use session + IdentityClient. Peer failure → `peer-error`.
+- Browser tests: `tests/browser/auth-challenge-pages.test.tsx`.
+
 ### Added — 15 November 2026 (identity client auth surface)
 
 - `IdentityClient` auth extensions (real-peer + fixture stub): `getMe`,
