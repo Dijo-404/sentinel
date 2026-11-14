@@ -317,6 +317,12 @@ button:disabled {
   background: #f7f7f7;
 }
 
+.state-banner[data-tone="warning"] {
+  background: #fff8e6;
+  border-color: #e6c96a;
+  color: #6b5a12;
+}
+
 .timeline {
   list-style: none;
   margin: 0;

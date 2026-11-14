@@ -44,7 +44,8 @@ export function NotificationsPanel({ notifications, error }: Props) {
 
   const loadPeerError = Boolean(error);
   const actionPeerError = Boolean(state && !state.ok && state.peerError);
-  const peerError = loadPeerError || actionPeerError;
+  const softError =
+    state && !state.ok && !state.peerError ? state.message : null;
   const peerMessage = loadPeerError
     ? error!.message
     : state && !state.ok && state.peerError
@@ -88,6 +89,17 @@ export function NotificationsPanel({ notifications, error }: Props) {
           <p className="muted" style={{ margin: "0.35rem 0 0" }}>
             {peerMessage}
           </p>
+        </div>
+      ) : null}
+
+      {softError ? (
+        <div
+          className="state-banner"
+          data-tone="warning"
+          data-testid="notification-error"
+          role="alert"
+        >
+          <p>{softError}</p>
         </div>
       ) : null}
 

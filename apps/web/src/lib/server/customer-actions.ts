@@ -1,12 +1,15 @@
 "use server";
 
-import type { IdentityUser } from "../../../tests/stubs/identity";
+import {
+  toPublicProfileUser,
+  type PublicProfileUser,
+} from "@/lib/identity-public";
 import { PeerError } from "@/domain/types";
 import { readSessionId } from "./auth";
 import { getIdentityClient } from "./identity-client";
 
 export type ProfileActionResult =
-  | { ok: true; message: string; user: IdentityUser }
+  | { ok: true; message: string; user: PublicProfileUser }
   | { ok: false; message: string; peerError?: boolean };
 
 export type MarkReadActionResult =
@@ -53,7 +56,7 @@ export async function patchProfileAction(
     return {
       ok: true,
       message: "Profile updated.",
-      user: result.user,
+      user: toPublicProfileUser(result.user),
     };
   } catch (err) {
     if (err instanceof PeerError && err.httpStatus && err.httpStatus < 500) {

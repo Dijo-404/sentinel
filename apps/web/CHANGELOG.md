@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Fixed — 15 November 2026 (strip profile password from client props)
+
+- Page boundary and `patchProfileAction` return `PublicProfileUser` via
+  `toPublicProfileUser` — never ship fixture `password` to `ProfilePanel`.
+- Mark-read soft failures use yellow `data-tone="warning"` banner
+  (`notification-error`); list stays mounted.
+
 ### Added — 15 November 2026 (customer profile + notifications)
 
 - Replaced customer Profile and Notifications stubs with identity-backed

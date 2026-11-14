@@ -1,14 +1,17 @@
 "use client";
 
-import { useActionState } from "react";
-import type { IdentityUser } from "../../../tests/stubs/identity";
+import { useActionState, useMemo } from "react";
+import {
+  toPublicProfileUser,
+  type PublicProfileUser,
+} from "@/lib/identity-public";
 import {
   patchProfileAction,
   type ProfileActionResult,
 } from "@/lib/server/customer-actions";
 
 type Props = {
-  user?: IdentityUser | null;
+  user?: PublicProfileUser | null;
   error?: { code: string; message: string } | null;
 };
 
@@ -17,6 +20,7 @@ const initial: ProfileActionResult | null = null;
 /**
  * Customer Profile: identity GET/PATCH /v1/auth/me.
  * Real-peer failure stays visible — never “Not available yet”.
+ * Accepts public profile fields only (no password).
  */
 export function ProfilePanel({ user, error }: Props) {
   const [state, action, pending] = useActionState(patchProfileAction, initial);
@@ -32,8 +36,12 @@ export function ProfilePanel({ user, error }: Props) {
   const softError =
     state && !state.ok && !state.peerError ? state.message : null;
   const success = Boolean(state && state.ok);
-  const displayUser =
-    state && state.ok ? state.user : user && !loadPeerError ? user : null;
+
+  const displayUser = useMemo((): PublicProfileUser | null => {
+    if (state && state.ok) return toPublicProfileUser(state.user);
+    if (user && !loadPeerError) return toPublicProfileUser(user);
+    return null;
+  }, [state, user, loadPeerError]);
 
   return (
     <div className="panel stack" data-testid="customer-profile">
@@ -70,7 +78,11 @@ export function ProfilePanel({ user, error }: Props) {
             </div>
           ) : null}
 
-          <form action={action} className="stack" data-testid="customer-profile-data">
+          <form
+            action={action}
+            className="stack"
+            data-testid="customer-profile-data"
+          >
             <div>
               <p className="muted" style={{ margin: 0 }}>
                 Email
