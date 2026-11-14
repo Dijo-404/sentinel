@@ -1,7 +1,10 @@
 import {
   getSharedIdentityStub,
+  type ChallengeAccepted,
+  type IdentityNotification,
   type InviteResult,
   type LoginResult,
+  type PatchProfileInput,
   type RegisterResult,
   type SessionRecord,
   type StubIdentity,
@@ -24,6 +27,12 @@ export type InviteStaffInput = {
   idempotency_key?: string;
 };
 
+export type MeResult = {
+  session: SessionRecord;
+  user: IdentityUser;
+  assignment: WorkspaceAssignment;
+};
+
 /**
  * Async identity port used by the web BFF.
  * Fixture wraps the local stub; real-peers calls identity.v1 over HTTP.
@@ -39,11 +48,45 @@ export type IdentityClient = {
     tenant_id?: unknown;
     subject_refs?: unknown;
   }): Promise<RegisterResult>;
-  resolveSession(sessionCredential: string): Promise<{
-    session: SessionRecord;
-    user: IdentityUser;
-    assignment: WorkspaceAssignment;
-  } | null>;
+  resolveSession(sessionCredential: string): Promise<MeResult | null>;
+  /** GET /v1/auth/me — same session binding as resolveSession. */
+  getMe(sessionCredential: string): Promise<MeResult | null>;
+  patchProfile(
+    sessionCredential: string,
+    input: PatchProfileInput,
+  ): Promise<{ user: IdentityUser }>;
+  listNotifications(
+    sessionCredential: string,
+  ): Promise<{ notifications: IdentityNotification[] }>;
+  markNotificationRead(
+    sessionCredential: string,
+    notificationId: string,
+  ): Promise<{ notification_id: string; read_at: string }>;
+  requestVerify(sessionCredential: string): Promise<ChallengeAccepted>;
+  confirmVerify(
+    sessionCredential: string,
+    code: string,
+  ): Promise<{ user: IdentityUser; email_verified: true }>;
+  mfaChallenge(sessionCredential: string): Promise<ChallengeAccepted>;
+  mfaVerify(
+    sessionCredential: string,
+    code: string,
+  ): Promise<{ mfa_verified: true; mfa_verified_at: string }>;
+  forgotPassword(email: string): Promise<ChallengeAccepted>;
+  resetPassword(input: {
+    email: string;
+    code: string;
+    new_password: string;
+  }): Promise<{ status: "reset" }>;
+  listWorkspaces(sessionCredential: string): Promise<{
+    workspaces: WorkspaceAssignment[];
+    active_assignment: WorkspaceAssignment | null;
+  }>;
+  /** POST /v1/auth/workspaces/select — alias of selectAssignment. */
+  selectWorkspace(
+    sessionCredential: string,
+    assignmentId: string,
+  ): Promise<SessionRecord | null>;
   selectAssignment(
     sessionCredential: string,
     assignmentId: string,
@@ -100,6 +143,126 @@ function wrapFixtureStub(stub: StubIdentity): IdentityClient {
     login: async (email, password) => stub.login(email, password),
     registerCustomer: async (input) => stub.registerCustomer(input),
     resolveSession: async (sessionId) => stub.resolveSession(sessionId),
+    getMe: async (sessionId) => stub.getMe(sessionId),
+    patchProfile: async (sessionId, input) => {
+      const result = stub.patchProfile(sessionId, input);
+      if (!result.ok) {
+        throw new PeerError(
+          result.code,
+          result.message,
+          "fixture-patch-profile",
+          result.code === "UNAUTHORIZED" ? 401 : 422,
+        );
+      }
+      return { user: result.user };
+    },
+    listNotifications: async (sessionId) => {
+      const result = stub.listNotifications(sessionId);
+      if (!result) {
+        throw new PeerError(
+          "UNAUTHORIZED",
+          "Session required",
+          "fixture-notifications",
+          401,
+        );
+      }
+      return result;
+    },
+    markNotificationRead: async (sessionId, notificationId) => {
+      const result = stub.markNotificationRead(sessionId, notificationId);
+      if (!result.ok) {
+        throw new PeerError(
+          result.code,
+          result.code === "NOT_FOUND"
+            ? "Notification not found"
+            : "Session required",
+          "fixture-notification-read",
+          result.code === "NOT_FOUND" ? 404 : 401,
+        );
+      }
+      return {
+        notification_id: result.notification_id,
+        read_at: result.read_at,
+      };
+    },
+    requestVerify: async (sessionId) => {
+      const result = stub.requestVerify(sessionId);
+      if (!result) {
+        throw new PeerError(
+          "UNAUTHORIZED",
+          "Session required",
+          "fixture-verify-request",
+          401,
+        );
+      }
+      return result;
+    },
+    confirmVerify: async (sessionId, code) => {
+      const result = stub.confirmVerify(sessionId, code);
+      if (!result.ok) {
+        throw new PeerError(
+          result.code,
+          result.message,
+          "fixture-verify-confirm",
+          result.code === "UNAUTHORIZED" ? 401 : 400,
+        );
+      }
+      return { user: result.user, email_verified: true };
+    },
+    mfaChallenge: async (sessionId) => {
+      const result = stub.mfaChallenge(sessionId);
+      if (!result) {
+        throw new PeerError(
+          "UNAUTHORIZED",
+          "Session required",
+          "fixture-mfa-challenge",
+          401,
+        );
+      }
+      return result;
+    },
+    mfaVerify: async (sessionId, code) => {
+      const result = stub.mfaVerify(sessionId, code);
+      if (!result.ok) {
+        throw new PeerError(
+          result.code,
+          result.message,
+          "fixture-mfa-verify",
+          result.code === "UNAUTHORIZED" ? 401 : 400,
+        );
+      }
+      return {
+        mfa_verified: true,
+        mfa_verified_at: result.mfa_verified_at,
+      };
+    },
+    forgotPassword: async (email) => stub.forgotPassword(email),
+    resetPassword: async (input) => {
+      const result = stub.resetPassword(input);
+      if (!result.ok) {
+        throw new PeerError(
+          result.code,
+          result.message,
+          "fixture-password-reset",
+          result.code === "INVALID_INPUT" ? 422 : 400,
+        );
+      }
+      return { status: "reset" };
+    },
+    listWorkspaces: async (sessionId) => {
+      const result = stub.listWorkspaces(sessionId);
+      if (!result) {
+        throw new PeerError(
+          "UNAUTHORIZED",
+          "Session required",
+          "fixture-workspaces",
+          401,
+        );
+      }
+      return result;
+    },
+    selectWorkspace: async (sessionId, assignmentId) =>
+      stub.selectAssignment(sessionId, assignmentId),
     selectAssignment: async (sessionId, assignmentId) =>
       stub.selectAssignment(sessionId, assignmentId),
     logout: async (sessionId) => {

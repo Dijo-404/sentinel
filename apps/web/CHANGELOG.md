@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+### Added — 15 November 2026 (identity client auth surface)
+
+- `IdentityClient` auth extensions (real-peer + fixture stub): `getMe`,
+  `patchProfile`, `listNotifications`, `markNotificationRead`,
+  `requestVerify`, `confirmVerify`, `mfaChallenge`, `mfaVerify`,
+  `forgotPassword`, `resetPassword`, `listWorkspaces`, `selectWorkspace`
+  (reuses workspace select / `selectAssignment`).
+- Profile fields on mapped users: `preferred_language`, `email_verified_at`.
+- Fixture seeds ≥1 customer notification; sandbox challenge codes stay
+  fixture/local only.
+- BFF `/api/bff/identity` confirmed passthrough for PATCH/GET/POST (Wave 2
+  proxy already exported all methods).
+- Tests: `tests/identity.test.ts`, `tests/bff-identity-route.test.ts`.
+
 ### Added — 15 November 2026 (supervisor Team from identity)
 
 - Supervisor Team page loads ops roster via BFF `/api/bff/identity` →

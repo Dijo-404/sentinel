@@ -1,7 +1,10 @@
 import {
+  type ChallengeAccepted,
+  type IdentityNotification,
   type IdentityUser,
   type Invitation,
   type LoginResult,
+  type PatchProfileInput,
   type PortalRole,
   type RegisterResult,
   type SessionRecord,
@@ -12,6 +15,7 @@ import {
 import type {
   IdentityClient,
   InviteStaffInput,
+  MeResult,
 } from "@/lib/server/identity-client";
 import {
   identityRoleToPortal,
@@ -118,6 +122,87 @@ export function createRealPeerIdentityClient(
     return { status: response.status, json, requestId };
   }
 
+  async function loadMe(sessionToken: string): Promise<MeResult | null> {
+    try {
+      const { json, requestId } = await request("GET", "/v1/auth/me", {
+        bearer: sessionToken,
+        okStatuses: [200],
+      });
+      return mapMe(json, sessionToken, requestId);
+    } catch (err) {
+      if (
+        err instanceof PeerError &&
+        (err.httpStatus === 401 ||
+          err.code === "UNAUTHORIZED" ||
+          err.httpStatus === 403 ||
+          err.code === "FORBIDDEN")
+      ) {
+        return null;
+      }
+      throw err;
+    }
+  }
+
+  async function selectWorkspaceAssignment(
+    sessionToken: string,
+    assignmentId: string,
+  ): Promise<SessionRecord | null> {
+    try {
+      const { json, requestId } = await request(
+        "POST",
+        "/v1/auth/workspaces/select",
+        {
+          bearer: sessionToken,
+          body: { assignment_id: assignmentId },
+          okStatuses: [200],
+        },
+      );
+      if (!json || typeof json !== "object") {
+        throw new PeerError(
+          "MALFORMED_PEER_RESPONSE",
+          "Workspace select response is not an object",
+          requestId,
+        );
+      }
+      const body = json as Record<string, unknown>;
+      const token =
+        typeof body.session_token === "string" ? body.session_token : null;
+      const expiresAt =
+        typeof body.expires_at === "string" ? body.expires_at : null;
+      const active = body.active_assignment;
+      if (!token || !expiresAt || !active || typeof active !== "object") {
+        throw new PeerError(
+          "MALFORMED_PEER_RESPONSE",
+          "Workspace select missing session_token or assignment",
+          requestId,
+        );
+      }
+      const assignment = mapWorkspace(
+        active as Record<string, unknown>,
+        requestId,
+      );
+      return {
+        session_id: token,
+        user_id: "",
+        active_assignment_id: assignment.assignment_id,
+        issued_at: new Date().toISOString(),
+        expires_at: expiresAt,
+        revoked: false,
+      } satisfies SessionRecord;
+    } catch (err) {
+      if (
+        err instanceof PeerError &&
+        (err.httpStatus === 401 ||
+          err.code === "UNAUTHORIZED" ||
+          err.httpStatus === 403 ||
+          err.code === "FORBIDDEN")
+      ) {
+        return null;
+      }
+      throw err;
+    }
+  }
+
   return {
     async login(email, password): Promise<LoginResult> {
       try {
@@ -189,81 +274,250 @@ export function createRealPeerIdentityClient(
     },
 
     async resolveSession(sessionToken) {
-      try {
-        const { json, requestId } = await request("GET", "/v1/auth/me", {
+      return loadMe(sessionToken);
+    },
+
+    async getMe(sessionToken): Promise<MeResult | null> {
+      return loadMe(sessionToken);
+    },
+
+    async patchProfile(sessionToken, input: PatchProfileInput) {
+      const { json, requestId } = await request("PATCH", "/v1/auth/me", {
+        bearer: sessionToken,
+        body: input,
+        okStatuses: [200],
+      });
+      if (!json || typeof json !== "object") {
+        throw new PeerError(
+          "MALFORMED_PEER_RESPONSE",
+          "Patch profile response is not an object",
+          requestId,
+        );
+      }
+      const userRaw = (json as { user?: unknown }).user;
+      return { user: mapPublicUser(userRaw, requestId) };
+    },
+
+    async listNotifications(sessionToken) {
+      const { json, requestId } = await request(
+        "GET",
+        "/v1/auth/notifications",
+        {
           bearer: sessionToken,
           okStatuses: [200],
-        });
-        return mapMe(json, sessionToken, requestId);
-      } catch (err) {
-        if (
-          err instanceof PeerError &&
-          (err.httpStatus === 401 ||
-            err.code === "UNAUTHORIZED" ||
-            err.httpStatus === 403 ||
-            err.code === "FORBIDDEN")
-        ) {
-          return null;
-        }
-        throw err;
+        },
+      );
+      if (!json || typeof json !== "object") {
+        throw new PeerError(
+          "MALFORMED_PEER_RESPONSE",
+          "Notifications response is not an object",
+          requestId,
+        );
       }
+      const rows = (json as { notifications?: unknown }).notifications;
+      if (!Array.isArray(rows)) {
+        throw new PeerError(
+          "MALFORMED_PEER_RESPONSE",
+          "Notifications missing notifications array",
+          requestId,
+        );
+      }
+      return {
+        notifications: rows.map((row) =>
+          mapNotification(row, requestId),
+        ),
+      };
+    },
+
+    async markNotificationRead(sessionToken, notificationId) {
+      const { json, requestId } = await request(
+        "POST",
+        `/v1/auth/notifications/${encodeURIComponent(notificationId)}/read`,
+        {
+          bearer: sessionToken,
+          okStatuses: [200],
+        },
+      );
+      if (!json || typeof json !== "object") {
+        throw new PeerError(
+          "MALFORMED_PEER_RESPONSE",
+          "Mark-read response is not an object",
+          requestId,
+        );
+      }
+      const body = json as Record<string, unknown>;
+      if (
+        typeof body.notification_id !== "string" ||
+        typeof body.read_at !== "string"
+      ) {
+        throw new PeerError(
+          "MALFORMED_PEER_RESPONSE",
+          "Mark-read missing notification_id or read_at",
+          requestId,
+        );
+      }
+      return {
+        notification_id: body.notification_id,
+        read_at: body.read_at,
+      };
+    },
+
+    async requestVerify(sessionToken) {
+      const { json, requestId } = await request(
+        "POST",
+        "/v1/auth/verify/request",
+        {
+          bearer: sessionToken,
+          body: {},
+          okStatuses: [202],
+        },
+      );
+      return mapChallengeAccepted(json, requestId);
+    },
+
+    async confirmVerify(sessionToken, code) {
+      const { json, requestId } = await request(
+        "POST",
+        "/v1/auth/verify/confirm",
+        {
+          bearer: sessionToken,
+          body: { code },
+          okStatuses: [200],
+        },
+      );
+      if (!json || typeof json !== "object") {
+        throw new PeerError(
+          "MALFORMED_PEER_RESPONSE",
+          "Verify confirm response is not an object",
+          requestId,
+        );
+      }
+      const body = json as Record<string, unknown>;
+      if (body.email_verified !== true) {
+        throw new PeerError(
+          "MALFORMED_PEER_RESPONSE",
+          "Verify confirm missing email_verified",
+          requestId,
+        );
+      }
+      return {
+        user: mapPublicUser(body.user, requestId),
+        email_verified: true as const,
+      };
+    },
+
+    async mfaChallenge(sessionToken) {
+      const { json, requestId } = await request(
+        "POST",
+        "/v1/auth/mfa/challenge",
+        {
+          bearer: sessionToken,
+          okStatuses: [202],
+        },
+      );
+      return mapChallengeAccepted(json, requestId);
+    },
+
+    async mfaVerify(sessionToken, code) {
+      const { json, requestId } = await request("POST", "/v1/auth/mfa/verify", {
+        bearer: sessionToken,
+        body: { code },
+        okStatuses: [200],
+      });
+      if (!json || typeof json !== "object") {
+        throw new PeerError(
+          "MALFORMED_PEER_RESPONSE",
+          "MFA verify response is not an object",
+          requestId,
+        );
+      }
+      const body = json as Record<string, unknown>;
+      if (
+        body.mfa_verified !== true ||
+        typeof body.mfa_verified_at !== "string"
+      ) {
+        throw new PeerError(
+          "MALFORMED_PEER_RESPONSE",
+          "MFA verify missing mfa_verified fields",
+          requestId,
+        );
+      }
+      return {
+        mfa_verified: true as const,
+        mfa_verified_at: body.mfa_verified_at,
+      };
+    },
+
+    async forgotPassword(email) {
+      const { json, requestId } = await request(
+        "POST",
+        "/v1/auth/password/forgot",
+        {
+          body: { email },
+          okStatuses: [202],
+        },
+      );
+      return mapChallengeAccepted(json, requestId);
+    },
+
+    async resetPassword(input) {
+      const { json, requestId } = await request(
+        "POST",
+        "/v1/auth/password/reset",
+        {
+          body: {
+            email: input.email,
+            code: input.code,
+            new_password: input.new_password,
+          },
+          okStatuses: [200],
+        },
+      );
+      if (!json || typeof json !== "object") {
+        throw new PeerError(
+          "MALFORMED_PEER_RESPONSE",
+          "Password reset response is not an object",
+          requestId,
+        );
+      }
+      if ((json as { status?: unknown }).status !== "reset") {
+        throw new PeerError(
+          "MALFORMED_PEER_RESPONSE",
+          "Password reset missing status=reset",
+          requestId,
+        );
+      }
+      return { status: "reset" as const };
+    },
+
+    async listWorkspaces(sessionToken) {
+      const { json, requestId } = await request("GET", "/v1/auth/workspaces", {
+        bearer: sessionToken,
+        okStatuses: [200],
+      });
+      if (!json || typeof json !== "object") {
+        throw new PeerError(
+          "MALFORMED_PEER_RESPONSE",
+          "Workspaces response is not an object",
+          requestId,
+        );
+      }
+      const body = json as Record<string, unknown>;
+      const workspaces = mapWorkspaceList(body.workspaces, requestId);
+      const activeRaw = body.active_assignment;
+      const active_assignment =
+        activeRaw && typeof activeRaw === "object"
+          ? mapWorkspace(activeRaw as Record<string, unknown>, requestId)
+          : null;
+      return { workspaces, active_assignment };
+    },
+
+    async selectWorkspace(sessionToken, assignmentId) {
+      return selectWorkspaceAssignment(sessionToken, assignmentId);
     },
 
     async selectAssignment(sessionToken, assignmentId) {
-      try {
-        const { json, requestId } = await request(
-          "POST",
-          "/v1/auth/workspaces/select",
-          {
-            bearer: sessionToken,
-            body: { assignment_id: assignmentId },
-            okStatuses: [200],
-          },
-        );
-        if (!json || typeof json !== "object") {
-          throw new PeerError(
-            "MALFORMED_PEER_RESPONSE",
-            "Workspace select response is not an object",
-            requestId,
-          );
-        }
-        const body = json as Record<string, unknown>;
-        const token =
-          typeof body.session_token === "string" ? body.session_token : null;
-        const expiresAt =
-          typeof body.expires_at === "string" ? body.expires_at : null;
-        const active = body.active_assignment;
-        if (!token || !expiresAt || !active || typeof active !== "object") {
-          throw new PeerError(
-            "MALFORMED_PEER_RESPONSE",
-            "Workspace select missing session_token or assignment",
-            requestId,
-          );
-        }
-        const assignment = mapWorkspace(
-          active as Record<string, unknown>,
-          requestId,
-        );
-        return {
-          session_id: token,
-          user_id: "",
-          active_assignment_id: assignment.assignment_id,
-          issued_at: new Date().toISOString(),
-          expires_at: expiresAt,
-          revoked: false,
-        } satisfies SessionRecord;
-      } catch (err) {
-        if (
-          err instanceof PeerError &&
-          (err.httpStatus === 401 ||
-            err.code === "UNAUTHORIZED" ||
-            err.httpStatus === 403 ||
-            err.code === "FORBIDDEN")
-        ) {
-          return null;
-        }
-        throw err;
-      }
+      return selectWorkspaceAssignment(sessionToken, assignmentId);
     },
 
     async logout(sessionToken) {
@@ -708,11 +962,74 @@ function mapPublicUser(raw: unknown, requestId: string): IdentityUser {
     user_id: u.user_id,
     email: u.email,
     display_name: typeof u.display_name === "string" ? u.display_name : "",
+    preferred_language:
+      typeof u.preferred_language === "string" ? u.preferred_language : "",
+    email_verified_at:
+      typeof u.email_verified_at === "string" ? u.email_verified_at : null,
     password: "",
     account_status,
     account_class,
     assignments: [],
   };
+}
+
+function mapNotification(
+  raw: unknown,
+  requestId: string,
+): IdentityNotification {
+  if (!raw || typeof raw !== "object") {
+    throw new PeerError(
+      "MALFORMED_PEER_RESPONSE",
+      "Notification payload missing",
+      requestId,
+    );
+  }
+  const n = raw as Record<string, unknown>;
+  if (
+    typeof n.notification_id !== "string" ||
+    typeof n.title !== "string" ||
+    typeof n.body !== "string" ||
+    typeof n.created_at !== "string"
+  ) {
+    throw new PeerError(
+      "MALFORMED_PEER_RESPONSE",
+      "Notification missing required fields",
+      requestId,
+    );
+  }
+  return {
+    notification_id: n.notification_id,
+    title: n.title,
+    body: n.body,
+    created_at: n.created_at,
+    read_at: typeof n.read_at === "string" ? n.read_at : null,
+  };
+}
+
+function mapChallengeAccepted(
+  json: unknown,
+  requestId: string,
+): ChallengeAccepted {
+  if (!json || typeof json !== "object") {
+    throw new PeerError(
+      "MALFORMED_PEER_RESPONSE",
+      "Challenge response is not an object",
+      requestId,
+    );
+  }
+  const body = json as Record<string, unknown>;
+  if (body.status !== "accepted") {
+    throw new PeerError(
+      "MALFORMED_PEER_RESPONSE",
+      "Challenge response missing status=accepted",
+      requestId,
+    );
+  }
+  const result: ChallengeAccepted = { status: "accepted" };
+  if (typeof body.sandbox_code === "string") {
+    result.sandbox_code = body.sandbox_code;
+  }
+  return result;
 }
 
 function mapStaffUser(raw: unknown, requestId: string): IdentityUser {

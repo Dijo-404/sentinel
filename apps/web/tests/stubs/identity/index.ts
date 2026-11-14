@@ -23,11 +23,32 @@ export type IdentityUser = {
   user_id: string;
   email: string;
   display_name: string;
+  /** Present on me/profile responses; optional on older fixtures. */
+  preferred_language?: string;
+  email_verified_at?: string | null;
   /** Fixture-only plaintext credential. */
   password: string;
   account_status: "ACTIVE" | "PENDING" | "SUSPENDED";
   account_class: "customer" | "staff";
   assignments: WorkspaceAssignment[];
+};
+
+export type IdentityNotification = {
+  notification_id: string;
+  title: string;
+  body: string;
+  created_at: string;
+  read_at: string | null;
+};
+
+export type ChallengeAccepted = {
+  status: "accepted";
+  sandbox_code?: string;
+};
+
+export type PatchProfileInput = {
+  display_name?: string;
+  preferred_language?: string;
 };
 
 export type SessionRecord = {
@@ -129,6 +150,52 @@ export type StubIdentity = {
     role_id: Exclude<PortalRole, "customer">;
     label: string;
   }>;
+  getMe(sessionId: string): {
+    session: SessionRecord;
+    user: IdentityUser;
+    assignment: WorkspaceAssignment;
+  } | null;
+  patchProfile(
+    sessionId: string,
+    input: PatchProfileInput,
+  ):
+    | { ok: true; user: IdentityUser }
+    | { ok: false; code: string; message: string };
+  listNotifications(sessionId: string): {
+    notifications: IdentityNotification[];
+  } | null;
+  markNotificationRead(
+    sessionId: string,
+    notificationId: string,
+  ):
+    | { ok: true; notification_id: string; read_at: string }
+    | { ok: false; code: "NOT_FOUND" | "UNAUTHORIZED" };
+  listWorkspaces(sessionId: string): {
+    workspaces: WorkspaceAssignment[];
+    active_assignment: WorkspaceAssignment | null;
+  } | null;
+  requestVerify(sessionId: string): ChallengeAccepted | null;
+  confirmVerify(
+    sessionId: string,
+    code: string,
+  ):
+    | { ok: true; user: IdentityUser; email_verified: true }
+    | { ok: false; code: string; message: string };
+  mfaChallenge(sessionId: string): (ChallengeAccepted & { sandbox_code: string }) | null;
+  mfaVerify(
+    sessionId: string,
+    code: string,
+  ):
+    | { ok: true; mfa_verified: true; mfa_verified_at: string }
+    | { ok: false; code: string; message: string };
+  forgotPassword(email: string): ChallengeAccepted;
+  resetPassword(input: {
+    email: string;
+    code: string;
+    new_password: string;
+  }):
+    | { ok: true; status: "reset" }
+    | { ok: false; code: string; message: string };
   reset(): void;
 };
 
@@ -150,6 +217,10 @@ const ROLE_LABELS: Record<PortalRole, string> = {
 };
 
 function seedUsers(): IdentityUser[] {
+  const profile = {
+    preferred_language: "en",
+    email_verified_at: null as string | null,
+  };
   return [
     {
       user_id: "user-customer-1",
@@ -158,6 +229,7 @@ function seedUsers(): IdentityUser[] {
       password: "demo-customer",
       account_status: "ACTIVE",
       account_class: "customer",
+      ...profile,
       assignments: [
         {
           assignment_id: "asg-customer-1",
@@ -174,6 +246,7 @@ function seedUsers(): IdentityUser[] {
       password: "demo-merchant",
       account_status: "ACTIVE",
       account_class: "staff",
+      ...profile,
       assignments: [
         {
           assignment_id: "asg-merchant-1",
@@ -191,6 +264,7 @@ function seedUsers(): IdentityUser[] {
       password: "demo-operator",
       account_status: "ACTIVE",
       account_class: "staff",
+      ...profile,
       assignments: [
         {
           assignment_id: "asg-operator-1",
@@ -208,6 +282,7 @@ function seedUsers(): IdentityUser[] {
       password: "demo-supervisor",
       account_status: "ACTIVE",
       account_class: "staff",
+      ...profile,
       assignments: [
         {
           assignment_id: "asg-supervisor-1",
@@ -224,12 +299,13 @@ function seedUsers(): IdentityUser[] {
       password: "demo-risk",
       account_status: "ACTIVE",
       account_class: "staff",
+      ...profile,
       assignments: [
         {
           assignment_id: "asg-risk-1",
           role: "risk",
           tenant_id: "tenant-demo",
-          label: "Fraud queue",
+          label: "Fraud review",
         },
       ],
     },
@@ -240,6 +316,7 @@ function seedUsers(): IdentityUser[] {
       password: "demo-admin",
       account_status: "ACTIVE",
       account_class: "staff",
+      ...profile,
       assignments: [
         {
           assignment_id: "asg-admin-1",
@@ -256,6 +333,7 @@ function seedUsers(): IdentityUser[] {
       password: "demo-dual",
       account_status: "ACTIVE",
       account_class: "staff",
+      ...profile,
       assignments: [
         {
           assignment_id: "asg-dual-operator",
@@ -270,6 +348,18 @@ function seedUsers(): IdentityUser[] {
           label: "Approval desk",
         },
       ],
+    },
+  ];
+}
+
+function seedNotifications(): IdentityNotification[] {
+  return [
+    {
+      notification_id: "ntf-customer-welcome",
+      title: "Welcome",
+      body: "Your customer workspace is ready.",
+      created_at: "2026-11-14T12:00:00Z",
+      read_at: null,
     },
   ];
 }
@@ -289,6 +379,13 @@ export function createIdentityStub(): StubIdentity {
   const inviteIdempotency = new Map<string, string>();
   /** Fixture delivery secrets: raw token → invitation_id */
   const inviteTokens = new Map<string, string>();
+  /** notification_id → owner user_id + row */
+  let notifications = seedNotifications().map((n) => ({
+    ...n,
+    user_id: "user-customer-1",
+  }));
+  const mfaCodes = new Map<string, string>();
+  const resetCodes = new Map<string, string>();
 
   function findAdmin(actorUserId: string): IdentityUser | null {
     const user = users.find((u) => u.user_id === actorUserId);
@@ -311,6 +408,19 @@ export function createIdentityStub(): StubIdentity {
     };
     sessions.set(session.session_id, session);
     return session;
+  }
+
+  function requireResolved(sessionId: string) {
+    const session = sessions.get(sessionId);
+    if (!session || session.revoked) return null;
+    if (Date.parse(session.expires_at) < Date.now()) return null;
+    const user = users.find((u) => u.user_id === session.user_id);
+    if (!user || user.account_status !== "ACTIVE") return null;
+    const assignment = user.assignments.find(
+      (a) => a.assignment_id === session.active_assignment_id,
+    );
+    if (!assignment) return null;
+    return { session, user, assignment };
   }
 
   return {
@@ -366,6 +476,8 @@ export function createIdentityStub(): StubIdentity {
         user_id: newId("user"),
         email,
         display_name,
+        preferred_language: input.language?.trim() || "en",
+        email_verified_at: null,
         password,
         account_status: "ACTIVE",
         account_class: "customer",
@@ -561,6 +673,8 @@ export function createIdentityStub(): StubIdentity {
           user_id: newId("user"),
           email,
           display_name: input.display_name?.trim() || invitation.display_name,
+          preferred_language: "en",
+          email_verified_at: null,
           password,
           account_status: "ACTIVE",
           account_class: "staff",
@@ -590,12 +704,195 @@ export function createIdentityStub(): StubIdentity {
       }));
     },
 
+    getMe(sessionId) {
+      return requireResolved(sessionId);
+    },
+
+    patchProfile(sessionId, input) {
+      const resolved = requireResolved(sessionId);
+      if (!resolved) {
+        return {
+          ok: false,
+          code: "UNAUTHORIZED",
+          message: "Session required",
+        };
+      }
+      const keys = Object.keys(input as Record<string, unknown>);
+      for (const key of keys) {
+        if (key !== "display_name" && key !== "preferred_language") {
+          return {
+            ok: false,
+            code: "INVALID_INPUT",
+            message: "Unknown or privileged profile fields are not permitted",
+          };
+        }
+      }
+      const user = resolved.user;
+      if (input.display_name !== undefined) {
+        const name = input.display_name.trim();
+        if (!name) {
+          return {
+            ok: false,
+            code: "INVALID_INPUT",
+            message: "display_name must not be empty",
+          };
+        }
+        user.display_name = name;
+      }
+      if (input.preferred_language !== undefined) {
+        user.preferred_language = input.preferred_language.trim();
+      }
+      return { ok: true, user };
+    },
+
+    listNotifications(sessionId) {
+      const resolved = requireResolved(sessionId);
+      if (!resolved) return null;
+      const rows = notifications
+        .filter((n) => n.user_id === resolved.user.user_id)
+        .map(({ user_id: _uid, ...pub }) => pub)
+        .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+      return { notifications: rows };
+    },
+
+    markNotificationRead(sessionId, notificationId) {
+      const resolved = requireResolved(sessionId);
+      if (!resolved) return { ok: false, code: "UNAUTHORIZED" };
+      const row = notifications.find(
+        (n) =>
+          n.notification_id === notificationId &&
+          n.user_id === resolved.user.user_id,
+      );
+      if (!row) return { ok: false, code: "NOT_FOUND" };
+      if (!row.read_at) {
+        row.read_at = new Date().toISOString();
+      }
+      return {
+        ok: true,
+        notification_id: row.notification_id,
+        read_at: row.read_at,
+      };
+    },
+
+    listWorkspaces(sessionId) {
+      const resolved = requireResolved(sessionId);
+      if (!resolved) return null;
+      return {
+        workspaces: resolved.user.assignments,
+        active_assignment: resolved.assignment,
+      };
+    },
+
+    requestVerify(sessionId) {
+      if (!requireResolved(sessionId)) return null;
+      return { status: "accepted", sandbox_code: "fixture-verify" };
+    },
+
+    confirmVerify(sessionId, code) {
+      const resolved = requireResolved(sessionId);
+      if (!resolved) {
+        return {
+          ok: false,
+          code: "UNAUTHORIZED",
+          message: "Session required",
+        };
+      }
+      if (code !== "fixture-verify") {
+        return {
+          ok: false,
+          code: "INVALID_CHALLENGE",
+          message: "Invalid or expired challenge",
+        };
+      }
+      resolved.user.email_verified_at = new Date().toISOString();
+      return {
+        ok: true,
+        user: resolved.user,
+        email_verified: true,
+      };
+    },
+
+    mfaChallenge(sessionId) {
+      const resolved = requireResolved(sessionId);
+      if (!resolved) return null;
+      const code = `MFA${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+      mfaCodes.set(sessionId, code);
+      return { status: "accepted", sandbox_code: code };
+    },
+
+    mfaVerify(sessionId, code) {
+      const resolved = requireResolved(sessionId);
+      if (!resolved) {
+        return {
+          ok: false,
+          code: "UNAUTHORIZED",
+          message: "Session required",
+        };
+      }
+      const expected = mfaCodes.get(sessionId);
+      if (!expected || code !== expected) {
+        return {
+          ok: false,
+          code: "INVALID_CHALLENGE",
+          message: "Invalid or expired challenge",
+        };
+      }
+      mfaCodes.delete(sessionId);
+      const at = new Date().toISOString();
+      return { ok: true, mfa_verified: true, mfa_verified_at: at };
+    },
+
+    forgotPassword(email) {
+      const normalized = email.trim().toLowerCase();
+      const user = users.find(
+        (u) => u.email === normalized && u.account_status === "ACTIVE",
+      );
+      if (user) {
+        resetCodes.set(normalized, "fixture-reset");
+      }
+      return { status: "accepted" };
+    },
+
+    resetPassword(input) {
+      const email = input.email.trim().toLowerCase();
+      const user = users.find((u) => u.email === email);
+      const expected = resetCodes.get(email);
+      if (!user || !expected || input.code !== expected) {
+        return {
+          ok: false,
+          code: "INVALID_CHALLENGE",
+          message: "Invalid or expired challenge",
+        };
+      }
+      if (input.new_password.length < 8) {
+        return {
+          ok: false,
+          code: "INVALID_INPUT",
+          message: "Password too short",
+        };
+      }
+      user.password = input.new_password;
+      resetCodes.delete(email);
+      for (const [sid, session] of sessions) {
+        if (session.user_id === user.user_id) {
+          sessions.set(sid, { ...session, revoked: true });
+        }
+      }
+      return { ok: true, status: "reset" };
+    },
+
     reset() {
       users = seedUsers();
       sessions.clear();
       invitations.length = 0;
       inviteIdempotency.clear();
       inviteTokens.clear();
+      notifications = seedNotifications().map((n) => ({
+        ...n,
+        user_id: "user-customer-1",
+      }));
+      mfaCodes.clear();
+      resetCodes.clear();
     },
   };
 }
