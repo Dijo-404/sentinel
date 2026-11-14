@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Changed — 14 November 2026 (ops shared workspace)
+
+- Operator and supervisor portals share one nav (queue, approvals, escalations, messages, assistant, knowledge, activity, history, team, audit). Layouts accept either active assignment via `requireAnyRole`.
+- Both dashboards render `OpsCombinedOverview`: parallel operator + supervisor projections; one peer failure leaves the other section visible.
+
 ### Changed — 14 November 2026 (premium UI)
 
 - WebGL: adds `three@0.186.1`, `@react-three/fiber@9.8.1` and `@types/three@0.186.0` (exact pins). Scenes load with `next/dynamic` (`ssr: false`), pause when off-screen, and fall back without WebGL (`useWebGL`).

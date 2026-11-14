@@ -1,6 +1,29 @@
 import type { PortalRole } from "../../tests/stubs/identity";
 import type { NavItem } from "@/components/layout/protected-shell";
 
+/**
+ * Shared ops workspace nav (operator ∪ supervisor menus from roles.md).
+ * Dashboard stays portal-local; other items use canonical routes so both
+ * roles land on the same screens (layouts accept either role).
+ */
+export function opsPortalNav(
+  portal: "operator" | "supervisor",
+): NavItem[] {
+  return [
+    { href: `/${portal}/dashboard`, label: "Dashboard" },
+    { href: "/operator/queue", label: "Queue" },
+    { href: "/supervisor/approvals", label: "Approvals" },
+    { href: "/operator/escalations", label: "Escalations" },
+    { href: "/operator/messages", label: "Messages" },
+    { href: "/operator/assistant", label: "Assistant" },
+    { href: "/operator/knowledge", label: "Knowledge" },
+    { href: "/operator/activity", label: "Activity" },
+    { href: "/supervisor/history", label: "History" },
+    { href: "/supervisor/team", label: "Team" },
+    { href: "/supervisor/audit", label: "Audit" },
+  ];
+}
+
 export const PORTAL_NAV: Record<PortalRole, NavItem[]> = {
   customer: [
     { href: "/customer/dashboard", label: "Dashboard" },
@@ -15,18 +38,8 @@ export const PORTAL_NAV: Record<PortalRole, NavItem[]> = {
     { href: "/merchant/settlements", label: "Settlements" },
     { href: "/merchant/refunds", label: "Refunds" },
   ],
-  operator: [
-    { href: "/operator/dashboard", label: "Dashboard" },
-    { href: "/operator/queue", label: "Queue" },
-    { href: "/ops", label: "Legacy ops" },
-    { href: "/operator/escalations", label: "Escalations" },
-  ],
-  supervisor: [
-    { href: "/supervisor/dashboard", label: "Dashboard" },
-    { href: "/supervisor/approvals", label: "Approvals" },
-    { href: "/supervisor/history", label: "History" },
-    { href: "/supervisor/audit", label: "Audit" },
-  ],
+  operator: opsPortalNav("operator"),
+  supervisor: opsPortalNav("supervisor"),
   risk: [
     { href: "/risk/dashboard", label: "Dashboard" },
     { href: "/risk/queue", label: "Queue" },
