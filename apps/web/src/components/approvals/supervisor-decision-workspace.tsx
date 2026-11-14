@@ -13,10 +13,7 @@ import { labelCaseStatus } from "@/domain/status-labels";
 import { formatAmountMinor, maskTransactionRef } from "@/domain/mask";
 import { MaskedRef } from "@/components/masked-ref";
 
-/** Stable fixture decision window shown and submitted verbatim (not minted on click). */
-export const FIXTURE_DECISION_EXPIRES_AT = "2026-12-31T23:59:59Z";
-
-/** Earliest evidence expiry — authoritative freshness bound for real-peers. */
+/** Earliest evidence expiry — authoritative freshness bound (both modes). */
 export function decisionExpiresFromEvidence(
   evidence: Evidence[],
   approvalExpiresAt?: string,
@@ -88,13 +85,11 @@ export function SupervisorDecisionWorkspace({
         caseClient.getOpsEvidence(match.case_id),
         caseClient.getAction(actionId),
       ]);
-      const expires =
-        mode === "fixture"
-          ? FIXTURE_DECISION_EXPIRES_AT
-          : decisionExpiresFromEvidence(
-              bundle.evidence,
-              resolvedAction.approval?.expires_at,
-            );
+      // Derive from action/evidence only — never invent a calendar constant.
+      const expires = decisionExpiresFromEvidence(
+        bundle.evidence,
+        resolvedAction.approval?.expires_at,
+      );
       if (!expires) {
         throw new PeerError(
           "PROPOSAL_UNAVAILABLE",

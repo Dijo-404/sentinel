@@ -2,6 +2,31 @@
 
 ## Unreleased
 
+### Added — 15 November 2026 (ops surface sandbox seed)
+
+- `make seed` / `sentinel-api seed`: sandbox-only rows for `tenant-demo` —
+  `case-seed-ops-escalated` (`ESCALATED`) and `case-seed-ops-history`
+  (`CLOSED_NO_ACTION`) so ops messages, HISTORY, escalations, and audit-events
+  lists are non-empty after seed. Gate: `SENTINEL_V1_SANDBOX` (or
+  `SENTINEL_API_SANDBOX`) + Postgres `SENTINEL_API_DATABASE_URL`. Hooked from
+  `integration/core` `seed-sandbox` when the DSN is set.
+
+### Fixed — 15 November 2026 (ops projection isolation + HISTORY coverage)
+
+- HISTORY tests cover both `VERIFIED_RESOLVED` and `CLOSED_NO_ACTION`; cross-tenant ops isolation for messages/audit/HISTORY.
+- README: audit feed returns stored payloads (writers already sanitize; no separate read redaction).
+
+### Added — 15 November 2026 (ops messages / history / audit projections)
+
+- `GET /v1/ops/messages` tenant-scoped newest-first message inbox (operator/supervisor; max 50).
+- `GET /v1/ops/audit-events` tenant-scoped newest-first case event feed (operator/supervisor; max 50).
+- `GET /v1/ops/cases?status=HISTORY` expands to `{VERIFIED_RESOLVED, CLOSED_NO_ACTION}`; comma-separated status filters also accepted.
+
+### Fixed — 15 November 2026 (supervisor dashboard pending_approvals)
+
+- `pending_approvals` is the case-store count of `WAITING_APPROVAL` rows (same as
+  `waiting_approval_cases`), not a literal `0`.
+
 ### Fixed — order reference identity + workflow outbox crash recovery
 
 - Canonical authorized `order_reference` remains `{subject_ref}/{customer_order_id}`

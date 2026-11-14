@@ -41,7 +41,7 @@ describe("customer cases / transactions wiring", () => {
     );
   });
 
-  it("fixture shows labeled customer transactions", () => {
+  it("customer transactions fail closed — no hardcoded product rows", () => {
     render(
       <ShellProvider
         config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}
@@ -50,26 +50,10 @@ describe("customer cases / transactions wiring", () => {
       </ShellProvider>,
     );
 
-    expect(screen.getByTestId("customer-transactions")).toBeInTheDocument();
-    expect(screen.getByTestId("fixture-banner")).toBeInTheDocument();
-    expect(screen.getByText("txn-…1001")).toBeInTheDocument();
-  });
-
-  it("real-peers customer transactions fail closed — no synthetic live rows", () => {
-    render(
-      <ShellProvider
-        config={loadShellConfig({
-          NEXT_PUBLIC_SHELL_MODE: "real-peers",
-          CASE_API_BASE_URL: "http://127.0.0.1:9",
-        })}
-      >
-        <CustomerTransactionsPage />
-      </ShellProvider>,
-    );
-
-    expect(screen.getByTestId("state-empty")).toHaveTextContent(
+    expect(screen.getByTestId("state-error")).toHaveTextContent(
       "Transactions unavailable",
     );
     expect(screen.queryByText("txn-…1001")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("fixture-banner")).not.toBeInTheDocument();
   });
 });

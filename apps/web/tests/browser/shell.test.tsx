@@ -205,13 +205,12 @@ describe("standalone browser checks", () => {
     expect(screen.queryByTestId("approval-slot")).not.toBeInTheDocument();
   });
 
-  it("evidence can enable supervisor approval slot with exact digest/expiry", async () => {
+  it("evidence approval loads getAction digest and evidence expiry — not demoAction/fixed date", async () => {
     render(
       <EvidencePanel
         caseId="case-demo-42"
         caseClient={createCaseApiStub("valid")}
         enableApproval
-        decisionExpiresAt="2026-12-31T23:59:59Z"
       />,
     );
     await waitFor(() => {
@@ -224,9 +223,13 @@ describe("standalone browser checks", () => {
       "d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993",
     );
     expect(screen.getByTestId("approval-case-revision")).toHaveTextContent("2");
+    // From evidence-bundle expires_at, not 2026-12-31 fixture constant.
     expect(
       screen.getByTestId("approval-decision-expires-at"),
-    ).toHaveTextContent("2026-12-31T23:59:59Z");
+    ).toHaveTextContent("2026-11-14T12:00:00Z");
+    expect(
+      screen.queryByText("2026-12-31T23:59:59Z"),
+    ).not.toBeInTheDocument();
   });
 
   it("approval slot shows local substitute; peer failure stays visible", () => {

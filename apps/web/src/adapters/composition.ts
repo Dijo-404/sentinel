@@ -28,7 +28,8 @@ export function loadShellConfig(
     string | undefined
   >,
 ): ShellConfig {
-  const mode = (env.NEXT_PUBLIC_SHELL_MODE ?? "fixture") as ShellConfig["mode"];
+  // Product default is real-peers (DB/API path). Explicit fixture for module checks.
+  const mode = (env.NEXT_PUBLIC_SHELL_MODE ?? "real-peers") as ShellConfig["mode"];
   if (mode !== "fixture" && mode !== "real-peers") {
     throw new PeerError(
       "INVALID_CONFIG",
@@ -63,6 +64,7 @@ export function loadShellConfig(
     caseApiBaseUrl: env.CASE_API_BASE_URL,
     // Never ship a shared portal bearer via shell config.
     bearerToken: mode === "fixture" ? env.NEXT_PUBLIC_DEMO_TOKEN : undefined,
+    // Shell-typed principal placeholder; portal auth uses session/BFF, not this.
     principal: demoPrincipal(role),
   };
 }

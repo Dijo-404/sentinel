@@ -1,8 +1,9 @@
-"""Module CLI: serve merchant-disputes.v1."""
+"""Module CLI: serve, migrate, and sandbox seed for merchant-disputes.v1."""
 
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import sys
 
@@ -10,6 +11,8 @@ import uvicorn
 
 from .adapters.auth import parse_token_map
 from .adapters.bind_safety import UnsafeBindError, assert_loopback_or_non_demo
+from .adapters.seed import seed_report_as_dict, seed_sandbox_dispute
+from .adapters.storage_postgres import PostgresDisputeStore, build_engine
 from .application.errors import ConfigurationError, DisputeError
 from .bootstrap import Settings, build_app
 
@@ -20,9 +23,25 @@ def main(argv: list[str] | None = None) -> int:
     serve = sub.add_parser("serve", help="Run merchant-disputes.v1 HTTP service")
     serve.add_argument("--host", default=os.environ.get("DISPUTES_HOST", "127.0.0.1"))
     serve.add_argument("--port", type=int, default=int(os.environ.get("DISPUTES_PORT", "8030")))
+    sub.add_parser("migrate", help="Apply owned PostgreSQL schema")
+    sub.add_parser("seed", help="Seed one OPEN dispute for tenant-demo (sandbox only)")
 
     args = parser.parse_args(argv)
     try:
+        if args.command == "migrate":
+            database_url = os.environ.get("DISPUTES_DATABASE_URL", "")
+            if not database_url.startswith("postgresql"):
+                msg = "DISPUTES_DATABASE_URL PostgreSQL required"
+                print(f'{{"code":"CONFIGURATION","message":"{msg}"}}', file=sys.stderr)
+                return 2
+            store = PostgresDisputeStore(build_engine(database_url))
+            store.migrate()
+            print('{"status":"ok","schema":"merchant_disputes"}')
+            return 0
+        if args.command == "seed":
+            report = seed_sandbox_dispute(os.environ)
+            print(json.dumps(seed_report_as_dict(report)))
+            return 0 if report["status"] == "PASS" else 2
         settings = Settings.from_environ()
         if args.command == "serve":
             tokens = list(parse_token_map(settings.tokens).keys())

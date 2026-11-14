@@ -13,10 +13,26 @@ from .adapters.http_api import AppServices, create_app
 from .adapters.identity_http import HttpIdentityMemberships
 from .adapters.identity_stub import StubIdentityMemberships
 from .adapters.storage_memory import MemoryStaffStore
-from .application.errors import ConfigurationError
-from .application.ports import CaseApiPort, IdentityMembershipPort
+from .adapters.storage_postgres import PostgresStaffStore
+from .application.errors import ConfigurationError, PeerUnavailableError
+from .application.ports import CaseApiPort, IdentityMembershipPort, StaffStore
 from .application.staff import StaffService
 from .domain.types import CONTRACT_VERSION
+
+
+def _resolve_store(mode: str, store: StaffStore | None, database_url: str) -> StaffStore:
+    if store is not None:
+        return store
+    if database_url.strip():
+        pg = PostgresStaffStore.from_url(database_url)
+        pg.migrate()
+        return pg
+    if mode == "real-peers":
+        raise PeerUnavailableError(
+            "real-peers requires MERCHANT_TEAMS_DATABASE_URL or an injected durable store; "
+            "MemoryStaffStore defaults are not allowed across workers"
+        )
+    return MemoryStaffStore()
 
 
 @dataclass(frozen=True)
@@ -28,6 +44,7 @@ class Settings:
     identity_base_url: str
     identity_token: str
     contract_version: str
+    database_url: str = ""
 
     @classmethod
     def from_environ(cls, env: dict[str, str] | None = None) -> Settings:
@@ -43,13 +60,14 @@ class Settings:
             identity_base_url=source.get("IDENTITY_BASE_URL", ""),
             identity_token=source.get("IDENTITY_TOKEN", ""),
             contract_version=source.get("MERCHANT_TEAMS_CONTRACT_VERSION", CONTRACT_VERSION),
+            database_url=source.get("MERCHANT_TEAMS_DATABASE_URL", ""),
         )
 
 
 def build_app(
     settings: Settings | None = None,
     *,
-    store: MemoryStaffStore | None = None,
+    store: StaffStore | None = None,
     cases: CaseApiPort | None = None,
     identity: IdentityMembershipPort | None = None,
 ):
@@ -81,7 +99,7 @@ def build_app(
             identity_port = None
         mode = "real-peers"
 
-    staff_store = store if store is not None else MemoryStaffStore()
+    staff_store = _resolve_store(mode, store, settings.database_url)
     # real-peers + IDENTITY_BASE_URL: identity owns grants; local create/role writes denied.
     identity_authoritative = mode == "real-peers" and identity_port is not None
     services = AppServices(

@@ -144,7 +144,7 @@ export function getIdentityClient(
   >,
   overrides?: { fetchImpl?: typeof fetch },
 ): IdentityClient {
-  const mode = (env.NEXT_PUBLIC_SHELL_MODE ?? "fixture") as IdentityMode;
+  const mode = (env.NEXT_PUBLIC_SHELL_MODE ?? "real-peers") as IdentityMode;
 
   for (const key of PUBLIC_IDENTITY_SECRET_KEYS) {
     if (env[key]) {

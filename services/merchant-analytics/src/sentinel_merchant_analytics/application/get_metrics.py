@@ -1,19 +1,28 @@
-"""GetMerchantMetrics use case — read-only aggregation over case/evidence ports."""
+"""GetMerchantMetrics use case — snapshot store or case/evidence aggregation."""
 
 from __future__ import annotations
 
 from ..domain.aggregates import compute_metrics, parse_rfc3339
 from ..domain.types import MerchantMetrics, Principal
-from .errors import UnauthorizedError, ValidationError
-from .ports import CaseApiPort, EvidencePort
+from .errors import NotFoundError, UnauthorizedError, ValidationError
+from .ports import CaseApiPort, EvidencePort, MetricsSnapshotStore
 
 _ALLOWED_ROLES = frozenset({"operator", "supervisor"})
 
 
 class GetMerchantMetrics:
-    def __init__(self, cases: CaseApiPort, evidence: EvidencePort) -> None:
+    def __init__(
+        self,
+        cases: CaseApiPort | None = None,
+        evidence: EvidencePort | None = None,
+        *,
+        snapshots: MetricsSnapshotStore | None = None,
+        require_snapshot: bool = False,
+    ) -> None:
         self._cases = cases
         self._evidence = evidence
+        self._snapshots = snapshots
+        self._require_snapshot = require_snapshot
 
     def __call__(
         self,
@@ -25,6 +34,25 @@ class GetMerchantMetrics:
     ) -> MerchantMetrics:
         self._authorize(principal, merchant_ref)
         self._validate_window(window_start, window_end)
+
+        if self._snapshots is not None:
+            row = self._snapshots.get(
+                tenant_id=principal.tenant_id,
+                merchant_ref=merchant_ref,
+                window_start=window_start,
+                window_end=window_end,
+            )
+            if row is not None:
+                return row
+            if self._require_snapshot:
+                raise NotFoundError(
+                    "No metrics snapshot for merchant/window; seed MERCHANT_ANALYTICS_DATABASE_URL"
+                )
+
+        if self._cases is None or self._evidence is None:
+            raise NotFoundError(
+                "No metrics snapshot for merchant/window; seed MERCHANT_ANALYTICS_DATABASE_URL"
+            )
 
         case_rows = self._cases.list_merchant_cases(
             principal,

@@ -11,6 +11,8 @@ dependencies = [
   "fastapi>=0.115,<1",
   "uvicorn[standard]>=0.32,<1",
   "httpx>=0.28,<1",
+  "sqlalchemy>=2.0,<3",
+  "psycopg[binary]>=3.2,<4",
 ]
 
 [project.scripts]
@@ -23,6 +25,9 @@ dev = ["pytest>=8.4,<10", "ruff>=0.14,<1"]
 pythonpath = ["src", "."]
 testpaths = ["tests"]
 addopts = "-q --strict-markers"
+markers = [
+  "postgres: real PostgreSQL durable list/get proofs",
+]
 
 [tool.ruff]
 line-length = 100

@@ -1,6 +1,6 @@
 UV ?= uv
 
-.PHONY: setup check preview
+.PHONY: setup check preview seed
 setup:
 	$(UV) sync --frozen
 
@@ -11,3 +11,6 @@ check: setup
 
 preview: setup
 	$(UV) run --frozen sentinel-risk serve
+
+seed: setup
+	$(UV) run --frozen sentinel-risk seed

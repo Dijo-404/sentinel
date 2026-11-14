@@ -8,6 +8,7 @@ from typing import Protocol
 from ..domain.types import (
     CaseSnapshot,
     IdentityMembership,
+    MerchantSettings,
     MerchantStaff,
     Principal,
     StaffActivity,
@@ -32,6 +33,10 @@ class StaffStore(Protocol):
     def append_activity(self, event: StaffActivity) -> StaffActivity: ...
 
     def list_activity(self, *, staff_id: str) -> tuple[StaffActivity, ...]: ...
+
+    def get_settings(self, *, tenant_id: str, merchant_ref: str) -> MerchantSettings | None: ...
+
+    def save_settings(self, settings: MerchantSettings) -> MerchantSettings: ...
 
 
 class CaseApiPort(Protocol):

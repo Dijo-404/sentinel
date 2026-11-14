@@ -10,6 +10,13 @@
     "currency": "INR",
     "active": true
   },
+  "settings": {
+    "tenant_id": "tenant-demo",
+    "merchant_ref": "merchant-demo-1",
+    "notification_language": "en",
+    "notify_disputes": true,
+    "notify_settlements": true
+  },
   "activity": [
     {
       "event_id": "event-demo-1",

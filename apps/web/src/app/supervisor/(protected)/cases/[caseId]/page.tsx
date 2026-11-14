@@ -5,7 +5,6 @@ import Link from "next/link";
 import { EvidencePanel } from "@/components/evidence-panel";
 import { CaseTimeline } from "@/components/case-timeline";
 import { useShell } from "@/adapters/shell-context";
-import { FIXTURE_DECISION_EXPIRES_AT } from "@/components/approvals/supervisor-decision-workspace";
 
 export default function SupervisorCaseDetailPage({
   params,
@@ -20,20 +19,16 @@ export default function SupervisorCaseDetailPage({
         <h1>Case review</h1>
         <p className="muted">
           Evidence and timeline with exact approve/reject when a proposal is
-          present.
+          present. Proposal comes from getAction — not a fixture digest.
         </p>
         <Link href="/supervisor/approvals">Back to approvals</Link>
       </div>
-      <EvidencePanel
-        caseId={caseId}
-        caseClient={caseClient}
-        enableApproval
-        decisionExpiresAt={FIXTURE_DECISION_EXPIRES_AT}
-      />
+      <EvidencePanel caseId={caseId} caseClient={caseClient} enableApproval />
       <CaseTimeline caseId={caseId} caseClient={caseClient} />
       {config.mode === "fixture" ? (
         <p className="fixture-banner" role="status">
-          Fixture mode — approval slot uses local substitute
+          Fixture mode — approval slot uses local substitute; action still from
+          stub getAction
         </p>
       ) : null}
     </div>

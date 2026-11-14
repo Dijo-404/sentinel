@@ -3,6 +3,11 @@ import { createShellRuntime, loadShellConfig } from "@/adapters/composition";
 import { PeerError } from "@/domain/types";
 
 describe("loadShellConfig bearer policy", () => {
+  it("defaults to real-peers when SHELL_MODE unset", () => {
+    const config = loadShellConfig({});
+    expect(config.mode).toBe("real-peers");
+  });
+
   it("fixture may use NEXT_PUBLIC_DEMO_TOKEN", () => {
     const config = loadShellConfig({
       NEXT_PUBLIC_SHELL_MODE: "fixture",

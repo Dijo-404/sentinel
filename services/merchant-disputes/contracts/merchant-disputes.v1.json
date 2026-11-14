@@ -27,6 +27,12 @@
       "roles": ["operator", "supervisor"]
     },
     {
+      "method": "GET",
+      "path": "/v1/merchants/{merchant_ref}/disputes",
+      "response": {"disputes": ["DisputeCase"]},
+      "roles": ["operator", "supervisor"]
+    },
+    {
       "method": "POST",
       "path": "/v1/disputes/{dispute_id}/packets",
       "response": "DisputeCase",

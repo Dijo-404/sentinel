@@ -31,6 +31,8 @@ Use this matrix so local `mode=real-peers` services share one tenant, case, port
 | verifier | 8011 |
 | identity (`services/identity`) | 8012 |
 | risk (`services/risk`) | 8013 |
+| merchant-disputes | 8030 |
+| merchant-analytics | 8032 |
 | payment simulator | 8094 |
 | web shell | 3012 |
 
@@ -67,6 +69,27 @@ Order references match simulator journey packs. If #82 is not on `main` yet, sim
 | duplicate_approval_deny | ledger operation `duplicate-approval-deny-demo` | conflicting decision denied; no refund |
 
 Assembly drivers fail closed if a seed is missing.
+
+## DB seed orchestrator
+
+```sh
+# From integration/core — refuses unless tenant-demo + SENTINEL_V1_SANDBOX=1
+make seed-sandbox
+# or: SENTINEL_V1_SANDBOX=1 uv run --frozen sentinel-core-assembly seed-sandbox
+```
+
+Wave peers (`merchant-analytics`, `merchant-disputes`, `risk`, `case-api`) run that
+module’s `make seed` when the matching `*_DATABASE_URL` / `SENTINEL_API_DATABASE_URL`
+env is set; otherwise `SKIPPED` with the manual `make -C <peer> seed` hint. Other
+peers stay `SKIPPED` until hooked. Non-`tenant-demo` → `SANDBOX_TENANT_REQUIRED`.
+Missing sandbox flag → `SANDBOX_FLAG_REQUIRED`. After seed + serve,
+`make verify-wave0-1` / `./scripts/verify_wave0_1.sh` asserts HTTP 200 + seeded JSON
+(fails without seed). Case-api seed leaves `case-seed-ops-escalated` (`ESCALATED`)
+and `case-seed-ops-history` (`CLOSED_NO_ACTION`) for ops messages / audit / HISTORY.
+After case-api serve + seed, `make verify-wave2` / `./scripts/verify_wave2.sh`
+asserts those ops surfaces (case-api fixtures `token-operator` / `token-supervisor`);
+optional `VERIFY_IDENTITY_TOKEN` hits identity `GET /v1/ops/team`.
+Compose DB names: see [compose/init-databases.sql](../compose/init-databases.sql).
 
 ## Path honesty
 

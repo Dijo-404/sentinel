@@ -7,7 +7,17 @@
 
 ## What this module owns
 
-Authenticated case intake/query/messages, immutable per-revision `CaseInput` snapshots, ordered durable events (JSON + SSE), operator queue/evidence/claim, customer/operator/supervisor dashboard projections, supervisor decision proxy to the action ledger, escalation, internal workflow input/results, health/readiness/capabilities.
+Authenticated case intake/query/messages, immutable per-revision `CaseInput` snapshots, ordered durable events (JSON + SSE), operator queue/evidence/claim, ops message inbox + audit event feed, customer/operator/supervisor dashboard projections, supervisor decision proxy to the action ledger, escalation, internal workflow input/results, health/readiness/capabilities.
+
+### Ops list projections
+
+Operator and supervisor only (customer → 403). All tenant-scoped; empty list is honest empty, never fixture rows.
+
+| Endpoint | Notes |
+| --- | --- |
+| `GET /v1/ops/cases?status=…` | Queue filter. Exact `CaseState`, comma-separated states, or alias `HISTORY` = `{VERIFIED_RESOLVED, CLOSED_NO_ACTION}`. Max 50; optional `after` cursor. |
+| `GET /v1/ops/messages` | Newest-first inbox from `case_messages`. Shape `{ messages: [{ case_id, message_id, text, language, author, occurred_at }], next_cursor? }`. Max 50. |
+| `GET /v1/ops/audit-events` | Newest-first case events. Shape `{ events: [{ case_id, sequence, type, occurred_at, payload }], next_cursor? }`. Max 50. Returns stored `payload_json` as-is; writers already persist only sanitized domain fields (no separate read-path redaction). |
 
 Authoritative approvals and money stay in the ledger. This API forwards the supervisor bearer token and exact `DecisionRequest` digest/revision; it does not mint approvals.
 
@@ -40,6 +50,23 @@ make -C apps/api preview
 ```
 
 Uses `SENTINEL_API_*` from the environment (see `.env.example`). Fixture mode wires in-process peers; `real-peers` requires peer base URLs and rejects unavailable/malformed/unauthorized peers without fixture fallback.
+
+## Sandbox seed
+
+```sh
+# Requires SENTINEL_V1_SANDBOX=1 (or SENTINEL_API_SANDBOX=1) + SENTINEL_API_DATABASE_URL
+# Tenant must be tenant-demo (CORE_ASSEMBLY_TENANT_ID / SENTINEL_API_TENANT_ID).
+make -C apps/api seed
+```
+
+Inserts synthetic ops rows for portal wave 2 surfaces:
+
+| Seed case | Status | Surfaces |
+| --- | --- | --- |
+| `case-seed-ops-escalated` | `ESCALATED` | escalations queue, messages inbox, audit events |
+| `case-seed-ops-history` | `CLOSED_NO_ACTION` | HISTORY filter, messages, audit events |
+
+Non-`tenant-demo` → `SANDBOX_TENANT_REQUIRED`. Missing sandbox flag → `SANDBOX_FLAG_REQUIRED`. Non-Postgres URL → `POSTGRES_URL_REQUIRED`. Idempotent re-seed. Orchestrated via `make -C integration/core seed-sandbox` when `SENTINEL_API_DATABASE_URL` is set.
 
 ## Workflow outbox worker
 

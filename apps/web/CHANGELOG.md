@@ -2,6 +2,94 @@
 
 ## Unreleased
 
+### Added — 15 November 2026 (supervisor Team from identity)
+
+- Supervisor Team page loads ops roster via BFF `/api/bff/identity` →
+  identity `GET /v1/ops/team` (supervisor-safe; not `/v1/admin/users`).
+- `TeamPanel` (`data-testid="supervisor-team"`); fixture stub only when
+  `SHELL_MODE=fixture`; peer/BFF failure → `peer-error` (never invent roster).
+- Browser tests: `tests/browser/supervisor-team-page.test.tsx`.
+
+### Added — 15 November 2026 (supervisor Escalations + History + Audit from case-api)
+
+- Supervisor Escalations reuses `EscalationsPanel` with `basePath="/supervisor"`;
+  links to `/supervisor/cases/{caseId}`; `data-testid="supervisor-escalations"`.
+- Supervisor History page loads via `listOpsCases({ status: "HISTORY" })`;
+  `data-testid="supervisor-history"`.
+- Supervisor Audit page loads via `listOpsAuditEvents()`; shows type / case_id /
+  occurred_at; no decide controls; `data-testid="supervisor-audit"`.
+- Fail closed: `data-testid="peer-error"` on peer/BFF failure (never “Not available yet”).
+- Browser tests: `tests/browser/supervisor-ops-surfaces.test.tsx`.
+
+### Added — 15 November 2026 (operator Escalations + Messages from case-api)
+
+- Operator Escalations page loads via `listOpsCases({ status: "ESCALATED" })`
+  (never “Not available yet”); rows link to `/operator/cases/{caseId}`.
+- Operator Messages page loads via `listOpsMessages()`; shows case_id, text,
+  occurred_at; empty list stays honest.
+- Shared `EscalationsPanel` parameterized by `basePath` for supervisor reuse.
+- Fail closed: `data-testid="peer-error"` on peer/BFF failure;
+  `operator-escalations` / `operator-messages` when mount succeeds.
+- Browser tests: `tests/browser/operator-escalations-messages.test.tsx`.
+
+### Added — 15 November 2026 (ops CaseClient messages / audit / HISTORY)
+
+- `CaseClient.listOpsMessages()` → `GET /v1/ops/messages` (real-peer + BFF + fixture stub).
+- `CaseClient.listOpsAuditEvents()` → `GET /v1/ops/audit-events`.
+- `listOpsCases({ status: "HISTORY" })` documented; fixture stub filters to
+  `VERIFIED_RESOLVED` | `CLOSED_NO_ACTION` (case-api HISTORY alias).
+- BFF `/api/bff/case/[...path]` already path-passthrough — no allowlist change.
+
+### Fixed — 15 November 2026 (data provenance / hardcode audit)
+
+- Supervisor case evidence approval loads `getAction(case.action_id)` + evidence
+  expiry — never `demoAction` / fixed `2026-12-31T23:59:59Z`. Removed
+  `FIXTURE_DECISION_EXPIRES_AT`; missing expiry fails closed in both modes.
+- Default `NEXT_PUBLIC_SHELL_MODE` is `real-peers` (fixture only when set for checks).
+- Merchant metrics windows use rolling UTC dates, not Nov 1–14 fixture calendar.
+- Customer/merchant transaction and refund list pages never render hardcoded rows
+  (fail closed until a list peer exists).
+- Settlement real-peers refuses in-memory finding store without injected durable store.
+
+### Added — 15 November 2026 (merchant Settings from merchant-teams BFF)
+
+- Merchant Settings page loads via `/api/bff/merchant-teams` →
+  `GET /v1/merchant/settings` (never “Not available yet”).
+- Fail closed: `data-testid="peer-error"` when peer/BFF unavailable or settings
+  missing; `merchant-settings-data` when fetch succeeds.
+- Browser tests: `tests/browser/merchant-settings-page.test.tsx`.
+
+### Added — 15 November 2026 (risk portal pages from BFF)
+
+- Risk queue/holds/transactions/audit/analytics/reports load via `/api/bff/risk` (never “Not available yet”).
+- Portal map: investigations, restrictions filters, findings, dashboard, reports summary.
+- Fail closed: `data-testid="peer-error"` on peer/BFF failure; `risk-*-data` when fetch succeeds.
+- Browser tests: `tests/browser/risk-peer-pages.test.tsx`.
+
+### Added — 15 November 2026 (merchant Disputes + Exceptions + Tasks)
+
+- Disputes page: BFF `/api/bff/merchant-disputes` → `GET /v1/merchants/{merchant_ref}/disputes`; `data-testid="merchant-disputes"`; fail closed `peer-error`.
+- Exceptions page: BFF `/api/bff/merchant-inbox` → `GET /v1/exceptions`; `data-testid="merchant-exceptions"`; fail closed `peer-error`.
+- Tasks page: fail closed (`peer-error`) — merchant-inbox has no tasks list; no invented rows. `data-testid="merchant-tasks"`. Never “Not available yet”.
+- Browser tests: `tests/browser/merchant-disputes-exceptions-tasks.test.tsx`.
+
+### Added — 15 November 2026 (merchant Team from merchant-teams BFF)
+
+- Merchant Team page loads staff via `/api/bff/merchant-teams` → `GET /v1/merchant/team` (never “Not available yet”).
+- Fail closed: `data-testid="peer-error"` when peer/BFF unavailable; `merchant-team-list` when fetch succeeds; empty list stays honest.
+- Browser tests: `tests/browser/merchant-team-page.test.tsx`.
+
+### Added — 15 November 2026 (merchant Analytics from BFF)
+
+- Merchant Analytics page loads metrics via `/api/bff/merchant-analytics` (never “Not available yet”).
+- Fail closed: `data-testid="peer-error"` when peer/BFF unavailable; metrics region when fetch succeeds.
+- Browser tests: `tests/browser/merchant-analytics-page.test.tsx`.
+
+### Fixed — 15 November 2026 (real-peers transaction/refund list honesty)
+
+- Merchant transactions, merchant refunds, and customer transactions: real-peers shows peer-error (`state-error`) and never renders fixture demo rows; fixture mode keeps labeled stub tables behind `FixtureBanner`.
+- Browser tests cover mode split for all three pages (`merchant-list-honesty`, customer transactions in `customer-cases`).
+
 ### Fixed — 15 November 2026 (portal peer wiring + fixture hardening, Refs #129)
 
 - Fixture portals bind case-stub `decide` to the active assignment via `PortalCaseShell` (not `NEXT_PUBLIC_DEMO_ROLE`).
@@ -51,7 +139,7 @@
 ### Fixed — 14 November 2026
 
 - Operator and supervisor overviews prefer `CaseClient.getOperatorDashboard` / `getSupervisorDashboard` aggregates; PeerError or missing port shows explicit unavailable — never page-scoped `listOpsCases` or fake KPIs.
-- Supervisor decision workspace loads authoritative `ActionRecord` via `getAction` (ledger BFF `/api/bff/ledger` → `GET /v1/actions/{id}`); real-peers fail closed without silent `demoAction` digests. Decision expiry from evidence freshness (fixture keeps labeled `FIXTURE_DECISION_EXPIRES_AT`).
+- Supervisor decision workspace loads authoritative `ActionRecord` via `getAction` (ledger BFF `/api/bff/ledger` → `GET /v1/actions/{id}`); real-peers fail closed without silent `demoAction` digests. Decision expiry from evidence/approval freshness only (no invented `2026-12-31` constant).
 - Case timeline polls `listEvents` and wires message/escalate controls; operator queue paginates on `next_cursor` and links timeline to `/operator/cases/{id}` (not customer `/cases`).
 - Merchant and role portal dashboards withhold fake KPIs; customer uses scoped case-api dashboard when available, otherwise explicit unavailable.
 - Portal BFF `/api/bff/case/**` requires `sentinel_session` only; removed `CASE_API_BEARER_TOKEN` fallback so unauthenticated browser callers cannot borrow the service token (401, no upstream call).

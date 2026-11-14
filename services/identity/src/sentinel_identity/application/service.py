@@ -41,6 +41,8 @@ from .security import (
 
 SESSION_TTL = timedelta(hours=12)
 INVITE_TTL = timedelta(days=7)
+OPS_TEAM_ROLES = frozenset({"operator", "supervisor"})
+OPS_TEAM_READERS = frozenset({"supervisor", "platform_admin"})
 
 PRIVILEGED_BODY_FIELDS = frozenset(
     {
@@ -403,6 +405,38 @@ class IdentityService:
                 }
             )
         return {"contract_version": CONTRACT_VERSION, "memberships": memberships}
+
+    def list_ops_team(self, *, session_token: str) -> dict[str, Any]:
+        """Tenant-scoped operator/supervisor roster for supervisor portal (not full admin)."""
+        ctx = self._require_ops_team_reader(session_token)
+        active = ctx["active_assignment"]
+        tenant_id = active["tenant_id"]
+        members: list[dict[str, Any]] = []
+        for user in self._store.list_users():
+            if user.account_type != "staff" or user.status != "active":
+                continue
+            for assignment in self._store.list_assignments(user.user_id):
+                if assignment.status != "active":
+                    continue
+                if assignment.tenant_id != tenant_id:
+                    continue
+                if assignment.role_id not in OPS_TEAM_ROLES:
+                    continue
+                members.append(
+                    {
+                        "user_id": user.user_id,
+                        "email": user.email,
+                        "display_name": user.display_name,
+                        "role": assignment.role_id,
+                        "assignment_id": assignment.assignment_id,
+                    }
+                )
+        members.sort(key=lambda row: (row["role"], row["email"]))
+        return {
+            "contract_version": CONTRACT_VERSION,
+            "tenant_id": tenant_id,
+            "members": members,
+        }
 
     # --- Admin ---
 
@@ -911,6 +945,15 @@ class IdentityService:
         active = ctx.get("active_assignment")
         if not active or active["role_id"] != "platform_admin":
             raise ForbiddenError("Platform Admin assignment required")
+        return ctx
+
+    def _require_ops_team_reader(self, session_token: str) -> dict[str, Any]:
+        ctx = self.resolve_session(session_token)
+        active = ctx.get("active_assignment")
+        if not active or active["role_id"] not in OPS_TEAM_READERS:
+            raise ForbiddenError("Supervisor or Platform Admin assignment required")
+        if not active.get("tenant_id"):
+            raise ForbiddenError("Active assignment tenant required")
         return ctx
 
     def _require_membership_reader(

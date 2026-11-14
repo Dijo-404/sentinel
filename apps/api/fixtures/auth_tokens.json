@@ -55,6 +55,27 @@
     "subject_refs": ["subject-x"],
     "case_ids": []
   },
+  "token-operator-other-tenant": {
+    "principal_id": "operator-other",
+    "tenant_id": "tenant-other",
+    "roles": ["operator"],
+    "subject_refs": [],
+    "case_ids": []
+  },
+  "token-supervisor-other-tenant": {
+    "principal_id": "supervisor-other",
+    "tenant_id": "tenant-other",
+    "roles": ["supervisor"],
+    "subject_refs": [],
+    "case_ids": []
+  },
+  "token-workflow-other-tenant": {
+    "principal_id": "workflow-other",
+    "tenant_id": "tenant-other",
+    "roles": ["workflow"],
+    "subject_refs": [],
+    "case_ids": ["*"]
+  },
   "token-operator": {
     "principal_id": "operator-1",
     "tenant_id": "tenant-demo",

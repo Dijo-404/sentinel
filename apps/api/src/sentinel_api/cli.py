@@ -1,8 +1,10 @@
-"""CLI entry for local preview helpers and continuous workflow delivery."""
+"""CLI entry for local preview helpers, sandbox seed, and workflow delivery."""
 
 from __future__ import annotations
 
 import argparse
+import json
+import os
 import time
 
 
@@ -10,7 +12,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="sentinel-api")
     parser.add_argument(
         "command",
-        choices=["version", "contract", "flush-workflow"],
+        choices=["version", "contract", "flush-workflow", "seed"],
     )
     parser.add_argument(
         "--once",
@@ -39,6 +41,12 @@ def main(argv: list[str] | None = None) -> int:
 
         print(f"{CONTRACT_VERSION} {CONTRACT_HASH}")
         return 0
+    if args.command == "seed":
+        from sentinel_api.adapters.seed import seed_ops_surfaces, seed_report_as_dict
+
+        report = seed_ops_surfaces(os.environ)
+        print(json.dumps(seed_report_as_dict(report)))
+        return 0 if report["status"] == "PASS" else 2
 
     # flush-workflow: continuous reclaim of stale CLAIMED + PENDING delivery.
     from sentinel_api.bootstrap import build_app

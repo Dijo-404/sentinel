@@ -83,6 +83,16 @@ def create_app(services: AppServices) -> FastAPI:
         except DisputeError as exc:
             return _error(exc, request_id)
 
+    @app.get("/v1/merchants/{merchant_ref}/disputes")
+    def list_merchant_disputes(merchant_ref: str, request: Request) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            principal = services.authenticator.authenticate(request.headers.get("authorization"))
+            items = services.disputes.list(principal, merchant_ref)
+            return JSONResponse({"disputes": [item.to_wire() for item in items]})
+        except DisputeError as exc:
+            return _error(exc, request_id)
+
     @app.post("/v1/disputes/{dispute_id}/packets")
     def collect_packet(dispute_id: str, request: Request) -> JSONResponse:
         request_id = _request_id(request)

@@ -1,4 +1,8 @@
-import type { CaseClient } from "@/application/ports";
+import type {
+  CaseClient,
+  OpsAuditEvent,
+  OpsMessage,
+} from "@/application/ports";
 import {
   CONTRACT_VERSION,
   PeerError,
@@ -63,6 +67,55 @@ const DEMO_CASE_EVENTS: CaseEvent[] = [
   },
 ];
 
+/** HISTORY alias on case-api = VERIFIED_RESOLVED | CLOSED_NO_ACTION. */
+const HISTORY_STATUSES: ReadonlySet<CaseState> = new Set([
+  "VERIFIED_RESOLVED",
+  "CLOSED_NO_ACTION",
+]);
+
+const HISTORY_CASE: Case = {
+  contract_version: CONTRACT_VERSION,
+  case_id: "case-demo-history-1",
+  revision: 4,
+  status: "VERIFIED_RESOLVED",
+  language: "en-IN",
+  intent: "REFUND",
+  evidence_ids: [],
+};
+
+const FIXTURE_OPS_MESSAGES: OpsMessage[] = [
+  {
+    case_id: "case-demo-42",
+    message_id: "msg-demo-1",
+    text: "Customer paid twice for the same order",
+    language: "en-IN",
+    author: "customer",
+    occurred_at: "2026-11-13T12:00:00Z",
+  },
+];
+
+const FIXTURE_OPS_AUDIT_EVENTS: OpsAuditEvent[] = [
+  {
+    case_id: "case-demo-42",
+    sequence: 2,
+    type: "STATUS_CHANGED",
+    occurred_at: "2026-11-13T12:00:30Z",
+    payload: {
+      status: "WAITING_APPROVAL",
+      evidence_ids: ["evidence-payment-b", "evidence-order"],
+      action_id: "action-demo-1",
+      reason_code: "SUPERVISOR_REQUIRED",
+    },
+  },
+];
+
+function matchesOpsStatus(status: CaseState, filter?: string): boolean {
+  if (!filter) return true;
+  if (filter === "HISTORY") return HISTORY_STATUSES.has(status);
+  const parts = filter.split(",").map((s) => s.trim()).filter(Boolean);
+  return parts.includes(status);
+}
+
 function fail(
   code: string,
   message: string,
@@ -93,6 +146,7 @@ function validClient(options?: CaseApiStubOptions): CaseClient {
   const reviewerRole = options?.reviewerRole;
   const cases = new Map<string, Case>([
     [demoCase.case_id, { ...demoCase }],
+    [HISTORY_CASE.case_id, { ...HISTORY_CASE }],
   ]);
   const eventsByCase = new Map<string, CaseEvent[]>([
     [demoCase.case_id, DEMO_CASE_EVENTS.map((e) => ({ ...e, payload: { ...e.payload } }))],
@@ -212,8 +266,29 @@ function validClient(options?: CaseApiStubOptions): CaseClient {
         return { cases: [], next_cursor: undefined };
       }
       return {
-        cases: [...cases.values()].map((c) => ({ ...c })),
+        cases: [...cases.values()]
+          .filter((c) => matchesOpsStatus(c.status, query?.status))
+          .map((c) => ({ ...c })),
         next_cursor: undefined,
+      };
+    },
+    async listOpsMessages(): Promise<{
+      messages: OpsMessage[];
+      next_cursor?: string;
+    }> {
+      return {
+        messages: FIXTURE_OPS_MESSAGES.map((m) => ({ ...m })),
+      };
+    },
+    async listOpsAuditEvents(): Promise<{
+      events: OpsAuditEvent[];
+      next_cursor?: string;
+    }> {
+      return {
+        events: FIXTURE_OPS_AUDIT_EVENTS.map((e) => ({
+          ...e,
+          payload: { ...e.payload },
+        })),
       };
     },
     async getOpsEvidence(caseId: string): Promise<EvidenceBundle> {
@@ -293,7 +368,7 @@ function validClient(options?: CaseApiStubOptions): CaseClient {
       return {
         waiting_approval_cases: 1,
         escalated_cases: 0,
-        pending_approvals: 0,
+        pending_approvals: 1,
         label: "fixture-projection",
       };
     },
@@ -322,6 +397,8 @@ function unavailableClient(): CaseClient {
     postMessage: boom,
     listEvents: boom,
     listOpsCases: boom,
+    listOpsMessages: boom,
+    listOpsAuditEvents: boom,
     getOpsEvidence: boom,
     getAction: boom,
     decide: boom,
@@ -349,6 +426,12 @@ function malformedClient(): CaseClient {
     async listOpsCases() {
       return { cases: "nope" } as unknown as OpsCaseList;
     },
+    async listOpsMessages() {
+      return { messages: "nope" } as unknown as { messages: OpsMessage[] };
+    },
+    async listOpsAuditEvents() {
+      return { events: "nope" } as unknown as { events: OpsAuditEvent[] };
+    },
     async getOpsEvidence() {
       return { evidence: null } as unknown as EvidenceBundle;
     },
@@ -373,6 +456,8 @@ function unauthorizedClient(): CaseClient {
     postMessage: boom,
     listEvents: boom,
     listOpsCases: boom,
+    listOpsMessages: boom,
+    listOpsAuditEvents: boom,
     getOpsEvidence: boom,
     getAction: boom,
     decide: boom,

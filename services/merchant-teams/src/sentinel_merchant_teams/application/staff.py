@@ -10,6 +10,7 @@ from ..domain.advisory import check_advisory_limit, refuse_financial_authorizati
 from ..domain.roles import normalize_roles
 from ..domain.types import (
     AdvisoryLimitResult,
+    MerchantSettings,
     MerchantStaff,
     Principal,
     StaffActivity,
@@ -159,6 +160,15 @@ class StaffService:
             return rows, "identity_projection"
         rows = self.list_staff(principal, merchant_ref)
         return rows, "local_projection"
+
+    def get_settings(self, principal: Principal, merchant_ref: str) -> MerchantSettings:
+        """Merchant business preferences. Missing row fails closed (no silent default)."""
+        _require_manager(principal)
+        _require_merchant(principal, merchant_ref)
+        row = self._store.get_settings(tenant_id=principal.tenant_id, merchant_ref=merchant_ref)
+        if row is None:
+            raise NotFoundError("Merchant settings not found")
+        return row
 
     def update(
         self,

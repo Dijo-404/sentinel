@@ -2,8 +2,9 @@
 
 Independent `merchant-analytics.v1` HTTP service: merchant-scoped read-only aggregates
 (exception rate, unresolved minor units, refund aging buckets, median handling time,
-top causes) from `case-api.v1` and `evidence.v1` ports. No peer mutations. No ledger
-writes. No real payments.
+top causes). Fixture mode aggregates from `case-api.v1` / `evidence.v1` stubs. Real-peers
+prefer Postgres snapshots (`MERCHANT_ANALYTICS_DATABASE_URL`) so portal rows are seeded
+DB data, not invented client fixtures. No peer mutations. No ledger writes. No real payments.
 
 **Owned root:** `services/merchant-analytics/` · **Branch:** `feat/sn-032-merchant-analytics`
 
@@ -37,9 +38,9 @@ make -C services/merchant-analytics check
 make check
 ```
 
-`make check` runs Ruff lint/format and pytest. Checks use only this module, local
-fixtures under `fixtures/`, and stubs under `tests/stubs/`. No sibling Sentinel
-services, shared DB, or payment credentials.
+`make check` runs Ruff lint/format and pytest (including disposable Docker Postgres
+for snapshot proofs). Checks use only this module, local fixtures under `fixtures/`,
+and stubs under `tests/stubs/`. No sibling Sentinel services or payment credentials.
 
 ## Local peer doubles
 
@@ -63,9 +64,24 @@ export MERCHANT_ANALYTICS_TOKENS='operator-token=op-1|tenant-demo|operator|subj-
 make preview
 ```
 
-`MERCHANT_ANALYTICS_MODE=real-peers` requires `CASE_API_*` and `EVIDENCE_*` URLs/tokens
-and **fails closed** on unavailable/malformed/unauthorized peers — no silent fixture
-fallback. Real-peer assembly remains unverified until owner-run integration.
+`MERCHANT_ANALYTICS_MODE=real-peers` with `MERCHANT_ANALYTICS_DATABASE_URL` serves
+metrics from `merchant_analytics.merchant_metrics_snapshots` only (no live peer invent,
+no fixture fallback). Missing snapshot → `404` / `SNAPSHOT_NOT_FOUND`. DB down → `503` /
+`PEER_UNAVAILABLE`. Without a database URL, real-peers still requires `CASE_API_*` and
+`EVIDENCE_*` and fails closed on bad peers. Real-peer assembly remains unverified until
+owner-run integration.
+
+### Seed (sandbox)
+
+Requires `MERCHANT_ANALYTICS_DATABASE_URL`. Refuses non-`tenant-demo` /
+non-`merchant-demo-1` payloads:
+
+```sh
+export MERCHANT_ANALYTICS_DATABASE_URL=postgresql+psycopg://...
+make seed
+```
+
+Writes one row for the matrix window in `contracts/expected-metrics.json`.
 
 ## Compatibility checklist
 
@@ -74,3 +90,4 @@ fallback. Real-peer assembly remains unverified until owner-run integration.
 - [x] Integer minor units; exception rate as fixed decimal string
 - [x] Unauthorized merchant scope and unavailable peers fail closed
 - [x] Real-peer HTTP adapters never fall back to fixtures
+- [x] Postgres snapshot store + `make seed` for portal real-peers

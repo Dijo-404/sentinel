@@ -11,16 +11,27 @@ from .adapters.http_api import AppServices, create_app
 from .adapters.peers_fixture import FixtureCaseApi, FixtureEvidence
 from .adapters.peers_http import HttpCaseApi, HttpEvidence
 from .adapters.storage_memory import MemoryDisputeStore
+from .adapters.storage_postgres import PostgresDisputeStore, build_engine
 from .adapters.storage_sqlite import SqliteDisputeStore
 from .application.disputes import DisputeService
 from .application.errors import ConfigurationError, PeerUnavailableError
 from .domain.types import CONTRACT_VERSION
 
 
+def _is_postgres_url(database_url: str) -> bool:
+    return database_url.startswith("postgresql://") or database_url.startswith(
+        "postgresql+psycopg://"
+    )
+
+
 def _resolve_store(mode: str, store, database_url: str):
     if store is not None:
         return store
     if database_url:
+        if _is_postgres_url(database_url):
+            pg_store = PostgresDisputeStore(build_engine(database_url))
+            pg_store.migrate()
+            return pg_store
         return SqliteDisputeStore.from_url(database_url)
     if mode == "real-peers":
         raise PeerUnavailableError(

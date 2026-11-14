@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from ..domain.types import CaseRecord, Principal, RefundFact
+from ..domain.types import CaseRecord, MerchantMetrics, Principal, RefundFact
 
 
 class CaseApiPort(Protocol):
@@ -27,3 +27,18 @@ class EvidencePort(Protocol):
         case_ids: list[str],
     ) -> list[RefundFact]:
         """Return refund facts for the given cases. Read-only."""
+
+
+class MetricsSnapshotStore(Protocol):
+    def get(
+        self,
+        *,
+        tenant_id: str,
+        merchant_ref: str,
+        window_start: str,
+        window_end: str,
+    ) -> MerchantMetrics | None:
+        """Return a persisted metrics snapshot or None when absent."""
+
+    def put(self, metrics: MerchantMetrics) -> None:
+        """Upsert a metrics snapshot row."""

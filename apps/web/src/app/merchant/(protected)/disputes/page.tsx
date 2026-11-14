@@ -1,13 +1,7 @@
-export default function MerchantDisputesPage() {
-  return (
-    <div className="panel stack" data-testid="merchant-disputes">
-      <h1>Disputes</h1>
-      <p className="muted">
-        This view is not connected to its service yet. Nothing here is live data.
-      </p>
-      <p className="fixture-banner" role="status">
-        Not available yet
-      </p>
-    </div>
-  );
+import { DisputesPanel } from "@/components/merchant/disputes-panel";
+import { requireRole } from "@/lib/server/authorization";
+
+export default async function MerchantDisputesPage() {
+  const session = await requireRole("merchant");
+  return <DisputesPanel session={session} />;
 }

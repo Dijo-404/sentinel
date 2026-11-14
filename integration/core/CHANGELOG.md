@@ -2,6 +2,39 @@
 
 ## Unreleased
 
+### Fixed — 15 November 2026 (wave 2 verify operator token)
+
+- `verify_wave2` defaults to case-api fixture `token-operator` /
+  `token-supervisor` (not matrix `tok-operator`, absent from apps/api auth map).
+
+### Added — 15 November 2026 (portal wave 2 verify)
+
+- `verify_wave2` + `scripts/verify_wave2.sh` / `make verify-wave2` /
+  `sentinel-core-assembly verify-wave2`: HTTP 200 + seeded JSON for case-api
+  ESCALATED / HISTORY / messages / audit-events (fails closed without seed).
+- Optional identity `GET /v1/ops/team` when `VERIFY_IDENTITY_TOKEN` (supervisor
+  session) is set. README Wave 2 run order + curl checklist.
+
+### Added — 15 November 2026 (case-api ops seed hook)
+
+- `seed_sandbox` invokes `make -C apps/api seed` when `SENTINEL_API_DATABASE_URL`
+  is set (ESCALATED + HISTORY ops surface rows for wave 2).
+
+### Added — 15 November 2026 (portal wave 0–1 verify)
+
+- `verify_wave0_1` + `scripts/verify_wave0_1.sh` / `make verify-wave0-1` /
+  `sentinel-core-assembly verify-wave0-1`: HTTP 200 + seeded JSON for analytics
+  metrics, disputes list, risk investigations (fails closed without seed).
+- `seed_sandbox` invokes `make seed` for merchant-analytics / merchant-disputes /
+  risk when `*_DATABASE_URL` is set; otherwise SKIPPED with run-order docs.
+- README curl checklist + Wave 0–1 run order; matrix ports 8030 / 8032.
+
+### Added — 15 November 2026 (portal wave 0 seed gate)
+
+- `seed_sandbox` adapter + `sentinel-core-assembly seed-sandbox` CLI / `make seed-sandbox`.
+- Refuses non-`tenant-demo` (`SANDBOX_TENANT_REQUIRED`) and missing `SENTINEL_V1_SANDBOX`
+  (`SANDBOX_FLAG_REQUIRED`). Pending peer hooks report `SKIPPED` until module seeds land.
+
 ### Added — 14 November 2026 (finding #8 browser-to-credit)
 
 - Authority journeys `browser_to_credit` and `duplicate_approval_deny`: intake →

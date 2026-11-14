@@ -125,6 +125,24 @@ def create_app(
             body["next_cursor"] = next_cursor
         return body
 
+    @app.get("/v1/ops/messages")
+    def ops_messages(request: Request) -> dict[str, Any]:
+        after = request.query_params.get("after")
+        messages, next_cursor = service.list_ops_messages(auth(request), after=after)
+        body: dict[str, Any] = {"messages": messages}
+        if next_cursor is not None:
+            body["next_cursor"] = next_cursor
+        return body
+
+    @app.get("/v1/ops/audit-events")
+    def ops_audit_events(request: Request) -> dict[str, Any]:
+        after = request.query_params.get("after")
+        events, next_cursor = service.list_ops_audit_events(auth(request), after=after)
+        body: dict[str, Any] = {"events": events}
+        if next_cursor is not None:
+            body["next_cursor"] = next_cursor
+        return body
+
     @app.get("/v1/ops/cases/{case_id}/evidence")
     def ops_evidence(case_id: str, request: Request) -> dict[str, Any]:
         authorization = request.headers.get("authorization") or ""

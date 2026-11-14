@@ -2,10 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { SupervisorApprovalsQueue } from "@/components/approvals/supervisor-approvals-queue";
-import {
-  FIXTURE_DECISION_EXPIRES_AT,
-  SupervisorDecisionWorkspace,
-} from "@/components/approvals/supervisor-decision-workspace";
+import { SupervisorDecisionWorkspace } from "@/components/approvals/supervisor-decision-workspace";
 import { createCaseApiStub } from "../stubs/case-api";
 import { createApprovalUiStub } from "../stubs/approval-ui";
 import { PeerError } from "@/domain/types";
@@ -76,9 +73,10 @@ describe("supervisor approvals", () => {
       "d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993",
     );
     expect(screen.getByTestId("approval-case-revision")).toHaveTextContent("2");
+    // Evidence-bundle expires_at from getAction/evidence — not a calendar constant.
     expect(
       screen.getByTestId("approval-decision-expires-at"),
-    ).toHaveTextContent(FIXTURE_DECISION_EXPIRES_AT);
+    ).toHaveTextContent("2026-11-14T12:00:00Z");
 
     await user.click(screen.getByTestId("approval-approve"));
     await waitFor(() => {
@@ -88,7 +86,7 @@ describe("supervisor approvals", () => {
           "d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993",
         case_revision: 2,
         policy_version: "demo-policy-v1",
-        expires_at: FIXTURE_DECISION_EXPIRES_AT,
+        expires_at: "2026-11-14T12:00:00Z",
       });
     });
     expect(
@@ -147,7 +145,7 @@ describe("supervisor approvals", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("real-peers uses getAction digest and evidence expiry — not FIXTURE_DECISION_EXPIRES_AT", async () => {
+  it("real-peers uses getAction digest and evidence expiry", async () => {
     const client = createCaseApiStub("valid");
     const getAction = vi.fn(client.getAction.bind(client));
     client.getAction = getAction;
@@ -169,7 +167,7 @@ describe("supervisor approvals", () => {
     ).toHaveTextContent("2026-11-14T12:00:00Z");
     expect(
       screen.getByTestId("approval-decision-expires-at"),
-    ).not.toHaveTextContent(FIXTURE_DECISION_EXPIRES_AT);
+    ).not.toHaveTextContent("2026-12-31T23:59:59Z");
   });
 
   it("operator view withholds decide controls", async () => {

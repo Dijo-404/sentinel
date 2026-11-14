@@ -382,6 +382,29 @@ def test_merchant_memberships_forbidden_for_operator(
     assert response.status_code == 403
 
 
+def test_ops_team_lists_tenant_operator_supervisor(client: TestClient, demo_password: str) -> None:
+    supervisor = login(
+        client, "supervisor@example.test", demo_password, requested_role="supervisor"
+    )
+    response = client.get("/v1/ops/team", headers=auth_header(supervisor["session_token"]))
+    assert response.status_code == 200
+    body = response.json()
+    assert body["contract_version"] == CONTRACT_VERSION
+    assert body["tenant_id"] == "tenant-demo"
+    roles_by_email = {row["email"]: row["role"] for row in body["members"]}
+    assert roles_by_email["operator@example.test"] == "operator"
+    assert roles_by_email["supervisor@example.test"] == "supervisor"
+    assert "outsider@other.test" not in roles_by_email
+    assert "merchant@example.test" not in roles_by_email
+    assert "admin@example.test" not in roles_by_email
+
+
+def test_ops_team_forbidden_for_operator(client: TestClient, demo_password: str) -> None:
+    op = login(client, "operator@example.test", demo_password, requested_role="operator")
+    response = client.get("/v1/ops/team", headers=auth_header(op["session_token"]))
+    assert response.status_code == 403
+
+
 def test_login_multi_assignment_requires_requested_role(
     client: TestClient, demo_password: str, store: MemoryIdentityStore
 ) -> None:

@@ -23,6 +23,11 @@ class ValidationError(AnalyticsError):
     http_status = 422
 
 
+class NotFoundError(AnalyticsError):
+    code = "SNAPSHOT_NOT_FOUND"
+    http_status = 404
+
+
 class PeerUnavailableError(AnalyticsError):
     code = "PEER_UNAVAILABLE"
     http_status = 503

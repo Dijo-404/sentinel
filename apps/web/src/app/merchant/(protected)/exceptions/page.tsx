@@ -1,13 +1,7 @@
-export default function MerchantExceptionsPage() {
-  return (
-    <div className="panel stack" data-testid="merchant-exceptions">
-      <h1>Exceptions</h1>
-      <p className="muted">
-        This view is not connected to its service yet. Nothing here is live data.
-      </p>
-      <p className="fixture-banner" role="status">
-        Not available yet
-      </p>
-    </div>
-  );
+import { ExceptionsPanel } from "@/components/merchant/exceptions-panel";
+import { requireRole } from "@/lib/server/authorization";
+
+export default async function MerchantExceptionsPage() {
+  const session = await requireRole("merchant");
+  return <ExceptionsPanel session={session} />;
 }

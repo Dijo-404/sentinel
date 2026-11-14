@@ -187,6 +187,16 @@ class SqliteDisputeStore:
             return None
         return _dispute_from(json.loads(row["body_json"]))
 
+    def list(self, *, tenant_id: str, merchant_ref: str) -> tuple[DisputeCase, ...]:
+        with self._connect() as conn:
+            rows = conn.execute("SELECT body_json FROM disputes").fetchall()
+        items = [
+            dispute
+            for dispute in (_dispute_from(json.loads(row["body_json"])) for row in rows)
+            if dispute.tenant_id == tenant_id and dispute.merchant_ref == merchant_ref
+        ]
+        return tuple(sorted(items, key=lambda d: d.dispute_id))
+
     def save(self, dispute: DisputeCase) -> DisputeCase:
         with self._connect() as conn:
             existing = conn.execute(
