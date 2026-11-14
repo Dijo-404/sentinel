@@ -6,6 +6,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { LogoMark } from "@/components/brand/logo-mark";
 import { NavIcon } from "./nav-icon";
+import { WorkspaceSwitcher } from "@/components/identity/workspace-switcher";
 import type { PortalRole } from "../../../tests/stubs/identity";
 import type { AuthSession } from "@/lib/server/auth";
 import { logoutAction } from "@/lib/server/auth-actions";
@@ -111,6 +112,17 @@ export function AppSidebar({ role, session, nav }: Props) {
               {session.user.email}
             </span>
           </div>
+          {session.workspaces.length > 1 ? (
+            <WorkspaceSwitcher
+              compact
+              activeAssignmentId={session.assignment.assignment_id}
+              workspaces={session.workspaces.map((w) => ({
+                assignment_id: w.assignment_id,
+                role: w.role,
+                label: w.label,
+              }))}
+            />
+          ) : null}
           <form action={logoutAction} className="app-sidebar__logout">
             <button
               type="submit"

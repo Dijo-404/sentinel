@@ -75,6 +75,22 @@ describe("identity stub", () => {
     expect(invite.code).toBe("INVALID_ROLE");
   });
 
+  it("invite rejects ACTIVE user email as DUPLICATE", () => {
+    const id = createIdentityStub();
+    const admin = id.login("admin@example.test", "demo-admin");
+    expect(admin.ok).toBe(true);
+    if (!admin.ok) return;
+    const invite = id.inviteStaff(admin.user.user_id, {
+      display_name: "Dup Operator",
+      work_email: "operator@example.test",
+      tenant_id: "tenant-demo",
+      role_id: "operator",
+    });
+    expect(invite.ok).toBe(false);
+    if (invite.ok) return;
+    expect(invite.code).toBe("DUPLICATE");
+  });
+
   it("assignable roles never include customer", () => {
     const roles = createIdentityStub()
       .assignableRoles()
@@ -123,6 +139,7 @@ describe("auth helpers", () => {
     ]);
     expect(choices).toEqual([
       {
+        assignment_id: "a1",
         role: "operator",
         href: "/operator/dashboard",
         label: "Support Operator — Ops",

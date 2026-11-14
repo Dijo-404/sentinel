@@ -147,7 +147,7 @@ export function OperatorOverview({
             <StatBlock
               label="Waiting"
               value={String(load.kpis.waiting_approval)}
-              caption={caption}
+              caption="Cases in WAITING_APPROVAL"
             />
             <StatBlock
               label="Assigned"

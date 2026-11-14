@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Fixed — 15 November 2026 (portal peer wiring + fixture hardening, Refs #129)
+
+- Fixture portals bind case-stub `decide` to the active assignment via `PortalCaseShell` (not `NEXT_PUBLIC_DEMO_ROLE`).
+- Merchant real-peers withholds metrics when assignment has no `merchant_ref` (no silent fixture identity).
+- Case stub: supervisor-only `decide`; trim/reject blank `order_reference`; unique create ids with in-memory case/event store so messages and escalations show on the timeline.
+- Identity stub: invite rejects emails that already belong to an ACTIVE user (`DUPLICATE`).
+- Dual-role users switch workspace in-session via `selectAssignment` (sidebar + unauthorized), no sign-out.
+- Customer Cases lists via `GET /v1/customer/cases`; Transactions stay fixture-labeled / real-peers unavailable (no list peer).
+- Merchant metrics + risk dashboard BFFs (`MERCHANT_ANALYTICS_BASE_URL`, `RISK_BASE_URL`); settlements findings via settlement BFF; merchant tx/refunds fixture or unavailable.
+- Ops labels: "Waiting approval" = cases in `WAITING_APPROVAL`; "Pending approvals" = ledger-owned proposals (may stay 0 until ledger count is projected).
+
 ### Fixed — 15 November 2026 (dashboard QA pass, fixture mode, all seven demo logins)
 
 - Spacing: `.stack`/`.row` children drop UA block margins (grid/flex gaps no longer add ~50px under headings); panels and slot boxes trim first/last child margins. Timeline list keeps panel padding.

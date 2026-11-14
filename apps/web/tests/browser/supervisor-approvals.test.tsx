@@ -49,7 +49,9 @@ describe("supervisor approvals", () => {
 
   it("decision workspace embeds local substitute and posts exact decide payload", async () => {
     const user = userEvent.setup();
-    const client = createCaseApiStub("valid");
+    const client = createCaseApiStub("valid", {
+      reviewerRole: "supervisor",
+    });
     const decide = vi.fn(client.decide.bind(client));
     client.decide = decide;
 

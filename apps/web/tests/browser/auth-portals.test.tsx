@@ -19,6 +19,7 @@ vi.mock("@/lib/server/auth-actions", () => ({
   })),
   logoutAction: vi.fn(),
   registerCustomerAction: vi.fn(),
+  switchWorkspaceAction: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({

@@ -188,7 +188,7 @@ export function SupervisorOverview({
             <StatBlock
               label="Waiting approval"
               value={String(load.kpis.waiting_approval_cases)}
-              caption={caption}
+              caption="Cases in WAITING_APPROVAL"
             />
             <StatBlock
               label="Escalated"
@@ -198,7 +198,7 @@ export function SupervisorOverview({
             <StatBlock
               label="Pending approvals"
               value={String(load.kpis.pending_approvals)}
-              caption={caption}
+              caption="Ledger pending proposals (0 until ledger count wired)"
             />
             <div
               className="stack"

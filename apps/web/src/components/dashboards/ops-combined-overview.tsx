@@ -285,11 +285,7 @@ export function OpsCombinedOverview({
                   <StatBlock
                     label="Waiting"
                     value={String(load.operator.data.waiting_approval)}
-                    caption={
-                      load.operator.source === "live"
-                        ? "Scoped projection"
-                        : "Fixture peer"
-                    }
+                    caption="Cases in WAITING_APPROVAL"
                   />
                   <StatBlock
                     label="Assigned"
@@ -353,11 +349,7 @@ export function OpsCombinedOverview({
                   <StatBlock
                     label="Waiting approval"
                     value={String(load.supervisor.data.waiting_approval_cases)}
-                    caption={
-                      load.supervisor.source === "live"
-                        ? "Scoped projection"
-                        : "Fixture peer"
-                    }
+                    caption="Cases in WAITING_APPROVAL"
                   />
                   <StatBlock
                     label="Escalated"
@@ -371,11 +363,7 @@ export function OpsCombinedOverview({
                   <StatBlock
                     label="Pending approvals"
                     value={String(load.supervisor.data.pending_approvals)}
-                    caption={
-                      load.supervisor.source === "live"
-                        ? "Scoped projection"
-                        : "Fixture peer"
-                    }
+                    caption="Ledger pending proposals (0 until ledger count wired)"
                   />
                 </div>
                 <div className="row">

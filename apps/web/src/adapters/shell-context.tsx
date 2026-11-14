@@ -10,7 +10,7 @@ type Ctx = {
   voiceClient: VoiceClient | null;
 };
 
-const ShellContext = createContext<Ctx | null>(null);
+export const ShellContext = createContext<Ctx | null>(null);
 
 export function ShellProvider({
   children,
