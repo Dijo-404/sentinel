@@ -1,13 +1,7 @@
-export default function MerchantTeamPage() {
-  return (
-    <div className="panel stack" data-testid="merchant-team">
-      <h1>Team</h1>
-      <p className="muted">
-        This view is not connected to its service yet. Nothing here is live data.
-      </p>
-      <p className="fixture-banner" role="status">
-        Not available yet
-      </p>
-    </div>
-  );
+import { TeamPanel } from "@/components/merchant/team-panel";
+import { requireRole } from "@/lib/server/authorization";
+
+export default async function MerchantTeamPage() {
+  const session = await requireRole("merchant");
+  return <TeamPanel session={session} />;
 }

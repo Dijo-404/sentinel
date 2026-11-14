@@ -1,13 +1,5 @@
+import { RiskPeerPanel } from "@/components/risk/risk-peer-panel";
+
 export default function RiskQueuePage() {
-  return (
-    <div className="panel stack" data-testid="risk-queue">
-      <h1>Risk queue</h1>
-      <p className="muted">
-        This view is not connected to its service yet. Nothing here is live data.
-      </p>
-      <p className="fixture-banner" role="status">
-        Not available yet
-      </p>
-    </div>
-  );
+  return <RiskPeerPanel view="queue" />;
 }

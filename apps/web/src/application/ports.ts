@@ -48,6 +48,41 @@ export type RiskDashboard = {
   blocked_actions: number;
 };
 
+/** risk.v1 investigation list row (portal queue). */
+export type RiskInvestigation = {
+  investigation_id: string;
+  case_id: string;
+  status: string;
+  reason_code: string;
+  queue_ref: string;
+  severity: string;
+  updated_at: string;
+};
+
+/** risk.v1 restriction list row (portal holds / transactions). */
+export type RiskRestriction = {
+  restriction_id: string;
+  case_id: string;
+  investigation_id: string;
+  status: string;
+  reason_code: string;
+  blocks_financial_actions: boolean;
+  transaction_ref: string | null;
+  financial_approval_granted: boolean;
+};
+
+/** risk.v1 finding list row (portal audit). */
+export type RiskFinding = {
+  finding_id: string;
+  investigation_id: string;
+  classification: string;
+  notes: string;
+  recorded_at: string;
+};
+
+/** risk.v1 reports read model (dashboard + report_kind). */
+export type RiskReport = RiskDashboard & { report_kind: string };
+
 /** merchant-settlement.v1 findings list item (display fields). */
 export type SettlementFinding = {
   finding_id: string;
@@ -121,9 +156,16 @@ export interface MerchantAnalyticsClient {
   ): Promise<MerchantMetrics>;
 }
 
-/** Optional risk.v1 dashboard client. */
+/** Optional risk.v1 client (dashboard + portal list reads). */
 export interface RiskClient {
   getDashboard(): Promise<RiskDashboard>;
+  listInvestigations(): Promise<{ investigations: RiskInvestigation[] }>;
+  listRestrictions(query?: {
+    blocks_financial_actions?: boolean;
+    has_transaction_ref?: boolean;
+  }): Promise<{ restrictions: RiskRestriction[] }>;
+  listFindings(): Promise<{ findings: RiskFinding[] }>;
+  getReports(): Promise<RiskReport>;
 }
 
 /** Optional merchant-settlement.v1 findings client. */
@@ -132,6 +174,65 @@ export interface MerchantSettlementClient {
     batch_id?: string;
     status?: string;
   }): Promise<{ findings: SettlementFinding[] }>;
+}
+
+/** merchant-disputes.v1 DisputeCase list row (display fields). */
+export type DisputeCaseSummary = {
+  dispute_id: string;
+  tenant_id: string;
+  merchant_ref: string;
+  case_id: string;
+  reason_code: string;
+  deadline_at: string;
+  status: string;
+};
+
+/** merchant-inbox.v1 ExceptionItem list row (display fields). */
+export type InboxExceptionItem = {
+  item_id: string;
+  tenant_id: string;
+  merchant_ref: string;
+  kind: string;
+  amount_minor: number;
+  currency: string;
+  status: string;
+  case_id?: string;
+  transaction_ref?: string;
+  assignee?: string;
+};
+
+/** Optional merchant-disputes.v1 client. */
+export interface MerchantDisputesClient {
+  listDisputes(merchantRef: string): Promise<{ disputes: DisputeCaseSummary[] }>;
+}
+
+/** Optional merchant-inbox.v1 exceptions client. */
+export interface MerchantInboxClient {
+  listExceptions(query?: {
+    merchant_ref?: string;
+    kind?: string;
+    status?: string;
+  }): Promise<{ items: InboxExceptionItem[] }>;
+}
+
+/** merchant-teams.v1 MerchantStaff wire shape (display fields). */
+export type MerchantStaff = {
+  staff_id: string;
+  tenant_id: string;
+  merchant_ref: string;
+  display_name: string;
+  roles: string[];
+  active: boolean;
+  approval_limit_minor?: number;
+  currency?: string;
+};
+
+/** Optional merchant-teams.v1 team projection client. */
+export interface MerchantTeamsClient {
+  listTeam(merchantRef: string): Promise<{
+    staff: MerchantStaff[];
+    source: "identity_projection" | "local_projection" | string;
+  }>;
 }
 
 /** Optional voice.v1 port. Disabled by default in composition. */

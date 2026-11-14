@@ -89,6 +89,7 @@ Real-peer failures are visible. Never put bearers, identity passwords, or sessio
 | `/supervisor/approvals` · `/supervisor/approvals/[actionId]` | Supervisor approval queue + exact decide UI (local substitute) |
 | `/supervisor/cases/[caseId]` | Supervisor case review with opt-in approval slot |
 | `/risk/dashboard` | Risk Officer |
+| `/risk/queue` · `/holds` · `/transactions` · `/audit` · `/analytics` · `/reports` | Risk lists/KPIs via `/api/bff/risk` (fail closed) |
 | `/admin/dashboard` | Platform Admin |
 | `/admin/users` · `/admin/users/invite` | Staff directory + invite (stub) |
 | `/auth/*` | Shared auth scaffolds (verify, MFA, invitation, …) |

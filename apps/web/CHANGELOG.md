@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+### Added — 15 November 2026 (risk portal pages from BFF)
+
+- Risk queue/holds/transactions/audit/analytics/reports load via `/api/bff/risk` (never “Not available yet”).
+- Portal map: investigations, restrictions filters, findings, dashboard, reports summary.
+- Fail closed: `data-testid="peer-error"` on peer/BFF failure; `risk-*-data` when fetch succeeds.
+- Browser tests: `tests/browser/risk-peer-pages.test.tsx`.
+
+### Added — 15 November 2026 (merchant Disputes + Exceptions + Tasks)
+
+- Disputes page: BFF `/api/bff/merchant-disputes` → `GET /v1/merchants/{merchant_ref}/disputes`; `data-testid="merchant-disputes"`; fail closed `peer-error`.
+- Exceptions page: BFF `/api/bff/merchant-inbox` → `GET /v1/exceptions`; `data-testid="merchant-exceptions"`; fail closed `peer-error`.
+- Tasks page: fail closed (`peer-error`) — merchant-inbox has no tasks list; no invented rows. `data-testid="merchant-tasks"`. Never “Not available yet”.
+- Browser tests: `tests/browser/merchant-disputes-exceptions-tasks.test.tsx`.
+
+### Added — 15 November 2026 (merchant Team from merchant-teams BFF)
+
+- Merchant Team page loads staff via `/api/bff/merchant-teams` → `GET /v1/merchant/team` (never “Not available yet”).
+- Fail closed: `data-testid="peer-error"` when peer/BFF unavailable; `merchant-team-list` when fetch succeeds; empty list stays honest.
+- Browser tests: `tests/browser/merchant-team-page.test.tsx`.
+
 ### Added — 15 November 2026 (merchant Analytics from BFF)
 
 - Merchant Analytics page loads metrics via `/api/bff/merchant-analytics` (never “Not available yet”).
