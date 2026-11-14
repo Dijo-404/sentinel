@@ -1,6 +1,6 @@
 UV ?= uv
 
-.PHONY: setup check preview
+.PHONY: setup check preview seed
 setup:
 	$(UV) sync --frozen
 
@@ -11,3 +11,7 @@ check: setup
 
 preview: setup
 	$(UV) run --frozen sentinel-merchant-teams serve
+
+# Requires MERCHANT_TEAMS_DATABASE_URL (PostgreSQL). Seeds tenant-demo / merchant-demo-1.
+seed: setup
+	$(UV) run --frozen sentinel-merchant-teams seed

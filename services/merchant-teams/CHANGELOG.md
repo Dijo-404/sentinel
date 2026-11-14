@@ -4,6 +4,14 @@
 
 ### Added
 
+- PostgreSQL staff store (`MERCHANT_TEAMS_DATABASE_URL`): schema
+  `merchant_teams.merchant_staff` / `staff_activity`, migrate on boot when DSN set.
+- `make seed` / `sentinel-merchant-teams seed`: idempotent synthetic membership for
+  `tenant-demo` / `merchant-demo-1` (`staff-demo-1` from `fixtures/staff_demo.json`).
+- real-peers requires durable store (Postgres DSN or injected port); no silent
+  in-memory default across workers.
+- Docs: list APIs `GET /v1/merchant/team` and `GET /v1/staff` for portal Task 6.
+
 - SN-039: identity.v1 membership client port, fixture stubs under
   `tests/stubs/identity/`, HTTP adapter, and `POST /v1/staff/sync` projection
   into the local staff store. Platform Admin / identity owns grants;

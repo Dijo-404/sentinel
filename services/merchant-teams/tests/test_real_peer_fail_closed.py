@@ -47,6 +47,11 @@ def test_real_peers_requires_case_api_config():
         build_app(_settings(case_api_base_url="", case_api_token=""))
 
 
+def test_real_peers_requires_database_url():
+    with pytest.raises(PeerUnavailableError, match="MERCHANT_TEAMS_DATABASE_URL"):
+        build_app(_settings())
+
+
 def test_real_peers_identity_requires_token_when_base_url_set():
     with pytest.raises(ConfigurationError, match="IDENTITY_TOKEN"):
         build_app(_settings(identity_base_url="http://identity.test", identity_token=""))
