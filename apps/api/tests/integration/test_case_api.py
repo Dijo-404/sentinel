@@ -447,3 +447,148 @@ def test_real_peer_http_clients_reject_bad_peers():
     assert exc.value.code == "PEER_UNAUTHORIZED"
     _ = evidence
     _ = json
+
+
+def test_auth06_operator_cannot_call_supervisor_decision(client, app):
+    """AUTH-06: operator decision path → 403; ledger untouched."""
+    case_id = _create(client, key="auth06").json()["case_id"]
+    client.post(
+        f"/v1/internal/cases/{case_id}/results",
+        headers=auth("token-workflow"),
+        json={
+            "event_key": "auth06-waiting",
+            "expected_revision": 1,
+            "status": "WAITING_APPROVAL",
+            "evidence_ids": ["evidence-payment-b"],
+            "action_id": "action-auth06",
+            "reason_code": "SUPERVISOR_REQUIRED",
+        },
+    )
+    app.state.peers["ledger"].last_request = None
+    app.state.peers["ledger"].last_authorization = None
+    forbidden = client.post(
+        "/v1/ops/actions/action-auth06/decisions",
+        headers=auth("token-operator"),
+        json={
+            "decision": "APPROVE",
+            "action_digest": "d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993",
+            "case_revision": 2,
+            "policy_version": "demo-policy-v1",
+            "expires_at": "2099-01-01T00:00:00Z",
+        },
+    )
+    assert forbidden.status_code == 403
+    assert app.state.peers["ledger"].last_request is None
+    assert app.state.peers["ledger"].last_authorization is None
+
+
+def test_auth08_customer_other_subject_denied(client):
+    """AUTH-08: customer cannot read another subject's case."""
+    case_id = _create(client, key="auth08").json()["case_id"]
+    denied = client.get(f"/v1/cases/{case_id}", headers=auth("token-customer-b"))
+    assert denied.status_code == 404
+    assert "case_id" not in denied.json()
+
+
+def test_claim_atomic_conflict(client):
+    case_id = _create(client, key="claim-1").json()["case_id"]
+    first = client.post(f"/v1/ops/cases/{case_id}/claim", headers=auth("token-operator"))
+    assert first.status_code == 200
+    assert first.json()["assigned_principal_id"] == "operator-1"
+    assert first.json()["revision"] == 2
+
+    replay = client.post(f"/v1/ops/cases/{case_id}/claim", headers=auth("token-operator"))
+    assert replay.status_code == 200
+    assert replay.json()["assigned_principal_id"] == "operator-1"
+    assert replay.json()["revision"] == 2
+
+    conflict = client.post(f"/v1/ops/cases/{case_id}/claim", headers=auth("token-operator-2"))
+    assert conflict.status_code == 409
+    assert conflict.json()["code"] == "ASSIGNMENT_CONFLICT"
+
+    customer = client.post(f"/v1/ops/cases/{case_id}/claim", headers=auth("token-customer-a"))
+    assert customer.status_code == 403
+
+
+def test_claim_concurrency(client, app):
+    """Two concurrent repo claims: exactly one wins; loser gets ASSIGNMENT_CONFLICT."""
+    import threading
+
+    from sentinel_api.domain.types import DomainError, Principal
+
+    case_id = _create(client, key="claim-race").json()["case_id"]
+    repo = app.state.repo
+    outcomes: list[str] = []
+    barrier = threading.Barrier(2)
+    lock = threading.Lock()
+
+    def claim(principal_id: str) -> None:
+        principal = Principal(
+            principal_id=principal_id,
+            tenant_id="tenant-demo",
+            roles=("operator",),
+        )
+        barrier.wait(timeout=5)
+        try:
+            repo.claim_case(
+                principal=principal,
+                case_id=case_id,
+                event_id=f"evt-{principal_id}",
+                occurred_at="2026-11-14T00:00:00Z",
+            )
+            with lock:
+                outcomes.append("ok")
+        except DomainError as exc:
+            with lock:
+                outcomes.append(exc.code)
+
+    t1 = threading.Thread(target=claim, args=("operator-1",))
+    t2 = threading.Thread(target=claim, args=("operator-2",))
+    t1.start()
+    t2.start()
+    t1.join(timeout=10)
+    t2.join(timeout=10)
+    assert sorted(outcomes) == ["ASSIGNMENT_CONFLICT", "ok"]
+    meta = repo.get_case_meta(tenant_id="tenant-demo", case_id=case_id)
+    assert meta is not None
+    assert meta["assigned_principal_id"] in {"operator-1", "operator-2"}
+
+
+def test_dashboards_and_identity_session(client):
+    case_id = _create(client, key="dash-1").json()["case_id"]
+
+    cust = client.get("/v1/customer/dashboard", headers=auth("token-customer-a"))
+    assert cust.status_code == 200
+    assert cust.json()["open_cases"] >= 1
+
+    other = client.get("/v1/customer/dashboard", headers=auth("token-customer-b"))
+    assert other.status_code == 200
+    assert other.json()["open_cases"] == 0
+
+    cases = client.get("/v1/customer/cases", headers=auth("token-customer-a"))
+    assert cases.status_code == 200
+    assert any(c["case_id"] == case_id for c in cases.json()["cases"])
+
+    op_denied = client.get("/v1/customer/dashboard", headers=auth("token-operator"))
+    assert op_denied.status_code == 403
+
+    claimed = client.post(f"/v1/ops/cases/{case_id}/claim", headers=auth("sess-operator-1"))
+    assert claimed.status_code == 200
+    assert claimed.json()["assigned_principal_id"] == "operator-1"
+
+    op_dash = client.get("/v1/operator/dashboard", headers=auth("sess-operator-1"))
+    assert op_dash.status_code == 200
+    body = op_dash.json()
+    assert body["assigned_to_me"] >= 1
+    assert "open_total" in body
+
+    cust_op = client.get("/v1/operator/dashboard", headers=auth("token-customer-a"))
+    assert cust_op.status_code == 403
+
+    sup = client.get("/v1/supervisor/dashboard", headers=auth("sess-supervisor-1"))
+    assert sup.status_code == 200
+    assert "waiting_approval_cases" in sup.json()
+    assert "pending_approvals" in sup.json()
+
+    op_sup = client.get("/v1/supervisor/dashboard", headers=auth("token-operator"))
+    assert op_sup.status_code == 403

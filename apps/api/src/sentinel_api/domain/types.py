@@ -83,6 +83,7 @@ class Case:
     intent: str
     evidence_ids: tuple[str, ...]
     action_id: str | None = None
+    assigned_principal_id: str | None = None
     contract_version: str = CONTRACT_VERSION
 
     def to_dict(self) -> dict[str, Any]:
@@ -97,6 +98,8 @@ class Case:
         }
         if self.action_id is not None:
             body["action_id"] = self.action_id
+        if self.assigned_principal_id is not None:
+            body["assigned_principal_id"] = self.assigned_principal_id
         return body
 
 

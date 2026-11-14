@@ -406,6 +406,96 @@ class SqlCaseRepository:
             assert case is not None
             return case
 
+    def claim_case(
+        self,
+        *,
+        principal: Principal,
+        case_id: str,
+        event_id: str,
+        occurred_at: str,
+    ) -> Case:
+        with self._engine.begin() as conn:
+            row = self._lock_case(conn, principal.tenant_id, case_id)
+            current_owner = row["assigned_principal_id"]
+            if current_owner and current_owner != principal.principal_id:
+                raise DomainError(
+                    "ASSIGNMENT_CONFLICT",
+                    "Case already claimed by another operator",
+                    409,
+                )
+            if current_owner == principal.principal_id:
+                case = self._load_case(conn, principal.tenant_id, case_id)
+                assert case is not None
+                return case
+            new_revision = int(row["revision"]) + 1
+            event_seq = self._next_event_sequence(conn, principal.tenant_id, case_id)
+            conn.execute(
+                schema.cases.update()
+                .where(
+                    schema.cases.c.tenant_id == principal.tenant_id,
+                    schema.cases.c.case_id == case_id,
+                )
+                .values(
+                    revision=new_revision,
+                    assigned_principal_id=principal.principal_id,
+                )
+            )
+            messages = self._messages_through(conn, principal.tenant_id, case_id, new_revision)
+            snapshot = CaseInput(
+                case_id=case_id,
+                case_revision=new_revision,
+                original_text=row["original_text"],
+                language=row["language"],
+                order_reference=row["order_reference"],
+                messages=tuple(messages),
+            )
+            conn.execute(
+                schema.input_snapshots.insert().values(
+                    tenant_id=principal.tenant_id,
+                    case_id=case_id,
+                    case_revision=new_revision,
+                    snapshot_json=_json_dumps(snapshot.to_dict()),
+                )
+            )
+            payload = {
+                "status": row["status"],
+                "evidence_ids": _json_loads(row["evidence_ids_json"]),
+                "reason_code": "CASE_CLAIMED",
+                "assigned_principal_id": principal.principal_id,
+            }
+            if row["action_id"]:
+                payload["action_id"] = row["action_id"]
+            conn.execute(
+                schema.events.insert().values(
+                    tenant_id=principal.tenant_id,
+                    case_id=case_id,
+                    sequence=event_seq,
+                    event_id=event_id,
+                    case_revision=new_revision,
+                    type="CASE_CLAIMED",
+                    occurred_at=occurred_at,
+                    payload_json=_json_dumps(payload),
+                )
+            )
+            case = self._load_case(conn, principal.tenant_id, case_id)
+            assert case is not None
+            return case
+
+    def list_case_rows(
+        self,
+        *,
+        tenant_id: str,
+        subject_refs: tuple[str, ...] | None = None,
+    ) -> list[dict]:
+        with self._engine.connect() as conn:
+            stmt = select(schema.cases).where(schema.cases.c.tenant_id == tenant_id)
+            if subject_refs is not None:
+                if not subject_refs:
+                    return []
+                stmt = stmt.where(schema.cases.c.subject_ref.in_(subject_refs))
+            stmt = stmt.order_by(schema.cases.c.case_id.asc())
+            return [dict(row) for row in conn.execute(stmt).mappings().all()]
+
     def get_input(self, *, tenant_id: str, case_id: str, revision: int) -> CaseInput | None:
         with self._engine.connect() as conn:
             row = (
@@ -704,6 +794,7 @@ class SqlCaseRepository:
             intent=row["intent"],
             evidence_ids=tuple(_json_loads(row["evidence_ids_json"])),
             action_id=row["action_id"],
+            assigned_principal_id=row.get("assigned_principal_id"),
         )
 
     def _next_event_sequence(self, conn, tenant_id: str, case_id: str) -> int:

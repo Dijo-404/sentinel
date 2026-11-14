@@ -7,7 +7,7 @@
 
 ## What this module owns
 
-Authenticated case intake/query/messages, immutable per-revision `CaseInput` snapshots, ordered durable events (JSON + SSE), operator queue/evidence proxy, supervisor decision proxy to the action ledger, escalation, internal workflow input/results, health/readiness/capabilities.
+Authenticated case intake/query/messages, immutable per-revision `CaseInput` snapshots, ordered durable events (JSON + SSE), operator queue/evidence/claim, customer/operator/supervisor dashboard projections, supervisor decision proxy to the action ledger, escalation, internal workflow input/results, health/readiness/capabilities.
 
 Authoritative approvals and money stay in the ledger. This API forwards the supervisor bearer token and exact `DecisionRequest` digest/revision; it does not mint approvals.
 
@@ -43,7 +43,7 @@ Uses `SENTINEL_API_*` from the environment (see `.env.example`). Fixture mode wi
 
 ## Auth
 
-Opaque bearer tokens map to `Principal` via `fixtures/auth_tokens.json` (synthetic demo credentials only). Workflow/verifier principals deny empty `case_ids`; use explicit ids or `"*"`.
+Composite principal resolution: fixture identity session/BFF projections (`fixtures/identity_sessions.json`) first, then opaque bearer map (`fixtures/auth_tokens.json`) for service and legacy demo tokens. No live `services/identity` dependency. Workflow/verifier principals deny empty `case_ids`; use explicit ids or `"*"`. Customer case create still requires `order_reference` bound to principal `subject_refs`.
 
 ## Evidence labels
 

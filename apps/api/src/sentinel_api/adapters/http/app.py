@@ -9,7 +9,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from sentinel_api import CONTRACT_VERSION, __version__
-from sentinel_api.adapters.http.auth import TokenMap
+from sentinel_api.adapters.http.auth import CompositePrincipalResolver, TokenMap
 from sentinel_api.application.service import CaseService
 from sentinel_api.domain.types import DomainError
 
@@ -17,7 +17,7 @@ from sentinel_api.domain.types import DomainError
 def create_app(
     *,
     service: CaseService,
-    tokens: TokenMap,
+    tokens: TokenMap | CompositePrincipalResolver,
     mode: str,
     readiness: Any,
 ) -> FastAPI:
@@ -99,6 +99,22 @@ def create_app(
 
         return StreamingResponse(stream(), media_type="text/event-stream")
 
+    @app.get("/v1/customer/dashboard")
+    def customer_dashboard(request: Request) -> dict[str, Any]:
+        return service.customer_dashboard(auth(request))
+
+    @app.get("/v1/customer/cases")
+    def customer_cases(request: Request) -> dict[str, Any]:
+        return service.customer_cases(auth(request))
+
+    @app.get("/v1/operator/dashboard")
+    def operator_dashboard(request: Request) -> dict[str, Any]:
+        return service.operator_dashboard(auth(request))
+
+    @app.get("/v1/supervisor/dashboard")
+    def supervisor_dashboard(request: Request) -> dict[str, Any]:
+        return service.supervisor_dashboard(auth(request))
+
     @app.get("/v1/ops/cases")
     def ops_queue(request: Request) -> dict[str, Any]:
         status = request.query_params.get("status")
@@ -114,6 +130,10 @@ def create_app(
         authorization = request.headers.get("authorization") or ""
         bundle = service.get_ops_evidence(auth(request), case_id, authorization=authorization)
         return bundle.to_dict()
+
+    @app.post("/v1/ops/cases/{case_id}/claim")
+    def ops_claim(case_id: str, request: Request) -> dict[str, Any]:
+        return service.claim_case(auth(request), case_id).to_dict()
 
     @app.post("/v1/ops/actions/{action_id}/decisions")
     def ops_decide(action_id: str, request: Request, body: dict[str, Any]) -> dict[str, Any]:

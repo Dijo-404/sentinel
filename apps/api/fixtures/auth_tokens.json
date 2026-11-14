@@ -62,6 +62,13 @@
     "subject_refs": [],
     "case_ids": []
   },
+  "token-operator-2": {
+    "principal_id": "operator-2",
+    "tenant_id": "tenant-demo",
+    "roles": ["operator"],
+    "subject_refs": [],
+    "case_ids": []
+  },
   "token-supervisor": {
     "principal_id": "supervisor-1",
     "tenant_id": "tenant-demo",

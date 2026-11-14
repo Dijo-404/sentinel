@@ -231,6 +231,90 @@ class CaseService:
             occurred_at=self._rfc3339(),
         )
 
+    def claim_case(self, principal: Principal, case_id: str) -> Case:
+        require_roles(principal, "operator")
+        meta = self._require_meta(principal, case_id)
+        require_case_access(
+            principal,
+            tenant_id=principal.tenant_id,
+            case_id=case_id,
+            subject_ref=str(meta["subject_ref"]),
+        )
+        return self._repo.claim_case(
+            principal=principal,
+            case_id=case_id,
+            event_id=self._ids.new_id("evt"),
+            occurred_at=self._rfc3339(),
+        )
+
+    def customer_dashboard(self, principal: Principal) -> dict:
+        require_roles(principal, "customer")
+        rows = self._repo.list_case_rows(
+            tenant_id=principal.tenant_id,
+            subject_refs=principal.subject_refs,
+        )
+        return self._customer_aggregate(rows)
+
+    def customer_cases(self, principal: Principal) -> dict:
+        require_roles(principal, "customer")
+        rows = self._repo.list_case_rows(
+            tenant_id=principal.tenant_id,
+            subject_refs=principal.subject_refs,
+        )
+        return {
+            "cases": [
+                {
+                    "case_id": row["case_id"],
+                    "status": row["status"],
+                    "revision": int(row["revision"]),
+                    "language": row["language"],
+                }
+                for row in rows
+            ]
+        }
+
+    def operator_dashboard(self, principal: Principal) -> dict:
+        require_roles(principal, "operator")
+        rows = self._repo.list_case_rows(tenant_id=principal.tenant_id)
+        assigned = 0
+        unassigned = 0
+        escalated = 0
+        waiting_approval = 0
+        open_total = 0
+        closed = {"VERIFIED_RESOLVED", "CLOSED_NO_ACTION"}
+        for row in rows:
+            status = row["status"]
+            if status not in closed:
+                open_total += 1
+            if row["assigned_principal_id"] == principal.principal_id:
+                assigned += 1
+            elif not row["assigned_principal_id"] and status not in closed:
+                unassigned += 1
+            if status == "ESCALATED":
+                escalated += 1
+            if status == "WAITING_APPROVAL":
+                waiting_approval += 1
+        return {
+            "assigned_to_me": assigned,
+            "unassigned": unassigned,
+            "escalated": escalated,
+            "waiting_approval": waiting_approval,
+            "open_total": open_total,
+        }
+
+    def supervisor_dashboard(self, principal: Principal) -> dict:
+        require_roles(principal, "supervisor")
+        rows = self._repo.list_case_rows(tenant_id=principal.tenant_id)
+        waiting_approval = sum(1 for row in rows if row["status"] == "WAITING_APPROVAL")
+        escalated = sum(1 for row in rows if row["status"] == "ESCALATED")
+        # Approval exposure stays ledger-owned; case store only surfaces queue hints.
+        return {
+            "waiting_approval_cases": waiting_approval,
+            "escalated_cases": escalated,
+            "pending_approvals": 0,
+            "label": "case-store-projection",
+        }
+
     def get_input(self, principal: Principal, case_id: str, revision: int) -> CaseInput:
         require_roles(principal, "workflow")
         if revision < 1:
@@ -286,6 +370,42 @@ class CaseService:
         if meta is None:
             raise DomainError("NOT_FOUND", "Case not found", 404)
         return meta
+
+    @staticmethod
+    def _customer_aggregate(rows: list[dict]) -> dict:
+        open_statuses = {
+            "RECEIVED",
+            "NEEDS_INPUT",
+            "INVESTIGATING",
+            "RECONCILING",
+            "PLANNING",
+            "POLICY_CHECK",
+            "WAITING_APPROVAL",
+            "EXECUTING",
+            "VERIFYING",
+            "WAITING_EXTERNAL",
+            "ESCALATED",
+        }
+        open_cases = 0
+        needs_input = 0
+        waiting_approval = 0
+        verified_resolved = 0
+        for row in rows:
+            status = row["status"]
+            if status in open_statuses:
+                open_cases += 1
+            if status == "NEEDS_INPUT":
+                needs_input += 1
+            if status == "WAITING_APPROVAL":
+                waiting_approval += 1
+            if status == "VERIFIED_RESOLVED":
+                verified_resolved += 1
+        return {
+            "open_cases": open_cases,
+            "needs_input": needs_input,
+            "waiting_approval": waiting_approval,
+            "verified_resolved": verified_resolved,
+        }
 
     def _rfc3339(self) -> str:
         return self._clock.now().astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")

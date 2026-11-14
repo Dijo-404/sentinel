@@ -1,0 +1,34 @@
+{
+  "sess-customer-a": {
+    "principal_id": "customer-a",
+    "tenant_id": "tenant-demo",
+    "roles": ["customer"],
+    "subject_refs": ["subject-a"],
+    "case_ids": [],
+    "merchant_refs": []
+  },
+  "sess-operator-1": {
+    "principal_id": "operator-1",
+    "tenant_id": "tenant-demo",
+    "roles": ["operator"],
+    "subject_refs": [],
+    "case_ids": [],
+    "merchant_refs": []
+  },
+  "sess-operator-2": {
+    "principal_id": "operator-2",
+    "tenant_id": "tenant-demo",
+    "roles": ["operator"],
+    "subject_refs": [],
+    "case_ids": [],
+    "merchant_refs": []
+  },
+  "sess-supervisor-1": {
+    "principal_id": "supervisor-1",
+    "tenant_id": "tenant-demo",
+    "roles": ["supervisor"],
+    "subject_refs": [],
+    "case_ids": [],
+    "merchant_refs": []
+  }
+}
