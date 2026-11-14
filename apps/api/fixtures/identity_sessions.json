@@ -30,5 +30,29 @@
     "subject_refs": [],
     "case_ids": [],
     "merchant_refs": []
+  },
+  "sess-merchant-1": {
+    "principal_id": "merchant-1",
+    "tenant_id": "tenant-demo",
+    "roles": ["merchant"],
+    "subject_refs": ["merchant-demo-1"],
+    "case_ids": [],
+    "merchant_refs": ["merchant-demo-1"]
+  },
+  "sess-risk-officer-1": {
+    "principal_id": "risk-officer-1",
+    "tenant_id": "tenant-demo",
+    "roles": ["risk_officer"],
+    "subject_refs": [],
+    "case_ids": [],
+    "merchant_refs": []
+  },
+  "sess-platform-admin-1": {
+    "principal_id": "platform-admin-1",
+    "tenant_id": "tenant-demo",
+    "roles": ["platform_admin"],
+    "subject_refs": ["*"],
+    "case_ids": [],
+    "merchant_refs": []
   }
 }

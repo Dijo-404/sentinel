@@ -482,6 +482,43 @@ def test_auth06_operator_cannot_call_supervisor_decision(client, app):
     assert app.state.peers["ledger"].last_authorization is None
 
 
+@pytest.mark.parametrize(
+    "token",
+    ["token-risk-officer", "token-platform-admin", "token-merchant"],
+)
+def test_sn040_extended_humans_cannot_call_supervisor_decision(client, app, token):
+    """SN-040: risk_officer / platform_admin / merchant are not supervisors for decide."""
+    case_id = _create(client, key=f"sn040-{token}").json()["case_id"]
+    client.post(
+        f"/v1/internal/cases/{case_id}/results",
+        headers=auth("token-workflow"),
+        json={
+            "event_key": f"sn040-waiting-{token}",
+            "expected_revision": 1,
+            "status": "WAITING_APPROVAL",
+            "evidence_ids": ["evidence-payment-b"],
+            "action_id": f"action-sn040-{token}",
+            "reason_code": "SUPERVISOR_REQUIRED",
+        },
+    )
+    app.state.peers["ledger"].last_request = None
+    app.state.peers["ledger"].last_authorization = None
+    forbidden = client.post(
+        f"/v1/ops/actions/action-sn040-{token}/decisions",
+        headers=auth(token),
+        json={
+            "decision": "APPROVE",
+            "action_digest": "d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993",
+            "case_revision": 2,
+            "policy_version": "demo-policy-v1",
+            "expires_at": "2099-01-01T00:00:00Z",
+        },
+    )
+    assert forbidden.status_code == 403
+    assert app.state.peers["ledger"].last_request is None
+    assert app.state.peers["ledger"].last_authorization is None
+
+
 def test_auth08_customer_other_subject_denied(client):
     """AUTH-08: customer cannot read another subject's case."""
     case_id = _create(client, key="auth08").json()["case_id"]
