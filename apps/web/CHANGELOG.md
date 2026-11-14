@@ -11,7 +11,7 @@
 - Intake: trims message and order reference, blocks a blank order reference, clears the message after a case is accepted, shows language names; customer-facing copy.
 - Operator queue "Open evidence" stays in the portal (`/operator/cases/[caseId]/evidence`); case IDs URL-encoded.
 - Timeline shows local timestamps and plain polling copy.
-- Registration with an existing email shows a sign-up message (still non-enumerating) instead of the sign-in failure text; name field autocompletes.
+- Registration failures (existing email or invalid input) share one sign-up message, so the reply no longer reveals registered emails (previously a distinct sign-in failure text); name field autocompletes.
 - 40 placeholder pages show user-facing "not connected yet" copy instead of developer scaffold text.
 - Mobile: KPI cards two-up at 390px; staff tables scroll inside their panel instead of widening the page; intake fields keep a gap when stacked; fixture banner wraps cleanly.
 
