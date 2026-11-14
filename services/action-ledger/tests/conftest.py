@@ -148,6 +148,7 @@ def app_client(engine, clock, guard):
         clock=clock,
         mode="fixture",
         lease_seconds=300,
+        network=guard,
     )
     client = TestClient(app)
     client.evidence = evidence

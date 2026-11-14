@@ -8,6 +8,10 @@
 
 ### Fixed — 14 November 2026
 
+- Unify claim/outcome lock order: always lock `actions` before updating `outbox` (avoids AB-BA deadlock).
+- `ReservationNetworkGuard` state is contextvars-scoped so FastAPI threadpool requests do not race a process singleton.
+- Eligibility supersession check requires `locked_elig.version == next_version` (ON CONFLICT bumps version).
+- `write_payment_balance` raises `ConflictError` (`PAYMENT_BALANCE_CONFLICT`) when rowcount != 1.
 - Enforce subject_ref scope on eligibility (empty subject_refs still allowed for service principals).
 - Mark outbox DONE on post-claim outcomes; claim skips DISPATCHING rewrite when action already progressed.
 - Bind PROVIDER/FAILED/CREDIT outcome evidence fields to the action; reject mismatches.

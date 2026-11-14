@@ -310,8 +310,9 @@ class ActionLedgerService:
                     raise ConflictError("Eligibility snapshot expired", code="ELIGIBILITY_EXPIRED")
                 if locked_elig.payment_status != "CAPTURED":
                     raise ConflictError("Payment not eligible for refund")
-                # DB bumps version atomically on conflict; accept the stored row.
-                if locked_elig.version < next_version:
+                # Upsert writes explicit next_version on insert; ON CONFLICT bumps
+                # version + 1 under the payment FOR UPDATE, so stored == next_version.
+                if locked_elig.version != next_version:
                     raise ConflictError("Eligibility snapshot superseded")
 
                 new_balance = apply_reserve(balance, normalized["amount_minor"])
