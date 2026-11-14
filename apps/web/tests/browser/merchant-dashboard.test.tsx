@@ -77,4 +77,29 @@ describe("merchant dashboard viz", () => {
     );
     expect(screen.queryByTestId("merchant-kpi-row")).not.toBeInTheDocument();
   });
+
+  it("real-peers without merchant scope fails closed — no fixture merchant_ref", async () => {
+    const noScope = {
+      ...sessionStub,
+      assignment: { ...sessionStub.assignment, scope: undefined },
+    };
+    render(
+      <ShellProvider
+        config={loadShellConfig({
+          NEXT_PUBLIC_SHELL_MODE: "real-peers",
+          CASE_API_BASE_URL: "http://127.0.0.1:9",
+        })}
+      >
+        <MerchantOverview
+          session={noScope}
+          analyticsClient={createMerchantAnalyticsStub("valid")}
+        />
+      </ShellProvider>,
+    );
+
+    expect(await screen.findByTestId("state-empty")).toHaveTextContent(
+      "no merchant_ref",
+    );
+    expect(screen.queryByTestId("merchant-kpi-row")).not.toBeInTheDocument();
+  });
 });

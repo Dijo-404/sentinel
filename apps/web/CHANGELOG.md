@@ -4,6 +4,8 @@
 
 ### Fixed — 15 November 2026 (portal peer wiring + fixture hardening, Refs #129)
 
+- Fixture portals bind case-stub `decide` to the active assignment via `PortalCaseShell` (not `NEXT_PUBLIC_DEMO_ROLE`).
+- Merchant real-peers withholds metrics when assignment has no `merchant_ref` (no silent fixture identity).
 - Case stub: supervisor-only `decide`; trim/reject blank `order_reference`; unique create ids with in-memory case/event store so messages and escalations show on the timeline.
 - Identity stub: invite rejects emails that already belong to an ACTIVE user (`DUPLICATE`).
 - Dual-role users switch workspace in-session via `selectAssignment` (sidebar + unauthorized), no sign-out.

@@ -27,13 +27,20 @@ type LoadState =
   | { status: "unavailable"; detail: string }
   | { status: "ready"; metrics: MerchantMetrics; source: "live" | "fixture" };
 
-function merchantRefFromSession(session: AuthSession): string {
+function merchantRefFromSession(
+  session: AuthSession,
+  mode: "fixture" | "real-peers",
+): string | null {
   const scope = session.assignment.scope;
-  return (
-    scope?.merchant_id ??
-    scope?.merchant_ref ??
-    FIXTURE_MERCHANT_METRICS.merchant_ref
-  );
+  const scoped = scope?.merchant_id ?? scope?.merchant_ref;
+  if (typeof scoped === "string" && scoped.trim()) {
+    return scoped.trim();
+  }
+  // Fixture-only labeled default. Real-peers never invent a merchant identity.
+  if (mode === "fixture") {
+    return FIXTURE_MERCHANT_METRICS.merchant_ref;
+  }
+  return null;
 }
 
 /**
@@ -63,7 +70,17 @@ export function MerchantOverview({ session, analyticsClient }: Props) {
         }
         return;
       }
-      const merchantRef = merchantRefFromSession(session);
+      const merchantRef = merchantRefFromSession(session, config.mode);
+      if (!merchantRef) {
+        if (!cancelled) {
+          setLoad({
+            status: "unavailable",
+            detail:
+              "Active assignment has no merchant_ref; metrics withheld",
+          });
+        }
+        return;
+      }
       const window = {
         window_start: FIXTURE_MERCHANT_METRICS.window_start,
         window_end: FIXTURE_MERCHANT_METRICS.window_end,

@@ -84,9 +84,8 @@ export function createShellRuntime(
   if (overrides?.caseClient) {
     caseClient = overrides.caseClient;
   } else if (config.mode === "fixture") {
-    caseClient = createCaseApiStub("valid", {
-      reviewerRole: config.principal.roles[0],
-    });
+    // Role for decide() comes from PortalCaseShell (active assignment), not DEMO_ROLE.
+    caseClient = createCaseApiStub("valid");
   } else if (
     overrides?.fetchImpl &&
     config.caseApiBaseUrl &&
