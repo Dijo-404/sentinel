@@ -1,11 +1,11 @@
 # SN-038 / SN-012 — Six role portals + web shell
 
-**State:** portal scaffold + fixture identity auth UI implemented. Assembled real-peer product evidence is unverified. Money-path assembly is **not** claimed complete.
+**State:** portal scaffold + fixture identity auth UI; real-peers wires identity.v1 HTTP. Assembled product evidence is unverified. Money-path assembly is **not** claimed complete.
 
 **Owned root:** `apps/web/`  
-**Branch:** `feat/sn-038-web-portals`  
+**Branch:** `feat/web-identity-real-peer`  
 **Produces:** `web-shell.v1`  
-**Consumes:** `case-api.v1`, `approval-ui.v1`, optional `voice.v1`, identity doubles  
+**Consumes:** `case-api.v1`, `approval-ui.v1`, optional `voice.v1`, `identity.v1` (real-peers) / identity doubles (fixture)  
 **Contract:** `sentinel.task-contracts.v1` · SHA-256 `0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb`
 
 ## Outcome
@@ -41,9 +41,9 @@ See `.env.example`.
 | `NEXT_PUBLIC_VOICE_ENABLED` | `false` by default |
 | `CASE_API_BASE_URL` | Required in real-peers mode |
 | `CASE_API_BEARER_TOKEN` | Required in real-peers mode (server-only) |
-| `IDENTITY_BASE_URL` / `IDENTITY_BEARER_TOKEN` | Required for identity real-peers (not wired yet; fixture stub used locally) |
+| `IDENTITY_BASE_URL` | Required in real-peers mode (default `http://127.0.0.1:8012`) |
 
-Real-peer failures are visible. Never put bearers in `NEXT_PUBLIC_*`. Fixture auth uses `tests/stubs/identity` seeded users.
+Real-peer failures are visible. Never put bearers, identity passwords, or session tokens in `NEXT_PUBLIC_*`. Fixture auth uses `tests/stubs/identity` seeded users. Real-peers calls identity.v1 (`/v1/auth/login|me|workspaces`, register, admin invite) via the server-only BFF; the httpOnly `sentinel_session` cookie stores the identity `session_token`.
 
 ### Fixture demo credentials (synthetic only)
 
@@ -114,11 +114,11 @@ Root `make check` validates repository metadata only.
 | Dimension | This module check |
 | --- | --- |
 | Component under test | Real web-shell + portal scaffold |
-| Case API peer | Local fixture stub |
-| Identity peer | Local fixture stub |
+| Case API peer | Local fixture stub (+ real-peer adapter unit doubles) |
+| Identity peer | Local fixture stub (+ real-peer HTTP adapter with fetch doubles) |
 | Approval UI / voice | Local substitutes |
 | Payment provider | N/A (UI only) |
 | Model/voice live | Off |
 | Money-path assembly | **Not claimed** |
 
-Assembled real-peer integration remains **unverified** until owner assembly.
+Assembled live identity + case-api integration remains **unverified** until owner assembly.

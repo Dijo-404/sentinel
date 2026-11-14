@@ -105,7 +105,7 @@ export async function getAuthSession(): Promise<AuthSession | null> {
   const sessionId = await readSessionId();
   if (!sessionId) return null;
   const identity = getIdentityClient();
-  const resolved = identity.resolveSession(sessionId);
+  const resolved = await identity.resolveSession(sessionId);
   if (!resolved) return null;
   return {
     session: resolved.session,
@@ -124,7 +124,7 @@ export async function loginWithCredentials(
     return { ok: false, code: "INVALID_INPUT", message: GENERIC_AUTH_FAILURE };
   }
   const identity = getIdentityClient();
-  const result = identity.login(email, password);
+  const result = await identity.login(email, password);
   if (!result.ok) {
     await clearSessionCookie();
     return { ok: false, code: result.code, message: GENERIC_AUTH_FAILURE };
@@ -132,7 +132,7 @@ export async function loginWithCredentials(
 
   const matched = result.workspaces.find((w) => w.role === requestedRole);
   if (!matched) {
-    identity.logout(result.session.session_id);
+    await identity.logout(result.session.session_id);
     await clearSessionCookie();
     return {
       ok: true,
@@ -148,8 +148,10 @@ export async function loginWithCredentials(
   }
 
   const activated =
-    identity.selectAssignment(result.session.session_id, matched.assignment_id) ??
-    result.session;
+    (await identity.selectAssignment(
+      result.session.session_id,
+      matched.assignment_id,
+    )) ?? result.session;
 
   await setSessionCookie(activated.session_id);
   return {
@@ -198,7 +200,7 @@ export async function registerCustomerAccount(input: {
   };
 
   const identity = getIdentityClient();
-  const result = identity.registerCustomer(safe);
+  const result = await identity.registerCustomer(safe);
   if (!result.ok) {
     if (result.code === "PRIVILEGED_FIELDS_REJECTED") {
       return {
@@ -227,7 +229,7 @@ export async function registerCustomerAccount(input: {
 export async function logoutCurrentSession(): Promise<void> {
   const sessionId = await readSessionId();
   if (sessionId) {
-    getIdentityClient().logout(sessionId);
+    await getIdentityClient().logout(sessionId);
   }
   await clearSessionCookie();
 }

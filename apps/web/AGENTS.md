@@ -8,7 +8,7 @@ Read [repository AGENTS.md](../../AGENTS.md) and this module's [README](README.m
 - Own the module's manifest/lockfile, configuration, migrations, code, contract snapshots, tests, fixtures, README and changelog.
 - No task-completion prerequisite; use local port doubles. Never wait for another agent's implementation or modify another module's state to make tests pass.
 - Use branch `feat/sn-038-web-portals` (or `feat/sn-012-ui-shell` for shell-only work) and a separate worktree.
-- Fixture identity lives under `tests/stubs/identity`. Do not implement `services/identity` from this module. Never put bearers in `NEXT_PUBLIC_*`.
+- Fixture identity lives under `tests/stubs/identity`. Real-peers identity HTTP adapter lives in `apps/web` only — do not edit `services/identity` from this module. Never put bearers, passwords, or session tokens in `NEXT_PUBLIC_*`.
 
 ## Architecture and contracts
 
