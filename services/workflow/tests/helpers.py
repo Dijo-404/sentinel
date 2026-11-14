@@ -27,6 +27,7 @@ def build_test_app(
     verifier_status: str = "WAITING",
     investigation_budget: int = 8,
     model_retry_budget: int = 2,
+    outbox_max_attempts: int = 10,
     case_api: StubCaseApi | None = None,
     evidence: StubEvidence | None = None,
     policy: StubPolicy | None = None,
@@ -38,7 +39,7 @@ def build_test_app(
     policy = policy or StubPolicy()
     ledger = ledger or StubLedger()
     verifier = verifier or StubVerifier(assessment_status=verifier_status)
-    outbox = SqlOutbox(session_factory)
+    outbox = SqlOutbox(session_factory, max_attempts=outbox_max_attempts)
     deps = GraphDeps(
         case_api=case_api,
         evidence=evidence,

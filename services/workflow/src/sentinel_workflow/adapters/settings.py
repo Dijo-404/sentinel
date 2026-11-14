@@ -34,6 +34,8 @@ class Settings(BaseSettings):
     fake_model_scenario: str = "proposal"
     investigation_budget: int = 8
     model_retry_budget: int = 2
+    outbox_max_attempts: int = 10
+    outbox_backoff_base_seconds: float = 0.0
     auth_tokens: str = Field(default=_DEFAULT_AUTH_TOKENS)
     peer_case_api_url: str = ""
     peer_evidence_url: str = ""

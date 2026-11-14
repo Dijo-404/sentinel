@@ -154,6 +154,7 @@ class WorkflowService:
 
     def flush_outbox(self) -> int:
         delivered = 0
+        # pending() is retryable-only; mark_retry may set status=failed after max attempts.
         for item in self.outbox.pending():
             payload = CaseResult.model_validate(item["payload"])
             try:

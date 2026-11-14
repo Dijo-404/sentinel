@@ -275,6 +275,30 @@ def test_outbox_retries_on_case_api_outage(engine, session_factory):
     assert peers["case_api"].results[-1].status == "NEEDS_INPUT"
 
 
+def test_outbox_not_pending_forever_after_max_attempts(engine, session_factory):
+    app, service, peers = build_test_app(
+        session_factory=session_factory,
+        evidence_missing=True,
+        outbox_max_attempts=3,
+    )
+    peers["case_api"].fail_submit_times = 100
+    client = TestClient(app)
+    client.post(
+        "/v1/runs",
+        headers={"Authorization": "Bearer workflow-token"},
+        json={
+            "case_id": "case-demo-42",
+            "case_revision": 1,
+            "job_key": "start-outbox-max-1",
+            "event": "START",
+        },
+    )
+    for _ in range(5):
+        service.flush_outbox()
+    assert service.outbox.pending() == []
+    assert peers["case_api"].results == []
+
+
 def test_idempotent_job_key_conflict(engine, session_factory):
     app, service, peers = build_test_app(session_factory=session_factory)
     client = TestClient(app)

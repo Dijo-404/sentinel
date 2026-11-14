@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from sqlalchemy import (
@@ -15,6 +15,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     create_engine,
+    or_,
     select,
     text,
 )
@@ -62,6 +63,7 @@ class OutboxRow(Base):
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="pending")
     attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    available_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)
     )
@@ -87,6 +89,13 @@ def migrate(engine: Engine) -> None:
     with engine.begin() as conn:
         conn.execute(text("CREATE SCHEMA IF NOT EXISTS workflow"))
     Base.metadata.create_all(engine)
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "ALTER TABLE workflow.result_outbox "
+                "ADD COLUMN IF NOT EXISTS available_at TIMESTAMPTZ"
+            )
+        )
 
 
 class SqlJobStore:
@@ -157,8 +166,16 @@ class SqlJobStore:
 
 
 class SqlOutbox:
-    def __init__(self, session_factory: sessionmaker[Session]) -> None:
+    def __init__(
+        self,
+        session_factory: sessionmaker[Session],
+        *,
+        max_attempts: int = 10,
+        backoff_base_seconds: float = 0.0,
+    ) -> None:
         self._sessions = session_factory
+        self._max_attempts = max(1, max_attempts)
+        self._backoff_base_seconds = max(0.0, backoff_base_seconds)
 
     def enqueue_result(
         self,
@@ -194,10 +211,14 @@ class SqlOutbox:
             session.commit()
 
     def pending(self, limit: int = 50) -> list[dict[str, Any]]:
+        now = datetime.now(UTC)
         with self._sessions() as session:
             rows = session.scalars(
                 select(OutboxRow)
-                .where(OutboxRow.status == "pending")
+                .where(
+                    OutboxRow.status == "pending",
+                    or_(OutboxRow.available_at.is_(None), OutboxRow.available_at <= now),
+                )
                 .order_by(OutboxRow.created_at)
                 .limit(limit)
             ).all()
@@ -228,6 +249,12 @@ class SqlOutbox:
                 return
             row.attempts += 1
             row.last_error = error
+            if row.attempts >= self._max_attempts:
+                row.status = "failed"
+                row.available_at = None
+            elif self._backoff_base_seconds > 0:
+                delay = self._backoff_base_seconds * (2 ** (row.attempts - 1))
+                row.available_at = datetime.now(UTC) + timedelta(seconds=delay)
             session.commit()
 
 
