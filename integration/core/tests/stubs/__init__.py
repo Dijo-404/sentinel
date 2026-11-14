@@ -5,7 +5,9 @@ from __future__ import annotations
 from .action_ledger import action_ledger_stub
 from .case_api import case_api_stub
 from .dispatcher import dispatcher_stub
+from .identity import identity_stub
 from .payment_provider import payment_provider_stub
+from .risk import risk_stub
 from .verifier import verifier_stub
 from .web_shell import web_shell_stub
 from .workflow import workflow_stub
@@ -18,6 +20,8 @@ PEER_FACTORIES = {
     "action-ledger.v1": action_ledger_stub,
     "dispatcher.v1": dispatcher_stub,
     "verifier.v1": verifier_stub,
+    "identity.v1": identity_stub,
+    "risk.v1": risk_stub,
     "payment-provider.v1": payment_provider_stub,
     "web-shell.v1": web_shell_stub,
 }
@@ -38,6 +42,8 @@ __all__ = [
     "action_ledger_stub",
     "dispatcher_stub",
     "verifier_stub",
+    "identity_stub",
+    "risk_stub",
     "payment_provider_stub",
     "web_shell_stub",
 ]

@@ -13,6 +13,8 @@
     "ledger": 8009,
     "dispatcher": 8010,
     "verifier": 8011,
+    "identity": 8012,
+    "risk": 8013,
     "simulator": 8094,
     "web": 3012
   },
@@ -47,9 +49,27 @@
       "subject_refs": ["subject-demo-42"],
       "case_ids": ["case-demo-42"]
     },
+    "tok-operator": {
+      "principal_id": "operator-demo",
+      "roles": ["operator"],
+      "subject_refs": ["subject-demo-42"],
+      "case_ids": ["case-demo-42"]
+    },
     "tok-supervisor": {
       "principal_id": "supervisor-demo",
       "roles": ["supervisor"],
+      "subject_refs": ["subject-demo-42"],
+      "case_ids": ["case-demo-42"]
+    },
+    "tok-platform-admin": {
+      "principal_id": "platform-admin-demo",
+      "roles": ["platform_admin"],
+      "subject_refs": ["subject-demo-42"],
+      "case_ids": ["case-demo-42"]
+    },
+    "tok-risk-officer": {
+      "principal_id": "risk-officer-demo",
+      "roles": ["risk_officer"],
       "subject_refs": ["subject-demo-42"],
       "case_ids": ["case-demo-42"]
     },
@@ -78,8 +98,13 @@
     "case-api-token": "tok-case-api",
     "token-customer-a": "tok-customer",
     "fixture-customer-token": "tok-customer",
+    "token-operator": "tok-operator",
+    "token-operator-demo": "tok-operator",
     "token-supervisor": "tok-supervisor",
     "token-supervisor-demo": "tok-supervisor",
+    "token-platform-admin": "tok-platform-admin",
+    "token-admin": "tok-platform-admin",
+    "token-risk-officer": "tok-risk-officer",
     "tok-sandbox-admin-demo": "tok-sandbox-admin"
   }
 }
