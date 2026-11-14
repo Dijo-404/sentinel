@@ -20,8 +20,8 @@
 
 - Sync deactivates local staff not present in the identity membership
   response (`MEMBERSHIP_REVOKED`).
-- real-peers + `IDENTITY_BASE_URL`: local create / display-name / role
-  mutations rejected as projection-only (`CONFLICT`).
+- real-peers + `IDENTITY_BASE_URL`: local create / display-name / role /
+  deactivate mutations rejected as projection-only (`CONFLICT`).
 - Merchant staff roles remain viewer / operator / approver / admin only;
   platform authorities (`platform_admin`, `supervisor`, `risk_officer`, …)
   are rejected at normalize/project boundaries.

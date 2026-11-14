@@ -233,6 +233,7 @@ class StaffService:
 
     def deactivate(self, principal: Principal, staff_id: str) -> MerchantStaff:
         staff = self.get(principal, staff_id)
+        self._reject_local_membership_write()
         if not staff.active:
             return staff
         saved = self._store.save(replace(staff, active=False))
