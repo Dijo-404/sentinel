@@ -40,10 +40,10 @@ See `.env.example`.
 | `NEXT_PUBLIC_SHELL_MODE` | `fixture` (default) or `real-peers` |
 | `NEXT_PUBLIC_VOICE_ENABLED` | `false` by default |
 | `CASE_API_BASE_URL` | Required in real-peers mode |
-| `CASE_API_BEARER_TOKEN` | Required in real-peers mode (server-only) |
+| `CASE_API_BEARER_TOKEN` | Optional service-only fallback (server); portals use session cookie |
 | `IDENTITY_BASE_URL` | Required in real-peers mode (default `http://127.0.0.1:8012`) |
 
-Real-peer failures are visible. Never put bearers, identity passwords, or session tokens in `NEXT_PUBLIC_*`. Fixture auth uses `tests/stubs/identity` seeded users. Real-peers calls identity.v1 (`/v1/auth/login|me|workspaces`, register, admin invite) via the server-only BFF; the httpOnly `sentinel_session` cookie stores the identity `session_token`.
+Real-peer failures are visible. Never put bearers, identity passwords, or session tokens in `NEXT_PUBLIC_*`. Fixture auth uses `tests/stubs/identity` seeded users. Real-peers calls identity.v1 (`/v1/auth/login|me|workspaces|accept-invitation`, register, admin invite) via the server-only BFF; the httpOnly `sentinel_session` cookie stores the identity `session_token`. Portal case-api traffic goes through `/api/bff/case/**`, which forwards that session as the case-api bearer (one principal per request).
 
 ### Fixture demo credentials (synthetic only)
 

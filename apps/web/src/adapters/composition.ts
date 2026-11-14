@@ -1,5 +1,6 @@
 import type { CaseClient, ShellConfig, VoiceClient } from "@/application/ports";
 import { CONTRACT_SHA256, CONTRACT_VERSION, PeerError } from "@/domain/types";
+import { createBffCaseClient } from "./bff-case-client";
 import { createCaseApiStub } from "./fixture-case-client";
 import { createVoiceStub } from "../../tests/stubs/voice";
 import { createRealPeerCaseClient } from "./real-peer-case-client";
@@ -36,15 +37,19 @@ export function loadShellConfig(
     );
   }
   const role = env.NEXT_PUBLIC_DEMO_ROLE ?? "customer";
-  const serverToken = env.CASE_API_BEARER_TOKEN;
-  // ShellProvider is a client component: NEXT_PUBLIC_* values ship to the browser.
-  // Real-peers must use the server-only CASE_API_BEARER_TOKEN — never a public fallback.
-  if (mode === "real-peers" && !serverToken) {
+  // ShellProvider is a client component: never embed a process-wide case bearer.
+  // Portal real-peers uses BFF + sentinel_session. CASE_API_BEARER_TOKEN is
+  // service-only (server case client / BFF fallback), never shell config.
+  if (mode === "real-peers" && env.NEXT_PUBLIC_DEMO_TOKEN && !env.CASE_API_BASE_URL) {
     throw new PeerError(
       "INVALID_CONFIG",
-      "CASE_API_BEARER_TOKEN is required in real-peers mode; never put secrets in NEXT_PUBLIC_*",
-      "cfg-missing-server-token",
+      "CASE_API_BASE_URL is required in real-peers mode; never put secrets in NEXT_PUBLIC_*",
+      "cfg-missing-base",
     );
+  }
+  if (mode === "real-peers" && !env.CASE_API_BASE_URL) {
+    // Allow client shell config without base URL; BFF route enforces it server-side.
+    // Still refuse public demo token as a pretend portal bearer.
   }
   return {
     mode,
@@ -52,17 +57,16 @@ export function loadShellConfig(
     contractVersion: env.NEXT_PUBLIC_CONTRACT_VERSION ?? CONTRACT_VERSION,
     contractSha256: env.NEXT_PUBLIC_CONTRACT_SHA256 ?? CONTRACT_SHA256,
     caseApiBaseUrl: env.CASE_API_BASE_URL,
-    bearerToken:
-      mode === "real-peers"
-        ? serverToken
-        : (serverToken ?? env.NEXT_PUBLIC_DEMO_TOKEN),
+    // Never ship a shared portal bearer via shell config.
+    bearerToken: mode === "fixture" ? env.NEXT_PUBLIC_DEMO_TOKEN : undefined,
     principal: demoPrincipal(role),
   };
 }
 
 /**
  * Wire adapters once. Fixture mode uses local stubs.
- * Real-peer mode never silently falls back to fixtures.
+ * Real-peer portal path uses same-origin BFF (per-request session cookie).
+ * Real-peer failure never silently falls back to fixtures.
  */
 export function createShellRuntime(
   config: ShellConfig = loadShellConfig(),
@@ -77,12 +81,15 @@ export function createShellRuntime(
     caseClient = overrides.caseClient;
   } else if (config.mode === "fixture") {
     caseClient = createCaseApiStub("valid");
-  } else {
+  } else if (overrides?.fetchImpl && config.caseApiBaseUrl && config.bearerToken) {
+    // Test / direct-peer harness only — not the portal ShellProvider path.
     caseClient = createRealPeerCaseClient({
-      baseUrl: config.caseApiBaseUrl ?? "",
-      bearerToken: config.bearerToken ?? "",
-      fetchImpl: overrides?.fetchImpl,
+      baseUrl: config.caseApiBaseUrl,
+      bearerToken: config.bearerToken,
+      fetchImpl: overrides.fetchImpl,
     });
+  } else {
+    caseClient = createBffCaseClient({ fetchImpl: overrides?.fetchImpl });
   }
 
   let voiceClient: VoiceClient | null = null;

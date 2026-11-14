@@ -30,8 +30,8 @@ export async function checkRole(required: PortalRole): Promise<RequireRoleResult
       workspaces: [],
     };
   }
-  const hasRole = session.workspaces.some((w) => w.role === required);
-  if (!hasRole) {
+  // Active assignment only — holding another workspace is not enough.
+  if (session.assignment.role !== required) {
     return {
       ok: false,
       reason: "role_mismatch",
@@ -56,7 +56,8 @@ export async function requireRole(required: PortalRole): Promise<AuthSession> {
 }
 
 /**
- * Accept any of the listed roles. Unauthenticated users go to `loginAs` login.
+ * Accept any of the listed roles on the *active* assignment.
+ * Unauthenticated users go to `loginAs` login.
  */
 export async function requireAnyRole(
   allowed: PortalRole[],
@@ -66,8 +67,7 @@ export async function requireAnyRole(
   if (!session) {
     redirect(loginPath(loginAs));
   }
-  const match = session.workspaces.find((w) => allowed.includes(w.role));
-  if (!match) {
+  if (!allowed.includes(session.assignment.role)) {
     redirect(`/unauthorized?portal=${loginAs}`);
   }
   return session;

@@ -105,6 +105,19 @@ export type StubIdentity = {
       idempotency_key?: string;
     },
   ): InviteResult;
+  acceptInvitation(input: {
+    token: string;
+    email: string;
+    password: string;
+    display_name?: string;
+  }):
+    | {
+        ok: true;
+        session: SessionRecord;
+        user: IdentityUser;
+        assignment: WorkspaceAssignment;
+      }
+    | { ok: false; code: string; message: string };
   assignableRoles(): Array<{ role_id: Exclude<PortalRole, "customer">; label: string }>;
   reset(): void;
 };
@@ -226,6 +239,28 @@ function seedUsers(): IdentityUser[] {
         },
       ],
     },
+    {
+      user_id: "user-dual-1",
+      email: "dual@example.test",
+      display_name: "Demo Dual Role",
+      password: "demo-dual",
+      account_status: "ACTIVE",
+      account_class: "staff",
+      assignments: [
+        {
+          assignment_id: "asg-dual-operator",
+          role: "operator",
+          tenant_id: "tenant-demo",
+          label: "Payments support",
+        },
+        {
+          assignment_id: "asg-dual-supervisor",
+          role: "supervisor",
+          tenant_id: "tenant-demo",
+          label: "Approval desk",
+        },
+      ],
+    },
   ];
 }
 
@@ -242,6 +277,8 @@ export function createIdentityStub(): StubIdentity {
   const sessions = new Map<string, SessionRecord>();
   const invitations: Invitation[] = [];
   const inviteIdempotency = new Map<string, string>();
+  /** Fixture delivery secrets: raw token → invitation_id */
+  const inviteTokens = new Map<string, string>();
 
   function findAdmin(actorUserId: string): IdentityUser | null {
     const user = users.find((u) => u.user_id === actorUserId);
@@ -432,10 +469,73 @@ export function createIdentityStub(): StubIdentity {
         expires_at: isoPlusHours(72),
       };
       invitations.push(invitation);
+      // Fixture: invitation_id doubles as delivery token for accept tests.
+      inviteTokens.set(invitation.invitation_id, invitation.invitation_id);
       if (input.idempotency_key) {
         inviteIdempotency.set(input.idempotency_key, invitation.invitation_id);
       }
       return { ok: true, invitation };
+    },
+
+    acceptInvitation(input) {
+      const token = input.token?.trim() ?? "";
+      const email = input.email?.trim().toLowerCase() ?? "";
+      const password = input.password ?? "";
+      const invitationId = inviteTokens.get(token);
+      if (!invitationId) {
+        return { ok: false, code: "FORBIDDEN", message: "Invitation denied" };
+      }
+      const invitation = invitations.find((i) => i.invitation_id === invitationId);
+      if (!invitation || invitation.status !== "PENDING") {
+        return { ok: false, code: "FORBIDDEN", message: "Invitation denied" };
+      }
+      if (Date.parse(invitation.expires_at) < Date.now()) {
+        invitation.status = "EXPIRED";
+        return { ok: false, code: "FORBIDDEN", message: "Invitation expired" };
+      }
+      if (email !== invitation.work_email) {
+        return { ok: false, code: "FORBIDDEN", message: "Invitation email mismatch" };
+      }
+      if (password.length < 8) {
+        return { ok: false, code: "INVALID_INPUT", message: "Password too short" };
+      }
+      let user = users.find((u) => u.email === email);
+      if (user?.account_class === "customer") {
+        return {
+          ok: false,
+          code: "FORBIDDEN",
+          message: "Customer accounts cannot accept staff invitations",
+        };
+      }
+      const assignment: WorkspaceAssignment = {
+        assignment_id: newId("asg"),
+        role: invitation.role,
+        tenant_id: invitation.tenant_id,
+        label: `${ROLE_LABELS[invitation.role]} workspace`,
+        scope: invitation.scope,
+      };
+      if (!user) {
+        user = {
+          user_id: newId("user"),
+          email,
+          display_name:
+            input.display_name?.trim() || invitation.display_name,
+          password,
+          account_status: "ACTIVE",
+          account_class: "staff",
+          assignments: [assignment],
+        };
+        users = [...users, user];
+      } else {
+        if (user.password !== password) {
+          return { ok: false, code: "UNAUTHORIZED", message: "Invalid credentials" };
+        }
+        user.assignments = [...user.assignments, assignment];
+      }
+      invitation.status = "ACCEPTED";
+      inviteTokens.delete(token);
+      const session = issueSession(user, assignment);
+      return { ok: true, session, user, assignment };
     },
 
     assignableRoles() {
@@ -450,6 +550,7 @@ export function createIdentityStub(): StubIdentity {
       sessions.clear();
       invitations.length = 0;
       inviteIdempotency.clear();
+      inviteTokens.clear();
     },
   };
 }

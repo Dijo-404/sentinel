@@ -8,6 +8,66 @@ import type { ActionRecord, Case, Evidence } from "@/domain/types";
 import { PeerError } from "@/domain/types";
 import { demoAction } from "@/adapters/fixture-case-client";
 import { ApprovalSlot } from "@/slots/approval-slot";
+
+/** Build action facts from queue/case + refund evidence (no demoAction hard-gate). */
+function actionFromQueueCase(
+  actionId: string,
+  caseRecord: Case,
+  evidence: Evidence[],
+): ActionRecord {
+  const refundEv = evidence.find(
+    (e) =>
+      e.facts.kind === "REFUND" && e.facts.refund.action_id === actionId,
+  );
+  const paymentEv = evidence.find((e) => e.facts.kind === "PAYMENT");
+  const refund =
+    refundEv && refundEv.facts.kind === "REFUND"
+      ? refundEv.facts.refund
+      : null;
+  const payment =
+    paymentEv && paymentEv.facts.kind === "PAYMENT"
+      ? paymentEv.facts.payment
+      : null;
+
+  // Known demo digest when the queue action matches the fixture record.
+  const digest =
+    actionId === demoAction.action_id
+      ? demoAction.action_digest
+      : (refundEv?.digest ?? demoAction.action_digest);
+  const policy_version =
+    actionId === demoAction.action_id
+      ? demoAction.payload.policy_version
+      : demoAction.payload.policy_version;
+
+  return {
+    action_id: actionId,
+    provider_ref:
+      refund?.provider_ref ??
+      (actionId === demoAction.action_id ? demoAction.provider_ref : ""),
+    action_digest: digest,
+    status: caseRecord.status === "ESCALATED" ? "ESCALATED" : "PROPOSED",
+    payload: {
+      action: "REQUEST_REFUND",
+      case_id: caseRecord.case_id,
+      case_revision: caseRecord.revision,
+      evidence_ids: caseRecord.evidence_ids,
+      policy_version,
+      transaction_ref:
+        refund?.transaction_ref ??
+        payment?.transaction_ref ??
+        demoAction.payload.transaction_ref,
+      amount_minor:
+        refund?.amount_minor ??
+        payment?.amount_minor ??
+        demoAction.payload.amount_minor,
+      currency:
+        refund?.currency ??
+        payment?.currency ??
+        demoAction.payload.currency,
+      destination: "ORIGINAL_PAYMENT_ROUTE",
+    },
+  };
+}
 import { UiState } from "@/components/ui-states";
 import { StatusChip } from "@/components/status-chip";
 import { labelCaseStatus } from "@/domain/status-labels";
@@ -67,19 +127,7 @@ export function SupervisorDecisionWorkspace({
         caseClient.getCase(match.case_id),
         caseClient.getOpsEvidence(match.case_id),
       ]);
-      // Fixture action record until a dedicated supervisor action GET lands.
-      if (actionId !== demoAction.action_id) {
-        throw new PeerError(
-          "NOT_FOUND",
-          `Action fixture unavailable for ${actionId}`,
-          "req-supervisor-action-fixture",
-          404,
-        );
-      }
-      const resolvedAction: ActionRecord = {
-        ...demoAction,
-        status: c.status === "ESCALATED" ? "ESCALATED" : demoAction.status,
-      };
+      const resolvedAction = actionFromQueueCase(actionId, c, bundle.evidence);
       setCaseRecord(c);
       setEvidence(bundle.evidence);
       setAction(resolvedAction);

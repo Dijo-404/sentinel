@@ -20,7 +20,14 @@ import {
 
 export type RealPeerOptions = {
   baseUrl: string;
-  bearerToken: string;
+  /** Direct peer bearer (server session or service token). */
+  bearerToken?: string;
+  /**
+   * `bearer` — Authorization header (default).
+   * `credentials` — same-origin BFF; cookie carries the session (no shared token).
+   */
+  authMode?: "bearer" | "credentials";
+  credentials?: RequestCredentials;
   fetchImpl?: typeof fetch;
 };
 
@@ -31,6 +38,7 @@ export type RealPeerOptions = {
 export function createRealPeerCaseClient(options: RealPeerOptions): CaseClient {
   const base = options.baseUrl.replace(/\/$/, "");
   const fetchImpl = options.fetchImpl ?? fetch;
+  const authMode = options.authMode ?? "bearer";
 
   if (!base) {
     throw new PeerError(
@@ -40,10 +48,10 @@ export function createRealPeerCaseClient(options: RealPeerOptions): CaseClient {
       503,
     );
   }
-  if (!options.bearerToken) {
+  if (authMode === "bearer" && !options.bearerToken) {
     throw new PeerError(
       "UNAUTHORIZED",
-      "CASE_API_BEARER_TOKEN is required in real-peers mode",
+      "Session bearer or CASE_API_BEARER_TOKEN required for direct case-api calls",
       "cfg-missing-token",
       401,
     );
@@ -64,12 +72,15 @@ export function createRealPeerCaseClient(options: RealPeerOptions): CaseClient {
       response = await fetchImpl(`${base}${path}`, {
         method,
         headers: {
-          Authorization: `Bearer ${options.bearerToken}`,
+          ...(authMode === "bearer"
+            ? { Authorization: `Bearer ${options.bearerToken}` }
+            : {}),
           Accept: "application/json",
           "X-Request-Id": requestId,
           ...(init?.body ? { "Content-Type": "application/json" } : {}),
           ...init?.headers,
         },
+        credentials: options.credentials,
         body: init?.body ? JSON.stringify(init.body) : undefined,
       });
     } catch (err) {

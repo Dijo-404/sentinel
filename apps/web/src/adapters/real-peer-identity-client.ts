@@ -428,6 +428,57 @@ export function createRealPeerIdentityClient(
       }
     },
 
+    async acceptInvitation(input) {
+      try {
+        const { json, requestId } = await request(
+          "POST",
+          "/v1/auth/accept-invitation",
+          {
+            body: {
+              token: input.token,
+              email: input.email,
+              password: input.password,
+              ...(input.display_name
+                ? { display_name: input.display_name }
+                : {}),
+            },
+            okStatuses: [201],
+          },
+        );
+        return mapAcceptInvitation(json, requestId);
+      } catch (err) {
+        if (err instanceof PeerError) {
+          if (
+            err.httpStatus === 401 ||
+            err.code === "UNAUTHORIZED" ||
+            err.httpStatus === 403 ||
+            err.code === "FORBIDDEN"
+          ) {
+            return {
+              ok: false as const,
+              code: err.code === "UNAUTHORIZED" ? "UNAUTHORIZED" : "FORBIDDEN",
+              message: err.message,
+            };
+          }
+          if (err.httpStatus === 409 || err.code === "CONFLICT") {
+            return {
+              ok: false as const,
+              code: "CONFLICT",
+              message: err.message,
+            };
+          }
+          if (err.httpStatus === 422 || err.code === "INVALID_INPUT") {
+            return {
+              ok: false as const,
+              code: "INVALID_INPUT",
+              message: err.message,
+            };
+          }
+        }
+        throw err;
+      }
+    },
+
     async assignableRoles() {
       return STAFF_ROLES.map((role_id) => ({
         role_id,
@@ -548,15 +599,72 @@ function mapMe(
     activeRaw as Record<string, unknown>,
     requestId,
   );
+  const peerExpires =
+    typeof body.expires_at === "string" ? body.expires_at : null;
   const session: SessionRecord = {
     session_id: sessionToken,
     user_id: user.user_id,
     active_assignment_id: assignment.assignment_id,
     issued_at: new Date().toISOString(),
-    expires_at: new Date(Date.now() + 8 * 3600_000).toISOString(),
+    expires_at:
+      peerExpires ?? new Date(Date.now() + 12 * 3600_000).toISOString(),
     revoked: false,
   };
   return { session, user, assignment };
+}
+
+function mapAcceptInvitation(
+  json: unknown,
+  requestId: string,
+):
+  | {
+      ok: true;
+      session: SessionRecord;
+      user: IdentityUser;
+      assignment: WorkspaceAssignment;
+    }
+  | { ok: false; code: string; message: string } {
+  if (!json || typeof json !== "object") {
+    throw new PeerError(
+      "MALFORMED_PEER_RESPONSE",
+      "Accept-invitation response is not an object",
+      requestId,
+    );
+  }
+  const body = json as Record<string, unknown>;
+  const token =
+    typeof body.session_token === "string" ? body.session_token : null;
+  const expiresAt =
+    typeof body.expires_at === "string" ? body.expires_at : null;
+  if (!token || !expiresAt) {
+    throw new PeerError(
+      "MALFORMED_PEER_RESPONSE",
+      "Accept-invitation missing session_token or expires_at",
+      requestId,
+    );
+  }
+  const user = mapPublicUser(body.user, requestId);
+  if (!body.assignment || typeof body.assignment !== "object") {
+    throw new PeerError(
+      "MALFORMED_PEER_RESPONSE",
+      "Accept-invitation missing assignment",
+      requestId,
+    );
+  }
+  const assignment = mapWorkspace(
+    body.assignment as Record<string, unknown>,
+    requestId,
+  );
+  user.assignments = [assignment];
+  const session: SessionRecord = {
+    session_id: token,
+    user_id: user.user_id,
+    active_assignment_id: assignment.assignment_id,
+    issued_at: new Date().toISOString(),
+    expires_at: expiresAt,
+    revoked: false,
+  };
+  return { ok: true, session, user, assignment };
 }
 
 function mapPublicUser(raw: unknown, requestId: string): IdentityUser {

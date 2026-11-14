@@ -43,9 +43,9 @@ describe("GET /v1/capabilities", () => {
 
   it("reflects real-peers mode from env", async () => {
     const prevMode = process.env.NEXT_PUBLIC_SHELL_MODE;
-    const prevToken = process.env.CASE_API_BEARER_TOKEN;
+    const prevBase = process.env.CASE_API_BASE_URL;
     process.env.NEXT_PUBLIC_SHELL_MODE = "real-peers";
-    process.env.CASE_API_BEARER_TOKEN = "tok-server";
+    process.env.CASE_API_BASE_URL = "http://127.0.0.1:8080";
     try {
       const body = await GET().json();
       expect(body.mode).toBe("real-peers");
@@ -57,10 +57,10 @@ describe("GET /v1/capabilities", () => {
       } else {
         process.env.NEXT_PUBLIC_SHELL_MODE = prevMode;
       }
-      if (prevToken === undefined) {
-        delete process.env.CASE_API_BEARER_TOKEN;
+      if (prevBase === undefined) {
+        delete process.env.CASE_API_BASE_URL;
       } else {
-        process.env.CASE_API_BEARER_TOKEN = prevToken;
+        process.env.CASE_API_BASE_URL = prevBase;
       }
     }
   });

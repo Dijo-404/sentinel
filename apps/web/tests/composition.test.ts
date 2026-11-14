@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loadShellConfig } from "@/adapters/composition";
+import { createShellRuntime, loadShellConfig } from "@/adapters/composition";
 import { PeerError } from "@/domain/types";
 
 describe("loadShellConfig bearer policy", () => {
@@ -11,16 +11,18 @@ describe("loadShellConfig bearer policy", () => {
     expect(config.bearerToken).toBe("tok-public");
   });
 
-  it("real-peers uses CASE_API_BEARER_TOKEN when set", () => {
+  it("real-peers does not embed process-wide CASE_API_BEARER_TOKEN in shell config", () => {
     const config = loadShellConfig({
       NEXT_PUBLIC_SHELL_MODE: "real-peers",
+      CASE_API_BASE_URL: "http://127.0.0.1:8080",
       CASE_API_BEARER_TOKEN: "tok-server",
       NEXT_PUBLIC_DEMO_TOKEN: "tok-public",
     });
-    expect(config.bearerToken).toBe("tok-server");
+    expect(config.bearerToken).toBeUndefined();
+    expect(config.caseApiBaseUrl).toBe("http://127.0.0.1:8080");
   });
 
-  it("real-peers refuses NEXT_PUBLIC_DEMO_TOKEN-only bearer", () => {
+  it("real-peers refuses NEXT_PUBLIC_DEMO_TOKEN without CASE_API_BASE_URL", () => {
     let caught: unknown;
     try {
       loadShellConfig({
@@ -32,15 +34,18 @@ describe("loadShellConfig bearer policy", () => {
     }
     expect(caught).toBeInstanceOf(PeerError);
     expect((caught as PeerError).code).toBe("INVALID_CONFIG");
-    expect((caught as PeerError).message).toMatch(/CASE_API_BEARER_TOKEN/);
+    expect((caught as PeerError).message).toMatch(/CASE_API_BASE_URL/);
     expect((caught as PeerError).message).toMatch(/NEXT_PUBLIC_/);
   });
 
-  it("real-peers refuses missing server token even without public token", () => {
-    expect(() =>
+  it("real-peers shell runtime uses BFF client (no shared bearer)", () => {
+    const runtime = createShellRuntime(
       loadShellConfig({
         NEXT_PUBLIC_SHELL_MODE: "real-peers",
+        CASE_API_BASE_URL: "http://127.0.0.1:8080",
       }),
-    ).toThrow(PeerError);
+    );
+    expect(runtime.config.bearerToken).toBeUndefined();
+    expect(runtime.config.mode).toBe("real-peers");
   });
 });

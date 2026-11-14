@@ -10,6 +10,9 @@ import { getIdentityClient } from "./identity-client";
 
 export const SESSION_COOKIE = "sentinel_session";
 
+/** Default cookie lifetime aligned with identity SESSION_TTL (~12h). */
+export const SESSION_COOKIE_MAX_AGE_SECONDS = 12 * 60 * 60;
+
 export type AuthSession = {
   session: SessionRecord;
   user: IdentityUser;
@@ -86,13 +89,27 @@ export async function readSessionId(): Promise<string | undefined> {
   return jar.get(SESSION_COOKIE)?.value;
 }
 
-export async function setSessionCookie(sessionId: string): Promise<void> {
+export function cookieMaxAgeSeconds(expiresAt?: string | null): number {
+  if (expiresAt) {
+    const ms = Date.parse(expiresAt) - Date.now();
+    if (Number.isFinite(ms) && ms > 0) {
+      return Math.floor(ms / 1000);
+    }
+  }
+  return SESSION_COOKIE_MAX_AGE_SECONDS;
+}
+
+export async function setSessionCookie(
+  sessionId: string,
+  expiresAt?: string | null,
+): Promise<void> {
   const jar = await cookies();
   jar.set(SESSION_COOKIE, sessionId, {
     httpOnly: true,
     sameSite: "lax",
     path: "/",
     secure: process.env.NODE_ENV === "production",
+    maxAge: cookieMaxAgeSeconds(expiresAt),
   });
 }
 
@@ -147,13 +164,17 @@ export async function loginWithCredentials(
     };
   }
 
-  const activated =
-    (await identity.selectAssignment(
-      result.session.session_id,
-      matched.assignment_id,
-    )) ?? result.session;
+  const activated = await identity.selectAssignment(
+    result.session.session_id,
+    matched.assignment_id,
+  );
+  if (!activated) {
+    await identity.logout(result.session.session_id);
+    await clearSessionCookie();
+    return { ok: false, code: "INVALID_CREDENTIALS", message: GENERIC_AUTH_FAILURE };
+  }
 
-  await setSessionCookie(activated.session_id);
+  await setSessionCookie(activated.session_id, activated.expires_at);
   return {
     ok: true,
     session: {
@@ -222,8 +243,62 @@ export async function registerCustomerAccount(input: {
       message: "Check name, email and password (min 8 characters).",
     };
   }
-  await setSessionCookie(result.session.session_id);
+  await setSessionCookie(result.session.session_id, result.session.expires_at);
   return { ok: true, redirectTo: portalPath("customer") };
+}
+
+export async function acceptInvitationAccount(input: {
+  token: string;
+  email: string;
+  password: string;
+  display_name?: string;
+}): Promise<
+  | { ok: true; redirectTo: string; role: PortalRole }
+  | { ok: false; code: string; message: string }
+> {
+  const token = input.token?.trim() ?? "";
+  const email = input.email?.trim() ?? "";
+  const password = input.password ?? "";
+  if (!token || !email || !password) {
+    return {
+      ok: false,
+      code: "INVALID_INPUT",
+      message: "Invitation token, email and password are required.",
+    };
+  }
+  if (password.length < 8) {
+    return {
+      ok: false,
+      code: "INVALID_INPUT",
+      message: "Check name, email and password (min 8 characters).",
+    };
+  }
+
+  const identity = getIdentityClient();
+  const result = await identity.acceptInvitation({
+    token,
+    email,
+    password,
+    display_name: input.display_name,
+  });
+  if (!result.ok) {
+    await clearSessionCookie();
+    return {
+      ok: false,
+      code: result.code,
+      message:
+        result.code === "INVALID_INPUT"
+          ? "Check name, email and password (min 8 characters)."
+          : GENERIC_AUTH_FAILURE,
+    };
+  }
+
+  await setSessionCookie(result.session.session_id, result.session.expires_at);
+  return {
+    ok: true,
+    redirectTo: portalPath(result.assignment.role),
+    role: result.assignment.role,
+  };
 }
 
 export async function logoutCurrentSession(): Promise<void> {
