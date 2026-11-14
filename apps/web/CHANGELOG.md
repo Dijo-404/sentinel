@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### Fixed — 15 November 2026 (dashboard QA pass, fixture mode, all seven demo logins)
+
+- Spacing: `.stack`/`.row` children drop UA block margins (grid/flex gaps no longer add ~50px under headings); panels and slot boxes trim first/last child margins. Timeline list keeps panel padding.
+- Ops dashboard: operator status chart is a bar chart (statuses overlap, so a donut total misread the open count); both charts share readable horizontal axis labels and the Sentinel tooltip. Queue status/link moved out of the KPI grid.
+- Decision workspace: operators see the proposal read-only with a "Supervisor decision required" notice; Approve/Reject render only for an active supervisor assignment (resolved server-side). Server still enforces.
+- Customer Report page hosts the intake form inside the portal shell; "Legacy intake" removed from customer nav (route kept).
+- Intake: trims message and order reference, blocks a blank order reference, clears the message after a case is accepted, shows language names; customer-facing copy.
+- Operator queue "Open evidence" stays in the portal (`/operator/cases/[caseId]/evidence`); case IDs URL-encoded.
+- Timeline shows local timestamps and plain polling copy.
+- Registration with an existing email shows a sign-up message (still non-enumerating) instead of the sign-in failure text; name field autocompletes.
+- 40 placeholder pages show user-facing "not connected yet" copy instead of developer scaffold text.
+- Mobile: KPI cards two-up at 390px; staff tables scroll inside their panel instead of widening the page; intake fields keep a gap when stacked; fixture banner wraps cleanly.
+
 ### Changed — 14 November 2026 (ops shared workspace)
 
 - Operator and supervisor portals share one nav (queue, approvals, escalations, messages, assistant, knowledge, activity, history, team, audit). Layouts accept either active assignment via `requireAnyRole`.

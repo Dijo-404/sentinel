@@ -5,9 +5,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Bar,
   BarChart,
-  Cell,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -23,6 +20,7 @@ import {
 } from "@/components/dashboards/operator-overview";
 import type { SupervisorDashboardKpis } from "@/components/dashboards/supervisor-overview";
 import { ChartCard } from "@/components/viz/chart-card";
+import { ChartTooltip } from "@/components/viz/chart-tooltip";
 import { FixtureBanner } from "@/components/viz/fixture-banner";
 import { StatBlock } from "@/components/viz/stat-block";
 import { TrendPill } from "@/components/viz/trend-pill";
@@ -47,7 +45,39 @@ type CombinedState =
       supervisor: PartialLoad<SupervisorDashboardKpis>;
     };
 
-const PIE_COLORS = ["#5266eb", "#9cb4e8", "#c3c3cc", "#edecfb", "#7a86c8"];
+/** Overlapping status counts (one case can be assigned and waiting), so bars, not a part-of-whole donut. */
+function CountBars({ data }: { data: { label: string; count: number }[] }) {
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+        <XAxis
+          dataKey="label"
+          tick={{ fill: "var(--ink-secondary)", fontSize: 12 }}
+          tickLine={false}
+          interval={0}
+        />
+        <YAxis
+          allowDecimals={false}
+          tick={{ fill: "var(--ink-secondary)", fontSize: 11 }}
+          tickLine={false}
+          axisLine={false}
+          width={28}
+        />
+        <Tooltip
+          cursor={{ fill: "rgba(82, 102, 235, 0.06)" }}
+          content={<ChartTooltip />}
+        />
+        <Bar
+          dataKey="count"
+          name="Cases"
+          fill="var(--periwinkle)"
+          radius={[4, 4, 0, 0]}
+          maxBarSize={72}
+        />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
 
 function peerDetail(err: unknown): string {
   if (err instanceof PeerError) return `${err.code}: ${err.message}`;
@@ -238,7 +268,7 @@ export function OpsCombinedOverview({
                   className="stack"
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(11rem, 1fr))",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(9.5rem, 1fr))",
                     gap: "0.85rem",
                   }}
                   data-testid="operator-kpi-row"
@@ -282,34 +312,18 @@ export function OpsCombinedOverview({
                 </div>
                 <ChartCard title="Case status (operator projection)">
                   <div
-                    style={{ width: "100%", height: 260 }}
+                    style={{ width: "100%", height: 220 }}
                     data-testid="operator-status-chart"
                   >
                     {chartReady ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={projectionStatusSlices(load.operator.data)}
-                            dataKey="value"
-                            nameKey="name"
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={55}
-                            outerRadius={90}
-                            paddingAngle={2}
-                          >
-                            {projectionStatusSlices(load.operator.data).map(
-                              (slice, i) => (
-                                <Cell
-                                  key={slice.name}
-                                  fill={PIE_COLORS[i % PIE_COLORS.length]}
-                                />
-                              ),
-                            )}
-                          </Pie>
-                          <Tooltip />
-                        </PieChart>
-                      </ResponsiveContainer>
+                      <CountBars
+                        data={projectionStatusSlices(load.operator.data).map(
+                          (slice) => ({
+                            label: slice.name,
+                            count: slice.value,
+                          }),
+                        )}
+                      />
                     ) : null}
                   </div>
                 </ChartCard>
@@ -338,9 +352,7 @@ export function OpsCombinedOverview({
                 <div className="kpi-row" data-testid="supervisor-kpi-row">
                   <StatBlock
                     label="Waiting approval"
-                    value={String(
-                      load.supervisor.data.waiting_approval_cases,
-                    )}
+                    value={String(load.supervisor.data.waiting_approval_cases)}
                     caption={
                       load.supervisor.source === "live"
                         ? "Scoped projection"
@@ -365,69 +377,39 @@ export function OpsCombinedOverview({
                         : "Fixture peer"
                     }
                   />
-                  <div
-                    className="stack"
-                    style={{ gap: "0.5rem", justifyContent: "center" }}
+                </div>
+                <div className="row">
+                  <TrendPill
+                    value={
+                      load.supervisor.data.waiting_approval_cases > 0
+                        ? "Queue active"
+                        : "Queue clear"
+                    }
+                    direction={
+                      load.supervisor.data.waiting_approval_cases > 0
+                        ? "up"
+                        : "flat"
+                    }
+                  />
+                  <p
+                    className="muted"
+                    data-testid="supervisor-projection-label"
                   >
-                    <TrendPill
-                      value={
-                        load.supervisor.data.waiting_approval_cases > 0
-                          ? "Queue active"
-                          : "Queue clear"
-                      }
-                      direction={
-                        load.supervisor.data.waiting_approval_cases > 0
-                          ? "up"
-                          : "flat"
-                      }
-                    />
-                    <p
-                      className="muted"
-                      data-testid="supervisor-projection-label"
-                    >
-                      {load.supervisor.data.label}
-                    </p>
-                    <Link
-                      href="/supervisor/approvals"
-                      data-testid="supervisor-open-approvals"
-                    >
-                      Open approvals
-                    </Link>
-                  </div>
+                    {load.supervisor.data.label}
+                  </p>
+                  <Link
+                    href="/supervisor/approvals"
+                    data-testid="supervisor-open-approvals"
+                  >
+                    Open approvals
+                  </Link>
                 </div>
                 <ChartCard title="Approval projection">
                   <div
                     style={{ width: "100%", height: 220 }}
                     data-testid="supervisor-projection-chart"
                   >
-                    {chartReady ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                          data={supervisorBars}
-                          margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
-                        >
-                          <XAxis
-                            dataKey="label"
-                            tick={{ fill: "var(--fog)", fontSize: 11 }}
-                            interval={0}
-                            angle={-20}
-                            textAnchor="end"
-                            height={60}
-                          />
-                          <YAxis
-                            allowDecimals={false}
-                            tick={{ fill: "var(--fog)", fontSize: 11 }}
-                            width={28}
-                          />
-                          <Tooltip />
-                          <Bar
-                            dataKey="count"
-                            fill="var(--periwinkle)"
-                            radius={[4, 4, 0, 0]}
-                          />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    ) : null}
+                    {chartReady ? <CountBars data={supervisorBars} /> : null}
                   </div>
                 </ChartCard>
               </>

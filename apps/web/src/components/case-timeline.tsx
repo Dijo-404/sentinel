@@ -196,7 +196,7 @@ export function CaseTimeline({
         · revision {caseRecord.revision} · intent {caseRecord.intent}
       </p>
       <p className="muted" data-testid="timeline-poll-hint">
-        Live updates every {POLL_MS / 1000}s via listEvents.
+        Updates automatically every {POLL_MS / 1000} seconds.
       </p>
       {events.length === 0 ? (
         <UiState
@@ -211,7 +211,9 @@ export function CaseTimeline({
               <div className="row">
                 <strong>{event.type}</strong>
                 <StatusChip label={labelCaseStatus(event.payload.status)} />
-                <span className="muted mono">{event.occurred_at}</span>
+                <time className="muted" dateTime={event.occurred_at}>
+                  {new Date(event.occurred_at).toLocaleString()}
+                </time>
               </div>
               <p className="muted" style={{ margin: "0.25rem 0 0" }}>
                 reason={event.payload.reason_code}

@@ -28,8 +28,8 @@ export function LocalVoiceSubstitute({ enabled, client, onTranscript }: Props) {
         data-slot="voice.v1-disabled"
         aria-labelledby="voice-slot-title"
       >
-        <h2 id="voice-slot-title">Voice slot</h2>
-        <p className="muted">Voice disabled by default (optional voice.v1).</p>
+        <h2 id="voice-slot-title">Voice input</h2>
+        <p className="muted">Voice input is disabled by default. Type your message below.</p>
       </section>
     );
   }

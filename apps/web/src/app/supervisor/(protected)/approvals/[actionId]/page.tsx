@@ -1,21 +1,17 @@
-"use client";
+import { requireAnyRole } from "@/lib/server/authorization";
+import { DecisionView } from "./decision-view";
 
-import { use } from "react";
-import { SupervisorDecisionWorkspace } from "@/components/approvals/supervisor-decision-workspace";
-import { useShell } from "@/adapters/shell-context";
-
-export default function SupervisorApprovalDetailPage({
+export default async function SupervisorApprovalDetailPage({
   params,
 }: {
   params: Promise<{ actionId: string }>;
 }) {
-  const { actionId } = use(params);
-  const { caseClient, config } = useShell();
+  const { actionId } = await params;
+  const session = await requireAnyRole(["operator", "supervisor"], "supervisor");
   return (
-    <SupervisorDecisionWorkspace
+    <DecisionView
       actionId={actionId}
-      caseClient={caseClient}
-      mode={config.mode}
+      canDecide={session.assignment.role === "supervisor"}
     />
   );
 }

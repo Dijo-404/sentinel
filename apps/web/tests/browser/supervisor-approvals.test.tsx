@@ -140,7 +140,9 @@ describe("supervisor approvals", () => {
       "PEER_UNAVAILABLE",
     );
     expect(screen.queryByTestId("approval-approve")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("approval-action-digest")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("approval-action-digest"),
+    ).not.toBeInTheDocument();
   });
 
   it("real-peers uses getAction digest and evidence expiry — not FIXTURE_DECISION_EXPIRES_AT", async () => {
@@ -166,5 +168,24 @@ describe("supervisor approvals", () => {
     expect(
       screen.getByTestId("approval-decision-expires-at"),
     ).not.toHaveTextContent(FIXTURE_DECISION_EXPIRES_AT);
+  });
+
+  it("operator view withholds decide controls", async () => {
+    const client = createCaseApiStub("valid");
+    const decide = vi.fn(client.decide.bind(client));
+    client.decide = decide;
+    render(
+      <SupervisorDecisionWorkspace
+        actionId="action-demo-1"
+        caseClient={client}
+        mode="fixture"
+        canDecide={false}
+      />,
+    );
+    expect(
+      await screen.findByText("Supervisor decision required"),
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId("approval-approve")).not.toBeInTheDocument();
+    expect(decide).not.toHaveBeenCalled();
   });
 });

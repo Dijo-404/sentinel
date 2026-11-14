@@ -28,7 +28,12 @@ export function CustomerRegisterForm() {
       <form action={formAction} className="stack" noValidate>
         <label>
           Full name
-          <input name="display_name" required data-testid="register-name" />
+          <input
+            name="display_name"
+            required
+            autoComplete="name"
+            data-testid="register-name"
+          />
         </label>
         <label>
           Email

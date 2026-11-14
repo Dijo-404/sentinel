@@ -235,10 +235,12 @@ export async function registerCustomerAccount(input: {
       };
     }
     if (result.code === "ALREADY_EXISTS") {
+      // Non-enumerating: do not confirm the email is registered.
       return {
         ok: false,
         code: result.code,
-        message: GENERIC_AUTH_FAILURE,
+        message:
+          "We couldn't create this account. If you already have one, sign in instead.",
       };
     }
     return {
