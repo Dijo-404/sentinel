@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed — 15 November 2026 (wave 2 verify operator token)
+
+- `verify_wave2` defaults to case-api fixture `token-operator` /
+  `token-supervisor` (not matrix `tok-operator`, absent from apps/api auth map).
+
 ### Added — 15 November 2026 (portal wave 2 verify)
 
 - `verify_wave2` + `scripts/verify_wave2.sh` / `make verify-wave2` /

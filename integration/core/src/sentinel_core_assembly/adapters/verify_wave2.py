@@ -11,8 +11,9 @@ from typing import Any, TypedDict
 DEFAULT_CASE_API_URL = "http://127.0.0.1:8080"
 DEFAULT_IDENTITY_URL = "http://127.0.0.1:8012"
 
-DEFAULT_OPERATOR_TOKEN = "tok-operator"
-DEFAULT_SUPERVISOR_TOKEN = "tok-supervisor"
+# apps/api fixtures/auth_tokens.json (not assembly matrix tok-operator).
+DEFAULT_OPERATOR_TOKEN = "token-operator"
+DEFAULT_SUPERVISOR_TOKEN = "token-supervisor"
 
 SEED_ESCALATED_CASE_ID = "case-seed-ops-escalated"
 SEED_HISTORY_CASE_ID = "case-seed-ops-history"
@@ -150,16 +151,10 @@ def verify_wave2(env: Mapping[str, str] | None = None) -> VerifyReport:
         or env.get("CORE_ASSEMBLY_IDENTITY_URL")
         or DEFAULT_IDENTITY_URL
     ).rstrip("/")
-    operator_token = (
-        env.get("VERIFY_OPERATOR_TOKEN")
-        or env.get("CORE_ASSEMBLY_TOKEN_OPERATOR")
-        or DEFAULT_OPERATOR_TOKEN
-    )
-    supervisor_token = (
-        env.get("VERIFY_SUPERVISOR_TOKEN")
-        or env.get("CORE_ASSEMBLY_TOKEN_SUPERVISOR")
-        or DEFAULT_SUPERVISOR_TOKEN
-    )
+    # Prefer VERIFY_*; do not fall back to CORE_ASSEMBLY_TOKEN_OPERATOR (matrix
+    # tok-operator) — case-api fixture map uses token-operator / token-supervisor.
+    operator_token = env.get("VERIFY_OPERATOR_TOKEN") or DEFAULT_OPERATOR_TOKEN
+    supervisor_token = env.get("VERIFY_SUPERVISOR_TOKEN") or DEFAULT_SUPERVISOR_TOKEN
     identity_token = (env.get("VERIFY_IDENTITY_TOKEN") or "").strip()
 
     checks: list[CheckResult] = []

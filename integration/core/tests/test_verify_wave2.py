@@ -5,6 +5,8 @@ from __future__ import annotations
 import pytest
 
 from sentinel_core_assembly.adapters.verify_wave2 import (
+    DEFAULT_OPERATOR_TOKEN,
+    DEFAULT_SUPERVISOR_TOKEN,
     SEED_ESCALATED_CASE_ID,
     SEED_HISTORY_CASE_ID,
     assert_audit_events_body,
@@ -14,6 +16,11 @@ from sentinel_core_assembly.adapters.verify_wave2 import (
     assert_ops_team_body,
     verify_wave2,
 )
+
+
+def test_defaults_match_case_api_fixture_tokens() -> None:
+    assert DEFAULT_OPERATOR_TOKEN == "token-operator"
+    assert DEFAULT_SUPERVISOR_TOKEN == "token-supervisor"
 
 
 def test_escalated_assert_rejects_empty() -> None:

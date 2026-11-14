@@ -87,8 +87,8 @@ Missing sandbox flag → `SANDBOX_FLAG_REQUIRED`. After seed + serve,
 (fails without seed). Case-api seed leaves `case-seed-ops-escalated` (`ESCALATED`)
 and `case-seed-ops-history` (`CLOSED_NO_ACTION`) for ops messages / audit / HISTORY.
 After case-api serve + seed, `make verify-wave2` / `./scripts/verify_wave2.sh`
-asserts those ops surfaces (matrix `tok-operator` / `tok-supervisor`); optional
-`VERIFY_IDENTITY_TOKEN` hits identity `GET /v1/ops/team`.
+asserts those ops surfaces (case-api fixtures `token-operator` / `token-supervisor`);
+optional `VERIFY_IDENTITY_TOKEN` hits identity `GET /v1/ops/team`.
 Compose DB names: see [compose/init-databases.sql](../compose/init-databases.sql).
 
 ## Path honesty

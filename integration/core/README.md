@@ -156,25 +156,25 @@ Asserts HTTP 200 + non-empty seeded JSON for:
 | audit-events | `GET /v1/ops/audit-events` | seed case event present |
 | team (optional) | `GET /v1/ops/team` | non-empty `members` when `VERIFY_IDENTITY_TOKEN` set |
 
-Bearers: matrix `tok-operator` / `tok-supervisor` (override `VERIFY_OPERATOR_TOKEN` / `VERIFY_SUPERVISOR_TOKEN`). Identity needs a supervisor **session** from login (`VERIFY_IDENTITY_TOKEN`), not a matrix `tok-*`. Web BFF/pages not required — script hits case-api (+ identity) directly.
+Bearers: case-api fixtures `token-operator` / `token-supervisor` (override `VERIFY_OPERATOR_TOKEN` / `VERIFY_SUPERVISOR_TOKEN`). Not assembly matrix `tok-operator` (absent from case-api auth map). Identity needs a supervisor **session** from login (`VERIFY_IDENTITY_TOKEN`), not a matrix `tok-*`. Web BFF/pages not required — script hits case-api (+ identity) directly.
 
 #### Curl checklist (wave 2)
 
 ```sh
 # escalations (expect cases[] containing case-seed-ops-escalated; empty = unseeded)
-curl -sS -H "Authorization: Bearer tok-operator" \
+curl -sS -H "Authorization: Bearer token-operator" \
   "http://127.0.0.1:8080/v1/ops/cases?status=ESCALATED"
 
 # history (expect case-seed-ops-history with CLOSED_NO_ACTION or VERIFIED_RESOLVED)
-curl -sS -H "Authorization: Bearer tok-supervisor" \
+curl -sS -H "Authorization: Bearer token-supervisor" \
   "http://127.0.0.1:8080/v1/ops/cases?status=HISTORY"
 
 # messages inbox (expect messages[] for seed cases; empty = unseeded)
-curl -sS -H "Authorization: Bearer tok-operator" \
+curl -sS -H "Authorization: Bearer token-operator" \
   "http://127.0.0.1:8080/v1/ops/messages"
 
 # audit events (expect events[] for seed cases; empty = unseeded)
-curl -sS -H "Authorization: Bearer tok-supervisor" \
+curl -sS -H "Authorization: Bearer token-supervisor" \
   "http://127.0.0.1:8080/v1/ops/audit-events"
 
 # optional team (supervisor session token from identity login)
