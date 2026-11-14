@@ -5,6 +5,55 @@ import { FixtureBanner } from "@/components/viz/fixture-banner";
 import { TrendPill } from "@/components/viz/trend-pill";
 import { ChartCard } from "@/components/viz/chart-card";
 import { fixtureSeries } from "@/components/viz/fixture-series";
+import { usdCompact } from "@/components/viz/format";
+import { Bars3D } from "@/components/viz/bars-3d";
+
+describe("chart labelling", () => {
+  it("dateLabels ends on the fixed simulator day and crosses months", () => {
+    expect(fixtureSeries.dateLabels(14)).toEqual([
+      "Oct 31",
+      "Nov 1",
+      "Nov 2",
+      "Nov 3",
+      "Nov 4",
+      "Nov 5",
+      "Nov 6",
+      "Nov 7",
+      "Nov 8",
+      "Nov 9",
+      "Nov 10",
+      "Nov 11",
+      "Nov 12",
+      "Nov 13",
+    ]);
+  });
+
+  it("usdCompact shortens money for axes", () => {
+    expect(usdCompact(842.4)).toBe("$842");
+    expect(usdCompact(8800)).toBe("$8.8k");
+    expect(usdCompact(1_250_000)).toBe("$1.3M");
+    expect(usdCompact(0)).toBe("$0");
+  });
+
+  it("Bars3D without WebGL shows every value and a labelled axis button per bar", () => {
+    render(
+      <Bars3D
+        bars={[
+          { label: "Mon", value: 40 },
+          { label: "Tue", value: 45 },
+        ]}
+        unit="cases"
+      />,
+    );
+    expect(screen.getByText("85")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Mon: 40 cases" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Tue: 45 cases" }),
+    ).toBeInTheDocument();
+  });
+});
 
 describe("viz primitives", () => {
   it("renders StatBlock + FixtureBanner with simulator copy", () => {

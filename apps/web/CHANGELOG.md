@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### Changed — 14 November 2026 (premium UI)
+
+- WebGL: adds `three@0.186.1`, `@react-three/fiber@9.8.1` and `@types/three@0.186.0` (exact pins). Scenes load with `next/dynamic` (`ssr: false`), pause when off-screen, and fall back without WebGL (`useWebGL`).
+- Landing rebuilt on the Mercury tokens: centred word-reveal headline over a WebGL horizon planet (fresnel rim, four stage orbits with case lights, starfield, pointer parallax) driven by stage chips; a simulated merchant dashboard that straightens on scroll; count-up facts; analytics with WebGL 3D bars, SLA gauge and 30-day trend; a scroll-pinned four-stage walkthrough; guardrails; role switcher with live tiles; and a pointer-lit footer wordmark. Framer Motion throughout under `MotionConfig reducedMotion="user"`.
+- Brand mark: the owner-supplied cube logo redrawn as vector `public/brand/sentinel-mark.svg` plus a light-on-dark `sentinel-mark-inverse.svg`; used by `LogoMark` in the landing nav, footer and sidebar, by `.brand::before` on auth and legacy pages, and as the favicon.
+- Site-wide custom arrow cursor (`components/cursor.tsx`, mounted in the root layout) for fine pointers only; text fields keep the I-beam and touch devices keep the native cursor. While a select picker, modal or popover is open (browser top layer, above any z-index) the native pointer takes over so the cursor never hides behind it.
+- New viz primitives in `components/viz`: `Sparkline`, `Donut` (interactive legend), `Heatmap`, `RadialGauge`, `PipelineFunnel`, `Bars3D` (WebGL bars with a projected value label per bar and focusable axis buttons; flat fallback), `AreaTrend` (`yFormat`), `ChartTooltip`, `Legend`, `format.ts` (`usdCompact`). `fixtureSeries.dateLabels` gives fixed calendar axis labels. `StatBlock` takes optional `series`/`trend`; `TrendPill` colours by meaning (`tone`); `ChartCard` takes `subtitle`, `aside`, `testId`.
+- Data display: fixture volume charts are in dollars per day and sum to the KPI they sit beside; axes show dates and compact currency.
+- Dashboards rebuilt with `DashboardHeader`: merchant (KPI sparklines, area trend, reasons donut, 3D weekday bars, arrival heatmap, exceptions table), operator (status donut, work-the-queue steps; sparklines only in fixture mode), supervisor (pipeline funnel, grouped donut), and customer/risk/admin `PortalDashboard` with fixture KPIs, trend and gauge. Fixture banner and real-peer error paths unchanged.
+- Sidebar: stroke icons per nav item, animated active pill; brand, nav and account share one inset; the account (email only) sits at the bottom above Sign out for every workspace.
+- Forms: every single-line input and select is 44px tall with a custom chevron inset to the text padding. Where `appearance: base-select` is supported, selects open a styled, animated picker (rounded panel, hover tint, checkmark on the chosen option, chevron flips when open) in light and night variants; other browsers keep the native popup. Short portal pages no longer stretch grid rows to the viewport height.
+- Evidence: `make -C apps/web check` 13 files / 81 tests passed; `next build` passed; root `make check` passed with `apps/web/node_modules` and `.next` moved aside (the root validator scans installed package READMEs). Fixture mode only; visual check in Chromium at 1440px and 375px.
+
 ### Changed — 14 November 2026
 
 - Mercury shell rebuild: night marketing landing at `/`, shared `/login` with workspace select, role `/<role>/login` redirects to `/login?portal=…`, night `AppSidebar`/`ProtectedShell` for all portals, and rich fixture viz on merchant/operator/supervisor dashboards (Refs SN-012).

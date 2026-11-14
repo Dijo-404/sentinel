@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { motion } from "framer-motion";
+import { LogoMark } from "@/components/brand/logo-mark";
+import { NavIcon } from "./nav-icon";
 import type { PortalRole } from "../../../tests/stubs/identity";
 import type { AuthSession } from "@/lib/server/auth";
 import { logoutAction } from "@/lib/server/auth-actions";
-import { PORTAL_META } from "@/lib/permissions";
 import type { NavItem } from "@/components/layout/protected-shell";
 
 type Props = {
@@ -29,7 +31,6 @@ function longestMatchingHref(pathname: string, nav: NavItem[]): string | null {
 
 export function AppSidebar({ role, session, nav }: Props) {
   const pathname = usePathname();
-  const meta = PORTAL_META[role];
   const [open, setOpen] = useState(false);
   const activeHref = longestMatchingHref(pathname, nav);
 
@@ -43,9 +44,21 @@ export function AppSidebar({ role, session, nav }: Props) {
           aria-controls="app-sidebar-nav"
           onClick={() => setOpen((v) => !v)}
         >
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <path
+              d="M4 7h16M4 12h16M4 17h16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+            />
+          </svg>
           Menu
         </button>
-        <span className="app-sidebar__mobile-brand">Sentinel</span>
+        <span className="app-sidebar__mobile-brand">
+          <LogoMark inverse size={22} />
+          Sentinel
+        </span>
       </div>
       {open ? (
         <button
@@ -61,14 +74,9 @@ export function AppSidebar({ role, session, nav }: Props) {
       >
         <div className="app-sidebar__brand">
           <Link href="/" className="landing-wordmark">
+            <LogoMark inverse size={28} />
             Sentinel
           </Link>
-          <p className="app-sidebar__role">
-            {meta.title}
-            <span className="app-sidebar__user">
-              {session.user.display_name}
-            </span>
-          </p>
         </div>
         <nav className="app-sidebar__nav" aria-label={`${role} navigation`}>
           {nav.map((item) => {
@@ -81,16 +89,38 @@ export function AppSidebar({ role, session, nav }: Props) {
                 className={active ? "is-active" : undefined}
                 onClick={() => setOpen(false)}
               >
-                {item.label}
+                {active ? (
+                  <motion.span
+                    layoutId="sidebar-active"
+                    className="app-sidebar__active"
+                    transition={{ type: "spring", stiffness: 420, damping: 36 }}
+                  />
+                ) : null}
+                <NavIcon label={item.label} />
+                <span className="app-sidebar__label">{item.label}</span>
               </Link>
             );
           })}
         </nav>
-        <form action={logoutAction} className="app-sidebar__logout">
-          <button type="submit" className="btn btn-glass" data-testid="logout">
-            Sign out
-          </button>
-        </form>
+        <div className="app-sidebar__account">
+          <div className="app-sidebar__identity">
+            <span className="app-sidebar__avatar" aria-hidden="true">
+              {session.user.email.slice(0, 1).toUpperCase()}
+            </span>
+            <span className="app-sidebar__email" title={session.user.email}>
+              {session.user.email}
+            </span>
+          </div>
+          <form action={logoutAction} className="app-sidebar__logout">
+            <button
+              type="submit"
+              className="btn btn-glass"
+              data-testid="logout"
+            >
+              Sign out
+            </button>
+          </form>
+        </div>
       </aside>
     </>
   );

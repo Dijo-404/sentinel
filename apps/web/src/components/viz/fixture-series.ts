@@ -37,8 +37,35 @@ export function volumeVsRefunds(days = 14): {
   };
 }
 
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+/** Fixed simulator "today", so server and client render identical axis labels. */
+export const FIXTURE_TODAY = Date.UTC(2026, 10, 13);
+
+/** Calendar labels ("Nov 3") for the `days` days ending at FIXTURE_TODAY. */
+export function dateLabels(days: number, end = FIXTURE_TODAY): string[] {
+  return Array.from({ length: days }, (_, i) => {
+    const d = new Date(end - (days - 1 - i) * 86_400_000);
+    return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}`;
+  });
+}
+
 export const fixtureSeries = {
   dailySeries,
   labeledSeries,
   volumeVsRefunds,
+  dateLabels,
 };
