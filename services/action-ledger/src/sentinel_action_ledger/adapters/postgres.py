@@ -12,6 +12,7 @@ from sqlalchemy import Engine, text
 from sqlalchemy.engine import Connection
 
 from sentinel_action_ledger.application.ports import StoredAction
+from sentinel_action_ledger.domain.errors import ConflictError
 from sentinel_action_ledger.domain.money import PaymentBalance
 from sentinel_action_ledger.domain.types import ActionRecord, Approval, Command, EligibilitySnapshot
 
@@ -277,7 +278,10 @@ class PostgresUnitOfWork:
             },
         )
         if result.rowcount != 1:
-            raise RuntimeError("Payment balance update rejected by invariant check")
+            raise ConflictError(
+                "Payment balance update rejected by invariant check",
+                code="PAYMENT_BALANCE_CONFLICT",
+            )
 
     def get_eligibility(self, tenant_id: str, transaction_ref: str) -> EligibilitySnapshot | None:
         row = (
@@ -374,18 +378,19 @@ class PostgresUnitOfWork:
         now: str,
         new_lease_id: Callable[[], str],
     ) -> list[Command]:
-        picked = (
+        # Peek only — do not FOR UPDATE outbox yet. outcome() locks actions then
+        # outbox; holding outbox while waiting on actions deadlocks.
+        candidates = (
             self.connection.execute(
                 text(
                     """
-                    SELECT id FROM outbox
+                    SELECT id, action_id FROM outbox
                     WHERE tenant_id = :tenant
                       AND (
                         (status = 'PENDING' AND available_at <= :now)
                         OR (status = 'CLAIMED' AND lease_expires_at <= :now)
                       )
-                    ORDER BY available_at
-                    FOR UPDATE SKIP LOCKED
+                    ORDER BY available_at, id
                     LIMIT :limit
                     """
                 ),
@@ -395,7 +400,15 @@ class PostgresUnitOfWork:
             .all()
         )
         commands: list[Command] = []
-        for row in picked:
+        for row in candidates:
+            # Lock action before claiming outbox (same order as outcome()).
+            self.connection.execute(
+                text(
+                    "SELECT action_id FROM actions WHERE tenant_id = :tenant "
+                    "AND action_id = :aid FOR UPDATE"
+                ),
+                {"tenant": tenant_id, "aid": row.action_id},
+            )
             lease_id = new_lease_id()
             updated = (
                 self.connection.execute(
@@ -407,6 +420,10 @@ class PostgresUnitOfWork:
                             lease_expires_at = :lease_expires_at,
                             attempts = attempts + 1
                         WHERE id = :id
+                          AND (
+                            (status = 'PENDING' AND available_at <= :now)
+                            OR (status = 'CLAIMED' AND lease_expires_at <= :now)
+                          )
                         RETURNING action_id, payload, lease_id, lease_expires_at
                         """
                     ),
@@ -414,11 +431,14 @@ class PostgresUnitOfWork:
                         "id": row.id,
                         "lease_id": lease_id,
                         "lease_expires_at": lease_expires_at,
+                        "now": now,
                     },
                 )
                 .mappings()
-                .one()
+                .first()
             )
+            if updated is None:
+                continue
             payload = (
                 updated.payload
                 if isinstance(updated.payload, dict)

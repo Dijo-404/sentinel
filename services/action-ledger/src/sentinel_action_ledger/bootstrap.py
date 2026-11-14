@@ -27,9 +27,11 @@ def build_app(
     clock=None,
     mode: str | None = None,
     lease_seconds: int | None = None,
+    network: ReservationNetworkGuard | None = None,
 ):
     resolved_mode = mode or os.environ.get("LEDGER_MODE", "fixture")
-    guard = ReservationNetworkGuard()
+    # Singleton object is fine: guard state is contextvars (request/task local).
+    guard = network or ReservationNetworkGuard()
     if engine is None:
         database_url = os.environ.get("DATABASE_URL")
         if not database_url:

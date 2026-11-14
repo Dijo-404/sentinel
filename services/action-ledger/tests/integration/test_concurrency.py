@@ -107,3 +107,69 @@ def test_concurrent_reservations_never_overrun(app_client, tokens, engine, clock
             text("SELECT version FROM eligibility_snapshots WHERE transaction_ref = 'TXN-CONC'")
         ).scalar_one()
         assert elig_version == 3
+
+
+def test_concurrent_claim_and_outcome_no_deadlock(app_client, tokens):
+    """claim locks action before outbox; outcome does too — no AB-BA deadlock."""
+    from tests.conftest import auth_header
+
+    # Shared TXN-B matches fixture evidence (150000 capture); 6x20000 fits.
+    for i in range(6):
+        payload = _payload(20000, txn="TXN-B")
+        proposed, approval = propose_and_approve(
+            app_client,
+            tokens,
+            operation_key=f"lock-order-{i}",
+            payload=payload,
+        )
+        reserved = app_client.post(
+            "/v1/actions/reservations",
+            headers=auth_header(tokens["workflow"]),
+            json={
+                "operation_key": f"lock-order-{i}",
+                "payload": payload,
+                "action_digest": action_digest(payload),
+                "approval_id": approval["approval_id"],
+            },
+        )
+        assert reserved.status_code == 201, reserved.text
+        _ = proposed
+
+    def claim_once():
+        return app_client.post(
+            "/v1/actions/claims",
+            headers=auth_header(tokens["dispatcher"]),
+            json={"limit": 2},
+        )
+
+    claimed_leases: dict[str, str] = {}
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+        claim_results = list(pool.map(lambda _: claim_once(), range(4)))
+    for resp in claim_results:
+        assert resp.status_code == 200, resp.text
+        for cmd in resp.json()["commands"]:
+            claimed_leases[cmd["action_id"]] = cmd["lease_id"]
+
+    assert len(claimed_leases) >= 1
+
+    def outcome_one(item: tuple[str, str]):
+        action_id, lease_id = item
+        return app_client.post(
+            f"/v1/actions/{action_id}/outcomes",
+            headers=auth_header(tokens["dispatcher"]),
+            json={
+                "event_key": f"lock-pending-{action_id}",
+                "lease_id": lease_id,
+                "status": "PENDING",
+                "evidence": [],
+                "reason_code": "PROVIDER_ACCEPTED",
+            },
+        )
+
+    # Overlap reclaim attempts with outcomes — old lock order deadlocked here.
+    with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:
+        outcome_futs = [pool.submit(outcome_one, item) for item in list(claimed_leases.items())]
+        reclaim_futs = [pool.submit(claim_once) for _ in range(3)]
+        for fut in concurrent.futures.as_completed(outcome_futs + reclaim_futs):
+            resp = fut.result()
+            assert resp.status_code == 200, resp.text

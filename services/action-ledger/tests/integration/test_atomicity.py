@@ -130,3 +130,42 @@ def test_network_guard_trips_inside_tx():
             raise AssertionError("expected NETWORK_IN_TX")
         except ConflictError as exc:
             assert exc.code == "NETWORK_IN_TX"
+
+
+def test_payment_balance_reject_is_conflict(app_client, tokens, engine):
+    from tests.conftest import DEMO_DIGEST, DEMO_PAYLOAD
+
+    from sentinel_action_ledger.adapters.postgres import PostgresLedgerStore
+    from sentinel_action_ledger.domain.errors import ConflictError
+    from sentinel_action_ledger.domain.money import PaymentBalance
+
+    proposed, approval = propose_and_approve(app_client, tokens, operation_key="bal-conflict")
+    reserved = app_client.post(
+        "/v1/actions/reservations",
+        headers=auth_header(tokens["workflow"]),
+        json={
+            "operation_key": "bal-conflict",
+            "payload": DEMO_PAYLOAD,
+            "action_digest": DEMO_DIGEST,
+            "approval_id": approval["approval_id"],
+        },
+    )
+    assert reserved.status_code == 201, reserved.text
+
+    store = PostgresLedgerStore(engine)
+    with store.transaction() as uow:
+        try:
+            uow.write_payment_balance(
+                "tenant-demo",
+                DEMO_PAYLOAD["transaction_ref"],
+                PaymentBalance(
+                    captured_minor=150000,
+                    reserved_minor=200000,
+                    pending_minor=0,
+                    refunded_minor=0,
+                ),
+            )
+            raise AssertionError("expected PAYMENT_BALANCE_CONFLICT")
+        except ConflictError as exc:
+            assert exc.code == "PAYMENT_BALANCE_CONFLICT"
+    _ = proposed
