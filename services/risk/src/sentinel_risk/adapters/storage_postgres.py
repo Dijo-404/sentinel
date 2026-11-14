@@ -256,6 +256,44 @@ class PostgresRiskStore:
             rows = connection.execute(stmt).mappings().all()
         return tuple(_row_to_restriction(row) for row in rows)
 
+    def upsert_seed_bundle(
+        self,
+        investigation: Investigation,
+        restriction: RiskRestriction,
+        finding: Finding,
+    ) -> None:
+        """Idempotent sandbox write for make seed. Never sets financial_approval_granted."""
+        if restriction.financial_approval_granted:
+            raise ConflictError("Risk store refuses financial_approval_granted=true")
+        inv_row = _investigation_row(investigation)
+        rst_row = _restriction_row(restriction)
+        fnd_row = _finding_row(finding)
+        with self._engine.begin() as connection:
+            connection.execute(
+                pg_insert(self._investigations)
+                .values(**inv_row)
+                .on_conflict_do_update(
+                    index_elements=["investigation_id"],
+                    set_={k: inv_row[k] for k in inv_row if k != "investigation_id"},
+                )
+            )
+            connection.execute(
+                pg_insert(self._restrictions)
+                .values(**rst_row)
+                .on_conflict_do_update(
+                    index_elements=["restriction_id"],
+                    set_={k: rst_row[k] for k in rst_row if k != "restriction_id"},
+                )
+            )
+            connection.execute(
+                pg_insert(self._findings)
+                .values(**fnd_row)
+                .on_conflict_do_update(
+                    index_elements=["finding_id"],
+                    set_={k: fnd_row[k] for k in fnd_row if k != "finding_id"},
+                )
+            )
+
 
 def _as_list(value: Any) -> list[str]:
     if isinstance(value, list):

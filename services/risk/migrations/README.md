@@ -8,4 +8,6 @@ When `RISK_DATABASE_URL` is set, `PostgresRiskStore.migrate()` creates schema `r
 - `risk_findings`
 - `risk_restrictions`
 
-Fixture mode uses `MemoryRiskStore` and does not require PostgreSQL. Real-peers mode refuses the default memory store unless a durable store is injected.
+Fixture mode uses `MemoryRiskStore` unless `RISK_DATABASE_URL` is set (then Postgres). Real-peers mode refuses the default memory store unless a durable store is injected.
+
+`make seed` requires `RISK_DATABASE_URL` and upserts the sandbox bundle for `case-demo-42`.

@@ -2,10 +2,20 @@
 
 ## Unreleased
 
+### Added
+
+- `make seed` / `sentinel-risk seed` writes synthetic investigation, ACTIVE
+  restriction (`TXN-B`), and finding for `case-demo-42` when `RISK_DATABASE_URL`
+  is set (idempotent Postgres upsert; evidence label synthetic-sandbox).
+- Additive portal list GETs: `GET /v1/risk/restrictions`, `GET /v1/risk/findings`,
+  `GET /v1/risk/reports` (dashboard summary). Documented queue/holds/transactions/
+  analytics/reports/audit mapping in README.
+
 ### Changed
 
 - `GET /v1/risk/cases/{case_id}/blocks` accepts `workflow` service principals
   (in addition to `risk_officer`) so workflow can enforce holds fail-closed.
+- `.env.example` enables `RISK_DATABASE_URL` for seed + durable real-peers path.
 
 ### Fixed
 

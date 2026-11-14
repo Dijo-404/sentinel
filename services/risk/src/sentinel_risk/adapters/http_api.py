@@ -59,6 +59,15 @@ def create_app(services: AppServices) -> FastAPI:
         except RiskError as exc:
             return _error(exc, request_id)
 
+    @app.get("/v1/risk/reports")
+    def reports(request: Request) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            principal = services.authenticator.authenticate(request.headers.get("authorization"))
+            return JSONResponse(services.risk.reports(principal))
+        except RiskError as exc:
+            return _error(exc, request_id)
+
     @app.get("/v1/risk/investigations")
     def list_investigations(request: Request) -> JSONResponse:
         request_id = _request_id(request)
@@ -67,6 +76,38 @@ def create_app(services: AppServices) -> FastAPI:
             case_id = request.query_params.get("case_id")
             items = services.risk.list_investigations(principal, case_id=case_id)
             return JSONResponse({"investigations": [item.to_wire() for item in items]})
+        except RiskError as exc:
+            return _error(exc, request_id)
+
+    @app.get("/v1/risk/restrictions")
+    def list_restrictions(request: Request) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            principal = services.authenticator.authenticate(request.headers.get("authorization"))
+            blocks = _optional_bool(request.query_params.get("blocks_financial_actions"))
+            has_txn = _optional_bool(request.query_params.get("has_transaction_ref"))
+            items = services.risk.list_restrictions(
+                principal,
+                case_id=request.query_params.get("case_id"),
+                status=request.query_params.get("status"),
+                blocks_financial_actions=blocks,
+                has_transaction_ref=has_txn,
+            )
+            return JSONResponse({"restrictions": [item.to_wire() for item in items]})
+        except RiskError as exc:
+            return _error(exc, request_id)
+
+    @app.get("/v1/risk/findings")
+    def list_findings(request: Request) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            principal = services.authenticator.authenticate(request.headers.get("authorization"))
+            items = services.risk.list_findings(
+                principal,
+                investigation_id=request.query_params.get("investigation_id"),
+                case_id=request.query_params.get("case_id"),
+            )
+            return JSONResponse({"findings": [item.to_wire() for item in items]})
         except RiskError as exc:
             return _error(exc, request_id)
 
@@ -233,6 +274,17 @@ def create_app(services: AppServices) -> FastAPI:
 
 def _request_id(request: Request) -> str:
     return request.headers.get("x-request-id") or f"request-{uuid.uuid4().hex[:12]}"
+
+
+def _optional_bool(raw: str | None) -> bool | None:
+    if raw is None or raw == "":
+        return None
+    lowered = raw.strip().lower()
+    if lowered in {"1", "true", "yes"}:
+        return True
+    if lowered in {"0", "false", "no"}:
+        return False
+    raise ValidationError(f"Invalid boolean query value: {raw}")
 
 
 def _error(exc: RiskError, request_id: str) -> JSONResponse:

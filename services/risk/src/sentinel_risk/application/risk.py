@@ -154,6 +154,66 @@ class RiskService:
             investigations=investigations,
         )
 
+    def reports(self, principal: Principal) -> dict:
+        """Portal reports page: same aggregates as dashboard, labeled as a summary report."""
+        view = self.dashboard(principal)
+        wire = view.to_wire()
+        wire["report_kind"] = "summary"
+        return wire
+
+    def list_restrictions(
+        self,
+        principal: Principal,
+        *,
+        case_id: str | None = None,
+        status: str | None = None,
+        blocks_financial_actions: bool | None = None,
+        has_transaction_ref: bool | None = None,
+    ) -> tuple[RiskRestriction, ...]:
+        self._require_risk_officer(principal)
+        items = self._store.list_restrictions(tenant_id=principal.tenant_id, case_id=case_id)
+        results: list[RiskRestriction] = []
+        for item in items:
+            if not principal.allows_case(item.case_id):
+                continue
+            if status is not None and item.status != status:
+                continue
+            if (
+                blocks_financial_actions is not None
+                and item.blocks_financial_actions != blocks_financial_actions
+            ):
+                continue
+            if has_transaction_ref is True and not item.transaction_ref:
+                continue
+            if has_transaction_ref is False and item.transaction_ref:
+                continue
+            results.append(item)
+        return tuple(sorted(results, key=lambda r: r.created_at, reverse=True))
+
+    def list_findings(
+        self,
+        principal: Principal,
+        *,
+        investigation_id: str | None = None,
+        case_id: str | None = None,
+    ) -> tuple[Finding, ...]:
+        self._require_risk_officer(principal)
+        if investigation_id is not None:
+            investigation = self._require_investigation(investigation_id)
+            self._authorize(
+                principal,
+                investigation.tenant_id,
+                investigation.case_id,
+                investigation.queue_ref,
+            )
+            return self._store.list_findings(investigation_id)
+
+        investigations = self.list_investigations(principal, case_id=case_id)
+        findings: list[Finding] = []
+        for investigation in investigations:
+            findings.extend(self._store.list_findings(investigation.investigation_id))
+        return tuple(sorted(findings, key=lambda f: f.recorded_at, reverse=True))
+
     def record_finding(
         self,
         principal: Principal,

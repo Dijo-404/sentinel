@@ -32,9 +32,41 @@
     },
     {
       "method": "GET",
+      "path": "/v1/risk/reports",
+      "response": "DashboardView+report_kind",
+      "roles": ["risk_officer"],
+      "notes": "Portal reports read model; same aggregates as dashboard with report_kind=summary"
+    },
+    {
+      "method": "GET",
       "path": "/v1/risk/investigations",
       "response": {"investigations": ["Investigation"]},
-      "roles": ["risk_officer"]
+      "roles": ["risk_officer"],
+      "notes": "Portal risk queue"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/risk/restrictions",
+      "query": {
+        "case_id?": "string",
+        "status?": "ACTIVE|CLEARED|MAINTAINED",
+        "blocks_financial_actions?": "bool",
+        "has_transaction_ref?": "bool"
+      },
+      "response": {"restrictions": ["RiskRestriction"]},
+      "roles": ["risk_officer"],
+      "notes": "Portal holds (blocks_financial_actions=true) and transactions (has_transaction_ref=true)"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/risk/findings",
+      "query": {
+        "investigation_id?": "string",
+        "case_id?": "string"
+      },
+      "response": {"findings": ["Finding"]},
+      "roles": ["risk_officer"],
+      "notes": "Portal audit trail of structured findings"
     },
     {
       "method": "POST",
