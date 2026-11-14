@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import threading
+
 from ..application.errors import ConflictError
 from ..domain.types import Finding, Investigation, RiskRestriction
 
 
 class MemoryRiskStore:
     def __init__(self) -> None:
+        self._lock = threading.Lock()
         self._investigations: dict[str, Investigation] = {}
         self._findings: dict[str, Finding] = {}
         self._restrictions: dict[str, RiskRestriction] = {}
@@ -67,13 +70,31 @@ class MemoryRiskStore:
         return self._restrictions.get(restriction_id)
 
     def save_restriction(self, restriction: RiskRestriction) -> RiskRestriction:
-        if restriction.restriction_id not in self._restrictions:
-            raise ConflictError("Unknown restriction")
-        # Hard invariant: never persist a money approval from risk.
-        if restriction.financial_approval_granted:
-            raise ConflictError("Risk store refuses financial_approval_granted=true")
-        self._restrictions[restriction.restriction_id] = restriction
-        return restriction
+        with self._lock:
+            if restriction.restriction_id not in self._restrictions:
+                raise ConflictError("Unknown restriction")
+            # Hard invariant: never persist a money approval from risk.
+            if restriction.financial_approval_granted:
+                raise ConflictError("Risk store refuses financial_approval_granted=true")
+            self._restrictions[restriction.restriction_id] = restriction
+            return restriction
+
+    def compare_and_swap_restriction(
+        self,
+        restriction: RiskRestriction,
+        *,
+        expected_revision: int,
+    ) -> RiskRestriction:
+        with self._lock:
+            current = self._restrictions.get(restriction.restriction_id)
+            if current is None:
+                raise ConflictError("Unknown restriction")
+            if current.revision != expected_revision:
+                raise ConflictError("Restriction revision mismatch")
+            if restriction.financial_approval_granted:
+                raise ConflictError("Risk store refuses financial_approval_granted=true")
+            self._restrictions[restriction.restriction_id] = restriction
+            return restriction
 
     def list_restrictions(
         self,

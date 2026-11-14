@@ -83,13 +83,18 @@ def test_workflow_unavailable_on_clear_keeps_block_and_is_retryable(service, sto
         service.decide_restriction(
             RISK_OFFICER,
             restriction_id,
-            RestrictionDecisionRequest(decision="CLEAR", reason="ok"),
+            RestrictionDecisionRequest(
+                decision="CLEAR",
+                reason="ok",
+                expected_revision=1,
+            ),
         )
 
     stuck = store.get_restriction(restriction_id)
     assert stuck is not None
     assert stuck.status != "CLEARED"
     assert stuck.blocks_financial_actions is True
+    assert stuck.revision == 2  # CAS claim consumed revision 1
     assert service.case_blocks_financial_actions(RISK_OFFICER, "case-demo-42") is True
 
     recovered = FixtureWorkflow(behavior="valid")
@@ -97,7 +102,11 @@ def test_workflow_unavailable_on_clear_keeps_block_and_is_retryable(service, sto
     cleared = service.decide_restriction(
         RISK_OFFICER,
         restriction_id,
-        RestrictionDecisionRequest(decision="CLEAR", reason="ok"),
+        RestrictionDecisionRequest(
+            decision="CLEAR",
+            reason="ok",
+            expected_revision=2,
+        ),
     )
     assert cleared.status == "CLEARED"
     assert cleared.blocks_financial_actions is False

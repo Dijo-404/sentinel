@@ -52,11 +52,11 @@ def assert_can_decide(
     restriction: RiskRestriction,
     investigation: Investigation,
     *,
-    expected_revision: int | None,
+    expected_revision: int,
 ) -> None:
     if investigation.investigation_id != restriction.investigation_id:
         raise ValueError("Restriction does not belong to investigation")
-    if expected_revision is not None and restriction.revision != expected_revision:
+    if restriction.revision != expected_revision:
         raise ValueError("Restriction revision mismatch")
     if restriction.status == "CLEARED":
         raise ValueError("Restriction already cleared")

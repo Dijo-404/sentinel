@@ -221,6 +221,25 @@ class PostgresRiskStore:
                 raise ConflictError("Unknown restriction")
         return restriction
 
+    def compare_and_swap_restriction(
+        self,
+        restriction: RiskRestriction,
+        *,
+        expected_revision: int,
+    ) -> RiskRestriction:
+        if restriction.financial_approval_granted:
+            raise ConflictError("Risk store refuses financial_approval_granted=true")
+        with self._engine.begin() as connection:
+            result = connection.execute(
+                self._restrictions.update()
+                .where(self._restrictions.c.restriction_id == restriction.restriction_id)
+                .where(self._restrictions.c.revision == expected_revision)
+                .values(**_restriction_row(restriction))
+            )
+            if result.rowcount == 0:
+                raise ConflictError("Restriction revision mismatch")
+        return restriction
+
     def list_restrictions(
         self,
         *,

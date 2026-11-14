@@ -42,7 +42,7 @@ make -C services/risk preview
 | POST | `/v1/risk/investigations` | risk_officer | create + active restriction |
 | GET | `/v1/risk/investigations/{id}` | risk_officer | get |
 | POST | `/v1/risk/investigations/{id}/findings` | risk_officer | versioned finding |
-| POST | `/v1/risk/restrictions/{id}/decision` | risk_officer | CLEAR/MAINTAIN/CONFIRM_FRAUD |
+| POST | `/v1/risk/restrictions/{id}/decision` | risk_officer | CLEAR/MAINTAIN/CONFIRM_FRAUD; requires `expected_revision` (CAS) |
 | GET | `/v1/risk/cases/{case_id}/blocks` | risk_officer | blocks flag |
 | POST | `/v1/ops/actions/{id}/decisions` | any authed | always deny (AUTH-21) |
 | POST | `/v1/ledger/approvals` | any authed | always deny (AUTH-21) |

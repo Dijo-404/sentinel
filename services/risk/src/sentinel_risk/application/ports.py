@@ -57,6 +57,13 @@ class RiskStore(Protocol):
 
     def save_restriction(self, restriction: RiskRestriction) -> RiskRestriction: ...
 
+    def compare_and_swap_restriction(
+        self,
+        restriction: RiskRestriction,
+        *,
+        expected_revision: int,
+    ) -> RiskRestriction: ...
+
     def list_restrictions(
         self,
         *,

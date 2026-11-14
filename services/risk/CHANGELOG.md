@@ -4,6 +4,10 @@
 
 ### Fixed
 
+- Restriction decisions require `expected_revision`; store compare-and-swap
+  claims the revision before CLEAR resume emit so concurrent CLEAR cannot
+  double-emit. Stale revision returns conflict. Emit failure leaves the block
+  active (claimed revision) and CLEAR retryable with the new revision.
 - CLEAR persists unblocked restriction only after successful workflow resume emit;
   emit failure leaves the block active and CLEAR retryable.
 - Ledger approval deny surfaces return `LEDGER_APPROVAL_FORBIDDEN` for any

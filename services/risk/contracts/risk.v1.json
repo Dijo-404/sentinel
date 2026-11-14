@@ -78,12 +78,12 @@
       "request": {
         "decision": "CLEAR|MAINTAIN|CONFIRM_FRAUD",
         "reason": "string",
-        "evidence_ids?": ["string"],
-        "expected_revision?": "int"
+        "expected_revision": "int",
+        "evidence_ids?": ["string"]
       },
       "response": "RiskRestriction",
       "roles": ["risk_officer"],
-      "notes": "CLEAR never sets financial_approval_granted; emits workflow resume only"
+      "notes": "CLEAR never sets financial_approval_granted; CAS expected_revision before resume emit; emits workflow resume only"
     },
     {
       "method": "GET",
@@ -113,6 +113,7 @@
   "invariants": [
     "Restriction clearance never grants financial approval or writes ledger state.",
     "ACTIVE/MAINTAINED restrictions set blocks_financial_actions=true.",
+    "Restriction decisions require expected_revision; stale revision conflicts before CLEAR resume emit.",
     "Real-peer mode rejects unavailable, malformed, unauthorized peers with no fixture fallback.",
     "risk_officer cannot assign roles or approve refunds."
   ]
