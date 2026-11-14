@@ -91,7 +91,9 @@ const PUBLIC_IDENTITY_SECRET_KEYS = [
   "NEXT_PUBLIC_SESSION_SECRET",
 ] as const;
 
-let cachedFixtureClient: IdentityClient | null = null;
+type IdentityClientGlobal = typeof globalThis & {
+  __sentinelFixtureIdentityClient?: IdentityClient;
+};
 
 function wrapFixtureStub(stub: StubIdentity): IdentityClient {
   return {
@@ -175,13 +177,17 @@ export function getIdentityClient(
     });
   }
 
-  if (!cachedFixtureClient) {
-    cachedFixtureClient = wrapFixtureStub(getSharedIdentityStub());
+  const g = globalThis as IdentityClientGlobal;
+  if (!g.__sentinelFixtureIdentityClient) {
+    g.__sentinelFixtureIdentityClient = wrapFixtureStub(
+      getSharedIdentityStub(),
+    );
   }
-  return cachedFixtureClient;
+  return g.__sentinelFixtureIdentityClient;
 }
 
 /** Test helper: drop cached fixture wrapper after stub reset. */
 export function resetIdentityClientCache(): void {
-  cachedFixtureClient = null;
+  const g = globalThis as IdentityClientGlobal;
+  g.__sentinelFixtureIdentityClient = undefined;
 }

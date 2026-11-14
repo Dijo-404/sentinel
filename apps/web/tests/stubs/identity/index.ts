@@ -592,13 +592,20 @@ export function createIdentityStub(): StubIdentity {
 }
 
 /** Process-wide fixture identity store (Next server + Vitest). */
-let sharedStub: StubIdentity | null = null;
+type IdentityGlobal = typeof globalThis & {
+  __sentinelIdentityStub?: StubIdentity;
+};
 
+/**
+ * Prefer `globalThis` so Next.js server-action and RSC bundles share one
+ * in-memory session map (module-local `let` can duplicate across chunks).
+ */
 export function getSharedIdentityStub(): StubIdentity {
-  if (!sharedStub) {
-    sharedStub = createIdentityStub();
+  const g = globalThis as IdentityGlobal;
+  if (!g.__sentinelIdentityStub) {
+    g.__sentinelIdentityStub = createIdentityStub();
   }
-  return sharedStub;
+  return g.__sentinelIdentityStub;
 }
 
 export function resetSharedIdentityStub(): void {
