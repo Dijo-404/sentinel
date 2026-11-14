@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import argparse
+import os
+import sys
 
 import uvicorn
 
@@ -17,6 +19,24 @@ def main(argv: list[str] | None = None) -> None:
 
     args = parser.parse_args(argv)
     if args.command == "serve":
+        from sentinel_merchant_refunds.adapters.auth import demo_principals
+        from sentinel_merchant_refunds.adapters.bind_safety import (
+            UnsafeBindError,
+            assert_loopback_or_non_demo,
+        )
+        from sentinel_merchant_refunds.bootstrap import DEMO_BEARER_TOKEN
+
+        tokens = list(demo_principals().keys())
+        tokens.append(
+            os.environ.get("MERCHANT_REFUNDS_PEER_BEARER_TOKEN")
+            or os.environ.get("MERCHANT_REFUNDS_BEARER_TOKEN")
+            or DEMO_BEARER_TOKEN
+        )
+        try:
+            assert_loopback_or_non_demo(args.host, tokens)
+        except UnsafeBindError as exc:
+            print(str(exc), file=sys.stderr)
+            raise SystemExit(2) from exc
         uvicorn.run(
             "sentinel_merchant_refunds.bootstrap:create_preview_app",
             factory=True,
