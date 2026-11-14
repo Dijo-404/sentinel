@@ -62,11 +62,17 @@ export function SupervisorApprovalsQueue({ caseClient, mode }: Props) {
   }
   if (permission) {
     return (
-      <UiState tone="permission" title="Permission denied" detail={permission} />
+      <UiState
+        tone="permission"
+        title="Permission denied"
+        detail={permission}
+      />
     );
   }
   if (error) {
-    return <UiState tone="error" title="Approvals unavailable" detail={error} />;
+    return (
+      <UiState tone="error" title="Approvals unavailable" detail={error} />
+    );
   }
 
   return (
@@ -132,7 +138,9 @@ export function SupervisorApprovalsQueue({ caseClient, mode }: Props) {
                         <span className="muted">No action</span>
                       )}
                       {" · "}
-                      <Link href={`/supervisor/cases/${encodeURIComponent(c.case_id)}`}>
+                      <Link
+                        href={`/supervisor/cases/${encodeURIComponent(c.case_id)}`}
+                      >
                         Case
                       </Link>
                     </td>

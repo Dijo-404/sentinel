@@ -1,16 +1,16 @@
-# SN-038 / SN-012 — Six role portals + web shell
+# SN-038 / SN-012 — Mercury web shell + six role portals
 
-**State:** portal scaffold + fixture identity auth UI; real-peers wires identity.v1 HTTP. Assembled product evidence is unverified. Money-path assembly is **not** claimed complete.
+**State:** Mercury landing + night portal shell; fixture identity auth UI; real-peers wires identity.v1 HTTP. Assembled product evidence is unverified. Money-path assembly is **not** claimed complete.
 
 **Owned root:** `apps/web/`  
-**Branch:** `feat/web-identity-real-peer`  
+**Branch:** `feat/sn-012-mercury-ui`  
 **Produces:** `web-shell.v1`  
 **Consumes:** `case-api.v1`, `approval-ui.v1`, optional `voice.v1`, `identity.v1` (real-peers) / identity doubles (fixture)  
 **Contract:** `sentinel.task-contracts.v1` · SHA-256 `0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb`
 
 ## Outcome
 
-Six role portal trees (customer, merchant, operator, supervisor, risk, admin) with shared `RoleLogin`, customer self-registration, protected layouts, and admin users/invite wired to a local identity stub. Legacy `/intake` and `/ops` routes remain. Financial authority stays on the server; the UI masks PII and payment identifiers.
+Mercury marketing landing at `/`, shared `/login` with workspace select, and six role portal trees (customer, merchant, operator, supervisor, risk, admin) behind a night sidebar shell (`AppSidebar` + `ProtectedShell`). Merchant, operator, and supervisor dashboards ship rich fixture viz (stat blocks, trend pills, chart cards). Customer self-registration and admin users/invite stay wired to the local identity stub. Role-specific `/<role>/login` routes redirect to `/login?portal=<role>`. Legacy `/intake` and `/ops` routes remain. Financial authority stays on the server; the UI masks PII and payment identifiers.
 
 ## Standalone setup
 
@@ -29,7 +29,7 @@ make -C apps/web preview
 # or: npm run dev
 ```
 
-Open `http://localhost:3012/` for portal entry.
+Open `http://localhost:3012/` for the Mercury landing. Use **Get started** / **Log in** → `http://localhost:3012/login` (workspace select + fixture demo credentials).
 
 ## Configuration
 
@@ -62,7 +62,10 @@ Real-peer failures are visible. Never put bearers, identity passwords, or sessio
 - `src/application/ports.ts` — CaseClient / slot ports
 - `src/adapters/` — fixture + real-peer clients, composition
 - `src/lib/server/` — session cookie helpers, authorization, auth actions
-- `src/components/auth|layout|identity|dashboards/` — shared portal UI
+- `src/components/marketing/` — Mercury landing + hero
+- `src/components/shell/` — night `AppSidebar`
+- `src/components/viz/` — shared fixture chart/stat primitives
+- `src/components/auth|layout|identity|dashboards/` — login, protected shell, portal overviews
 - `src/app/{customer,merchant,operator,supervisor,risk,admin}/` — portal trees
 - `src/slots/` — local approval-ui / voice substitutes
 - `tests/stubs/` — case-api, approval-ui, voice, **identity** doubles
@@ -71,15 +74,22 @@ Real-peer failures are visible. Never put bearers, identity passwords, or sessio
 
 | Route | Role |
 | --- | --- |
-| `/` | Portal entry |
-| `/customer/login` · `/customer/register` · `/customer/dashboard` | Customer |
-| `/merchant/login` · `/merchant/dashboard` | Merchant |
-| `/operator/login` · `/operator/dashboard` | Support Operator |
-| `/supervisor/login` · `/supervisor/dashboard` | Supervisor |
+| `/` | Mercury landing (night marketing) |
+| `/login` | Shared login + workspace select (`?portal=` preselect; `?next=` safe redirect) |
+| `/customer/login` → `/login?portal=customer` | Customer (redirect) |
+| `/merchant/login` → `/login?portal=merchant` | Merchant (redirect) |
+| `/operator/login` → `/login?portal=operator` | Support Operator (redirect) |
+| `/supervisor/login` → `/login?portal=supervisor` | Supervisor (redirect) |
+| `/risk/login` → `/login?portal=risk` | Risk Officer (redirect) |
+| `/admin/login` → `/login?portal=admin` | Platform Admin (redirect) |
+| `/customer/register` · `/customer/dashboard` | Customer register + protected shell |
+| `/merchant/dashboard` | Merchant overview (rich viz) |
+| `/operator/dashboard` · `/operator/queue` | Operator overview (rich viz) + queue |
+| `/supervisor/dashboard` | Supervisor overview (rich viz) |
 | `/supervisor/approvals` · `/supervisor/approvals/[actionId]` | Supervisor approval queue + exact decide UI (local substitute) |
 | `/supervisor/cases/[caseId]` | Supervisor case review with opt-in approval slot |
-| `/risk/login` · `/risk/dashboard` | Risk Officer |
-| `/admin/login` · `/admin/dashboard` | Platform Admin |
+| `/risk/dashboard` | Risk Officer |
+| `/admin/dashboard` | Platform Admin |
 | `/admin/users` · `/admin/users/invite` | Staff directory + invite (stub) |
 | `/auth/*` | Shared auth scaffolds (verify, MFA, invitation, …) |
 | `/unauthorized` | Role mismatch — authorized workspaces only |
@@ -89,7 +99,7 @@ Real-peer failures are visible. Never put bearers, identity passwords, or sessio
 | `/ops/cases/[caseId]/evidence` | Evidence only (no approve controls; operator-safe) |
 | `/v1/capabilities` | Assembly probe |
 
-Staff portals have **no** public sign-up. Customer registration rejects privileged fields (`roles`, `tenant_id`, `subject_refs`). Admin invite rejects `role_id=customer`.
+Staff portals have **no** public sign-up. Customer registration rejects privileged fields (`roles`, `tenant_id`, `subject_refs`). Admin invite rejects `role_id=customer`. Protected portals use the night sidebar shell; financial authority remains server-side.
 
 ## Assembly probe
 
@@ -113,7 +123,7 @@ Root `make check` validates repository metadata only.
 
 | Dimension | This module check |
 | --- | --- |
-| Component under test | Real web-shell + portal scaffold |
+| Component under test | Real web-shell + Mercury portal scaffold |
 | Case API peer | Local fixture stub (+ real-peer adapter unit doubles) |
 | Identity peer | Local fixture stub (+ real-peer HTTP adapter with fetch doubles) |
 | Approval UI / voice | Local substitutes |

@@ -1,9 +1,5 @@
-import { RoleLogin } from "@/components/auth/role-login";
+import { redirect } from "next/navigation";
 
 export default function OperatorLoginPage() {
-  return (
-    <div className="auth-page">
-      <RoleLogin role="operator" />
-    </div>
-  );
+  redirect("/login?portal=operator");
 }

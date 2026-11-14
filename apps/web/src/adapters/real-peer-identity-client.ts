@@ -9,7 +9,10 @@ import {
   ROLE_LABELS,
   STAFF_ROLES,
 } from "../../tests/stubs/identity";
-import type { IdentityClient, InviteStaffInput } from "@/lib/server/identity-client";
+import type {
+  IdentityClient,
+  InviteStaffInput,
+} from "@/lib/server/identity-client";
 import {
   identityRoleToPortal,
   staffInviteRoleToIdentity,
@@ -65,7 +68,9 @@ export function createRealPeerIdentityClient(
     } catch (err) {
       throw new PeerError(
         "PEER_UNAVAILABLE",
-        err instanceof Error ? err.message : "Network failure contacting identity",
+        err instanceof Error
+          ? err.message
+          : "Network failure contacting identity",
         requestId,
         503,
       );
@@ -89,7 +94,12 @@ export function createRealPeerIdentityClient(
     const okStatuses = init?.okStatuses ?? [200, 201];
     if (!okStatuses.includes(response.status)) {
       if (isApiError(json)) {
-        throw new PeerError(json.code, json.message, json.request_id, response.status);
+        throw new PeerError(
+          json.code,
+          json.message,
+          json.request_id,
+          response.status,
+        );
       }
       throw new PeerError(
         response.status === 401
@@ -124,7 +134,8 @@ export function createRealPeerIdentityClient(
           if (err.httpStatus === 403 || err.code === "FORBIDDEN") {
             const msg = err.message.toLowerCase();
             if (msg.includes("pending")) return { ok: false, code: "PENDING" };
-            if (msg.includes("suspend")) return { ok: false, code: "SUSPENDED" };
+            if (msg.includes("suspend"))
+              return { ok: false, code: "SUSPENDED" };
             return { ok: false, code: "INVALID_CREDENTIALS" };
           }
         }
@@ -149,9 +160,7 @@ export function createRealPeerIdentityClient(
               email: input.email,
               password: input.password,
               display_name: input.display_name,
-              ...(input.language
-                ? { preferred_language: input.language }
-                : {}),
+              ...(input.language ? { preferred_language: input.language } : {}),
             },
             okStatuses: [201],
           },
@@ -231,7 +240,10 @@ export function createRealPeerIdentityClient(
             requestId,
           );
         }
-        const assignment = mapWorkspace(active as Record<string, unknown>, requestId);
+        const assignment = mapWorkspace(
+          active as Record<string, unknown>,
+          requestId,
+        );
         return {
           session_id: token,
           user_id: "",
@@ -391,7 +403,10 @@ export function createRealPeerIdentityClient(
             requestId,
           );
         }
-        return { ok: true as const, invitation: mapInvitation(invitationRaw, requestId) };
+        return {
+          ok: true as const,
+          invitation: mapInvitation(invitationRaw, requestId),
+        };
       } catch (err) {
         if (err instanceof PeerError) {
           if (err.httpStatus === 403 || err.code === "FORBIDDEN") {
@@ -683,11 +698,10 @@ function mapPublicUser(raw: unknown, requestId: string): IdentityUser {
       requestId,
     );
   }
-  const statusRaw = typeof u.status === "string" ? u.status.toUpperCase() : "ACTIVE";
+  const statusRaw =
+    typeof u.status === "string" ? u.status.toUpperCase() : "ACTIVE";
   const account_status =
-    statusRaw === "SUSPENDED" || statusRaw === "PENDING"
-      ? statusRaw
-      : "ACTIVE";
+    statusRaw === "SUSPENDED" || statusRaw === "PENDING" ? statusRaw : "ACTIVE";
   const account_class =
     u.account_type === "staff" ? ("staff" as const) : ("customer" as const);
   return {
@@ -731,7 +745,10 @@ function mapWorkspace(
   raw: Record<string, unknown>,
   requestId: string,
 ): WorkspaceAssignment {
-  if (typeof raw.assignment_id !== "string" || typeof raw.tenant_id !== "string") {
+  if (
+    typeof raw.assignment_id !== "string" ||
+    typeof raw.tenant_id !== "string"
+  ) {
     throw new PeerError(
       "MALFORMED_PEER_RESPONSE",
       "Workspace missing assignment_id or tenant_id",

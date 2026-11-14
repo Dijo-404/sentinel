@@ -1,9 +1,5 @@
-import { RoleLogin } from "@/components/auth/role-login";
+import { redirect } from "next/navigation";
 
 export default function MerchantLoginPage() {
-  return (
-    <div className="auth-page">
-      <RoleLogin role="merchant" />
-    </div>
-  );
+  redirect("/login?portal=merchant");
 }

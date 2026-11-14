@@ -16,7 +16,9 @@ export async function getServerCaseClient(
   >,
   overrides?: { fetchImpl?: typeof fetch },
 ): Promise<CaseClient> {
-  const mode = (env.NEXT_PUBLIC_SHELL_MODE ?? "fixture") as "fixture" | "real-peers";
+  const mode = (env.NEXT_PUBLIC_SHELL_MODE ?? "fixture") as
+    | "fixture"
+    | "real-peers";
   if (mode === "fixture") {
     return createCaseApiStub("valid");
   }

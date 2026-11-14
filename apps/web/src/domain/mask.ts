@@ -24,7 +24,10 @@ export function maskOrderReference(orderReference: string): string {
   return maskReference(orderReference, "ord-…");
 }
 
-export function formatAmountMinor(amountMinor: number, currency: string): string {
+export function formatAmountMinor(
+  amountMinor: number,
+  currency: string,
+): string {
   if (!Number.isInteger(amountMinor)) {
     throw new Error("amount_minor must be an integer");
   }

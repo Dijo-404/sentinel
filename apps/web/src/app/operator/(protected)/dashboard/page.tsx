@@ -1,7 +1,7 @@
-import { PortalDashboard } from "@/components/dashboards/portal-dashboard";
+import { OperatorDashboardClient } from "./dashboard-client";
 import { requireRole } from "@/lib/server/authorization";
 
 export default async function OperatorDashboardPage() {
   const session = await requireRole("operator");
-  return <PortalDashboard role="operator" session={session} />;
+  return <OperatorDashboardClient session={session} />;
 }

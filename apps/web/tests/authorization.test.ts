@@ -109,11 +109,15 @@ describe("safePortalRedirect", () => {
     expect(safePortalRedirect("/operator/../admin", "operator")).toBe(
       "/operator/dashboard",
     );
-    expect(safePortalRedirect("//evil", "operator")).toBe("/operator/dashboard");
+    expect(safePortalRedirect("//evil", "operator")).toBe(
+      "/operator/dashboard",
+    );
     expect(safePortalRedirect("/customer/dashboard", "operator")).toBe(
       "/operator/dashboard",
     );
-    expect(isSafeInternalPath("/operator/%2e%2e/admin", "operator")).toBe(false);
+    expect(isSafeInternalPath("/operator/%2e%2e/admin", "operator")).toBe(
+      false,
+    );
   });
 });
 
@@ -125,8 +129,10 @@ describe("requireRole unauthenticated redirect", () => {
   });
 
   it("redirects unauthenticated access to role login", async () => {
-    await expect(requireRole("admin")).rejects.toThrow("REDIRECT:/admin/login");
-    expect(redirectMock).toHaveBeenCalledWith("/admin/login");
+    await expect(requireRole("admin")).rejects.toThrow(
+      "REDIRECT:/login?portal=admin",
+    );
+    expect(redirectMock).toHaveBeenCalledWith("/login?portal=admin");
   });
 });
 

@@ -15,7 +15,11 @@ import { requireRole } from "./authorization";
 
 export type ActionResult =
   | { ok: true; redirectTo?: string }
-  | { ok: false; message: string; workspaces?: Array<{ label: string; href: string }> };
+  | {
+      ok: false;
+      message: string;
+      workspaces?: Array<{ label: string; href: string }>;
+    };
 
 export async function loginAction(
   _prev: ActionResult | null,
@@ -97,7 +101,9 @@ export async function registerCustomerAction(
 
 export async function logoutAction(): Promise<void> {
   await logoutCurrentSession();
-  redirect("/");
+  // Land on shared login. Avoid racing a protected-layout requireRole
+  // re-fetch that would bounce an already-cleared session through loginPath.
+  redirect("/login");
 }
 
 export async function acceptInvitationAction(

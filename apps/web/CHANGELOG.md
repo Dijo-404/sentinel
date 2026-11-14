@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed — 14 November 2026
+
+- Mercury shell rebuild: night marketing landing at `/`, shared `/login` with workspace select, role `/<role>/login` redirects to `/login?portal=…`, night `AppSidebar`/`ProtectedShell` for all portals, and rich fixture viz on merchant/operator/supervisor dashboards (Refs SN-012).
+
 ### Fixed — 14 November 2026
 
 - Portal case-api calls use per-request `sentinel_session` via BFF `/api/bff/case/**` (and `getServerCaseClient`); ShellProvider no longer embeds process-wide `CASE_API_BEARER_TOKEN`. Service token remains optional server fallback only.

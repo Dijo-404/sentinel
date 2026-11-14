@@ -1,7 +1,7 @@
-import { PortalDashboard } from "@/components/dashboards/portal-dashboard";
+import { MerchantOverview } from "@/components/dashboards/merchant-overview";
 import { requireRole } from "@/lib/server/authorization";
 
 export default async function MerchantDashboardPage() {
   const session = await requireRole("merchant");
-  return <PortalDashboard role="merchant" session={session} />;
+  return <MerchantOverview session={session} />;
 }

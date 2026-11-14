@@ -16,7 +16,11 @@ describe("standalone browser checks", () => {
     const user = userEvent.setup();
     const client = createCaseApiStub("valid");
     render(
-      <IntakeForm caseClient={client} voiceEnabled={false} voiceClient={null} />,
+      <IntakeForm
+        caseClient={client}
+        voiceEnabled={false}
+        voiceClient={null}
+      />,
     );
     expect(screen.getByTestId("voice-slot")).toHaveAttribute(
       "data-slot",
@@ -24,7 +28,9 @@ describe("standalone browser checks", () => {
     );
     await user.type(screen.getByLabelText("Complaint message"), "Paid twice");
     await user.click(screen.getByRole("button", { name: "Submit case" }));
-    expect(await screen.findByTestId("state-empty")).toHaveTextContent("RECEIVED");
+    expect(await screen.findByTestId("state-empty")).toHaveTextContent(
+      "RECEIVED",
+    );
   });
 
   it("intake shows permission and error states", async () => {
@@ -51,7 +57,9 @@ describe("standalone browser checks", () => {
     );
     const forms = screen.getAllByLabelText("Complaint message");
     await user.type(forms[1]!, "hello");
-    await user.click(screen.getAllByRole("button", { name: "Submit case" })[1]!);
+    await user.click(
+      screen.getAllByRole("button", { name: "Submit case" })[1]!,
+    );
     expect(await screen.findByTestId("state-error")).toHaveTextContent(
       "PEER_UNAVAILABLE",
     );
@@ -60,10 +68,15 @@ describe("standalone browser checks", () => {
   it("timeline loading/empty/error and keyboard focus", async () => {
     const user = userEvent.setup();
     const { rerender } = render(
-      <CaseTimeline caseId="case-demo-42" caseClient={createCaseApiStub("valid")} />,
+      <CaseTimeline
+        caseId="case-demo-42"
+        caseClient={createCaseApiStub("valid")}
+      />,
     );
     expect(screen.getByTestId("state-loading")).toBeInTheDocument();
-    expect(await screen.findByRole("list", { name: "Case events" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("list", { name: "Case events" }),
+    ).toBeInTheDocument();
     expect(screen.getAllByText("Waiting approval").length).toBeGreaterThan(0);
     expect(screen.queryByText("TXN-B")).not.toBeInTheDocument();
 
@@ -93,10 +106,14 @@ describe("standalone browser checks", () => {
     const emptyClient = createCaseApiStub("valid");
     emptyClient.listOpsCases = async () => ({ cases: [] });
     render(<OperatorQueue caseClient={emptyClient} />);
-    expect(await screen.findByTestId("state-empty")).toHaveTextContent("Queue empty");
+    expect(await screen.findByTestId("state-empty")).toHaveTextContent(
+      "Queue empty",
+    );
 
     render(
-      <OperatorQueue caseClient={createCaseApiStub("unauthorized_or_out_of_scope")} />,
+      <OperatorQueue
+        caseClient={createCaseApiStub("unauthorized_or_out_of_scope")}
+      />,
     );
     expect(await screen.findByTestId("state-permission")).toHaveTextContent(
       "Permission denied",
@@ -105,7 +122,10 @@ describe("standalone browser checks", () => {
 
   it("evidence masks refs and shows pending/provider/credit/escalation labels", async () => {
     render(
-      <EvidencePanel caseId="case-demo-42" caseClient={createCaseApiStub("valid")} />,
+      <EvidencePanel
+        caseId="case-demo-42"
+        caseClient={createCaseApiStub("valid")}
+      />,
     );
     await waitFor(() => {
       expect(screen.getAllByTestId("evidence-card").length).toBeGreaterThan(0);
@@ -138,9 +158,9 @@ describe("standalone browser checks", () => {
       "d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993",
     );
     expect(screen.getByTestId("approval-case-revision")).toHaveTextContent("2");
-    expect(screen.getByTestId("approval-decision-expires-at")).toHaveTextContent(
-      "2026-12-31T23:59:59Z",
-    );
+    expect(
+      screen.getByTestId("approval-decision-expires-at"),
+    ).toHaveTextContent("2026-12-31T23:59:59Z");
   });
 
   it("approval slot shows local substitute; peer failure stays visible", () => {
@@ -166,7 +186,9 @@ describe("standalone browser checks", () => {
   it("voice slot disabled by default; enabled substitute uses local client", async () => {
     const user = userEvent.setup();
     render(<LocalVoiceSubstitute enabled={false} client={null} />);
-    expect(screen.getByTestId("voice-slot")).toHaveTextContent("disabled by default");
+    expect(screen.getByTestId("voice-slot")).toHaveTextContent(
+      "disabled by default",
+    );
 
     const transcribe = vi.fn(async () => ({
       original_text: "paid twice",
@@ -174,12 +196,7 @@ describe("standalone browser checks", () => {
       ambiguous: false,
       reason_codes: [],
     }));
-    render(
-      <LocalVoiceSubstitute
-        enabled
-        client={{ transcribe }}
-      />,
-    );
+    render(<LocalVoiceSubstitute enabled client={{ transcribe }} />);
     await user.click(screen.getByRole("checkbox"));
     await user.type(screen.getByLabelText("Voice text fallback"), "paid twice");
     await user.click(screen.getByRole("button", { name: "Transcribe" }));
@@ -197,7 +214,9 @@ describe("standalone browser checks", () => {
     );
     const boxes = screen.getAllByRole("checkbox");
     await user.click(boxes[boxes.length - 1]!);
-    await user.click(screen.getAllByRole("button", { name: "Transcribe" }).at(-1)!);
+    await user.click(
+      screen.getAllByRole("button", { name: "Transcribe" }).at(-1)!,
+    );
     expect(await screen.findByTestId("voice-slot-error")).toHaveTextContent(
       "PEER_UNAVAILABLE",
     );
@@ -205,7 +224,10 @@ describe("standalone browser checks", () => {
 
   it("responsive layout exposes primary landmarks", async () => {
     render(
-      <EvidencePanel caseId="case-demo-42" caseClient={createCaseApiStub("valid")} />,
+      <EvidencePanel
+        caseId="case-demo-42"
+        caseClient={createCaseApiStub("valid")}
+      />,
     );
     await screen.findByRole("heading", { name: "Evidence workspace" });
     expect(

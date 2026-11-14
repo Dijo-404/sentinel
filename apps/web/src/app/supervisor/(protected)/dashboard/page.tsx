@@ -1,7 +1,7 @@
-import { PortalDashboard } from "@/components/dashboards/portal-dashboard";
+import { SupervisorOverview } from "@/components/dashboards/supervisor-overview";
 import { requireRole } from "@/lib/server/authorization";
 
 export default async function SupervisorDashboardPage() {
   const session = await requireRole("supervisor");
-  return <PortalDashboard role="supervisor" session={session} />;
+  return <SupervisorOverview session={session} />;
 }

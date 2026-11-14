@@ -13,7 +13,11 @@ export default function EvidencePage({
   const { caseId } = use(params);
   const { caseClient, config } = useShell();
   return (
-    <ShellLayout current="ops" mode={config.mode} voiceEnabled={config.voiceEnabled}>
+    <ShellLayout
+      current="ops"
+      mode={config.mode}
+      voiceEnabled={config.voiceEnabled}
+    >
       <EvidencePanel caseId={caseId} caseClient={caseClient} />
     </ShellLayout>
   );

@@ -40,7 +40,11 @@ export function loadShellConfig(
   // ShellProvider is a client component: never embed a process-wide case bearer.
   // Portal real-peers uses BFF + sentinel_session. CASE_API_BEARER_TOKEN is
   // service-only (server case client / BFF fallback), never shell config.
-  if (mode === "real-peers" && env.NEXT_PUBLIC_DEMO_TOKEN && !env.CASE_API_BASE_URL) {
+  if (
+    mode === "real-peers" &&
+    env.NEXT_PUBLIC_DEMO_TOKEN &&
+    !env.CASE_API_BASE_URL
+  ) {
     throw new PeerError(
       "INVALID_CONFIG",
       "CASE_API_BASE_URL is required in real-peers mode; never put secrets in NEXT_PUBLIC_*",
@@ -81,7 +85,11 @@ export function createShellRuntime(
     caseClient = overrides.caseClient;
   } else if (config.mode === "fixture") {
     caseClient = createCaseApiStub("valid");
-  } else if (overrides?.fetchImpl && config.caseApiBaseUrl && config.bearerToken) {
+  } else if (
+    overrides?.fetchImpl &&
+    config.caseApiBaseUrl &&
+    config.bearerToken
+  ) {
     // Test / direct-peer harness only — not the portal ShellProvider path.
     caseClient = createRealPeerCaseClient({
       baseUrl: config.caseApiBaseUrl,

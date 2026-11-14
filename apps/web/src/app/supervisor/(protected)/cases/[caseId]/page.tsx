@@ -19,7 +19,8 @@ export default function SupervisorCaseDetailPage({
       <div className="panel stack">
         <h1>Case review</h1>
         <p className="muted">
-          Evidence and timeline with exact approve/reject when a proposal is present.
+          Evidence and timeline with exact approve/reject when a proposal is
+          present.
         </p>
         <Link href="/supervisor/approvals">Back to approvals</Link>
       </div>

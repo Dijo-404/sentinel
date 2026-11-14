@@ -16,14 +16,11 @@ function actionFromQueueCase(
   evidence: Evidence[],
 ): ActionRecord {
   const refundEv = evidence.find(
-    (e) =>
-      e.facts.kind === "REFUND" && e.facts.refund.action_id === actionId,
+    (e) => e.facts.kind === "REFUND" && e.facts.refund.action_id === actionId,
   );
   const paymentEv = evidence.find((e) => e.facts.kind === "PAYMENT");
   const refund =
-    refundEv && refundEv.facts.kind === "REFUND"
-      ? refundEv.facts.refund
-      : null;
+    refundEv && refundEv.facts.kind === "REFUND" ? refundEv.facts.refund : null;
   const payment =
     paymentEv && paymentEv.facts.kind === "PAYMENT"
       ? paymentEv.facts.payment
@@ -61,9 +58,7 @@ function actionFromQueueCase(
         payment?.amount_minor ??
         demoAction.payload.amount_minor,
       currency:
-        refund?.currency ??
-        payment?.currency ??
-        demoAction.payload.currency,
+        refund?.currency ?? payment?.currency ?? demoAction.payload.currency,
       destination: "ORIGINAL_PAYMENT_ROUTE",
     },
   };
@@ -113,7 +108,9 @@ export function SupervisorDecisionWorkspace({
     setPermission(null);
     try {
       // Fixture / list projection: resolve case that owns this action.
-      const listed = await caseClient.listOpsCases({ status: "WAITING_APPROVAL" });
+      const listed = await caseClient.listOpsCases({
+        status: "WAITING_APPROVAL",
+      });
       const match = listed.cases.find((c) => c.action_id === actionId);
       if (!match) {
         throw new PeerError(
@@ -159,7 +156,11 @@ export function SupervisorDecisionWorkspace({
   }
   if (permission) {
     return (
-      <UiState tone="permission" title="Permission denied" detail={permission} />
+      <UiState
+        tone="permission"
+        title="Permission denied"
+        detail={permission}
+      />
     );
   }
   if (error) {
@@ -218,7 +219,9 @@ export function SupervisorDecisionWorkspace({
             label="transaction"
             masked={maskTransactionRef(action.payload.transaction_ref)}
           />
-          <Link href={`/supervisor/cases/${encodeURIComponent(caseRecord.case_id)}`}>
+          <Link
+            href={`/supervisor/cases/${encodeURIComponent(caseRecord.case_id)}`}
+          >
             Case detail
           </Link>
           <Link href="/supervisor/approvals">Back to queue</Link>

@@ -2,7 +2,10 @@
 
 import { useActionState, useState } from "react";
 import type { PortalRole } from "../../../tests/stubs/identity";
-import { inviteStaffAction, type ActionResult } from "@/lib/server/auth-actions";
+import {
+  inviteStaffAction,
+  type ActionResult,
+} from "@/lib/server/auth-actions";
 import { PermissionPreview } from "./permission-preview";
 
 const STAFF_OPTIONS: Array<{
@@ -19,7 +22,10 @@ const STAFF_OPTIONS: Array<{
 const initial: ActionResult | null = null;
 
 export function InviteStaffForm() {
-  const [state, formAction, pending] = useActionState(inviteStaffAction, initial);
+  const [state, formAction, pending] = useActionState(
+    inviteStaffAction,
+    initial,
+  );
   const [role, setRole] = useState<Exclude<PortalRole, "customer">>("operator");
 
   return (

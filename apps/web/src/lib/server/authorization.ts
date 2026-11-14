@@ -18,7 +18,9 @@ export type RequireRoleResult =
       workspaces: ReturnType<typeof workspaceChoices>;
     };
 
-export async function checkRole(required: PortalRole): Promise<RequireRoleResult> {
+export async function checkRole(
+  required: PortalRole,
+): Promise<RequireRoleResult> {
   const session = await getAuthSession();
   const loginHref = loginPath(required);
   if (!session) {

@@ -15,7 +15,11 @@ export function UiState({ title, detail, tone }: Props) {
       aria-live={tone === "loading" ? "polite" : "assertive"}
     >
       <strong>{title}</strong>
-      {detail ? <p className="muted" style={{ margin: "0.35rem 0 0" }}>{detail}</p> : null}
+      {detail ? (
+        <p className="muted" style={{ margin: "0.35rem 0 0" }}>
+          {detail}
+        </p>
+      ) : null}
     </div>
   );
 }

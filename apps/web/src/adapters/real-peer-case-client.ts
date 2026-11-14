@@ -86,7 +86,9 @@ export function createRealPeerCaseClient(options: RealPeerOptions): CaseClient {
     } catch (err) {
       throw new PeerError(
         "PEER_UNAVAILABLE",
-        err instanceof Error ? err.message : "Network failure contacting case API",
+        err instanceof Error
+          ? err.message
+          : "Network failure contacting case API",
         requestId,
         503,
       );
@@ -109,7 +111,12 @@ export function createRealPeerCaseClient(options: RealPeerOptions): CaseClient {
 
     if (!response.ok) {
       if (isApiError(json)) {
-        throw new PeerError(json.code, json.message, json.request_id, response.status);
+        throw new PeerError(
+          json.code,
+          json.message,
+          json.request_id,
+          response.status,
+        );
       }
       throw new PeerError(
         response.status === 403 || response.status === 401
@@ -127,7 +134,10 @@ export function createRealPeerCaseClient(options: RealPeerOptions): CaseClient {
   }
 
   return {
-    createCase(input: CaseCreate, idempotencyKey: string): Promise<CaseCreated> {
+    createCase(
+      input: CaseCreate,
+      idempotencyKey: string,
+    ): Promise<CaseCreated> {
       return request("POST", "/v1/cases", {
         body: input,
         headers: { "Idempotency-Key": idempotencyKey },
@@ -140,25 +150,37 @@ export function createRealPeerCaseClient(options: RealPeerOptions): CaseClient {
       });
     },
     postMessage(caseId, body): Promise<Case> {
-      return request("POST", `/v1/cases/${encodeURIComponent(caseId)}/messages`, {
-        body,
-        validate: validateCase,
-      });
+      return request(
+        "POST",
+        `/v1/cases/${encodeURIComponent(caseId)}/messages`,
+        {
+          body,
+          validate: validateCase,
+        },
+      );
     },
     listEvents(caseId, after): Promise<{ events: CaseEvent[] }> {
       const q = after != null ? `?format=json&after=${after}` : "?format=json";
-      return request("GET", `/v1/cases/${encodeURIComponent(caseId)}/events${q}`, {
-        validate: (json, requestId) => {
-          if (!json || typeof json !== "object" || !Array.isArray((json as { events?: unknown }).events)) {
-            throw new PeerError(
-              "MALFORMED_PEER_RESPONSE",
-              "Missing events array",
-              requestId,
-            );
-          }
-          return json as { events: CaseEvent[] };
+      return request(
+        "GET",
+        `/v1/cases/${encodeURIComponent(caseId)}/events${q}`,
+        {
+          validate: (json, requestId) => {
+            if (
+              !json ||
+              typeof json !== "object" ||
+              !Array.isArray((json as { events?: unknown }).events)
+            ) {
+              throw new PeerError(
+                "MALFORMED_PEER_RESPONSE",
+                "Missing events array",
+                requestId,
+              );
+            }
+            return json as { events: CaseEvent[] };
+          },
         },
-      });
+      );
     },
     listOpsCases(query): Promise<OpsCaseList> {
       const params = new URLSearchParams();
