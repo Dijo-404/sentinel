@@ -182,6 +182,62 @@ curl -sS -H "Authorization: Bearer token-supervisor" \
 #   "http://127.0.0.1:8012/v1/ops/team"
 ```
 
+### Wave 3 portal peers (identity auth / customer) — run order
+
+DB-backed identity checks need identity seeded before verify:
+
+1. Compose Postgres + `IDENTITY_DATABASE_URL` (see `services/identity/.env.example`), or use fixture mode (`IDENTITY_MODE=fixture`) which seeds principals on serve.
+2. Seed identity principals + notification (`customer@example.test`, preferred_language, notification id):
+
+```sh
+make -C integration/core seed-sandbox
+# or: make -C services/identity seed
+```
+
+3. Serve identity on `:8012` (`make -C services/identity preview`).
+
+4. Verify (nonzero if identity down, HTTP ≠ 200, seed rows missing, or forgot enumerates):
+
+```sh
+make -C integration/core verify-wave3
+# or: ./scripts/verify_wave3.sh
+```
+
+Asserts HTTP 200 + seeded JSON for:
+
+| Check | Peer URL | Seed marker |
+| --- | --- | --- |
+| me | `GET /v1/auth/me` | `customer@example.test` + `preferred_language=en` |
+| notifications | `GET /v1/auth/notifications` | `11111111-1111-1111-1111-111111111301` |
+| workspaces | `GET /v1/auth/workspaces` | customer workspace present |
+| forgot | `POST /v1/auth/password/forgot` | HTTP 202 known+unknown, same public shape |
+
+Session: login with `customer@example.test` + `IDENTITY_DEMO_PASSWORD` (default `x`), or set `VERIFY_IDENTITY_TOKEN` to a hashed **session** from login. Not assembly matrix `tok-customer`. Web BFF/pages not required — script hits identity directly.
+
+#### Curl checklist (wave 3)
+
+```sh
+# login → session_token (not tok-*)
+TOKEN=$(curl -sS -X POST http://127.0.0.1:8012/v1/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"customer@example.test","password":"x"}' | jq -r .session_token)
+
+# me (expect preferred_language=en, display_name=Demo Customer)
+curl -sS -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8012/v1/auth/me
+
+# notifications (expect seed notification id; empty = unseeded)
+curl -sS -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8012/v1/auth/notifications
+
+# workspaces (expect customer role)
+curl -sS -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8012/v1/auth/workspaces
+
+# forgot (expect 202 accepted for both; no existence reveal)
+curl -sS -o /dev/null -w '%{http_code}\n' -X POST http://127.0.0.1:8012/v1/auth/password/forgot \
+  -H 'Content-Type: application/json' -d '{"email":"customer@example.test"}'
+curl -sS -o /dev/null -w '%{http_code}\n' -X POST http://127.0.0.1:8012/v1/auth/password/forgot \
+  -H 'Content-Type: application/json' -d '{"email":"nobody-wave3-verify@example.test"}'
+```
+
 Optional live pytest (skips unless env set and stack healthy):
 
 ```sh
@@ -210,6 +266,7 @@ integration/core/
   scripts/run_sandbox_journeys.sh
   scripts/verify_wave0_1.sh
   scripts/verify_wave2.sh
+  scripts/verify_wave3.sh
   tests/stubs/
 ```
 

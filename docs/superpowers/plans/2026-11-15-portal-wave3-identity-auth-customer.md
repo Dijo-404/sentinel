@@ -149,7 +149,7 @@
 - Makefile target + README
 - Update program index Wave 3 → done
 
-- [ ] **Steps: TDD gate, check, commit** `feat(integration): wave 3 identity auth verify`
+- [x] **Steps: TDD gate, check, commit** `feat(integration): wave 3 identity auth verify`
 
 ---
 

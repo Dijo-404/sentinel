@@ -78,17 +78,21 @@ make seed-sandbox
 # or: SENTINEL_V1_SANDBOX=1 uv run --frozen sentinel-core-assembly seed-sandbox
 ```
 
-Wave peers (`merchant-analytics`, `merchant-disputes`, `risk`, `case-api`) run that
-module’s `make seed` when the matching `*_DATABASE_URL` / `SENTINEL_API_DATABASE_URL`
-env is set; otherwise `SKIPPED` with the manual `make -C <peer> seed` hint. Other
-peers stay `SKIPPED` until hooked. Non-`tenant-demo` → `SANDBOX_TENANT_REQUIRED`.
-Missing sandbox flag → `SANDBOX_FLAG_REQUIRED`. After seed + serve,
-`make verify-wave0-1` / `./scripts/verify_wave0_1.sh` asserts HTTP 200 + seeded JSON
-(fails without seed). Case-api seed leaves `case-seed-ops-escalated` (`ESCALATED`)
-and `case-seed-ops-history` (`CLOSED_NO_ACTION`) for ops messages / audit / HISTORY.
+Wave peers (`merchant-analytics`, `merchant-disputes`, `risk`, `case-api`, `identity`)
+run that module’s `make seed` when the matching `*_DATABASE_URL` /
+`SENTINEL_API_DATABASE_URL` / `IDENTITY_DATABASE_URL` env is set; otherwise
+`SKIPPED` with the manual `make -C <peer> seed` hint. Other peers stay `SKIPPED`
+until hooked. Non-`tenant-demo` → `SANDBOX_TENANT_REQUIRED`. Missing sandbox flag →
+`SANDBOX_FLAG_REQUIRED`. After seed + serve, `make verify-wave0-1` /
+`./scripts/verify_wave0_1.sh` asserts HTTP 200 + seeded JSON (fails without seed).
+Case-api seed leaves `case-seed-ops-escalated` (`ESCALATED`) and
+`case-seed-ops-history` (`CLOSED_NO_ACTION`) for ops messages / audit / HISTORY.
 After case-api serve + seed, `make verify-wave2` / `./scripts/verify_wave2.sh`
 asserts those ops surfaces (case-api fixtures `token-operator` / `token-supervisor`);
-optional `VERIFY_IDENTITY_TOKEN` hits identity `GET /v1/ops/team`.
+optional `VERIFY_IDENTITY_TOKEN` hits identity `GET /v1/ops/team`. After identity
+serve + seed, `make verify-wave3` / `./scripts/verify_wave3.sh` asserts me /
+notifications / workspaces + forgot 202 (session from login or
+`VERIFY_IDENTITY_TOKEN` — not matrix `tok-*`).
 Compose DB names: see [compose/init-databases.sql](../compose/init-databases.sql).
 
 ## Path honesty

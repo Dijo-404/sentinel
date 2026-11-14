@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added — 15 November 2026 (portal wave 3 make seed)
+
+- `sentinel-identity seed` / `make seed`: load `fixtures/seed_users.json` into
+  Postgres (`IDENTITY_DATABASE_URL`) — profile fields + ≥1 notification for
+  `customer@example.test`. Challenge OTP fixtures stay test-only
+  (`IDENTITY_EXPOSE_SANDBOX_CODES` / memory peek); never written by seed.
+
 ### Fixed — harden sandbox auth challenges
 
 - Challenge codes are 8+ char alphanumeric (not 6-digit). Failed verifies

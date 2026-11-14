@@ -62,7 +62,21 @@ make preview
 ```
 
 Default bind: `127.0.0.1:8012` (documented free port). Non-loopback bind refuses
-demo seed credentials (`bind_safety`).
+demo seed credentials (`bind_safety`). Fixture mode loads seed principals on
+serve when `IDENTITY_SEED` is truthy (default).
+
+## Postgres seed (real-peers / portal wave 3)
+
+```sh
+export IDENTITY_DATABASE_URL=postgresql+psycopg://identity:identity@127.0.0.1:5432/identity
+make seed
+# prints JSON {"status":"PASS","rows":…,"notification_id":"…",…}
+```
+
+Loads `fixtures/seed_users.json` (profile fields + ≥1 notification). Challenge
+OTP codes stay test-only — never written by `make seed`. Assembly harness:
+`IDENTITY_DATABASE_URL` set → `make -C integration/core seed-sandbox` invokes
+this hook. Live verify: `make -C integration/core verify-wave3`.
 
 ## Seeded fixture principals
 
