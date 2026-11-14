@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from tests.conftest import ACTION_ID, CASE_ID, PROVIDER_REF, TENANT, auth_header
 
 from sentinel_verifier.domain.types import ProviderBinding, RecheckJob, Refund
@@ -27,6 +29,41 @@ def test_recheck_idempotent_replay(memory_client, tokens, verification_request):
     assert first.status_code == 202
     assert second.status_code == 202
     assert first.json()["job_id"] == second.json()["job_id"]
+
+
+def test_concurrent_recheck_same_idempotency_key_single_outcome(
+    memory_client, tokens, verification_request
+):
+    """Only the insert winner processes; event_key stays stable without job_id."""
+    memory_client.provider.seed_refund(
+        Refund(
+            action_id=ACTION_ID,
+            provider_ref=PROVIDER_REF,
+            transaction_ref="TXN-B",
+            amount_minor=150000,
+            currency="INR",
+            status="PROVIDER_CONFIRMED",
+        )
+    )
+    memory_client.ledger.outcomes.clear()
+    headers = {**auth_header(tokens["workflow"]), "Idempotency-Key": "recheck-concurrent"}
+
+    def _post() -> dict:
+        response = memory_client.post("/v1/rechecks", headers=headers, json=verification_request)
+        return {"status_code": response.status_code, "body": response.json()}
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        results = [fut.result() for fut in as_completed([pool.submit(_post), pool.submit(_post)])]
+
+    assert all(r["status_code"] == 202 for r in results)
+    job_ids = {r["body"]["job_id"] for r in results}
+    assert len(job_ids) == 1
+    applied = [o for o in memory_client.ledger.outcomes if not o.get("noop")]
+    assert len(applied) == 1
+    assert applied[0]["event_key"] == f"verifier-{PROVIDER_REF}-PROVIDER_CONFIRMED"
+    assert "job-" not in applied[0]["event_key"]
+    assert memory_client.store.get_recheck_by_idempotency(TENANT, "recheck-concurrent") is not None
+    assert len(memory_client.store.rechecks) == 1
 
 
 def test_recheck_idempotency_conflict(memory_client, tokens, verification_request):

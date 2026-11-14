@@ -67,6 +67,10 @@ class VerifierStore(Protocol):
 
     def save_recheck(self, job: RecheckJob) -> RecheckJob: ...
 
+    def insert_recheck(self, job: RecheckJob) -> RecheckJob | None:
+        """Insert by unique (tenant_id, idempotency_key). None if key already claimed."""
+        ...
+
     def get_recheck_by_idempotency(
         self, tenant_id: str, idempotency_key: str
     ) -> RecheckJob | None: ...

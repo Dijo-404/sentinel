@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import threading
 
 from sentinel_verifier.domain.types import (
     InboxRecord,
@@ -14,6 +15,7 @@ from sentinel_verifier.domain.types import (
 
 class MemoryVerifierStore:
     def __init__(self) -> None:
+        self._lock = threading.Lock()
         self.inbox: dict[tuple[str, str], InboxRecord] = {}
         self.rechecks: dict[tuple[str, str], RecheckJob] = {}
         self.rechecks_by_key: dict[tuple[str, str], str] = {}
@@ -89,52 +91,65 @@ class MemoryVerifierStore:
         )
 
     def save_recheck(self, job: RecheckJob) -> RecheckJob:
-        self.rechecks[(job.tenant_id, job.job_id)] = job
-        self.rechecks_by_key[(job.tenant_id, job.idempotency_key)] = job.job_id
+        with self._lock:
+            self.rechecks[(job.tenant_id, job.job_id)] = job
+            self.rechecks_by_key[(job.tenant_id, job.idempotency_key)] = job.job_id
         return job
 
+    def insert_recheck(self, job: RecheckJob) -> RecheckJob | None:
+        with self._lock:
+            key = (job.tenant_id, job.idempotency_key)
+            if key in self.rechecks_by_key:
+                return None
+            self.rechecks[(job.tenant_id, job.job_id)] = job
+            self.rechecks_by_key[key] = job.job_id
+            return job
+
     def get_recheck_by_idempotency(self, tenant_id: str, idempotency_key: str) -> RecheckJob | None:
-        job_id = self.rechecks_by_key.get((tenant_id, idempotency_key))
-        if job_id is None:
-            return None
-        return self.rechecks.get((tenant_id, job_id))
+        with self._lock:
+            job_id = self.rechecks_by_key.get((tenant_id, idempotency_key))
+            if job_id is None:
+                return None
+            return self.rechecks.get((tenant_id, job_id))
 
     def get_recheck(self, tenant_id: str, job_id: str) -> RecheckJob | None:
-        return self.rechecks.get((tenant_id, job_id))
+        with self._lock:
+            return self.rechecks.get((tenant_id, job_id))
 
     def claim_due_rechecks(
         self, *, now: str, lease_expires_at: str, limit: int = 100
     ) -> list[RecheckJob]:
         claimed: list[RecheckJob] = []
-        for key, job in sorted(self.rechecks.items(), key=lambda item: item[1].available_at):
-            if len(claimed) >= limit:
-                break
-            due_scheduled = job.status == "SCHEDULED" and job.available_at <= now
-            lease_expired = (
-                job.status == "LEASED"
-                and job.lease_expires_at is not None
-                and job.lease_expires_at <= now
-            )
-            if not due_scheduled and not lease_expired:
-                continue
-            updated = RecheckJob(
-                tenant_id=job.tenant_id,
-                job_id=job.job_id,
-                idempotency_key=job.idempotency_key,
-                case_id=job.case_id,
-                case_revision=job.case_revision,
-                action_id=job.action_id,
-                provider_ref=job.provider_ref,
-                request_digest=job.request_digest,
-                available_at=job.available_at,
-                lease_expires_at=lease_expires_at,
-                attempts=job.attempts + 1,
-                status="LEASED",
-                created_at=job.created_at,
-                updated_at=now,
-            )
-            self.rechecks[key] = updated
-            claimed.append(updated)
+        with self._lock:
+            for key, job in sorted(self.rechecks.items(), key=lambda item: item[1].available_at):
+                if len(claimed) >= limit:
+                    break
+                due_scheduled = job.status == "SCHEDULED" and job.available_at <= now
+                lease_expired = (
+                    job.status == "LEASED"
+                    and job.lease_expires_at is not None
+                    and job.lease_expires_at <= now
+                )
+                if not due_scheduled and not lease_expired:
+                    continue
+                updated = RecheckJob(
+                    tenant_id=job.tenant_id,
+                    job_id=job.job_id,
+                    idempotency_key=job.idempotency_key,
+                    case_id=job.case_id,
+                    case_revision=job.case_revision,
+                    action_id=job.action_id,
+                    provider_ref=job.provider_ref,
+                    request_digest=job.request_digest,
+                    available_at=job.available_at,
+                    lease_expires_at=lease_expires_at,
+                    attempts=job.attempts + 1,
+                    status="LEASED",
+                    created_at=job.created_at,
+                    updated_at=now,
+                )
+                self.rechecks[key] = updated
+                claimed.append(updated)
         return claimed
 
     def save_assessment(self, result: VerificationResult, *, tenant_id: str) -> None:

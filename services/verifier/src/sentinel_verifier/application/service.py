@@ -163,7 +163,18 @@ class VerifierService:
             created_at=now.isoformat().replace("+00:00", "Z"),
             updated_at=now.isoformat().replace("+00:00", "Z"),
         )
-        self._store.save_recheck(job)
+        # Atomic claim on (tenant_id, idempotency_key); only the insert winner processes.
+        inserted = self._store.insert_recheck(job)
+        if inserted is None:
+            existing = self._store.get_recheck_by_idempotency(principal.tenant_id, idempotency_key)
+            assert existing is not None
+            if existing.request_digest != digest:
+                raise ConflictError(
+                    "Key already used with a different payload",
+                    code="IDEMPOTENCY_CONFLICT",
+                )
+            return Ack(CONTRACT_VERSION, existing.job_id)
+
         self._store.save_binding(
             ProviderBinding(
                 tenant_id=principal.tenant_id,
@@ -348,7 +359,8 @@ class VerifierService:
         evidence: list[dict[str, Any]],
         source: str,
     ) -> None:
-        event_key = f"verifier-{provider_ref}-{target}-{source}"
+        del source  # stable key must not include job_id / event id
+        event_key = f"verifier-{provider_ref}-{target}"
         self._ledger.report_outcome(
             action_id,
             OutcomeRequest(
