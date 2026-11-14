@@ -15,6 +15,10 @@
 ### Fixed
 
 - Timeout and non-auth peer errors keep the job in `SUBMITTED` (list_incomplete) until lookup / same-key retry finishes; only then set `OUTCOME_REPORTED` or `ESCALATED`.
+- Provider `FAILED_FINAL` maps to ledger `ESCALATED` (reservation retained); dispatcher never reports `FAILED_FINAL`.
+- Stub ledger rejects illegal dispatcher `FAILED_FINAL` and never discards reservations on that path.
+- `LEASE_MISMATCH` from `report_outcome` marks the job `SUPERSEDED` so it leaves `list_incomplete`.
+- Refund evidence `observed_at` / `expires_at` come from the worker clock.
 
 ### Added — 13 November 2026
 

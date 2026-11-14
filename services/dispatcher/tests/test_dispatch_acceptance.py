@@ -59,6 +59,69 @@ def test_happy_path_reports_pending_with_original_refs(demo_command: Command) ->
     assert provider.create_calls[0]["idempotency_key"] == "refund-demo-1"
     assert ledger.outcomes[-1]["status"] == "PENDING"
     assert ledger.reservation_held("action-demo-1")
+    evidence = ledger.outcomes[-1]["evidence"][0]
+    assert evidence["observed_at"] == "2026-11-13T12:00:00Z"
+    assert evidence["expires_at"] == "2026-11-13T18:00:00Z"
+
+
+def test_provider_failed_final_reports_escalated_keeps_reservation(
+    demo_command: Command,
+) -> None:
+    """Provider FAILED_FINAL maps to ESCALATED; stub ledger never sees FAILED_FINAL."""
+    worker, ledger, provider, store = _worker(demo_command, provider_mode="failed_final")
+    result = worker.process_command(demo_command)
+    assert result["status"] == "ESCALATED"
+    assert result["reason_code"] == "PROVIDER_FAILED_FINAL"
+    assert provider.side_effect_count("refund-demo-1") == 1
+    assert ledger.outcomes[-1]["status"] == "ESCALATED"
+    assert ledger.outcomes[-1]["reason_code"] == "PROVIDER_FAILED_FINAL"
+    assert all(o["status"] != "FAILED_FINAL" for o in ledger.outcomes)
+    assert ledger.reservation_held("action-demo-1")
+    saved = store.get(TENANT, demo_command.action_id)
+    assert saved is not None
+    assert saved.phase == "ESCALATED"
+    assert store.list_incomplete(TENANT) == []
+
+
+def test_stub_ledger_rejects_dispatcher_failed_final(demo_command: Command) -> None:
+    from sentinel_dispatcher.domain.types import OutcomeRequest
+
+    ledger = StubLedger([demo_command], tenant_id=TENANT)
+    with pytest.raises(PeerError) as exc:
+        ledger.report_outcome(
+            demo_command.action_id,
+            OutcomeRequest(
+                event_key="dispatcher:action-demo-1:FAILED_FINAL",
+                status="FAILED_FINAL",
+                evidence=(),
+                reason_code="PROVIDER_FAILED_FINAL",
+                lease_id=demo_command.lease_id,
+            ),
+        )
+    assert exc.value.code == "INVALID_OUTCOME"
+    assert ledger.reservation_held("action-demo-1")
+
+
+def test_lease_mismatch_marks_job_superseded(demo_command: Command) -> None:
+    store = MemoryWorkerStore()
+    ledger = StubLedger([demo_command], tenant_id=TENANT)
+    worker = DispatchWorker(
+        tenant_id=TENANT,
+        ledger=ledger,
+        provider=StubProvider(),
+        store=store,
+        clock=FixedClock(NOW),
+    )
+    # Simulate another worker owning the lease after claim.
+    ledger.actions[demo_command.action_id]["lease_id"] = "lease-other-worker"
+    result = worker.process_command(demo_command)
+    assert result["reason_code"] == "LEASE_MISMATCH"
+    assert ledger.outcomes == []
+    assert ledger.reservation_held("action-demo-1")
+    saved = store.get(TENANT, demo_command.action_id)
+    assert saved is not None
+    assert saved.phase == "SUPERSEDED"
+    assert store.list_incomplete(TENANT) == []
 
 
 def test_commit_then_timeout_reconciles_original_ref_one_side_effect(

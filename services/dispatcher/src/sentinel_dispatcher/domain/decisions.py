@@ -17,7 +17,10 @@ class OutcomeDecision:
 
 def after_accepted_refund(refund: Refund) -> OutcomeDecision:
     if refund.status == "FAILED_FINAL":
-        return OutcomeDecision(status="FAILED_FINAL", reason_code="PROVIDER_FAILED_FINAL")
+        # Dispatcher may only report PENDING / OUTCOME_UNKNOWN / ESCALATED.
+        # Provider FAILED_FINAL is escalated with reservation retained; ledger alone
+        # may later apply authoritative FAILED_FINAL release.
+        return OutcomeDecision(status="ESCALATED", reason_code="PROVIDER_FAILED_FINAL")
     if refund.status == "PROVIDER_CONFIRMED":
         # Dispatcher acceptance is still pending verification; ledger PENDING is correct.
         return OutcomeDecision(status="PENDING", reason_code="PROVIDER_ACCEPTED")
@@ -82,8 +85,8 @@ def plan_recovery(
     capabilities: ProviderCapabilities,
     outcome_status: str | None,
 ) -> RecoveryPlan:
-    # Terminal only after reconcile finished (or no-safe-path escalate).
-    if phase == "OUTCOME_REPORTED" or phase == "ESCALATED":
+    # Terminal only after reconcile finished (or no-safe-path escalate / lease loss).
+    if phase in {"OUTCOME_REPORTED", "ESCALATED", "SUPERSEDED"}:
         return RecoveryPlan(action="noop", reason_code="ALREADY_TERMINAL")
     # Crash-after-timeout / peer-error: SUBMITTED|RECONCILING stay incomplete until lookup/retry.
     if phase in {"SUBMITTED", "RECONCILING"}:

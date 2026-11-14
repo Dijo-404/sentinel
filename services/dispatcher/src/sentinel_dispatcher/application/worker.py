@@ -57,7 +57,7 @@ class DispatchWorker:
     def process_command(self, command: Command) -> dict[str, Any]:
         request = validate_command(command, now=self._clock.now())
         existing = self._store.get(self._tenant_id, command.action_id)
-        if existing and existing.phase in {"OUTCOME_REPORTED", "ESCALATED"}:
+        if existing and existing.phase in {"OUTCOME_REPORTED", "ESCALATED", "SUPERSEDED"}:
             return {
                 "action_id": command.action_id,
                 "provider_ref": command.provider_ref,
@@ -202,11 +202,12 @@ class DispatchWorker:
         )
         self._store.save(submitted)
         decision = after_accepted_refund(refund)
+        phase = "ESCALATED" if decision.status == "ESCALATED" else "OUTCOME_REPORTED"
         return self._report(
             submitted,
             status=decision.status,
             reason_code=decision.reason_code,
-            phase="OUTCOME_REPORTED",
+            phase=phase,
             refund=refund,
             lease_id=lease_id,
         )
@@ -287,6 +288,7 @@ class DispatchWorker:
                     },
                     evidence_id=f"evidence-dispatch-{job.action_id}",
                     case_id=str(job.payload["case_id"]),
+                    observed_at=self._clock.now(),
                 )
             )
         outcome = OutcomeRequest(
@@ -296,7 +298,26 @@ class DispatchWorker:
             reason_code=reason_code,
             lease_id=lease_id or job.lease_id,
         )
-        self._ledger.report_outcome(job.action_id, outcome)
+        try:
+            self._ledger.report_outcome(job.action_id, outcome)
+        except PeerError as exc:
+            if exc.code == "LEASE_MISMATCH":
+                # Another claim owns the lease; leave incomplete queue.
+                saved = replace(
+                    job,
+                    phase="SUPERSEDED",
+                    outcome_status=job.outcome_status,
+                    reason_code="LEASE_MISMATCH",
+                    provider_status=refund.status if refund is not None else job.provider_status,
+                )
+                self._store.save(saved)
+                return {
+                    "action_id": job.action_id,
+                    "provider_ref": job.provider_ref,
+                    "status": "ESCALATED",
+                    "reason_code": "LEASE_MISMATCH",
+                }
+            raise
         saved = replace(
             job,
             phase=phase,  # type: ignore[arg-type]

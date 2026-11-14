@@ -14,6 +14,7 @@ StubMode = Literal[
     "commit_then_timeout",
     "timeout_before_commit",
     "ambiguous_not_found",
+    "failed_final",
 ]
 
 
@@ -64,13 +65,16 @@ class StubProvider:
                 raise ProviderTimeout("Timed out after idempotent replay")
             return existing
 
+        status: Literal["PENDING", "PROVIDER_CONFIRMED", "FAILED_FINAL"] = (
+            "FAILED_FINAL" if self.mode == "failed_final" else "PENDING"
+        )
         refund = Refund(
             action_id=request.action_id,
             provider_ref=request.provider_ref,
             transaction_ref=request.transaction_ref,
             amount_minor=request.amount_minor,
             currency=request.currency,
-            status="PENDING",
+            status=status,
         )
         self.refunds[request.provider_ref] = refund
         self.side_effects.append(request.provider_ref)
