@@ -1,0 +1,59 @@
+{
+  "matrix_version": "v1-sandbox-assembly",
+  "payment_provider": "simulator",
+  "path": "provider-sandbox-only",
+  "sn009_authority_exercised": false,
+  "notes": [
+    "Assembly extras on top of fixtures/sandbox-tokens.json (#84 identity shape: tok-* → principal).",
+    "role_tokens keeps role→bearer lookup for HttpPeerBundle; do not invert the #84 tokens map.",
+    "journey_seeds order_reference values match simulator #82 packs (JOURNEY-* / DEMO-ORDER-42).",
+    "HttpPeerBundle drives payment-provider HTTP only — not case→workflow→ledger→dispatcher money authority.",
+    "SENTINEL_V1_REQUIRE_FULL_PATH=1 fails closed while path remains provider-sandbox-only."
+  ],
+  "base_urls": {
+    "case-api.v1": "http://127.0.0.1:8080",
+    "policy.v1": "http://127.0.0.1:8005",
+    "evidence.v1": "http://127.0.0.1:8006",
+    "workflow.v1": "http://127.0.0.1:8088",
+    "action-ledger.v1": "http://127.0.0.1:8009",
+    "dispatcher.v1": "http://127.0.0.1:8010",
+    "verifier.v1": "http://127.0.0.1:8011",
+    "payment-provider.v1": "http://127.0.0.1:8094",
+    "web-shell.v1": "http://127.0.0.1:3012"
+  },
+  "role_tokens": {
+    "workflow": "tok-workflow",
+    "dispatcher": "tok-dispatcher",
+    "verifier": "tok-verifier",
+    "case-api": "tok-case-api",
+    "customer": "tok-customer",
+    "supervisor": "tok-supervisor",
+    "sandbox-admin": "tok-sandbox-admin"
+  },
+  "journey_seeds": {
+    "pending": {
+      "order_reference": "JOURNEY-PENDING",
+      "expected_payment_status": "PENDING"
+    },
+    "merchant_mismatch": {
+      "order_reference": "JOURNEY-MISMATCH",
+      "expected_payment_status": "CAPTURED",
+      "expected_order_paid": false
+    },
+    "duplicate_payment": {
+      "order_reference": "DEMO-ORDER-42",
+      "transaction_ref": "TXN-B",
+      "action_id": "action-demo-1",
+      "provider_ref": "refund-demo-1",
+      "amount_minor": 150000
+    },
+    "refund_pending": {
+      "order_reference": "JOURNEY-REFUND-PENDING",
+      "transaction_ref": "TXN-REFUND-PENDING",
+      "action_id": "action-refund-pending-1",
+      "provider_ref": "refund-pending-1",
+      "amount_minor": 150000,
+      "seeded": true
+    }
+  }
+}

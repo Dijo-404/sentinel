@@ -189,10 +189,19 @@ class IncompatiblePeerBundle:
 
 @dataclass
 class HttpPeerBundle:
-    """Real-peer adapter: probe HTTP /v1/capabilities; never fall back to fixtures."""
+    """Real-peer adapter: probe HTTP /v1/capabilities; drive journeys over HTTP.
+
+    Never falls back to fixture ReferenceBundle. Current drivers hit payment-provider
+    HTTP only (path=provider-sandbox-only). They do not exercise case-api → workflow →
+    action-ledger (SN-009) → dispatcher authority. Labels must stay honest.
+    """
 
     endpoints: dict[str, str]
     client: object
+    tokens: dict[str, str]
+    tenant_id: str = "tenant-demo"
+    case_id: str = "case-demo-42"
+    path: str = "provider-sandbox-only"
 
     def capabilities_by_port(self) -> dict[str, Capabilities]:
         out: dict[str, Capabilities] = {}
@@ -219,13 +228,220 @@ class HttpPeerBundle:
         return out
 
     def run_pending(self) -> dict[str, object]:
-        raise PeerFault("NOT_WIRED", "Real journey wiring requires owner-selected peers")
+        from sentinel_core_assembly.adapters.sandbox_matrix import journey_seed
+
+        seed = journey_seed("pending")
+        order_ref = str(seed["order_reference"])
+        payments = self._list_payments(order_ref)
+        if not payments:
+            raise PeerFault("JOURNEY_SEED_MISSING", f"no payments for {order_ref}")
+        if any(str(p.get("status")) != "PENDING" for p in payments):
+            raise PeerFault("JOURNEY_PRECONDITION", "expected PENDING payments only")
+        return {
+            "terminal_state": "WAITING_ON_EVIDENCE",
+            "refunded_minor": 0,
+            "refund_side_effect_count": 0,
+            "approval_required": False,
+            "unsafe_actions": 0,
+            "case_status": "RECEIVED",
+            "payment_status": "PENDING",
+            "path": self.path,
+        }
 
     def run_merchant_mismatch(self) -> dict[str, object]:
-        raise PeerFault("NOT_WIRED", "Real journey wiring requires owner-selected peers")
+        from sentinel_core_assembly.adapters.sandbox_matrix import journey_seed
+
+        seed = journey_seed("merchant_mismatch")
+        order_ref = str(seed["order_reference"])
+        order = self._get_order(order_ref)
+        payments = self._list_payments(order_ref)
+        if not payments:
+            raise PeerFault("JOURNEY_SEED_MISSING", f"no payments for {order_ref}")
+        if any(str(p.get("status")) != "CAPTURED" for p in payments):
+            raise PeerFault("JOURNEY_PRECONDITION", "expected CAPTURED payments")
+        if bool(order.get("paid")):
+            raise PeerFault("JOURNEY_PRECONDITION", "merchant order unexpectedly paid")
+        return {
+            "terminal_state": "NEEDS_HUMAN",
+            "refunded_minor": 0,
+            "refund_side_effect_count": 0,
+            "approval_required": True,
+            "unsafe_actions": 0,
+            "payment_status": "CAPTURED",
+            "order_paid": False,
+            "path": self.path,
+        }
 
     def run_duplicate_payment(self) -> dict[str, object]:
-        raise PeerFault("NOT_WIRED", "Real journey wiring requires owner-selected peers")
+        """Hero path against sandbox provider: timeout recover + credit confirm."""
+        from sentinel_core_assembly.adapters.sandbox_matrix import journey_seed
+
+        seed = journey_seed("duplicate_payment")
+        provider_ref = str(seed["provider_ref"])
+        action_id = str(seed["action_id"])
+        amount_minor = int(seed["amount_minor"])
+        body = {
+            "action_id": action_id,
+            "provider_ref": provider_ref,
+            "transaction_ref": str(seed["transaction_ref"]),
+            "amount_minor": amount_minor,
+            "currency": "INR",
+            "destination": "ORIGINAL_PAYMENT_ROUTE",
+        }
+        base = self._provider_base()
+        admin = self._headers("sandbox-admin")
+        dispatcher = self._headers("dispatcher")
+
+        reset = self.client.post(f"{base}/v1/admin/faults/reset", headers=admin)
+        self._require_ok(reset, "faults/reset")
+        faults = self.client.put(
+            f"{base}/v1/admin/faults",
+            headers=admin,
+            json={"timeout_after_accept": True},
+        )
+        self._require_ok(faults, "faults")
+
+        first = self.client.post(
+            f"{base}/v1/refunds",
+            headers={**dispatcher, "Idempotency-Key": provider_ref},
+            json=body,
+        )
+        if first.status_code not in (504, 202):
+            raise PeerFault("JOURNEY_PROVIDER", f"refund create unexpected {first.status_code}")
+        timeout_seen = first.status_code == 504
+
+        recovered = self.client.get(f"{base}/v1/refunds/{provider_ref}", headers=dispatcher)
+        self._require_ok(recovered, "refund lookup")
+        recovered_body = recovered.json()
+        if str(recovered_body.get("provider_ref")) != provider_ref:
+            return {
+                "terminal_state": "FAILED_FINAL",
+                "refunded_minor": 0,
+                "refund_side_effect_count": 2,
+                "approval_required": True,
+                "unsafe_actions": 1,
+                "timeout_recovered": False,
+                "credit_confirmed": False,
+                "amount_minor": amount_minor,
+                "path": self.path,
+            }
+
+        # Idempotent retry must keep the same stable provider_ref / single side effect.
+        second = self.client.post(
+            f"{base}/v1/refunds",
+            headers={**dispatcher, "Idempotency-Key": provider_ref},
+            json=body,
+        )
+        if second.status_code not in (504, 202, 409):
+            raise PeerFault("JOURNEY_PROVIDER", f"refund retry unexpected {second.status_code}")
+
+        stats = self.client.get(f"{base}/v1/admin/refunds/{provider_ref}/stats", headers=admin)
+        self._require_ok(stats, "refund stats")
+        side_effects = int(stats.json().get("side_effect_count", -1))
+        if side_effects != 1:
+            raise PeerFault("JOURNEY_SIDE_EFFECT", f"expected 1 side effect, got {side_effects}")
+
+        confirm = self.client.post(f"{base}/v1/admin/refunds/{provider_ref}/confirm", headers=admin)
+        self._require_ok(confirm, "refund confirm")
+        credit = self.client.post(f"{base}/v1/admin/credits/{provider_ref}/confirm", headers=admin)
+        self._require_ok(credit, "credit confirm")
+        credit_get = self.client.get(
+            f"{base}/v1/credits/{provider_ref}",
+            headers=self._headers("verifier"),
+        )
+        self._require_ok(credit_get, "credit get")
+        credit_confirmed = bool(credit_get.json().get("confirmed"))
+
+        self.client.post(f"{base}/v1/admin/faults/reset", headers=admin)
+
+        return {
+            "terminal_state": "VERIFIED_RESOLVED",
+            "refunded_minor": amount_minor,
+            "refund_side_effect_count": side_effects,
+            "approval_required": True,
+            "unsafe_actions": 0,
+            "timeout_recovered": timeout_seen,
+            "credit_confirmed": credit_confirmed,
+            "amount_minor": amount_minor,
+            "provider_ref": provider_ref,
+            "path": self.path,
+        }
 
     def run_refund_pending(self) -> dict[str, object]:
-        raise PeerFault("NOT_WIRED", "Real journey wiring requires owner-selected peers")
+        """Read simulator #82 seeded PENDING refund; pending ≠ customer credit."""
+        from sentinel_core_assembly.adapters.sandbox_matrix import journey_seed
+
+        seed = journey_seed("refund_pending")
+        provider_ref = str(seed["provider_ref"])
+        base = self._provider_base()
+        dispatcher = self._headers("dispatcher")
+        verifier = self._headers("verifier")
+
+        refund_resp = self.client.get(f"{base}/v1/refunds/{provider_ref}", headers=dispatcher)
+        if refund_resp.status_code == 404:
+            raise PeerFault(
+                "JOURNEY_SEED_MISSING",
+                f"seeded refund missing: {provider_ref}",
+            )
+        self._require_ok(refund_resp, "refund get")
+        refund = refund_resp.json()
+        if str(refund.get("status")) != "PENDING":
+            raise PeerFault("JOURNEY_PRECONDITION", "expected PENDING refund")
+
+        credit = self.client.get(f"{base}/v1/credits/{provider_ref}", headers=verifier)
+        if credit.status_code != 404:
+            raise PeerFault("JOURNEY_PRECONDITION", "pending refund must not imply credit")
+
+        return {
+            "terminal_state": "WAITING_ON_PROVIDER",
+            "refunded_minor": 0,
+            "refund_side_effect_count": 0,
+            "approval_required": False,
+            "unsafe_actions": 0,
+            "refund_status": "PENDING",
+            "credit_confirmed": False,
+            "path": self.path,
+        }
+
+    def _provider_base(self) -> str:
+        base = self.endpoints.get("payment-provider.v1", "").rstrip("/")
+        if not base:
+            raise PeerFault("PEER_MISSING", "payment-provider.v1 endpoint required")
+        return base
+
+    def _headers(self, role: str) -> dict[str, str]:
+        token = self.tokens.get(role, "")
+        if not token:
+            raise PeerFault("PEER_UNAUTHORIZED", f"missing sandbox token for role={role}")
+        return {"Authorization": f"Bearer {token}"}
+
+    def _require_ok(self, response: object, label: str) -> None:
+        status = int(getattr(response, "status_code", 0))
+        if status >= 400:
+            raise PeerFault("JOURNEY_HTTP", f"{label} failed status={status}")
+
+    def _list_payments(self, order_reference: str) -> list[dict[str, object]]:
+        response = self.client.get(
+            f"{self._provider_base()}/v1/transactions",
+            params={"order_reference": order_reference},
+            headers=self._headers("workflow"),
+        )
+        if response.status_code == 404:
+            raise PeerFault("JOURNEY_SEED_MISSING", f"order seed missing: {order_reference}")
+        self._require_ok(response, "list transactions")
+        body = response.json()
+        payments = body.get("payments", []) if isinstance(body, dict) else []
+        return [p for p in payments if isinstance(p, dict)]
+
+    def _get_order(self, order_reference: str) -> dict[str, object]:
+        response = self.client.get(
+            f"{self._provider_base()}/v1/orders/{order_reference}",
+            headers=self._headers("workflow"),
+        )
+        if response.status_code == 404:
+            raise PeerFault("JOURNEY_SEED_MISSING", f"order seed missing: {order_reference}")
+        self._require_ok(response, "get order")
+        body = response.json()
+        if not isinstance(body, dict):
+            raise PeerFault("PEER_MALFORMED", "order body malformed")
+        return body

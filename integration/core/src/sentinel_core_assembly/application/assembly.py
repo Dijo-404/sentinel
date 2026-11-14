@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from hashlib import sha256
 
 from sentinel_core_assembly.domain.journeys import evaluate_journey, expectation_for
@@ -17,6 +18,12 @@ from sentinel_core_assembly.domain.types import (
 )
 
 from .ports import JourneyPeers
+
+# V1 sandbox assembly always labels the payment peer as simulator (not live rails).
+_SANDBOX_PAYMENT_PROVIDER = "simulator"
+# HttpPeerBundle exercises payment-provider HTTP only — not case→workflow→ledger→SN-009.
+_PROVIDER_ONLY_PATH = "provider-sandbox-only"
+_FIXTURE_PATH = "fixture-reference"
 
 
 def _digest(payload: str) -> str:
@@ -127,18 +134,45 @@ def run_journeys(peers: JourneyPeers, selected: tuple[str, ...] = JOURNEYS) -> l
     return checks
 
 
+def require_full_path_gate(run: RunInput, path: str) -> list[CheckResult]:
+    """Fail closed when operator demands full MVP path but harness is provider-only."""
+    required = os.environ.get("SENTINEL_V1_REQUIRE_FULL_PATH", "").strip() == "1"
+    if not required:
+        return [
+            CheckResult(
+                "assembly.path",
+                "PASS",
+                "PATH_LABELED" if run.mode == "real-peers" else "FIXTURE_PATH_OK",
+            )
+        ]
+    if path == _PROVIDER_ONLY_PATH:
+        return [
+            CheckResult(
+                "assembly.path",
+                "FAIL",
+                "FULL_PATH_REQUIRED_BUT_PROVIDER_SANDBOX_ONLY",
+            )
+        ]
+    return [CheckResult("assembly.path", "PASS", "FULL_PATH_SATISFIED")]
+
+
 def run_assembly(run: RunInput, peers: JourneyPeers) -> RunReport:
+    path = _PROVIDER_ONLY_PATH if run.mode == "real-peers" else _FIXTURE_PATH
     checks = validate_input(run)
     if any(c.status == "FAIL" for c in checks):
-        return _report(run, checks, ())
+        return _report(run, checks, (), path=path)
 
     checks.extend(reject_fixture_as_real(run))
     if any(c.status == "FAIL" for c in checks):
-        return _report(run, checks, ())
+        return _report(run, checks, (), path=path)
+
+    checks.extend(require_full_path_gate(run, path))
+    if any(c.status == "FAIL" for c in checks):
+        return _report(run, checks, (), path=path)
 
     checks.extend(probe_peers(peers, run.mode))
     if run.mode == "real-peers" and any(c.status == "FAIL" for c in checks):
-        return _report(run, checks, ())
+        return _report(run, checks, (), path=path)
 
     selected = JOURNEYS
     raw = run.parameters.get("journeys")
@@ -146,7 +180,7 @@ def run_assembly(run: RunInput, peers: JourneyPeers) -> RunReport:
         selected = tuple(part.strip() for part in raw.split(",") if part.strip())
     checks.extend(run_journeys(peers, selected))
 
-    # Local harness success never claims assembled MVP / product release.
+    # Local harness success never claims assembled MVP / product release / SN-009 authority.
     checks.append(
         CheckResult(
             "assembly.mvp_claim",
@@ -163,7 +197,7 @@ def run_assembly(run: RunInput, peers: JourneyPeers) -> RunReport:
         component_version=str(run.parameters.get("component_version", "0.1.0")),
         evidence_mode=evidence_mode,
     )
-    return _report(run, checks, (artifact,), status=status)
+    return _report(run, checks, (artifact,), status=status, path=path)
 
 
 def _report(
@@ -171,7 +205,14 @@ def _report(
     checks: list[CheckResult],
     artifacts: tuple[ArtifactRef, ...],
     status: str | None = None,
+    path: str | None = None,
 ) -> RunReport:
+    provider = _SANDBOX_PAYMENT_PROVIDER if run.mode == "real-peers" else None
+    report_path = (
+        path
+        if path is not None
+        else (_PROVIDER_ONLY_PATH if run.mode == "real-peers" else _FIXTURE_PATH)
+    )
     return RunReport(
         contract_version=CONTRACT_VERSION,
         run_id=run.run_id,
@@ -180,6 +221,9 @@ def _report(
         checks=tuple(checks),
         output_artifacts=artifacts,
         assembled_mvp_claimed=False,
+        payment_provider=provider,
+        path=report_path,
+        sn009_authority_exercised=False,
     )
 
 
