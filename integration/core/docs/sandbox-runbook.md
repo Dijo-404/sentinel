@@ -23,8 +23,9 @@ docker compose -f integration/core/compose.yaml up -d
 docker compose -f integration/core/compose.yaml ps
 ```
 
-Creates local databases for api, workflow, ledger, dispatcher, verifier, policy, evidence.
-Passwords are demo-only (`sentinel` / per-service users in `compose/init-databases.sql`).
+Creates local databases for api, workflow, ledger, dispatcher, verifier, policy, evidence,
+identity, risk. Passwords are demo-only (`sentinel` / per-service users in
+`compose/init-databases.sql`).
 
 ## 2. Peer env (matrix tokens)
 
@@ -61,6 +62,8 @@ Start data peers before orchestrators:
 | 8 | workflow | `services/workflow` | 8088 | migrate then serve |
 | 9 | case-api | `apps/api` | 8080 | migrate then serve |
 | 10 | web-shell | `apps/web` | 3012 | `/v1/capabilities` |
+| 11 | identity (optional RBAC) | `services/identity` | 8012 | not in REQUIRED_PEERS; fixture probes use doubles |
+| 12 | risk (optional RBAC) | `services/risk` | 8013 | not in REQUIRED_PEERS; no money authority |
 
 Typical pattern per Python service:
 
@@ -109,9 +112,27 @@ SENTINEL_V1_REQUIRE_FULL_PATH=1 ./scripts/run_sandbox_journeys.sh  # expected FA
   duplicate_payment → `VERIFIED_RESOLVED` (150000 + timeout recovery + credit);
   refund_pending → `WAITING_ON_PROVIDER` with `credit_confirmed=false`
 
+## 5b. Fixture RBAC probes (SN-041)
+
+Identity (8012) and risk (8013) are matrix/compose peers for RBAC assembly evidence.
+Module-local fixture probes do **not** require those services running:
+
+```sh
+./scripts/run_rbac_fixture_probes.sh
+# or: uv run --frozen pytest tests/test_rbac_fixture.py -q
+```
+
+Covers AUTH-01 (customer register with staff role denied), platform-admin staff invite,
+and AUTH-06 (operator supervisor-decide denied; ledger untouched). Labels:
+
+- `path=rbac-fixture`
+- `sn009_authority_exercised=false`
+- Not a full case→workflow→ledger money-path claim
+
 ## 6. Evidence limits
 
 Passing sandbox assembly proves payment-provider HTTP drivers against the mock simulator.
 It does **not** exercise SN-009 ledger authority or the full case→workflow→dispatcher path.
+Fixture RBAC probes prove local AUTH doubles only (`path=rbac-fixture`).
 It is **not** live-settlement or external pilot acceptance. Fixture `make check` alone
 is never product release evidence.

@@ -52,7 +52,10 @@ class AssemblyConfig:
             "verifier": "CORE_ASSEMBLY_TOKEN_VERIFIER",
             "case-api": "CORE_ASSEMBLY_TOKEN_CASE_API",
             "customer": "CORE_ASSEMBLY_TOKEN_CUSTOMER",
+            "operator": "CORE_ASSEMBLY_TOKEN_OPERATOR",
             "supervisor": "CORE_ASSEMBLY_TOKEN_SUPERVISOR",
+            "platform_admin": "CORE_ASSEMBLY_TOKEN_PLATFORM_ADMIN",
+            "risk_officer": "CORE_ASSEMBLY_TOKEN_RISK_OFFICER",
             "sandbox-admin": "CORE_ASSEMBLY_TOKEN_SANDBOX_ADMIN",
         }
         token_defaults = default_tokens()

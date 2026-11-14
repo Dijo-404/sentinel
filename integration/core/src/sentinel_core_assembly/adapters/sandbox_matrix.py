@@ -16,14 +16,37 @@ _EMBEDDED_TOKENS: dict[str, Any] = {
     "tenant_id": "tenant-demo",
     "case_id": "case-demo-42",
     "subject_ref": "subject-demo-42",
+    "ports": {
+        "api": 8080,
+        "workflow": 8088,
+        "ledger": 8009,
+        "dispatcher": 8010,
+        "verifier": 8011,
+        "identity": 8012,
+        "risk": 8013,
+        "simulator": 8094,
+        "web": 3012,
+    },
     "tokens": {
         "tok-workflow": {"principal_id": "svc-workflow", "roles": ["workflow"]},
         "tok-dispatcher": {"principal_id": "svc-dispatcher", "roles": ["dispatcher"]},
         "tok-verifier": {"principal_id": "svc-verifier", "roles": ["verifier"]},
         "tok-case-api": {"principal_id": "svc-case-api", "roles": ["workflow"]},
         "tok-customer": {"principal_id": "customer-demo", "roles": ["customer"]},
+        "tok-operator": {"principal_id": "operator-demo", "roles": ["operator"]},
         "tok-supervisor": {"principal_id": "supervisor-demo", "roles": ["supervisor"]},
-        "tok-sandbox-admin": {"principal_id": "svc-sandbox-admin", "roles": ["sandbox-admin"]},
+        "tok-platform-admin": {
+            "principal_id": "platform-admin-demo",
+            "roles": ["platform_admin"],
+        },
+        "tok-risk-officer": {
+            "principal_id": "risk-officer-demo",
+            "roles": ["risk_officer"],
+        },
+        "tok-sandbox-admin": {
+            "principal_id": "svc-sandbox-admin",
+            "roles": ["sandbox-admin"],
+        },
     },
 }
 
@@ -37,6 +60,8 @@ _EMBEDDED_ASSEMBLY: dict[str, Any] = {
         "action-ledger.v1": "http://127.0.0.1:8009",
         "dispatcher.v1": "http://127.0.0.1:8010",
         "verifier.v1": "http://127.0.0.1:8011",
+        "identity.v1": "http://127.0.0.1:8012",
+        "risk.v1": "http://127.0.0.1:8013",
         "payment-provider.v1": "http://127.0.0.1:8094",
         "web-shell.v1": "http://127.0.0.1:3012",
     },
@@ -46,7 +71,10 @@ _EMBEDDED_ASSEMBLY: dict[str, Any] = {
         "verifier": "tok-verifier",
         "case-api": "tok-case-api",
         "customer": "tok-customer",
+        "operator": "tok-operator",
         "supervisor": "tok-supervisor",
+        "platform_admin": "tok-platform-admin",
+        "risk_officer": "tok-risk-officer",
         "sandbox-admin": "tok-sandbox-admin",
     },
     "journey_seeds": {
@@ -116,6 +144,7 @@ def load_sandbox_matrix() -> dict[str, Any]:
 
 
 def default_peer_endpoints() -> dict[str, str]:
+    """REQUIRED_PEERS money-path URLs only (identity/risk are optional_rbac)."""
     urls = dict(load_assembly_matrix().get("base_urls", {}))
     return {
         "case-api.v1": str(urls.get("case-api.v1", "")),
@@ -126,6 +155,19 @@ def default_peer_endpoints() -> dict[str, str]:
         "payment-provider.v1": str(urls.get("payment-provider.v1", "")),
         "web-shell.v1": str(urls.get("web-shell.v1", "")),
     }
+
+
+def optional_rbac_peer_endpoints() -> dict[str, str]:
+    """identity.v1 / risk.v1 — optional; not in REQUIRED_PEERS money-path probe."""
+    urls = dict(load_assembly_matrix().get("base_urls", {}))
+    return {
+        "identity.v1": str(urls.get("identity.v1", "")),
+        "risk.v1": str(urls.get("risk.v1", "")),
+    }
+
+
+def rbac_path_label() -> str:
+    return "rbac-fixture"
 
 
 def default_tokens() -> dict[str, str]:

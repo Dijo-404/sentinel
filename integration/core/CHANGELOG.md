@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Added — 14 November 2026 (SN-041 Refs #104)
+
+- Identity (8012) and risk (8013) ports/tokens in sandbox matrix + assembly fixtures;
+  compose Postgres users/DBs for identity and risk.
+- Fixture RBAC probes (`path=rbac-fixture`): AUTH-01 staff-role register denied,
+  platform-admin staff invite, AUTH-06 operator decide denied (ledger untouched).
+- Stubs for `identity.v1` / `risk.v1`; `scripts/run_rbac_fixture_probes.sh`.
+- Honest labels: `sn009_authority_exercised=false`; RBAC path is not money-path evidence.
+- Runbook + matrix docs for optional identity/risk peers.
+
 ### Fixed — 14 November 2026 (audit follow-up)
 
 - `run_duplicate_payment`: always `POST /v1/admin/faults/reset` in `finally` after arming `timeout_after_accept` (covers early `FAILED_FINAL` / `PeerFault`).
