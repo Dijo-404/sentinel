@@ -165,7 +165,11 @@ export function LandingPage({ dashboardHref }: Props) {
           <p>Product</p>
           <a href="#features">Features</a>
           <a href="#how-it-works">How it works</a>
-          <Link href="/login">Log in</Link>
+          {dashboardHref ? (
+            <Link href={dashboardHref}>Dashboard</Link>
+          ) : (
+            <Link href="/login">Log in</Link>
+          )}
         </div>
         <div>
           <p>Legacy</p>

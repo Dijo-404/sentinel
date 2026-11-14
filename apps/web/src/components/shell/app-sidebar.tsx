@@ -15,10 +15,23 @@ type Props = {
   nav: NavItem[];
 };
 
+function longestMatchingHref(pathname: string, nav: NavItem[]): string | null {
+  let best: string | null = null;
+  for (const item of nav) {
+    const matches =
+      pathname === item.href || pathname.startsWith(`${item.href}/`);
+    if (matches && (best === null || item.href.length > best.length)) {
+      best = item.href;
+    }
+  }
+  return best;
+}
+
 export function AppSidebar({ role, session, nav }: Props) {
   const pathname = usePathname();
   const meta = PORTAL_META[role];
   const [open, setOpen] = useState(false);
+  const activeHref = longestMatchingHref(pathname, nav);
 
   return (
     <>
@@ -34,6 +47,14 @@ export function AppSidebar({ role, session, nav }: Props) {
         </button>
         <span className="app-sidebar__mobile-brand">Sentinel</span>
       </div>
+      {open ? (
+        <button
+          type="button"
+          className="app-sidebar__backdrop"
+          aria-label="Close navigation"
+          onClick={() => setOpen(false)}
+        />
+      ) : null}
       <aside
         id="app-sidebar-nav"
         className={`app-sidebar${open ? " is-open" : ""}`}
@@ -49,8 +70,7 @@ export function AppSidebar({ role, session, nav }: Props) {
         </div>
         <nav className="app-sidebar__nav" aria-label={`${role} navigation`}>
           {nav.map((item) => {
-            const active =
-              pathname === item.href || pathname.startsWith(`${item.href}/`);
+            const active = item.href === activeHref;
             return (
               <Link
                 key={item.href}
