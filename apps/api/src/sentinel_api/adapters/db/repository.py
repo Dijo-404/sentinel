@@ -29,6 +29,19 @@ from sentinel_api.domain.types import (
 # Claimed jobs become reclaimable after this lease window (crash recovery).
 WORKFLOW_JOB_LEASE_SECONDS = 30
 
+# Ops history alias: terminal case statuses for supervisor History pages.
+HISTORY_STATUSES: tuple[str, ...] = ("VERIFIED_RESOLVED", "CLOSED_NO_ACTION")
+
+
+def _resolve_status_filter(status: str | None) -> tuple[str, ...] | None:
+    """Expand HISTORY alias and optional comma-separated CaseState filters."""
+    if not status:
+        return None
+    if status == "HISTORY":
+        return HISTORY_STATUSES
+    parts = tuple(part.strip() for part in status.split(",") if part.strip())
+    return parts or None
+
 
 def _hash(payload: dict[str, Any]) -> str:
     raw = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
@@ -337,10 +350,11 @@ class SqlCaseRepository:
     def list_queue(
         self, *, tenant_id: str, status: str | None, after: str | None, limit: int
     ) -> tuple[list[Case], str | None]:
+        statuses = _resolve_status_filter(status)
         with self._engine.connect() as conn:
             stmt = select(schema.cases).where(schema.cases.c.tenant_id == tenant_id)
-            if status:
-                stmt = stmt.where(schema.cases.c.status == status)
+            if statuses:
+                stmt = stmt.where(schema.cases.c.status.in_(statuses))
             stmt = stmt.order_by(schema.cases.c.case_id.asc())
             rows = conn.execute(stmt).mappings().all()
             started = after is None
@@ -356,6 +370,87 @@ class SqlCaseRepository:
                     next_cursor = row["case_id"]
                     break
             return cases, next_cursor
+
+    def list_ops_messages(
+        self, *, tenant_id: str, after: str | None, limit: int
+    ) -> tuple[list[dict[str, Any]], str | None]:
+        with self._engine.connect() as conn:
+            rows = (
+                conn.execute(
+                    select(schema.messages)
+                    .where(schema.messages.c.tenant_id == tenant_id)
+                    .order_by(
+                        schema.messages.c.occurred_at.desc(),
+                        schema.messages.c.case_id.desc(),
+                        schema.messages.c.message_id.desc(),
+                    )
+                )
+                .mappings()
+                .all()
+            )
+            started = after is None
+            messages: list[dict[str, Any]] = []
+            next_cursor = None
+            for row in rows:
+                cursor = f"{row['case_id']}:{row['message_id']}"
+                if not started:
+                    if cursor == after:
+                        started = True
+                    continue
+                messages.append(
+                    {
+                        "case_id": row["case_id"],
+                        "message_id": row["message_id"],
+                        "text": row["text"],
+                        "language": row["language"],
+                        "author": row["author"],
+                        "occurred_at": row["occurred_at"],
+                    }
+                )
+                if len(messages) >= limit:
+                    next_cursor = cursor
+                    break
+            return messages, next_cursor
+
+    def list_ops_audit_events(
+        self, *, tenant_id: str, after: str | None, limit: int
+    ) -> tuple[list[dict[str, Any]], str | None]:
+        with self._engine.connect() as conn:
+            rows = (
+                conn.execute(
+                    select(schema.events)
+                    .where(schema.events.c.tenant_id == tenant_id)
+                    .order_by(
+                        schema.events.c.occurred_at.desc(),
+                        schema.events.c.case_id.desc(),
+                        schema.events.c.sequence.desc(),
+                    )
+                )
+                .mappings()
+                .all()
+            )
+            started = after is None
+            events: list[dict[str, Any]] = []
+            next_cursor = None
+            for row in rows:
+                cursor = f"{row['case_id']}:{row['sequence']}"
+                if not started:
+                    if cursor == after:
+                        started = True
+                    continue
+                events.append(
+                    {
+                        "case_id": row["case_id"],
+                        "sequence": int(row["sequence"]),
+                        "type": row["type"],
+                        "occurred_at": row["occurred_at"],
+                        "payload": _json_loads(row["payload_json"]),
+                    }
+                )
+                if len(events) >= limit:
+                    next_cursor = cursor
+                    break
+            return events, next_cursor
 
     def escalate(
         self,

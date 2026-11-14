@@ -165,6 +165,20 @@ class CaseService:
             tenant_id=principal.tenant_id, status=status, after=after, limit=50
         )
 
+    def list_ops_messages(
+        self, principal: Principal, *, after: str | None
+    ) -> tuple[list[dict], str | None]:
+        require_roles(principal, "operator", "supervisor")
+        return self._repo.list_ops_messages(tenant_id=principal.tenant_id, after=after, limit=50)
+
+    def list_ops_audit_events(
+        self, principal: Principal, *, after: str | None
+    ) -> tuple[list[dict], str | None]:
+        require_roles(principal, "operator", "supervisor")
+        return self._repo.list_ops_audit_events(
+            tenant_id=principal.tenant_id, after=after, limit=50
+        )
+
     def get_ops_evidence(
         self, principal: Principal, case_id: str, *, authorization: str
     ) -> EvidenceBundle:

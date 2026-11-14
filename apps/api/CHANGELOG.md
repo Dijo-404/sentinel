@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added — 15 November 2026 (ops messages / history / audit projections)
+
+- `GET /v1/ops/messages` tenant-scoped newest-first message inbox (operator/supervisor; max 50).
+- `GET /v1/ops/audit-events` tenant-scoped newest-first case event feed (operator/supervisor; max 50).
+- `GET /v1/ops/cases?status=HISTORY` expands to `{VERIFIED_RESOLVED, CLOSED_NO_ACTION}`; comma-separated status filters also accepted.
+
 ### Fixed — 15 November 2026 (supervisor dashboard pending_approvals)
 
 - `pending_approvals` is the case-store count of `WAITING_APPROVAL` rows (same as

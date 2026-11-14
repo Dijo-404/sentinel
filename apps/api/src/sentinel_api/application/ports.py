@@ -73,6 +73,18 @@ class CaseRepository(Protocol):
         self, *, tenant_id: str, status: str | None, after: str | None, limit: int
     ) -> tuple[list[Case], str | None]: ...
 
+    def list_ops_messages(
+        self, *, tenant_id: str, after: str | None, limit: int
+    ) -> tuple[list[dict], str | None]:
+        """Tenant-scoped message inbox projection; newest first."""
+        ...
+
+    def list_ops_audit_events(
+        self, *, tenant_id: str, after: str | None, limit: int
+    ) -> tuple[list[dict], str | None]:
+        """Tenant-scoped case event feed; newest first."""
+        ...
+
     def escalate(
         self,
         *,

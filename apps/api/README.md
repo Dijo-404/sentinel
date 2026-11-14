@@ -7,7 +7,17 @@
 
 ## What this module owns
 
-Authenticated case intake/query/messages, immutable per-revision `CaseInput` snapshots, ordered durable events (JSON + SSE), operator queue/evidence/claim, customer/operator/supervisor dashboard projections, supervisor decision proxy to the action ledger, escalation, internal workflow input/results, health/readiness/capabilities.
+Authenticated case intake/query/messages, immutable per-revision `CaseInput` snapshots, ordered durable events (JSON + SSE), operator queue/evidence/claim, ops message inbox + audit event feed, customer/operator/supervisor dashboard projections, supervisor decision proxy to the action ledger, escalation, internal workflow input/results, health/readiness/capabilities.
+
+### Ops list projections
+
+Operator and supervisor only (customer → 403). All tenant-scoped; empty list is honest empty, never fixture rows.
+
+| Endpoint | Notes |
+| --- | --- |
+| `GET /v1/ops/cases?status=…` | Queue filter. Exact `CaseState`, comma-separated states, or alias `HISTORY` = `{VERIFIED_RESOLVED, CLOSED_NO_ACTION}`. Max 50; optional `after` cursor. |
+| `GET /v1/ops/messages` | Newest-first inbox from `case_messages`. Shape `{ messages: [{ case_id, message_id, text, language, author, occurred_at }], next_cursor? }`. Max 50. |
+| `GET /v1/ops/audit-events` | Newest-first case events. Shape `{ events: [{ case_id, sequence, type, occurred_at, payload }], next_cursor? }`. Max 50. Payload follows existing event writer redaction. |
 
 Authoritative approvals and money stay in the ledger. This API forwards the supervisor bearer token and exact `DecisionRequest` digest/revision; it does not mint approvals.
 
