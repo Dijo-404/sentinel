@@ -82,9 +82,17 @@ def build_app(
         mode = "real-peers"
 
     staff_store = store if store is not None else MemoryStaffStore()
+    # real-peers + IDENTITY_BASE_URL: identity owns grants; local create/role writes denied.
+    identity_authoritative = mode == "real-peers" and identity_port is not None
     services = AppServices(
         authenticator=authenticator,
-        staff=StaffService(staff_store, case_port, SystemClock(), identity_port),
+        staff=StaffService(
+            staff_store,
+            case_port,
+            SystemClock(),
+            identity_port,
+            identity_authoritative=identity_authoritative,
+        ),
         mode=mode,
     )
     return create_app(services)

@@ -37,9 +37,9 @@
     {
       "method": "GET",
       "path": "/v1/merchant/team?merchant_ref=...",
-      "response": "{ staff: MerchantStaff[] }",
+      "response": "{ staff: MerchantStaff[], source: identity_projection|local_projection }",
       "roles": ["operator", "supervisor", "sandbox-admin"],
-      "notes": "Authoritative membership projection surface over local projected staff"
+      "notes": "Projection surface; auto-syncs from identity when peer configured; source labels non-authority"
     },
     {
       "method": "GET",
@@ -102,6 +102,8 @@
     "Identity owns grants; merchant-teams projects memberships and is not a second role authority.",
     "CASE_* activity kinds require a live case-api.v1 get; real-peers never falls back to fixtures.",
     "When IDENTITY_BASE_URL is set in real-peers, membership sync fails closed on identity errors.",
+    "When IDENTITY_BASE_URL is set in real-peers, local create/update role mutations are rejected (projection-only).",
+    "Sync deactivates local staff absent from the identity membership response (revoke).",
     "Unauthorized tenant/merchant scope returns 403."
   ]
 }

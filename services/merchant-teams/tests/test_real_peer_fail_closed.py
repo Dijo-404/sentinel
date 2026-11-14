@@ -52,6 +52,42 @@ def test_real_peers_identity_requires_token_when_base_url_set():
         build_app(_settings(identity_base_url="http://identity.test", identity_token=""))
 
 
+def test_real_peers_identity_rejects_local_membership_writes(identity):
+    from fastapi.testclient import TestClient
+    from tests.conftest import TOKENS
+
+    from sentinel_merchant_teams.adapters.auth import TokenAuthenticator
+    from sentinel_merchant_teams.adapters.case_api_stub import StubCaseApi
+    from sentinel_merchant_teams.adapters.clock import SystemClock
+    from sentinel_merchant_teams.adapters.http_api import AppServices, create_app
+    from sentinel_merchant_teams.adapters.storage_memory import MemoryStaffStore
+    from sentinel_merchant_teams.application.staff import StaffService
+
+    services = AppServices(
+        authenticator=TokenAuthenticator(TOKENS),
+        staff=StaffService(
+            MemoryStaffStore(),
+            StubCaseApi(mode="valid"),
+            SystemClock(),
+            identity,
+            identity_authoritative=True,
+        ),
+        mode="real-peers",
+    )
+    client = TestClient(create_app(services))
+    denied = client.post(
+        "/v1/staff",
+        headers={"Authorization": "Bearer operator-token"},
+        json={
+            "merchant_ref": "merchant-demo-1",
+            "display_name": "Nope",
+            "roles": ["viewer"],
+        },
+    )
+    assert denied.status_code == 409
+    assert denied.json()["code"] == "CONFLICT"
+
+
 def test_http_case_api_unavailable():
     def handler(request: httpx.Request) -> httpx.Response:
         raise httpx.ConnectError("down", request=request)

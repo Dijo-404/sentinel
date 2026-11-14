@@ -7,11 +7,13 @@ from tests.conftest import OPERATOR
 from tests.stubs.identity import MALFORMED, UNAUTHORIZED, UNAVAILABLE, VALID
 
 from sentinel_merchant_teams.application.errors import (
+    ConflictError,
     PeerMalformedError,
     PeerUnauthorizedError,
     PeerUnavailableError,
     ValidationError,
 )
+from sentinel_merchant_teams.application.staff import StaffService
 
 
 def test_identity_stub_modes():
@@ -89,6 +91,44 @@ def test_sync_rejects_platform_subroles_from_identity(service, identity):
         service.sync_memberships(OPERATOR, "merchant-demo-1")
 
 
+def test_sync_revokes_local_staff_absent_from_identity(service):
+    local = service.create(
+        OPERATOR,
+        merchant_ref="merchant-demo-1",
+        display_name="Orphan Local",
+        roles=["viewer"],
+        staff_id="staff-local-orphan",
+    )
+    assert local.active is True
+
+    projected = service.sync_memberships(OPERATOR, "merchant-demo-1")
+    assert [row.staff_id for row in projected] == ["mm-demo-1", "mm-demo-2"]
+
+    orphan = service.get(OPERATOR, "staff-local-orphan")
+    assert orphan.active is False
+    events = service.list_activity(OPERATOR, "staff-local-orphan")
+    assert events[-1].kind == "MEMBERSHIP_REVOKED"
+
+
+def test_local_membership_writes_denied_when_identity_authoritative(store, cases, clock, identity):
+    service = StaffService(store, cases, clock, identity, identity_authoritative=True)
+    with pytest.raises(ConflictError, match="projection-only"):
+        service.create(
+            OPERATOR,
+            merchant_ref="merchant-demo-1",
+            display_name="Blocked",
+            roles=["viewer"],
+            staff_id="staff-blocked",
+        )
+
+    # Seed via sync (allowed), then deny role mutation.
+    service.sync_memberships(OPERATOR, "merchant-demo-1")
+    with pytest.raises(ConflictError, match="projection-only"):
+        service.update(OPERATOR, "mm-demo-1", roles=["admin"])
+    with pytest.raises(ConflictError, match="projection-only"):
+        service.update(OPERATOR, "mm-demo-1", display_name="Renamed")
+
+
 def test_http_sync_and_team_projection(client, auth_headers):
     synced = client.post(
         "/v1/staff/sync",
@@ -105,4 +145,18 @@ def test_http_sync_and_team_projection(client, auth_headers):
         params={"merchant_ref": "merchant-demo-1"},
     )
     assert team.status_code == 200
-    assert team.json()["staff"][0]["roles"] == ["approver"]
+    payload = team.json()
+    assert payload["staff"][0]["roles"] == ["approver"]
+    assert payload["source"] == "identity_projection"
+
+
+def test_http_team_auto_syncs_when_identity_configured(client, auth_headers):
+    team = client.get(
+        "/v1/merchant/team",
+        headers=auth_headers,
+        params={"merchant_ref": "merchant-demo-1"},
+    )
+    assert team.status_code == 200
+    payload = team.json()
+    assert payload["source"] == "identity_projection"
+    assert [row["staff_id"] for row in payload["staff"]] == ["mm-demo-1", "mm-demo-2"]

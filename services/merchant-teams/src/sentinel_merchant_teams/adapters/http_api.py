@@ -106,15 +106,24 @@ def create_app(services: AppServices) -> FastAPI:
 
     @app.get("/v1/merchant/team")
     def merchant_team(request: Request) -> JSONResponse:
-        """Authoritative membership projection surface (local projected staff)."""
+        """Membership projection surface.
+
+        Auto-syncs from identity when configured; always labels the list as a
+        projection (not a grant authority).
+        """
         request_id = _request_id(request)
         try:
             principal = services.authenticator.authenticate(request.headers.get("authorization"))
             merchant_ref = request.query_params.get("merchant_ref")
             if not merchant_ref:
                 raise ValidationError("merchant_ref query is required")
-            rows = services.staff.list_staff(principal, merchant_ref)
-            return JSONResponse({"staff": [row.to_wire() for row in rows]})
+            rows, source = services.staff.list_team(principal, merchant_ref)
+            return JSONResponse(
+                {
+                    "staff": [row.to_wire() for row in rows],
+                    "source": source,
+                }
+            )
         except TeamsError as exc:
             return _error(exc, request_id)
 

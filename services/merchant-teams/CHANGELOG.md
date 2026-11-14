@@ -8,7 +8,9 @@
   `tests/stubs/identity/`, HTTP adapter, and `POST /v1/staff/sync` projection
   into the local staff store. Platform Admin / identity owns grants;
   merchant-teams does not create competing platform roles.
-- `GET /v1/merchant/team` projection surface over local projected staff.
+- `GET /v1/merchant/team` projection surface over local projected staff;
+  auto-syncs when identity peer configured; response `source` labels
+  `identity_projection` or `local_projection`.
 - Optional `IDENTITY_BASE_URL` / `IDENTITY_TOKEN` in real-peers; fail closed
   when configured identity is unavailable, unauthorized, or malformed.
 - AUTH-09 / AUTH-10 acceptance coverage: merchant approver cannot authorize
@@ -16,6 +18,10 @@
 
 ### Changed
 
+- Sync deactivates local staff not present in the identity membership
+  response (`MEMBERSHIP_REVOKED`).
+- real-peers + `IDENTITY_BASE_URL`: local create / display-name / role
+  mutations rejected as projection-only (`CONFLICT`).
 - Merchant staff roles remain viewer / operator / approver / admin only;
   platform authorities (`platform_admin`, `supervisor`, `risk_officer`, …)
   are rejected at normalize/project boundaries.
