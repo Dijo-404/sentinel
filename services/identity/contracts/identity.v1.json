@@ -1,0 +1,163 @@
+{
+  "port": "identity.v1",
+  "contract_version": "sentinel.task-contracts.v1",
+  "contract_sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb",
+  "produces": [
+    "User",
+    "RoleAssignment",
+    "Session",
+    "StaffInvitation",
+    "IdentityAuditEvent",
+    "PrincipalProjection"
+  ],
+  "consumes": [],
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/v1/capabilities",
+      "response": "{ contract_version, component, mode, money_authority:false }"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/auth/customer/register",
+      "request": {
+        "email": "string",
+        "password": "string",
+        "display_name": "string",
+        "preferred_language?": "string"
+      },
+      "response": "{ user, assignment, session_token, expires_at }",
+      "notes": "Server assigns customer only; privileged fields rejected"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/auth/login",
+      "request": {
+        "email": "string",
+        "password": "string",
+        "requested_role?": "string"
+      },
+      "response": "{ user, workspaces, active_assignment?, session_token, expires_at }"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/auth/logout",
+      "auth": "Bearer session",
+      "response": "{ status: revoked }"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/auth/me",
+      "auth": "Bearer session",
+      "response": "{ user, workspaces, active_assignment?, permissions }"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/auth/workspaces",
+      "auth": "Bearer session",
+      "response": "{ workspaces, active_assignment? }"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/auth/workspaces/select",
+      "auth": "Bearer session",
+      "request": { "assignment_id": "string" },
+      "response": "{ active_assignment, session_token, expires_at }"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/auth/accept-invitation",
+      "request": {
+        "token": "string",
+        "email": "string",
+        "password": "string",
+        "display_name?": "string"
+      },
+      "response": "{ user, assignment, session_token, expires_at, invitation_id }"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/admin/users",
+      "auth": "platform_admin session",
+      "permission": "identity.staff.manage"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/admin/invitations",
+      "auth": "platform_admin session",
+      "permission": "identity.staff.invite",
+      "request": {
+        "display_name": "string",
+        "work_email": "string",
+        "tenant_id": "string",
+        "role_id": "string",
+        "scope?": "object",
+        "reason?": "string",
+        "idempotency_key?": "string"
+      },
+      "notes": "Reject role_id=customer and service roles; no client granted_by; no plaintext invite_token; privileged roles await independent review"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/admin/privileged-changes/{id}/decision",
+      "auth": "platform_admin session (independent of maker)",
+      "request": { "decision": "approve|reject", "reason?": "string" },
+      "notes": "AUTH-12: maker cannot decide own privileged change"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/admin/invitations",
+      "auth": "platform_admin session"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/admin/invitations/{id}/revoke",
+      "auth": "platform_admin session"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/admin/users/{id}/roles",
+      "auth": "platform_admin session",
+      "permission": "identity.role.grant"
+    },
+    {
+      "method": "DELETE",
+      "path": "/v1/admin/users/{id}/roles/{assignmentId}",
+      "auth": "platform_admin session",
+      "permission": "identity.role.revoke"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/admin/users/{id}/suspend",
+      "auth": "platform_admin session"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/admin/users/{id}/reactivate",
+      "auth": "platform_admin session"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/admin/roles",
+      "auth": "platform_admin session"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/admin/audit-events",
+      "auth": "platform_admin session",
+      "permission": "identity.audit.read"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/admin/users/{id}/sessions/revoke",
+      "auth": "platform_admin session",
+      "permission": "identity.session.revoke"
+    }
+  ],
+  "notes": [
+    "Identity owns identity tables only; never money authority.",
+    "Session tokens stored hashed; authz_version mismatch denies protected access.",
+    "Service principals never receive interactive logins.",
+    "Default listen 127.0.0.1:8012; demo credentials refused on non-loopback."
+  ]
+}

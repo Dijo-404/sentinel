@@ -1,0 +1,249 @@
+"""In-process identity store for fixture mode and unit tests."""
+
+from __future__ import annotations
+
+from copy import deepcopy
+from dataclasses import replace
+from datetime import datetime
+from threading import RLock
+
+from ..application.errors import ConflictError, ForbiddenError
+from ..domain.models import (
+    AuditEvent,
+    Invitation,
+    PrivilegedChangeRequest,
+    RoleAssignment,
+    SessionRecord,
+    User,
+)
+
+
+class MemoryIdentityStore:
+    def __init__(self) -> None:
+        self._lock = RLock()
+        self.users: dict[str, User] = {}
+        self.users_by_email: dict[str, str] = {}
+        self.assignments: dict[str, RoleAssignment] = {}
+        self.sessions: dict[str, SessionRecord] = {}
+        self.sessions_by_hash: dict[str, str] = {}
+        self.invitations: dict[str, Invitation] = {}
+        self.invitations_by_idem: dict[str, str] = {}
+        self.invitations_by_hash: dict[str, str] = {}
+        self.privileged_changes: dict[str, PrivilegedChangeRequest] = {}
+        self.audit: list[AuditEvent] = []
+        self._delivery_secrets: dict[str, str] = {}
+
+    def create_user(self, user: User) -> User:
+        with self._lock:
+            if user.user_id in self.users:
+                raise ValueError("user_id already exists")
+            if user.email in self.users_by_email:
+                raise ValueError("email already exists")
+            self.users[user.user_id] = user
+            self.users_by_email[user.email] = user.user_id
+            return user
+
+    def get_user(self, user_id: str) -> User | None:
+        return self.users.get(user_id)
+
+    def get_user_by_email(self, email: str) -> User | None:
+        uid = self.users_by_email.get(email)
+        return self.users.get(uid) if uid else None
+
+    def save_user(self, user: User) -> User:
+        with self._lock:
+            prev = self.users.get(user.user_id)
+            if prev and prev.email != user.email:
+                self.users_by_email.pop(prev.email, None)
+            self.users[user.user_id] = user
+            self.users_by_email[user.email] = user.user_id
+            return user
+
+    def list_users(self, *, tenant_id: str | None = None) -> tuple[User, ...]:
+        rows = list(self.users.values())
+        if tenant_id is not None:
+            rows = [u for u in rows if u.tenant_id == tenant_id]
+        return tuple(sorted(rows, key=lambda u: u.email))
+
+    def create_assignment(self, assignment: RoleAssignment) -> RoleAssignment:
+        with self._lock:
+            self.assignments[assignment.assignment_id] = assignment
+            return assignment
+
+    def get_assignment(self, assignment_id: str) -> RoleAssignment | None:
+        return self.assignments.get(assignment_id)
+
+    def save_assignment(self, assignment: RoleAssignment) -> RoleAssignment:
+        with self._lock:
+            self.assignments[assignment.assignment_id] = assignment
+            return assignment
+
+    def list_assignments(self, user_id: str) -> tuple[RoleAssignment, ...]:
+        rows = [a for a in self.assignments.values() if a.user_id == user_id]
+        return tuple(sorted(rows, key=lambda a: a.granted_at.isoformat()))
+
+    def create_session(self, session: SessionRecord) -> SessionRecord:
+        with self._lock:
+            self.sessions[session.session_id] = session
+            self.sessions_by_hash[session.token_hash] = session.session_id
+            return session
+
+    def get_session_by_token_hash(self, token_hash: str) -> SessionRecord | None:
+        sid = self.sessions_by_hash.get(token_hash)
+        return self.sessions.get(sid) if sid else None
+
+    def save_session(self, session: SessionRecord) -> SessionRecord:
+        with self._lock:
+            self.sessions[session.session_id] = session
+            self.sessions_by_hash[session.token_hash] = session.session_id
+            return session
+
+    def revoke_sessions_for_user(self, user_id: str, *, at: datetime) -> int:
+        with self._lock:
+            return self._revoke_sessions_unlocked(user_id, at=at)
+
+    def _revoke_sessions_unlocked(self, user_id: str, *, at: datetime) -> int:
+        count = 0
+        for sid, session in list(self.sessions.items()):
+            if session.user_id == user_id and session.revoked_at is None:
+                self.sessions[sid] = SessionRecord(
+                    session_id=session.session_id,
+                    token_hash=session.token_hash,
+                    user_id=session.user_id,
+                    assignment_id=session.assignment_id,
+                    authz_version=session.authz_version,
+                    issued_at=session.issued_at,
+                    expires_at=session.expires_at,
+                    revoked_at=at,
+                    mfa_verified_at=session.mfa_verified_at,
+                )
+                count += 1
+        return count
+
+    def create_invitation(self, invitation: Invitation) -> Invitation:
+        with self._lock:
+            self.invitations[invitation.invitation_id] = invitation
+            self.invitations_by_idem[invitation.idempotency_key] = invitation.invitation_id
+            self.invitations_by_hash[invitation.token_hash] = invitation.invitation_id
+            return invitation
+
+    def get_invitation(self, invitation_id: str) -> Invitation | None:
+        return self.invitations.get(invitation_id)
+
+    def get_invitation_by_idempotency(self, key: str) -> Invitation | None:
+        iid = self.invitations_by_idem.get(key)
+        return self.invitations.get(iid) if iid else None
+
+    def get_invitation_by_token_hash(self, token_hash: str) -> Invitation | None:
+        iid = self.invitations_by_hash.get(token_hash)
+        return self.invitations.get(iid) if iid else None
+
+    def save_invitation(self, invitation: Invitation) -> Invitation:
+        with self._lock:
+            self.invitations[invitation.invitation_id] = invitation
+            self.invitations_by_idem[invitation.idempotency_key] = invitation.invitation_id
+            self.invitations_by_hash[invitation.token_hash] = invitation.invitation_id
+            return invitation
+
+    def list_invitations(self, *, tenant_id: str | None = None) -> tuple[Invitation, ...]:
+        rows = list(self.invitations.values())
+        if tenant_id is not None:
+            rows = [i for i in rows if i.tenant_id == tenant_id]
+        return tuple(sorted(rows, key=lambda i: i.created_at.isoformat(), reverse=True))
+
+    def consume_invitation_with_assignment(
+        self,
+        *,
+        token_hash: str,
+        user: User,
+        assignment: RoleAssignment,
+        at: datetime,
+    ) -> Invitation:
+        with self._lock:
+            iid = self.invitations_by_hash.get(token_hash)
+            invitation = self.invitations.get(iid) if iid else None
+            if invitation is None:
+                raise ForbiddenError("Invitation denied")
+            if invitation.status != "pending":
+                raise ConflictError("Invitation is no longer pending")
+            if invitation.review_state == "awaiting_review":
+                raise ForbiddenError("Invitation awaiting independent review")
+            if invitation.review_state == "rejected":
+                raise ForbiddenError("Invitation rejected")
+            if invitation.expires_at <= at:
+                self.invitations[invitation.invitation_id] = replace(invitation, status="expired")
+                raise ForbiddenError("Invitation expired")
+            claimed = replace(
+                invitation,
+                status="accepted",
+                accepted_at=at,
+                accepted_user_id=user.user_id,
+            )
+            self.invitations[claimed.invitation_id] = claimed
+            prev = self.users.get(user.user_id)
+            if prev is None:
+                if user.email in self.users_by_email:
+                    raise ConflictError("Account already exists")
+                self.users[user.user_id] = user
+                self.users_by_email[user.email] = user.user_id
+            else:
+                self.users[user.user_id] = user
+                self.users_by_email[user.email] = user.user_id
+            self.assignments[assignment.assignment_id] = assignment
+            return claimed
+
+    def create_privileged_change(self, change: PrivilegedChangeRequest) -> PrivilegedChangeRequest:
+        with self._lock:
+            self.privileged_changes[change.change_id] = change
+            return change
+
+    def get_privileged_change(self, change_id: str) -> PrivilegedChangeRequest | None:
+        return self.privileged_changes.get(change_id)
+
+    def save_privileged_change(self, change: PrivilegedChangeRequest) -> PrivilegedChangeRequest:
+        with self._lock:
+            self.privileged_changes[change.change_id] = change
+            return change
+
+    def apply_authz_bundle(
+        self,
+        *,
+        user: User,
+        assignment: RoleAssignment,
+        assignment_mode: str,
+        at: datetime,
+        revoke_sessions: bool,
+        change: PrivilegedChangeRequest | None = None,
+        invitation: Invitation | None = None,
+    ) -> None:
+        with self._lock:
+            if assignment_mode == "create":
+                self.assignments[assignment.assignment_id] = assignment
+            elif assignment_mode == "save":
+                self.assignments[assignment.assignment_id] = assignment
+            else:
+                raise ValueError(f"unknown assignment_mode {assignment_mode!r}")
+            self.users[user.user_id] = user
+            self.users_by_email[user.email] = user.user_id
+            if change is not None:
+                self.privileged_changes[change.change_id] = change
+            if invitation is not None:
+                self.invitations[invitation.invitation_id] = invitation
+                self.invitations_by_idem[invitation.idempotency_key] = invitation.invitation_id
+                self.invitations_by_hash[invitation.token_hash] = invitation.invitation_id
+            if revoke_sessions:
+                self._revoke_sessions_unlocked(user.user_id, at=at)
+
+    def record_delivery_secret(self, invitation_id: str, raw_token: str) -> None:
+        self._delivery_secrets[invitation_id] = raw_token
+
+    def peek_delivery_secret(self, invitation_id: str) -> str | None:
+        return self._delivery_secrets.get(invitation_id)
+
+    def append_audit(self, event: AuditEvent) -> AuditEvent:
+        with self._lock:
+            self.audit.append(deepcopy(event))
+            return event
+
+    def list_audit(self, *, limit: int = 100) -> tuple[AuditEvent, ...]:
+        return tuple(self.audit[-limit:][::-1])
