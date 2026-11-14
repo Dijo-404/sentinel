@@ -1,6 +1,7 @@
 {
   "contract_version": "sentinel.task-contracts.v1",
   "evidence_mode": "fixture",
+  "payment_provider": "simulator",
   "tenant_id": "tenant-demo",
   "order": {
     "order_reference": "DEMO-ORDER-42",

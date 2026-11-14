@@ -4,23 +4,39 @@
   "port": "payment-provider.v1",
   "boundary": "http-service",
   "component": "sentinel-simulator",
-  "mode": "fixture",
+  "mode": "fixture|real-peers",
+  "payment_provider": "simulator",
   "consumes": [],
+  "provider_adapter_surface": {
+    "GET /v1/transactions?order_reference=": "{ payments: Payment[] }; txn status",
+    "GET /v1/orders/{order_reference}": "Order",
+    "POST /v1/refunds": "RefundRequest + Idempotency-Key=provider_ref → Refund 202",
+    "GET /v1/refunds/{provider_ref}": "Refund status; 404 is not proof write failed",
+    "GET /v1/credits/{provider_ref}": "Credit evidence",
+    "GET /v1/settlements/{provider_ref}": "Settlement evidence alias of credits",
+    "POST /v1/admin/webhooks/emit": "Signed webhook envelope (X-Sentinel-Signature HMAC)",
+    "PUT /v1/admin/faults": "Admin fault inject"
+  },
   "routes": {
     "GET /healthz": "liveness",
-    "GET /readyz": "readiness; fixture mode labels synthetic readiness",
+    "GET /readyz": "readiness; evidence_mode=fixture; payment_provider=simulator",
     "GET /v1/capabilities": "Capabilities { contract_version, component, mode }",
     "GET /v1/transactions?order_reference=": "{ payments: Payment[] }; roles workflow|verifier|sandbox-admin",
     "GET /v1/orders/{order_reference}": "Order; roles workflow|verifier|sandbox-admin",
     "GET /v1/refunds?transaction_ref=": "{ refunds: Refund[] }; roles workflow|verifier|sandbox-admin",
     "POST /v1/refunds": "RefundRequest + Idempotency-Key=provider_ref → Refund 202; role dispatcher",
     "GET /v1/refunds/{provider_ref}": "Refund; 404 is not proof an ambiguous write failed; roles dispatcher|verifier|workflow",
-    "GET /v1/credits/{provider_ref}": "Credit; roles verifier|workflow"
+    "GET /v1/credits/{provider_ref}": "Credit; roles verifier|workflow",
+    "GET /v1/settlements/{provider_ref}": "Settlement/credit evidence; roles verifier|workflow"
   },
   "admin_fault_controls": {
-    "PUT /v1/admin/faults": "sandbox-admin; outage|delay_ms|timeout_after_accept|duplicate_events|out_of_order_credit",
+    "PUT /v1/admin/faults": "sandbox-admin; outage|delay_ms|timeout_after_accept|duplicate_events|duplicate_webhook|out_of_order_credit|out_of_order",
     "GET /v1/admin/faults": "sandbox-admin; current fault schedule",
     "POST /v1/admin/faults/reset": "sandbox-admin; clear faults",
+    "POST /v1/admin/faults/schedules/{name}": "sandbox-admin; timeout-after-accept|duplicate-webhook|out-of-order",
+    "POST /v1/admin/seeds/{pack}": "sandbox-admin; pending|merchant_mismatch|duplicate_payment|refund_pending",
+    "POST /v1/admin/demo-reset": "sandbox-admin; SIMULATOR_SANDBOX + tenant-demo only",
+    "POST /v1/admin/webhooks/emit": "sandbox-admin; signed webhook envelope for verifier",
     "GET /v1/admin/refunds/{provider_ref}/stats": "sandbox-admin; accept_count|side_effect_count|timeout_count",
     "POST /v1/admin/refunds/{provider_ref}/confirm": "sandbox-admin; PROVIDER_CONFIRMED without credit",
     "POST /v1/admin/credits/{provider_ref}/confirm": "sandbox-admin; separate Credit event",
@@ -31,6 +47,8 @@
     "idempotency": "logical provider_ref creates one side effect",
     "timeout_after_accept": "state persists; recover via GET /v1/refunds/{provider_ref}",
     "credit": "separate from provider refund confirmation",
-    "real_peer_fallback": "none; this module is the synthetic provider"
+    "payment_provider_label": "always simulator; real-peers mode is assembly wiring against this sandbox, not live Paytm",
+    "real_peer_fallback": "none; this module is the synthetic provider",
+    "paytm_swap": "future Paytm ProviderAdapter implements the same payment-provider.v1 surface; ledger/dispatcher unchanged"
   }
 }

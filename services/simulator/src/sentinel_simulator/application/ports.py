@@ -42,3 +42,13 @@ class Store(Protocol):
     def list_events(self) -> list[ProviderEvent]: ...
 
     def clock(self) -> SimulatorClock: ...
+
+    def replace_seed(
+        self,
+        *,
+        orders: dict[str, Order],
+        payments: dict[str, Payment],
+        refunds: dict[str, Refund] | None = None,
+    ) -> None: ...
+
+    def reset_runtime(self) -> None: ...

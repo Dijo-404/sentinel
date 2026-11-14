@@ -1,38 +1,47 @@
 from __future__ import annotations
 
-from sentinel_simulator.domain.models import Order, Payment
-
-DEMO_ORDER = Order(
-    order_reference="DEMO-ORDER-42",
-    subject_ref="subject-demo-42",
-    fulfilled_order_count=1,
-    merchant_confirmed_duplicate=True,
-    paid=True,
+from sentinel_simulator.domain.journeys import (
+    AMOUNT_MINOR,
+    FAULT_SCHEDULES,
+    JOURNEY_PACKS,
+    SANDBOX_TENANT_ID,
+    SUBJECT_REF,
+    SeedSnapshot,
+    build_seed_pack,
+    default_seed,
+    merge_seed_packs,
 )
+from sentinel_simulator.domain.models import Order, Payment, Refund
 
-DEMO_PAYMENTS = (
-    Payment(
-        transaction_ref="TXN-A",
-        order_reference="DEMO-ORDER-42",
-        subject_ref="subject-demo-42",
-        status="CAPTURED",
-        amount_minor=150000,
-        currency="INR",
-    ),
-    Payment(
-        transaction_ref="TXN-B",
-        order_reference="DEMO-ORDER-42",
-        subject_ref="subject-demo-42",
-        status="CAPTURED",
-        amount_minor=150000,
-        currency="INR",
-    ),
-)
+__all__ = [
+    "AMOUNT_MINOR",
+    "DEMO_ORDER",
+    "DEMO_PAYMENTS",
+    "FAULT_SCHEDULES",
+    "JOURNEY_PACKS",
+    "SANDBOX_TENANT_ID",
+    "SUBJECT_REF",
+    "SeedSnapshot",
+    "build_seed_pack",
+    "default_seed",
+    "demo_orders",
+    "demo_payments",
+    "demo_refunds",
+    "merge_seed_packs",
+]
 
 
 def demo_orders() -> dict[str, Order]:
-    return {DEMO_ORDER.order_reference: DEMO_ORDER}
+    return dict(default_seed().orders)
 
 
 def demo_payments() -> dict[str, Payment]:
-    return {payment.transaction_ref: payment for payment in DEMO_PAYMENTS}
+    return dict(default_seed().payments)
+
+
+def demo_refunds() -> dict[str, Refund]:
+    return dict(default_seed().refunds)
+
+
+DEMO_ORDER = build_seed_pack("duplicate_payment").orders["DEMO-ORDER-42"]
+DEMO_PAYMENTS = tuple(build_seed_pack("duplicate_payment").payments.values())

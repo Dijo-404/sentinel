@@ -1,0 +1,37 @@
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "payment_provider": "simulator",
+  "evidence_mode": "fixture",
+  "tenant_id": "tenant-demo",
+  "amount_minor": 150000,
+  "packs": {
+    "pending": {
+      "order_reference": "JOURNEY-PENDING",
+      "payment_status": "PENDING",
+      "paid": false
+    },
+    "merchant_mismatch": {
+      "order_reference": "JOURNEY-MISMATCH",
+      "payment_status": "CAPTURED",
+      "paid": false
+    },
+    "duplicate_payment": {
+      "order_reference": "DEMO-ORDER-42",
+      "payments": ["TXN-A", "TXN-B"],
+      "amount_minor_each": 150000,
+      "merchant_confirmed_duplicate": true,
+      "paid": true
+    },
+    "refund_pending": {
+      "order_reference": "JOURNEY-REFUND-PENDING",
+      "transaction_ref": "TXN-REFUND-PENDING",
+      "provider_ref": "refund-pending-1",
+      "refund_status": "PENDING"
+    }
+  },
+  "fault_schedules": [
+    "timeout-after-accept",
+    "duplicate-webhook",
+    "out-of-order"
+  ]
+}
