@@ -14,3 +14,7 @@ Contract: `sentinel.task-contracts.v1` · SHA-256 `0db3ba2bba994f10d3060bc717303
 | Unavailable / malformed / unauthorized peers surface errors | PASS (stub modes) | unverified |
 
 HTTP adapters: `sentinel_dispatcher.adapters.http_peers.HttpLedgerClient` and `HttpProviderClient`. They never fall back to fixtures when peers fail.
+
+## Payment provider peer
+
+Today the configured `payment-provider.v1` peer is the **mock sandbox simulator** (`services/simulator`). Evidence must stay labeled simulated/sandbox. A future real Paytm (or other) adapter must satisfy the same `payment-provider.v1` wire contract; dispatcher financial rules (stable `provider_ref` idempotency, no second ledger, no lease-expiry release) do not change for that swap.

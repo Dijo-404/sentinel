@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added — 14 November 2026
+
+- Minimal FastAPI probe surface: `GET /healthz`, `GET /readyz`, `GET /v1/capabilities` (`contract_version=sentinel.task-contracts.v1`, `component=dispatcher`, `port=dispatcher.v1`, `mode` from `DISPATCHER_MODE`).
+- `make preview` starts uvicorn on `127.0.0.1:8010`. Worker path remains CLI `run-once` / `recover`.
+- Docs: payment-provider peer is the mock sandbox simulator; a future Paytm adapter must keep `payment-provider.v1` without changing dispatcher financial rules.
+
 ### Changed — 14 November 2026
 
 - Sandbox tenant default `tenant-demo`; bearer `tok-dispatcher`. Refs #77.
