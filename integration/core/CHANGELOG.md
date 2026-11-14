@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added — 14 November 2026
+
+- Canonical sandbox identity matrix docs (`docs/sandbox-matrix.md`) and fixture (`fixtures/sandbox-tokens.json`): `tenant-demo` / `case-demo-42`, shared `tok-*` bearers, local port map. Refs #77.
+
 ### Added — 13 November 2026
 
 - Independent module ownership, architecture/interface guide, scoped agent rules and acceptance checklist.

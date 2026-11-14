@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed — 14 November 2026
+
+- Demo tenant default `tenant-demo`; accepts canonical `tok-*` bearers with legacy aliases. Refs #77.
+
 ### Fixed — 14 November 2026
 
 - Unprocessed inbox duplicates re-run provider reconciliation after crash-after-insert.

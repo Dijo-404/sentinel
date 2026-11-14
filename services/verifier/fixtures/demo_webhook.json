@@ -1,6 +1,6 @@
 {
   "event_id": "evt-demo-1",
-  "tenant_id": "tenant-demo-1",
+  "tenant_id": "tenant-demo",
   "merchant_ref": "merchant-demo-1",
   "provider_ref": "refund-demo-1",
   "type": "REFUND_STATUS",

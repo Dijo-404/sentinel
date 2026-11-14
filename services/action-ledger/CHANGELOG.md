@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed — 14 November 2026
+
+- Demo tenant default `tenant-demo`; accepts canonical `tok-*` bearers with legacy `token-*-demo` aliases. Refs #77.
+
 ### Fixed — 14 November 2026
 
 - Enforce subject_ref scope on eligibility (empty subject_refs still allowed for service principals).

@@ -1,0 +1,85 @@
+{
+  "label": "sandbox-synthetic",
+  "description": "Canonical local sandbox identity matrix. Opaque demo strings only — never production credentials or live payments.",
+  "tenant_id": "tenant-demo",
+  "case_id": "case-demo-42",
+  "subject_ref": "subject-demo-42",
+  "merchant_ref": "merchant-demo-1",
+  "ports": {
+    "api": 8080,
+    "policy": 8005,
+    "evidence": 8006,
+    "workflow": 8088,
+    "ledger": 8009,
+    "dispatcher": 8010,
+    "verifier": 8011,
+    "simulator": 8094,
+    "web": 3012
+  },
+  "tokens": {
+    "tok-workflow": {
+      "principal_id": "svc-workflow",
+      "roles": ["workflow"],
+      "subject_refs": ["subject-demo-42"],
+      "case_ids": ["case-demo-42"]
+    },
+    "tok-dispatcher": {
+      "principal_id": "svc-dispatcher",
+      "roles": ["dispatcher"],
+      "subject_refs": ["subject-demo-42"],
+      "case_ids": ["*"]
+    },
+    "tok-verifier": {
+      "principal_id": "svc-verifier",
+      "roles": ["verifier"],
+      "subject_refs": ["subject-demo-42"],
+      "case_ids": ["*"]
+    },
+    "tok-case-api": {
+      "principal_id": "svc-case-api",
+      "roles": ["workflow"],
+      "subject_refs": ["subject-demo-42"],
+      "case_ids": ["*"]
+    },
+    "tok-customer": {
+      "principal_id": "customer-demo",
+      "roles": ["customer"],
+      "subject_refs": ["subject-demo-42"],
+      "case_ids": ["case-demo-42"]
+    },
+    "tok-supervisor": {
+      "principal_id": "supervisor-demo",
+      "roles": ["supervisor"],
+      "subject_refs": ["subject-demo-42"],
+      "case_ids": ["case-demo-42"]
+    },
+    "tok-sandbox-admin": {
+      "principal_id": "svc-sandbox-admin",
+      "roles": ["sandbox-admin"],
+      "subject_refs": ["subject-demo-42"],
+      "case_ids": ["case-demo-42"]
+    }
+  },
+  "aliases": {
+    "token-workflow": "tok-workflow",
+    "token-workflow-demo": "tok-workflow",
+    "workflow-token": "tok-workflow",
+    "workflow-demo-token": "tok-workflow",
+    "tok-workflow-demo": "tok-workflow",
+    "token-dispatcher-demo": "tok-dispatcher",
+    "tok-dispatcher-demo": "tok-dispatcher",
+    "synthetic-dispatcher-token": "tok-dispatcher",
+    "token-verifier": "tok-verifier",
+    "token-verifier-demo": "tok-verifier",
+    "verifier-token": "tok-verifier",
+    "tok-verifier-demo": "tok-verifier",
+    "token-case-api-service": "tok-case-api",
+    "token-case-api-demo": "tok-case-api",
+    "case-api-token": "tok-case-api",
+    "token-customer-a": "tok-customer",
+    "fixture-customer-token": "tok-customer",
+    "token-supervisor": "tok-supervisor",
+    "token-supervisor-demo": "tok-supervisor",
+    "tok-sandbox-admin-demo": "tok-sandbox-admin"
+  }
+}

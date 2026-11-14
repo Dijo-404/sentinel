@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     ledger_base_url: str = ""
     verifier_base_url: str = ""
     token_map_path: str = "fixtures/auth_tokens.json"
-    service_token: str = "token-case-api-service"
+    service_token: str = "tok-case-api"
 
     def token_path(self, base: Path) -> Path:
         path = Path(self.token_map_path)

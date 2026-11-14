@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed — 14 November 2026
+
+- Sandbox tenant default `tenant-demo`; bearer `tok-dispatcher`. Refs #77.
+
 ### Fixed
 
 - Timeout and non-auth peer errors keep the job in `SUBMITTED` (list_incomplete) until lookup / same-key retry finishes; only then set `OUTCOME_REPORTED` or `ESCALATED`.

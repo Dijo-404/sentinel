@@ -25,7 +25,7 @@ from tests.stubs.provider import StubProvider
 
 IMAGE = "postgres:17-alpine@sha256:d3244e8ce3f165ee3c93d9c4a4b1d0fe48b3a89e2287b717fdcbbde92d405065"
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "demo_command.json"
-TENANT = "demo-tenant-a"
+TENANT = "tenant-demo"
 NOW = datetime(2026, 11, 13, 12, 0, 0, tzinfo=UTC)
 
 

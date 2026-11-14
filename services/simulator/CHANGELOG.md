@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed — 14 November 2026
+
+- Default tenant `tenant-demo`; canonical tokens `tok-workflow` / `tok-verifier` / `tok-dispatcher` / `tok-sandbox-admin` (legacy `*-demo` aliases kept). Refs #77.
+
 ### Added — 13 November 2026
 
 - Independent module ownership, architecture/interface guide, scoped agent rules and acceptance checklist.

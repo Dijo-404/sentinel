@@ -6,6 +6,10 @@
 
 - `GET /v1/capabilities` assembly probe: `{ contract_version, component: "web-shell", port: "web-shell.v1", mode }` from `NEXT_PUBLIC_SHELL_MODE` (Refs #76).
 
+### Changed — 14 November 2026
+
+- `.env.example` uses canonical sandbox tokens/ports (`tok-customer`, case API `:8080`, web `:3012`). Refs #77.
+
 ### Added — 13 November 2026
 
 - Next.js web shell (`web-shell.v1`): text intake, case timeline, operator queue, evidence workspace.

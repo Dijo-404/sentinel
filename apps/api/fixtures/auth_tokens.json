@@ -1,4 +1,39 @@
 {
+  "tok-customer": {
+    "principal_id": "customer-demo",
+    "tenant_id": "tenant-demo",
+    "roles": ["customer"],
+    "subject_refs": ["subject-demo-42"],
+    "case_ids": ["case-demo-42"]
+  },
+  "tok-supervisor": {
+    "principal_id": "supervisor-demo",
+    "tenant_id": "tenant-demo",
+    "roles": ["supervisor"],
+    "subject_refs": [],
+    "case_ids": []
+  },
+  "tok-workflow": {
+    "principal_id": "workflow-1",
+    "tenant_id": "tenant-demo",
+    "roles": ["workflow"],
+    "subject_refs": [],
+    "case_ids": ["*"]
+  },
+  "tok-verifier": {
+    "principal_id": "verifier-1",
+    "tenant_id": "tenant-demo",
+    "roles": ["verifier"],
+    "subject_refs": [],
+    "case_ids": ["*"]
+  },
+  "tok-case-api": {
+    "principal_id": "case-api-service",
+    "tenant_id": "tenant-demo",
+    "roles": ["workflow"],
+    "subject_refs": [],
+    "case_ids": ["*"]
+  },
   "token-customer-a": {
     "principal_id": "customer-a",
     "tenant_id": "tenant-demo",
