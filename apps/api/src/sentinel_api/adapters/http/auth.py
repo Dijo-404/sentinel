@@ -12,6 +12,10 @@ class TokenMap:
     def __init__(self, tokens: dict[str, Principal]) -> None:
         self._tokens = tokens
 
+    @property
+    def tokens(self) -> dict[str, Principal]:
+        return self._tokens
+
     @classmethod
     def from_path(cls, path: Path) -> TokenMap:
         data = json.loads(path.read_text(encoding="utf-8"))

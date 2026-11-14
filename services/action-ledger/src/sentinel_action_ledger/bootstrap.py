@@ -6,7 +6,11 @@ import os
 
 from sqlalchemy import create_engine
 
-from sentinel_action_ledger.adapters.auth_tokens import TokenPrincipalMap, demo_principals
+from sentinel_action_ledger.adapters.auth_tokens import (
+    TokenPrincipalMap,
+    principals_from_environ,
+)
+from sentinel_action_ledger.adapters.bind_safety import assert_loopback_or_non_demo
 from sentinel_action_ledger.adapters.clock import SystemClock
 from sentinel_action_ledger.adapters.evidence_client import HttpEvidenceClient
 from sentinel_action_ledger.adapters.http_api import create_app
@@ -61,9 +65,12 @@ def build_app(
         network=guard,
         lease_seconds=lease_seconds or int(os.environ.get("LEDGER_LEASE_SECONDS", "300")),
     )
-    token_map = auth or TokenPrincipalMap(
-        demo_principals(os.environ.get("LEDGER_TENANT_ID", "tenant-demo"))
-    )
+    if auth is None:
+        mapping = principals_from_environ()
+        assert_loopback_or_non_demo(os.environ.get("LEDGER_HOST", "127.0.0.1"), mapping.keys())
+        token_map = TokenPrincipalMap(mapping)
+    else:
+        token_map = auth
     return create_app(service=service, auth=token_map, mode=resolved_mode)
 
 

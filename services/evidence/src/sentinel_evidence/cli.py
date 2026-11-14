@@ -33,6 +33,17 @@ def main(argv: list[str] | None = None) -> int:
             print(f'{{"status":"migrated","schema":"{settings.schema}"}}')
             return 0
         if args.command == "serve":
+            from .adapters.auth import parse_token_map
+            from .adapters.bind_safety import UnsafeBindError, assert_loopback_or_non_demo
+
+            try:
+                token_keys = list(parse_token_map(settings.tokens).keys())
+                if settings.provider_token:
+                    token_keys.append(settings.provider_token)
+                assert_loopback_or_non_demo(args.host, token_keys)
+            except UnsafeBindError as exc:
+                print(f'{{"code":"UNSAFE_BIND","message":"{exc}"}}', file=sys.stderr)
+                return 2
             app = build_app(settings)
             uvicorn.run(app, host=args.host, port=args.port, log_level="info")
             return 0

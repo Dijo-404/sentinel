@@ -8,6 +8,7 @@ from pathlib import Path
 
 from sqlalchemy import create_engine
 
+from sentinel_api.adapters.bind_safety import assert_loopback_or_non_demo
 from sentinel_api.adapters.db.repository import SqlCaseRepository
 from sentinel_api.adapters.db.schema import metadata
 from sentinel_api.adapters.http.app import create_app
@@ -45,6 +46,10 @@ def build_app(settings: Settings | None = None, *, engine=None, tokens: TokenMap
 
     module_root = Path(__file__).resolve().parents[2]
     token_map = tokens or TokenMap.from_path(settings.token_path(module_root))
+    assert_loopback_or_non_demo(
+        settings.host,
+        [*token_map.tokens.keys(), settings.service_token],
+    )
 
     if engine is None:
         engine = create_engine(settings.database_url, pool_pre_ping=True, hide_parameters=True)

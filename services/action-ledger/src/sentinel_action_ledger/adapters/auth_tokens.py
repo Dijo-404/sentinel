@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+
 from sentinel_action_ledger.domain.errors import UnauthorizedError
 from sentinel_action_ledger.domain.types import Principal
 
@@ -9,6 +11,10 @@ from sentinel_action_ledger.domain.types import Principal
 class TokenPrincipalMap:
     def __init__(self, mapping: dict[str, Principal]) -> None:
         self._mapping = mapping
+
+    @property
+    def tokens(self) -> dict[str, Principal]:
+        return self._mapping
 
     def resolve(self, authorization: str | None) -> Principal:
         if not authorization or not authorization.startswith("Bearer "):
@@ -20,8 +26,16 @@ class TokenPrincipalMap:
         return principal
 
 
-def demo_principals(tenant_id: str = "tenant-demo") -> dict[str, Principal]:
-    """Canonical sandbox tokens plus legacy aliases (integration/core/docs/sandbox-matrix.md)."""
+def demo_principals(
+    tenant_id: str = "tenant-demo",
+    *,
+    include_aliases: bool = True,
+    workflow_token: str | None = None,
+    supervisor_token: str | None = None,
+    dispatcher_token: str | None = None,
+    verifier_token: str | None = None,
+) -> dict[str, Principal]:
+    """Canonical sandbox tokens; legacy aliases only when include_aliases is true."""
     case = ("case-demo-42",)
     subject = ("subject-demo-1",)
     # Empty case_ids deny all; "*" is the explicit broad-access wildcard.
@@ -31,11 +45,13 @@ def demo_principals(tenant_id: str = "tenant-demo") -> dict[str, Principal]:
     verifier = Principal("verifier-demo", tenant_id, ("verifier",), (), ("*",))
     operator = Principal("operator-demo", tenant_id, ("operator",), subject, case)
     canonical = {
-        "tok-workflow": workflow,
-        "tok-supervisor": supervisor,
-        "tok-dispatcher": dispatcher,
-        "tok-verifier": verifier,
+        workflow_token or "tok-workflow": workflow,
+        supervisor_token or "tok-supervisor": supervisor,
+        dispatcher_token or "tok-dispatcher": dispatcher,
+        verifier_token or "tok-verifier": verifier,
     }
+    if not include_aliases:
+        return canonical
     aliases = {
         "token-workflow-demo": workflow,
         "token-supervisor-demo": supervisor,
@@ -44,3 +60,18 @@ def demo_principals(tenant_id: str = "tenant-demo") -> dict[str, Principal]:
         "token-operator-demo": operator,
     }
     return {**canonical, **aliases}
+
+
+def principals_from_environ(tenant_id: str | None = None) -> dict[str, Principal]:
+    """Build inbound map from LEDGER_TOKEN_* env; drop aliases off loopback."""
+    from sentinel_action_ledger.adapters.bind_safety import is_loopback_host
+
+    host = os.environ.get("LEDGER_HOST", "127.0.0.1")
+    return demo_principals(
+        tenant_id or os.environ.get("LEDGER_TENANT_ID", "tenant-demo"),
+        include_aliases=is_loopback_host(host),
+        workflow_token=os.environ.get("LEDGER_TOKEN_WORKFLOW"),
+        supervisor_token=os.environ.get("LEDGER_TOKEN_SUPERVISOR"),
+        dispatcher_token=os.environ.get("LEDGER_TOKEN_DISPATCHER"),
+        verifier_token=os.environ.get("LEDGER_TOKEN_VERIFIER"),
+    )

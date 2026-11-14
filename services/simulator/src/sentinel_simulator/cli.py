@@ -86,9 +86,17 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "serve":
         import uvicorn
 
+        from sentinel_simulator.adapters.bind_safety import UnsafeBindError
         from sentinel_simulator.composition.app import create_app
 
-        uvicorn.run(create_app(), host=args.host, port=args.port, log_level="info")
+        # create_app reads SIMULATOR_HOST for demo-token bind policy.
+        os.environ["SIMULATOR_HOST"] = args.host
+        try:
+            app = create_app()
+        except UnsafeBindError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+        uvicorn.run(app, host=args.host, port=args.port, log_level="info")
         return 0
 
     if args.command == "demo-reset":

@@ -6,7 +6,8 @@ import os
 
 from sqlalchemy import create_engine
 
-from sentinel_verifier.adapters.auth_tokens import TokenPrincipalMap, demo_principals
+from sentinel_verifier.adapters.auth_tokens import TokenPrincipalMap, principals_from_environ
+from sentinel_verifier.adapters.bind_safety import assert_loopback_or_non_demo
 from sentinel_verifier.adapters.clock import SystemClock
 from sentinel_verifier.adapters.http_api import create_app
 from sentinel_verifier.adapters.http_peers import (
@@ -113,9 +114,14 @@ def build_app(
         merchant_map=merchant_map or _merchant_map_from_env(),
         enforce_event_age=enforce_event_age,
     )
-    token_map = auth or TokenPrincipalMap(
-        demo_principals(os.environ.get("VERIFIER_TENANT_ID", "tenant-demo"))
-    )
+    if auth is None:
+        mapping = principals_from_environ()
+        bind_host = os.environ.get("VERIFIER_HOST", "127.0.0.1")
+        secrets = [*mapping.keys(), resolved_hmac]
+        assert_loopback_or_non_demo(bind_host, secrets)
+        token_map = TokenPrincipalMap(mapping)
+    else:
+        token_map = auth
     return create_app(service=service, auth=token_map, mode=resolved_mode)
 
 
