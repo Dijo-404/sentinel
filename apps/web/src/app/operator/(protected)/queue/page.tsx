@@ -1,9 +1,13 @@
+"use client";
+
+import { OperatorQueue } from "@/components/operator-queue";
+import { useShell } from "@/adapters/shell-context";
+
 export default function OperatorQueuePage() {
+  const { caseClient } = useShell();
   return (
-    <div className="panel stack" data-testid="operator-queue">
-      <h1>Operator queue</h1>
-      <p className="muted">Scaffold page — wire to domain peers in later milestones.</p>
-      <p className="fixture-banner" role="status">Fixture mode placeholder</p>
+    <div data-testid="operator-queue">
+      <OperatorQueue caseClient={caseClient} />
     </div>
   );
 }
