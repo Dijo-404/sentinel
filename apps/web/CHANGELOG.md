@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Added — 15 November 2026 (customer profile + notifications)
+
+- Replaced customer Profile and Notifications stubs with identity-backed
+  panels (`components/customer/profile-panel.tsx`,
+  `notifications-panel.tsx`). Pages load via `getMe` /
+  `listNotifications`; mutations via `patchProfileAction` /
+  `markNotificationReadAction`.
+- `data-testid`: `customer-profile`, `customer-notifications`, `peer-error`.
+  Never “Not available yet”.
+- Browser tests: `tests/browser/customer-profile-notifications.test.tsx`.
+
 ### Fixed — 15 November 2026 (auth challenge request errors)
 
 - Verify/MFA forms surface non-peer request failures (e.g. session required);
