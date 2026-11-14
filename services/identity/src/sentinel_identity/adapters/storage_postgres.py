@@ -72,10 +72,12 @@ class PostgresIdentityStore:
                     """
                     INSERT INTO identity.users (
                         user_id, account_type, email, display_name, status,
-                        authz_version, password_hash, tenant_id, created_at, updated_at
+                        authz_version, password_hash, tenant_id, created_at, updated_at,
+                        preferred_language
                     ) VALUES (
                         :user_id, :account_type, :email, :display_name, :status,
-                        :authz_version, :password_hash, :tenant_id, :created_at, :updated_at
+                        :authz_version, :password_hash, :tenant_id, :created_at, :updated_at,
+                        :preferred_language
                     )
                     """
                 ),
@@ -116,7 +118,8 @@ class PostgresIdentityStore:
                         account_type=:account_type, email=:email,
                         display_name=:display_name, status=:status,
                         authz_version=:authz_version, password_hash=:password_hash,
-                        tenant_id=:tenant_id, updated_at=:updated_at
+                        tenant_id=:tenant_id, updated_at=:updated_at,
+                        preferred_language=:preferred_language
                     WHERE user_id=:user_id
                     """
                 ),
@@ -356,10 +359,12 @@ class PostgresIdentityStore:
                         """
                         INSERT INTO identity.users (
                             user_id, account_type, email, display_name, status,
-                            authz_version, password_hash, tenant_id, created_at, updated_at
+                            authz_version, password_hash, tenant_id, created_at, updated_at,
+                            preferred_language
                         ) VALUES (
                             :user_id, :account_type, :email, :display_name, :status,
-                            :authz_version, :password_hash, :tenant_id, :created_at, :updated_at
+                            :authz_version, :password_hash, :tenant_id, :created_at, :updated_at,
+                            :preferred_language
                         )
                         """
                     ),
@@ -372,7 +377,7 @@ class PostgresIdentityStore:
                         UPDATE identity.users SET
                             authz_version=:authz_version, updated_at=:updated_at,
                             password_hash=:password_hash, display_name=:display_name,
-                            status=:status
+                            status=:status, preferred_language=:preferred_language
                         WHERE user_id=:user_id
                         """
                     ),
@@ -440,7 +445,8 @@ class PostgresIdentityStore:
                         account_type=:account_type, email=:email,
                         display_name=:display_name, status=:status,
                         authz_version=:authz_version, password_hash=:password_hash,
-                        tenant_id=:tenant_id, updated_at=:updated_at
+                        tenant_id=:tenant_id, updated_at=:updated_at,
+                        preferred_language=:preferred_language
                     WHERE user_id=:user_id
                     """
                 ),
@@ -745,6 +751,7 @@ def _user_from_row(row: Any) -> User:
         created_at=_dt(row["created_at"]),
         updated_at=_dt(row["updated_at"]),
         tenant_id=row["tenant_id"],
+        preferred_language=str(row["preferred_language"]) if row.get("preferred_language") else "",
     )
 
 

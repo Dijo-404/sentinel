@@ -51,11 +51,11 @@ def create_app(services: AppServices) -> FastAPI:
             body = await _json_object(request)
             allowed = {"email", "password", "display_name", "preferred_language"}
             extra = {k: v for k, v in body.items() if k not in allowed}
-            # Keep preferred_language as non-privileged optional; strip before domain.
             result = services.identity.register_customer(
                 email=str(body.get("email", "")),
                 password=str(body.get("password", "")),
                 display_name=str(body.get("display_name", "")),
+                preferred_language=str(body.get("preferred_language", "")),
                 extra=extra,
                 request_id=request_id,
             )
@@ -100,6 +100,27 @@ def create_app(services: AppServices) -> FastAPI:
             }
             return JSONResponse(
                 services.identity.me(session_token=token, forged_headers=forged or None)
+            )
+        except IdentityError as exc:
+            return _error(exc, request_id)
+
+    @app.patch("/v1/auth/me")
+    async def patch_me(request: Request) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            body = await _json_object(request)
+            allowed = {"display_name", "preferred_language"}
+            extra = {k: v for k, v in body.items() if k not in allowed}
+            return JSONResponse(
+                services.identity.update_profile(
+                    session_token=_bearer(request),
+                    display_name=body.get("display_name") if "display_name" in body else None,
+                    preferred_language=(
+                        body.get("preferred_language") if "preferred_language" in body else None
+                    ),
+                    extra=extra,
+                    request_id=request_id,
+                )
             )
         except IdentityError as exc:
             return _error(exc, request_id)

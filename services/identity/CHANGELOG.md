@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added — self-service profile PATCH
+
+- `PATCH /v1/auth/me` updates `display_name` / `preferred_language` for the
+  bearer session. Unknown and privilege fields (`role`, `tenant_id`, …) return
+  422. `GET /v1/auth/me` user public always includes those profile fields.
+- Migration `0003_preferred_language.sql` adds `identity.users.preferred_language`.
+
 ### Added — supervisor-safe ops team roster
 
 - `GET /v1/ops/team`: active operator/supervisor assignments for the caller's

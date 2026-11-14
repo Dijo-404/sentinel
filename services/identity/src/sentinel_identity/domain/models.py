@@ -19,6 +19,7 @@ class User:
     created_at: datetime
     updated_at: datetime
     tenant_id: str | None = None  # home tenant hint for seeds
+    preferred_language: str = ""
 
     def to_public(self) -> dict[str, Any]:
         return {
@@ -26,6 +27,7 @@ class User:
             "account_type": self.account_type,
             "email": self.email,
             "display_name": self.display_name,
+            "preferred_language": self.preferred_language,
             "status": self.status,
             "authz_version": self.authz_version,
         }

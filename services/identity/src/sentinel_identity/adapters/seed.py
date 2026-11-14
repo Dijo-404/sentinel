@@ -45,6 +45,7 @@ def load_seed_users(
             created_at=now,
             updated_at=now,
             tenant_id=row["tenant_id"],
+            preferred_language=str(row.get("preferred_language", "")),
         )
         store.create_user(user)
         assignment = RoleAssignment(

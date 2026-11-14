@@ -79,6 +79,7 @@ class IdentityService:
         email: str,
         password: str,
         display_name: str,
+        preferred_language: str = "",
         extra: dict[str, Any] | None = None,
         request_id: str = "request-local",
     ) -> dict[str, Any]:
@@ -106,6 +107,7 @@ class IdentityService:
             created_at=now,
             updated_at=now,
             tenant_id="tenant-demo",
+            preferred_language=preferred_language.strip(),
         )
         self._store.create_user(user)
         assignment = RoleAssignment(
@@ -206,6 +208,43 @@ class IdentityService:
             if tenant_h and active and tenant_h != active["tenant_id"]:
                 raise ForbiddenError("Forged tenant header denied")
         return ctx
+
+    def update_profile(
+        self,
+        *,
+        session_token: str,
+        display_name: str | None = None,
+        preferred_language: str | None = None,
+        extra: dict[str, Any] | None = None,
+        request_id: str = "request-local",
+    ) -> dict[str, Any]:
+        """Self-service profile patch. Never accepts role/tenant/permission keys."""
+        body = extra or {}
+        if body:
+            raise ValidationError("Unknown or privileged profile fields are not permitted")
+        session = self._require_session(session_token)
+        user = self._require_user(session.user_id)
+        if user.status != "active":
+            raise ForbiddenError("Account is not active")
+        updates: dict[str, Any] = {"updated_at": self._clock.now()}
+        if display_name is not None:
+            if not str(display_name).strip():
+                raise ValidationError("display_name must not be empty")
+            updates["display_name"] = str(display_name).strip()
+        if preferred_language is not None:
+            updates["preferred_language"] = str(preferred_language).strip()
+        user = replace(user, **updates)
+        self._store.save_user(user)
+        self._audit(
+            actor=user.user_id,
+            action="profile.updated",
+            target_type="user",
+            target_id=user.user_id,
+            tenant_id=user.tenant_id,
+            request_id=request_id,
+            details={k: updates[k] for k in ("display_name", "preferred_language") if k in updates},
+        )
+        return {"user": user.to_public()}
 
     def list_workspaces(self, *, session_token: str) -> dict[str, Any]:
         ctx = self.resolve_session(session_token)
