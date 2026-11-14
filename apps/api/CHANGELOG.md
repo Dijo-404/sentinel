@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed — 15 November 2026 (ops projection isolation + HISTORY coverage)
+
+- HISTORY tests cover both `VERIFIED_RESOLVED` and `CLOSED_NO_ACTION`; cross-tenant ops isolation for messages/audit/HISTORY.
+- README: audit feed returns stored payloads (writers already sanitize; no separate read redaction).
+
 ### Added — 15 November 2026 (ops messages / history / audit projections)
 
 - `GET /v1/ops/messages` tenant-scoped newest-first message inbox (operator/supervisor; max 50).
