@@ -11,6 +11,7 @@ import { PeerError } from "@/domain/types";
 /**
  * Local approval-ui.v1 substitute. Not the SN-013 package.
  * Slot boundary only — financial authority stays server-side via decide().
+ * Digest, case revision, and decision expiry are displayed and submitted exactly.
  */
 export function LocalApprovalSubstitute(props: ApprovalSlotProps) {
   const [busy, setBusy] = useState(false);
@@ -23,13 +24,12 @@ export function LocalApprovalSubstitute(props: ApprovalSlotProps) {
     setError(null);
     setMessage(null);
     try {
-      const expires = new Date(Date.now() + 15 * 60 * 1000).toISOString();
       const approval = await props.decide(props.action.action_id, {
         decision,
         action_digest: props.action.action_digest,
         case_revision: props.caseRecord.revision,
         policy_version: props.action.payload.policy_version,
-        expires_at: expires,
+        expires_at: props.decisionExpiresAt,
       });
       setMessage(`Decision recorded: ${approval.decision} (${approval.approval_id})`);
       props.onRefresh?.();
@@ -70,16 +70,39 @@ export function LocalApprovalSubstitute(props: ApprovalSlotProps) {
           label="provider"
           masked={maskProviderRef(props.action.provider_ref)}
         />
-        <span className="mono">
+        <span className="mono" data-testid="approval-amount">
           {formatAmountMinor(
             props.action.payload.amount_minor,
             props.action.payload.currency,
           )}
         </span>
       </div>
+      <dl className="approval-facts" data-testid="approval-exact-facts">
+        <div>
+          <dt>Case revision</dt>
+          <dd data-testid="approval-case-revision">{props.caseRecord.revision}</dd>
+        </div>
+        <div>
+          <dt>Action digest</dt>
+          <dd data-testid="approval-action-digest">
+            <code className="mono">{props.action.action_digest}</code>
+          </dd>
+        </div>
+        <div>
+          <dt>Policy version</dt>
+          <dd data-testid="approval-policy-version">
+            {props.action.payload.policy_version}
+          </dd>
+        </div>
+        <div>
+          <dt>Decision expiry</dt>
+          <dd data-testid="approval-decision-expires-at">{props.decisionExpiresAt}</dd>
+        </div>
+      </dl>
       <div className="row" style={{ marginTop: "0.75rem" }}>
         <button
           type="button"
+          data-testid="approval-approve"
           disabled={busy}
           onClick={() => void submit("APPROVE")}
         >
@@ -88,6 +111,7 @@ export function LocalApprovalSubstitute(props: ApprovalSlotProps) {
         <button
           type="button"
           className="secondary"
+          data-testid="approval-reject"
           disabled={busy}
           onClick={() => void submit("REJECT")}
         >

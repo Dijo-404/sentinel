@@ -291,6 +291,26 @@ button:disabled {
   background: #fbfcfd;
 }
 
+.approval-facts {
+  display: grid;
+  gap: 0.35rem 1rem;
+  margin: 0.75rem 0 0;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+}
+
+.approval-facts dt {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.approval-facts dd {
+  margin: 0.1rem 0 0;
+  word-break: break-all;
+}
+
 .slot-box[data-state="error"] {
   border-color: #f0b4b4;
   background: var(--danger-soft);

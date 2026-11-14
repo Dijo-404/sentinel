@@ -27,6 +27,13 @@ import { PeerError as SlotPeerError } from "@/domain/types";
 type Props = {
   caseId: string;
   caseClient: CaseClient;
+  /**
+   * Supervisor-only. Operator / legacy ops evidence must leave this false
+   * so approve/reject controls stay off those routes.
+   */
+  enableApproval?: boolean;
+  /** Authoritative decision window when enableApproval is set. */
+  decisionExpiresAt?: string;
   /** Injected approval slot override for tests (e.g. peer failure). */
   approvalSlot?:
     | { state: "ready"; props: ApprovalSlotProps }
@@ -37,6 +44,8 @@ type Props = {
 export function EvidencePanel({
   caseId,
   caseClient,
+  enableApproval = false,
+  decisionExpiresAt,
   approvalSlot,
 }: Props) {
   const [loading, setLoading] = useState(true);
@@ -79,7 +88,9 @@ export function EvidencePanel({
   }, [caseId, caseClient]);
 
   const defaultApproval = useMemo(() => {
-    if (!caseRecord || !bundle) return null;
+    if (!enableApproval || !caseRecord || !bundle || !decisionExpiresAt) {
+      return null;
+    }
     const props: ApprovalSlotProps = {
       caseRecord,
       action: {
@@ -87,10 +98,11 @@ export function EvidencePanel({
         status: caseRecord.status === "ESCALATED" ? "ESCALATED" : demoAction.status,
       },
       evidence: bundle.evidence,
+      decisionExpiresAt,
       decide: (actionId, request) => caseClient.decide(actionId, request),
     };
     return { state: "ready" as const, props };
-  }, [caseRecord, bundle, caseClient]);
+  }, [enableApproval, caseRecord, bundle, caseClient, decisionExpiresAt]);
 
   const slot = approvalSlot ?? defaultApproval;
 

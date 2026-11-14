@@ -76,6 +76,8 @@ Real-peer failures are visible. Never put bearers in `NEXT_PUBLIC_*`. Fixture au
 | `/merchant/login` · `/merchant/dashboard` | Merchant |
 | `/operator/login` · `/operator/dashboard` | Support Operator |
 | `/supervisor/login` · `/supervisor/dashboard` | Supervisor |
+| `/supervisor/approvals` · `/supervisor/approvals/[actionId]` | Supervisor approval queue + exact decide UI (local substitute) |
+| `/supervisor/cases/[caseId]` | Supervisor case review with opt-in approval slot |
 | `/risk/login` · `/risk/dashboard` | Risk Officer |
 | `/admin/login` · `/admin/dashboard` | Platform Admin |
 | `/admin/users` · `/admin/users/invite` | Staff directory + invite (stub) |
@@ -84,7 +86,7 @@ Real-peer failures are visible. Never put bearers in `NEXT_PUBLIC_*`. Fixture au
 | `/intake` | Legacy customer text intake (requires customer session) |
 | `/cases/[caseId]` | Case timeline (requires customer session) |
 | `/ops` | Legacy operator queue (requires operator or supervisor) |
-| `/ops/cases/[caseId]/evidence` | Evidence + approval slot (same ops gate) |
+| `/ops/cases/[caseId]/evidence` | Evidence only (no approve controls; operator-safe) |
 | `/v1/capabilities` | Assembly probe |
 
 Staff portals have **no** public sign-up. Customer registration rejects privileged fields (`roles`, `tenant_id`, `subject_refs`). Admin invite rejects `role_id=customer`.

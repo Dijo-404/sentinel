@@ -60,6 +60,7 @@ export function createApprovalUiStub(
       caseRecord: caseDemo as Case,
       action: demoAction,
       evidence: (evidenceBundle as { evidence: Evidence[] }).evidence,
+      decisionExpiresAt: "2026-12-31T23:59:59Z",
       decide,
     },
   };
