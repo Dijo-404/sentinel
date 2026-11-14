@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added — 14 November 2026
+
+- `GET /v1/capabilities` assembly probe: `{ contract_version, component: "web-shell", port: "web-shell.v1", mode }` from `NEXT_PUBLIC_SHELL_MODE` (Refs #76).
+
 ### Added — 13 November 2026
 
 - Next.js web shell (`web-shell.v1`): text intake, case timeline, operator queue, evidence workspace.

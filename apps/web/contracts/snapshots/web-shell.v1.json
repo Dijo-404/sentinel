@@ -9,6 +9,7 @@
   "capabilities": {
     "contract_version": "sentinel.task-contracts.v1",
     "component": "web-shell",
+    "port": "web-shell.v1",
     "mode": "fixture"
   },
   "pages": [
