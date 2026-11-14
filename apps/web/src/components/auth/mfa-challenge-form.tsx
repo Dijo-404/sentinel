@@ -28,6 +28,14 @@ export function MfaChallengeForm() {
       : verifyState && !verifyState.ok && verifyState.peerError
         ? verifyState.message
         : null;
+  const challengeSoftError =
+    challengeState && !challengeState.ok && !challengeState.peerError
+      ? challengeState.message
+      : null;
+  const verifySoftError =
+    verifyState && !verifyState.ok && !verifyState.peerError
+      ? verifyState.message
+      : null;
   const success =
     (challengeState && challengeState.ok) || (verifyState && verifyState.ok);
 
@@ -79,49 +87,55 @@ export function MfaChallengeForm() {
         </div>
       ) : null}
 
-      {!peerError ? (
-        <>
-          <form action={challengeAction} className="stack">
-            <button
-              type="submit"
-              disabled={challengePending}
-              data-testid="mfa-challenge"
-            >
-              {challengePending ? "Issuing…" : "Send MFA challenge"}
-            </button>
-          </form>
+      <form action={challengeAction} className="stack">
+        {challengeSoftError ? (
+          <div
+            className="state-banner"
+            data-tone="error"
+            data-testid="mfa-error"
+            role="alert"
+          >
+            <p>{challengeSoftError}</p>
+          </div>
+        ) : null}
+        <button
+          type="submit"
+          disabled={challengePending}
+          data-testid="mfa-challenge"
+        >
+          {challengePending ? "Issuing…" : "Send MFA challenge"}
+        </button>
+      </form>
 
-          <form action={verifyAction} className="stack">
-            <label>
-              MFA code
-              <input
-                name="code"
-                type="text"
-                required
-                autoComplete="one-time-code"
-                data-testid="mfa-code"
-              />
-            </label>
-            {verifyState && !verifyState.ok && !verifyState.peerError ? (
-              <div
-                className="state-banner"
-                data-tone="error"
-                data-testid="mfa-error"
-                role="alert"
-              >
-                <p>{verifyState.message}</p>
-              </div>
-            ) : null}
-            <button
-              type="submit"
-              disabled={verifyPending}
-              data-testid="mfa-verify"
-            >
-              {verifyPending ? "Verifying…" : "Verify"}
-            </button>
-          </form>
-        </>
-      ) : null}
+      <form action={verifyAction} className="stack">
+        <label>
+          MFA code
+          <input
+            name="code"
+            type="text"
+            required
+            autoComplete="one-time-code"
+            data-testid="mfa-code"
+          />
+        </label>
+        {verifySoftError ? (
+          <div
+            className="state-banner"
+            data-tone="error"
+            data-testid="mfa-error"
+            role="alert"
+          >
+            <p>{verifySoftError}</p>
+          </div>
+        ) : null}
+        <button
+          type="submit"
+          disabled={verifyPending}
+          data-testid="mfa-verify"
+        >
+          {verifyPending ? "Verifying…" : "Verify"}
+        </button>
+      </form>
     </div>
   );
 }

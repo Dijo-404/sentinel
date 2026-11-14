@@ -28,6 +28,14 @@ export function VerifyContactForm() {
       : confirmState && !confirmState.ok && confirmState.peerError
         ? confirmState.message
         : null;
+  const requestSoftError =
+    requestState && !requestState.ok && !requestState.peerError
+      ? requestState.message
+      : null;
+  const confirmSoftError =
+    confirmState && !confirmState.ok && !confirmState.peerError
+      ? confirmState.message
+      : null;
   const success =
     (requestState && requestState.ok) || (confirmState && confirmState.ok);
 
@@ -77,49 +85,55 @@ export function VerifyContactForm() {
         </div>
       ) : null}
 
-      {!peerError ? (
-        <>
-          <form action={requestAction} className="stack">
-            <button
-              type="submit"
-              disabled={requestPending}
-              data-testid="verify-request"
-            >
-              {requestPending ? "Requesting…" : "Send verification code"}
-            </button>
-          </form>
+      <form action={requestAction} className="stack">
+        {requestSoftError ? (
+          <div
+            className="state-banner"
+            data-tone="error"
+            data-testid="verify-error"
+            role="alert"
+          >
+            <p>{requestSoftError}</p>
+          </div>
+        ) : null}
+        <button
+          type="submit"
+          disabled={requestPending}
+          data-testid="verify-request"
+        >
+          {requestPending ? "Requesting…" : "Send verification code"}
+        </button>
+      </form>
 
-          <form action={confirmAction} className="stack">
-            <label>
-              Verification code
-              <input
-                name="code"
-                type="text"
-                required
-                autoComplete="one-time-code"
-                data-testid="verify-code"
-              />
-            </label>
-            {confirmState && !confirmState.ok && !confirmState.peerError ? (
-              <div
-                className="state-banner"
-                data-tone="error"
-                data-testid="verify-error"
-                role="alert"
-              >
-                <p>{confirmState.message}</p>
-              </div>
-            ) : null}
-            <button
-              type="submit"
-              disabled={confirmPending}
-              data-testid="verify-confirm"
-            >
-              {confirmPending ? "Confirming…" : "Confirm"}
-            </button>
-          </form>
-        </>
-      ) : null}
+      <form action={confirmAction} className="stack">
+        <label>
+          Verification code
+          <input
+            name="code"
+            type="text"
+            required
+            autoComplete="one-time-code"
+            data-testid="verify-code"
+          />
+        </label>
+        {confirmSoftError ? (
+          <div
+            className="state-banner"
+            data-tone="error"
+            data-testid="verify-error"
+            role="alert"
+          >
+            <p>{confirmSoftError}</p>
+          </div>
+        ) : null}
+        <button
+          type="submit"
+          disabled={confirmPending}
+          data-testid="verify-confirm"
+        >
+          {confirmPending ? "Confirming…" : "Confirm"}
+        </button>
+      </form>
     </div>
   );
 }

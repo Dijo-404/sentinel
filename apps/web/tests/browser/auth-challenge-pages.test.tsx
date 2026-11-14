@@ -64,6 +64,8 @@ describe("auth challenge pages", () => {
 
     expect(screen.getByTestId("auth-workspaces")).toBeInTheDocument();
     expect(screen.getByTestId("auth-workspaces-list")).toBeInTheDocument();
+    expect(screen.getByTestId("select-workspace-a1")).toBeInTheDocument();
+    expect(screen.getByTestId("select-workspace-a2")).toBeInTheDocument();
     expect(screen.getByText(/Customer — Personal/)).toBeInTheDocument();
     expect(screen.getByText(/Merchant — Demo/)).toBeInTheDocument();
     expect(screen.queryByText("Fixture placeholder")).not.toBeInTheDocument();
@@ -93,7 +95,23 @@ describe("auth challenge pages", () => {
     expect(await screen.findByTestId("verify-success")).toBeInTheDocument();
   });
 
-  it("verify peer failure shows peer-error", async () => {
+  it("verify request SESSION_REQUIRED surfaces verify-error — forms stay", async () => {
+    const { requestVerifyAction } = await import("@/lib/server/auth-actions");
+    vi.mocked(requestVerifyAction).mockResolvedValueOnce({
+      ok: false,
+      message: "Sign in to continue this step.",
+    });
+    const user = userEvent.setup();
+    render(<VerifyContactForm />);
+    await user.click(screen.getByTestId("verify-request"));
+    expect(await screen.findByTestId("verify-error")).toHaveTextContent(
+      "Sign in to continue this step.",
+    );
+    expect(screen.getByTestId("verify-request")).toBeInTheDocument();
+    expect(screen.getByTestId("verify-confirm")).toBeInTheDocument();
+  });
+
+  it("verify peer failure shows peer-error and keeps forms", async () => {
     const { requestVerifyAction } = await import("@/lib/server/auth-actions");
     vi.mocked(requestVerifyAction).mockResolvedValueOnce({
       ok: false,
@@ -104,6 +122,8 @@ describe("auth challenge pages", () => {
     render(<VerifyContactForm />);
     await user.click(screen.getByTestId("verify-request"));
     expect(await screen.findByTestId("peer-error")).toBeInTheDocument();
+    expect(screen.getByTestId("verify-request")).toBeInTheDocument();
+    expect(screen.getByTestId("verify-confirm")).toBeInTheDocument();
     expect(screen.queryByText("Fixture placeholder")).not.toBeInTheDocument();
   });
 
@@ -118,7 +138,23 @@ describe("auth challenge pages", () => {
     expect(await screen.findByTestId("mfa-success")).toBeInTheDocument();
   });
 
-  it("mfa peer failure shows peer-error", async () => {
+  it("mfa challenge SESSION_REQUIRED surfaces mfa-error — forms stay", async () => {
+    const { mfaChallengeAction } = await import("@/lib/server/auth-actions");
+    vi.mocked(mfaChallengeAction).mockResolvedValueOnce({
+      ok: false,
+      message: "Sign in to continue this step.",
+    });
+    const user = userEvent.setup();
+    render(<MfaChallengeForm />);
+    await user.click(screen.getByTestId("mfa-challenge"));
+    expect(await screen.findByTestId("mfa-error")).toHaveTextContent(
+      "Sign in to continue this step.",
+    );
+    expect(screen.getByTestId("mfa-challenge")).toBeInTheDocument();
+    expect(screen.getByTestId("mfa-verify")).toBeInTheDocument();
+  });
+
+  it("mfa peer failure shows peer-error and keeps forms", async () => {
     const { mfaChallengeAction } = await import("@/lib/server/auth-actions");
     vi.mocked(mfaChallengeAction).mockResolvedValueOnce({
       ok: false,
@@ -129,6 +165,8 @@ describe("auth challenge pages", () => {
     render(<MfaChallengeForm />);
     await user.click(screen.getByTestId("mfa-challenge"));
     expect(await screen.findByTestId("peer-error")).toBeInTheDocument();
+    expect(screen.getByTestId("mfa-challenge")).toBeInTheDocument();
+    expect(screen.getByTestId("mfa-verify")).toBeInTheDocument();
     expect(screen.queryByText("Fixture placeholder")).not.toBeInTheDocument();
   });
 

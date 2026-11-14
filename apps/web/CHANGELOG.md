@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Fixed — 15 November 2026 (auth challenge request errors)
+
+- Verify/MFA forms surface non-peer request failures (e.g. session required);
+  peer-error banners no longer unmount forms; workspace select testids use
+  `assignment_id`.
+
 ### Added — 15 November 2026 (auth verify / MFA / reset / workspaces pages)
 
 - Replaced `/auth/workspaces`, `/auth/verify`, `/auth/mfa`,

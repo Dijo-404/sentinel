@@ -74,7 +74,7 @@ export function WorkspacePicker({
                     type="submit"
                     className="btn"
                     disabled={active}
-                    data-testid={`select-workspace-${w.role}`}
+                    data-testid={`select-workspace-${w.assignment_id}`}
                   >
                     {active ? `${w.label} (active)` : w.label}
                   </button>
