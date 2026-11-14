@@ -5,8 +5,35 @@ from datetime import UTC, datetime
 import pytest
 
 from sentinel_api.adapters.peers.fixture_clients import sample_verified_assessment
-from sentinel_api.domain.rules import assert_verified_resolution, validate_result
+from sentinel_api.domain.rules import (
+    assert_verified_resolution,
+    order_bound_to_subject,
+    require_order_bound_to_principal,
+    validate_result,
+)
 from sentinel_api.domain.types import CaseResult, DomainError
+
+
+def test_order_bound_to_subject_equal_or_prefixed():
+    assert order_bound_to_subject("subject-a", "subject-a")
+    assert order_bound_to_subject("subject-a/DEMO-ORDER-42", "subject-a")
+    assert order_bound_to_subject("subject-a:42", "subject-a")
+    assert not order_bound_to_subject("subject-ab", "subject-a")
+    assert not order_bound_to_subject("DEMO-ORDER-42", "subject-a")
+    assert not order_bound_to_subject("subject-b/ORDER", "subject-a")
+
+
+def test_require_order_bound_fail_closed():
+    require_order_bound_to_principal("subject-a/ORDER", subject_refs=("subject-a",), enforce=True)
+    require_order_bound_to_principal("any-order", subject_refs=(), enforce=False)
+    with pytest.raises(DomainError) as empty:
+        require_order_bound_to_principal("subject-a/ORDER", subject_refs=(), enforce=True)
+    assert empty.value.code == "FORBIDDEN"
+    with pytest.raises(DomainError) as victim:
+        require_order_bound_to_principal(
+            "subject-b/VICTIM", subject_refs=("subject-a",), enforce=True
+        )
+    assert victim.value.code == "FORBIDDEN"
 
 
 def test_verified_resolved_requires_assessment_id():

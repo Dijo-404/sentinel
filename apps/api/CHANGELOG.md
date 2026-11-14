@@ -8,6 +8,8 @@
 
 ### Fixed
 
+- Case create requires `order_reference` bound to principal `subject_refs` for customers (and any principal with non-empty `subject_refs`); fail closed. Prevents opening a case on another subject's order while stamping the caller's `subject_ref`.
+- Decide path calls `require_case_access` after resolving `case_id` from the action index.
 - Atomic workflow outbox claim (`PENDING` → `CLAIMED` via `FOR UPDATE SKIP LOCKED`).
 - Decide path binds action to case before calling ledger; unknown action returns 404.
 - Workflow/verifier empty `case_ids` deny by default; fixtures use `"*"` wildcard.

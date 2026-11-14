@@ -13,7 +13,7 @@ from tests.conftest import auth
 CREATE = {
     "message": "I was charged twice for DEMO-ORDER-42",
     "language": "en-IN",
-    "order_reference": "DEMO-ORDER-42",
+    "order_reference": "subject-a/DEMO-ORDER-42",
     "channel": "web",
 }
 
@@ -78,6 +78,25 @@ def test_role_and_tenant_boundaries(client):
 
     customer_ops = client.get("/v1/ops/cases", headers=auth("token-customer-a"))
     assert customer_ops.status_code == 403
+
+
+def test_customer_cannot_create_case_on_unbound_order(client):
+    """subject_ref comes from principal; order_reference must still be bound."""
+    victim = _create(
+        client,
+        key="victim-order",
+        body={**CREATE, "order_reference": "subject-b/VICTIM-ORDER"},
+    )
+    assert victim.status_code == 403
+    assert victim.json()["code"] == "FORBIDDEN"
+
+    unbound = _create(
+        client,
+        key="unbound-order",
+        body={**CREATE, "order_reference": "DEMO-ORDER-42"},
+    )
+    assert unbound.status_code == 403
+    assert unbound.json()["code"] == "FORBIDDEN"
 
 
 def test_messages_revision_and_immutable_input(client):

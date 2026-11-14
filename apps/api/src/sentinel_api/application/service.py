@@ -16,6 +16,7 @@ from sentinel_api.application.ports import (
 )
 from sentinel_api.domain.rules import (
     assert_verified_resolution,
+    require_order_bound_to_principal,
     validate_case_create,
     validate_decision_request,
     validate_escalate,
@@ -64,6 +65,11 @@ class CaseService:
         if not idempotency_key.strip():
             raise DomainError("INVALID_INPUT", "Idempotency-Key is required", 422)
         create = validate_case_create(body)
+        require_order_bound_to_principal(
+            create.order_reference,
+            subject_refs=principal.subject_refs,
+            enforce=principal.has_role("customer") or bool(principal.subject_refs),
+        )
         case_id = self._ids.new_id("case")
         message_id = self._ids.new_id("msg")
         event_id = self._ids.new_id("evt")
@@ -186,6 +192,13 @@ class CaseService:
         )
         if not case_id:
             raise DomainError("NOT_FOUND", "Action not bound to a case", 404)
+        meta = self._require_meta(principal, case_id)
+        require_case_access(
+            principal,
+            tenant_id=principal.tenant_id,
+            case_id=case_id,
+            subject_ref=str(meta["subject_ref"]),
+        )
         # Forward the original authenticated supervisor token; never elevate.
         approval = self._ledger.decide(action_id, request, authorization=authorization)
         self._schedule_workflow(
