@@ -135,4 +135,37 @@ describe("createCaseApiStub valid client", () => {
       events.events.find((e) => e.type === "ESCALATED")?.case_revision,
     ).toBe(4);
   });
+
+  it("listOpsMessages and listOpsAuditEvents return seeded fixture shapes", async () => {
+    const client = createCaseApiStub("valid");
+    const messages = await client.listOpsMessages();
+    expect(messages.messages.length).toBeGreaterThanOrEqual(1);
+    expect(messages.messages[0]).toMatchObject({
+      case_id: expect.any(String),
+      message_id: expect.any(String),
+      text: expect.any(String),
+      language: expect.any(String),
+      author: expect.any(String),
+      occurred_at: expect.any(String),
+    });
+
+    const audit = await client.listOpsAuditEvents();
+    expect(audit.events.length).toBeGreaterThanOrEqual(1);
+    expect(audit.events[0]).toMatchObject({
+      case_id: expect.any(String),
+      sequence: expect.any(Number),
+      type: expect.any(String),
+      occurred_at: expect.any(String),
+      payload: expect.any(Object),
+    });
+  });
+
+  it("listOpsCases status=HISTORY returns only terminal history statuses", async () => {
+    const client = createCaseApiStub("valid");
+    const history = await client.listOpsCases({ status: "HISTORY" });
+    expect(history.cases.length).toBeGreaterThanOrEqual(1);
+    for (const row of history.cases) {
+      expect(["VERIFIED_RESOLVED", "CLOSED_NO_ACTION"]).toContain(row.status);
+    }
+  });
 });

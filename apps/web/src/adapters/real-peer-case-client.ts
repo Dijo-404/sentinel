@@ -1,4 +1,8 @@
-import type { CaseClient } from "@/application/ports";
+import type {
+  CaseClient,
+  OpsAuditEvent,
+  OpsMessage,
+} from "@/application/ports";
 import {
   PeerError,
   isApiError,
@@ -211,6 +215,122 @@ export function createRealPeerCaseClient(options: RealPeerOptions): CaseClient {
       const qs = params.toString();
       return request("GET", `/v1/ops/cases${qs ? `?${qs}` : ""}`, {
         validate: validateOpsList,
+      });
+    },
+    listOpsMessages(): Promise<{ messages: OpsMessage[]; next_cursor?: string }> {
+      return request("GET", "/v1/ops/messages", {
+        validate: (json, requestId) => {
+          if (
+            !json ||
+            typeof json !== "object" ||
+            !Array.isArray((json as { messages?: unknown }).messages)
+          ) {
+            throw new PeerError(
+              "MALFORMED_PEER_RESPONSE",
+              "Missing messages array",
+              requestId,
+            );
+          }
+          const messages = (json as { messages: unknown[] }).messages.map(
+            (row, i) => {
+              if (!row || typeof row !== "object") {
+                throw new PeerError(
+                  "MALFORMED_PEER_RESPONSE",
+                  `Ops message[${i}] is not an object`,
+                  requestId,
+                );
+              }
+              const o = row as Record<string, unknown>;
+              if (
+                typeof o.case_id !== "string" ||
+                typeof o.message_id !== "string" ||
+                typeof o.text !== "string" ||
+                typeof o.language !== "string" ||
+                typeof o.author !== "string" ||
+                typeof o.occurred_at !== "string"
+              ) {
+                throw new PeerError(
+                  "MALFORMED_PEER_RESPONSE",
+                  `Ops message[${i}] missing required fields`,
+                  requestId,
+                );
+              }
+              return {
+                case_id: o.case_id,
+                message_id: o.message_id,
+                text: o.text,
+                language: o.language,
+                author: o.author,
+                occurred_at: o.occurred_at,
+              };
+            },
+          );
+          const next =
+            typeof (json as { next_cursor?: unknown }).next_cursor === "string"
+              ? (json as { next_cursor: string }).next_cursor
+              : undefined;
+          return { messages, next_cursor: next };
+        },
+      });
+    },
+    listOpsAuditEvents(): Promise<{
+      events: OpsAuditEvent[];
+      next_cursor?: string;
+    }> {
+      return request("GET", "/v1/ops/audit-events", {
+        validate: (json, requestId) => {
+          if (
+            !json ||
+            typeof json !== "object" ||
+            !Array.isArray((json as { events?: unknown }).events)
+          ) {
+            throw new PeerError(
+              "MALFORMED_PEER_RESPONSE",
+              "Missing events array",
+              requestId,
+            );
+          }
+          const events = (json as { events: unknown[] }).events.map(
+            (row, i) => {
+              if (!row || typeof row !== "object") {
+                throw new PeerError(
+                  "MALFORMED_PEER_RESPONSE",
+                  `Ops audit event[${i}] is not an object`,
+                  requestId,
+                );
+              }
+              const o = row as Record<string, unknown>;
+              if (
+                typeof o.case_id !== "string" ||
+                typeof o.sequence !== "number" ||
+                !Number.isInteger(o.sequence) ||
+                typeof o.type !== "string" ||
+                typeof o.occurred_at !== "string" ||
+                !o.payload ||
+                typeof o.payload !== "object" ||
+                Array.isArray(o.payload)
+              ) {
+                throw new PeerError(
+                  "MALFORMED_PEER_RESPONSE",
+                  `Ops audit event[${i}] missing required fields`,
+                  requestId,
+                );
+              }
+              return {
+                case_id: o.case_id,
+                sequence: o.sequence,
+                type: o.type,
+                occurred_at: o.occurred_at,
+                payload: o.payload as Record<string, unknown>,
+              };
+            },
+          );
+          const next =
+            typeof (json as { next_cursor?: unknown }).next_cursor === "string"
+              ? (json as { next_cursor: string }).next_cursor
+              : undefined;
+          return { events, next_cursor: next };
+        },
       });
     },
     getOpsEvidence(caseId: string): Promise<EvidenceBundle> {

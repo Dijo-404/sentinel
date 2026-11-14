@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added — 15 November 2026 (ops CaseClient messages / audit / HISTORY)
+
+- `CaseClient.listOpsMessages()` → `GET /v1/ops/messages` (real-peer + BFF + fixture stub).
+- `CaseClient.listOpsAuditEvents()` → `GET /v1/ops/audit-events`.
+- `listOpsCases({ status: "HISTORY" })` documented; fixture stub filters to
+  `VERIFIED_RESOLVED` | `CLOSED_NO_ACTION` (case-api HISTORY alias).
+- BFF `/api/bff/case/[...path]` already path-passthrough — no allowlist change.
+
 ### Fixed — 15 November 2026 (data provenance / hardcode audit)
 
 - Supervisor case evidence approval loads `getAction(case.action_id)` + evidence

@@ -95,6 +95,25 @@ export type SettlementFinding = {
   currency?: string;
 };
 
+/** Ops message inbox row from GET /v1/ops/messages. */
+export type OpsMessage = {
+  case_id: string;
+  message_id: string;
+  text: string;
+  language: string;
+  author: string;
+  occurred_at: string;
+};
+
+/** Ops audit event row from GET /v1/ops/audit-events. */
+export type OpsAuditEvent = {
+  case_id: string;
+  sequence: number;
+  type: string;
+  occurred_at: string;
+  payload: Record<string, unknown>;
+};
+
 /** Injected case-api.v1 client used by the shell. */
 export interface CaseClient {
   createCase(input: CaseCreate, idempotencyKey: string): Promise<CaseCreated>;
@@ -104,10 +123,22 @@ export interface CaseClient {
     body: { message: string; language: string; expected_revision: number },
   ): Promise<Case>;
   listEvents(caseId: string, after?: number): Promise<{ events: CaseEvent[] }>;
+  /**
+   * Ops case queue — GET /v1/ops/cases.
+   * `status` accepts a CaseState, comma-separated states, or alias `HISTORY`
+   * (= VERIFIED_RESOLVED | CLOSED_NO_ACTION on case-api).
+   */
   listOpsCases(query?: {
     status?: string;
     after?: string;
   }): Promise<OpsCaseList>;
+  /** Ops message inbox — GET /v1/ops/messages. */
+  listOpsMessages(): Promise<{ messages: OpsMessage[]; next_cursor?: string }>;
+  /** Ops audit feed — GET /v1/ops/audit-events. */
+  listOpsAuditEvents(): Promise<{
+    events: OpsAuditEvent[];
+    next_cursor?: string;
+  }>;
   getOpsEvidence(caseId: string): Promise<EvidenceBundle>;
   /**
    * Authoritative ledger proposal (amount, digest, revision, policy_version).

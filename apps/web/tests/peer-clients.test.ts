@@ -161,4 +161,104 @@ describe("peer clients", () => {
       }),
     ).rejects.toBeInstanceOf(PeerError);
   });
+
+  it("listOpsMessages calls GET /v1/ops/messages and returns shape", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          messages: [
+            {
+              case_id: "case-1",
+              message_id: "msg-1",
+              text: "hello",
+              language: "en",
+              author: "customer",
+              occurred_at: "2026-11-15T00:00:00Z",
+            },
+          ],
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+    );
+    const client = createRealPeerCaseClient({
+      baseUrl: "http://case.test",
+      bearerToken: "tok",
+      fetchImpl: fetchImpl as typeof fetch,
+    });
+    const result = await client.listOpsMessages();
+    expect(result.messages).toHaveLength(1);
+    expect(result.messages[0]).toMatchObject({
+      case_id: "case-1",
+      message_id: "msg-1",
+      text: "hello",
+      language: "en",
+      author: "customer",
+      occurred_at: "2026-11-15T00:00:00Z",
+    });
+    expect(String(fetchImpl.mock.calls[0]![0])).toContain("/v1/ops/messages");
+  });
+
+  it("listOpsAuditEvents calls GET /v1/ops/audit-events and returns shape", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          events: [
+            {
+              case_id: "case-1",
+              sequence: 2,
+              type: "STATUS_CHANGED",
+              occurred_at: "2026-11-15T00:00:00Z",
+              payload: { status: "ESCALATED" },
+            },
+          ],
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+    );
+    const client = createRealPeerCaseClient({
+      baseUrl: "http://case.test",
+      bearerToken: "tok",
+      fetchImpl: fetchImpl as typeof fetch,
+    });
+    const result = await client.listOpsAuditEvents();
+    expect(result.events).toHaveLength(1);
+    expect(result.events[0]).toMatchObject({
+      case_id: "case-1",
+      sequence: 2,
+      type: "STATUS_CHANGED",
+      occurred_at: "2026-11-15T00:00:00Z",
+    });
+    expect(String(fetchImpl.mock.calls[0]![0])).toContain(
+      "/v1/ops/audit-events",
+    );
+  });
+
+  it("listOpsCases passes status=HISTORY query", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          cases: [
+            {
+              contract_version: "case-api.v1",
+              case_id: "case-history-1",
+              revision: 4,
+              status: "VERIFIED_RESOLVED",
+              language: "en",
+              intent: "REFUND",
+              evidence_ids: [],
+            },
+          ],
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+    );
+    const client = createRealPeerCaseClient({
+      baseUrl: "http://case.test",
+      bearerToken: "tok",
+      fetchImpl: fetchImpl as typeof fetch,
+    });
+    const result = await client.listOpsCases({ status: "HISTORY" });
+    expect(result.cases[0]?.status).toBe("VERIFIED_RESOLVED");
+    expect(String(fetchImpl.mock.calls[0]![0])).toContain("status=HISTORY");
+  });
 });
