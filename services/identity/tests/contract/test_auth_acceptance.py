@@ -29,7 +29,8 @@ def test_auth01_register_rejects_privileged_role(client: TestClient) -> None:
         "/v1/auth/login",
         json={"email": "new-customer@example.test", "password": NEW_PASSWORD},
     )
-    assert users.status_code == 401
+    assert users.status_code == 404
+    assert users.json()["code"] == "ACCOUNT_NOT_FOUND"
 
 
 def test_auth01_clean_register_is_customer_only(client: TestClient) -> None:
@@ -405,7 +406,7 @@ def test_ops_team_forbidden_for_operator(client: TestClient, demo_password: str)
     assert response.status_code == 403
 
 
-def test_login_multi_assignment_requires_requested_role(
+def test_login_multi_assignment_without_role_issues_unscoped_session(
     client: TestClient, demo_password: str, store: MemoryIdentityStore
 ) -> None:
     user = store.get_user_by_email("operator@example.test")
@@ -428,8 +429,23 @@ def test_login_multi_assignment_requires_requested_role(
         "/v1/auth/login",
         json={"email": "operator@example.test", "password": demo_password},
     )
-    assert response.status_code == 409
-    assert "session_token" not in response.json()
+    assert response.status_code == 200
+    body = response.json()
+    assert body["active_assignment"] is None
+    assert {w["role_id"] for w in body["workspaces"]} == {"operator", "merchant"}
+    token = body["session_token"]
+    me = client.get("/v1/auth/me", headers=auth_header(token)).json()
+    assert me["active_assignment"] is None
+    assert me["permissions"] == []
+    listed = client.get("/v1/auth/workspaces", headers=auth_header(token)).json()
+    assert len(listed["workspaces"]) == 2
+    picked = client.post(
+        "/v1/auth/workspaces/select",
+        json={"assignment_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1"},
+        headers=auth_header(token),
+    )
+    assert picked.status_code == 200
+    assert picked.json()["active_assignment"]["role_id"] == "merchant"
     ok = login(client, "operator@example.test", demo_password, requested_role="operator")
     assert ok["session_token"]
     assert ok["active_assignment"]["role_id"] == "operator"

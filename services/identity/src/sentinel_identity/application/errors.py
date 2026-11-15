@@ -48,3 +48,15 @@ class ConflictError(IdentityError):
 class ConfigurationError(IdentityError):
     code = "CONFIGURATION"
     http_status = 500
+
+
+class AccountNotFoundError(IdentityError):
+    """Login email has no account. Enumerating by design (owner ruling, #154)."""
+
+    code = "ACCOUNT_NOT_FOUND"
+    http_status = 404
+
+
+class RateLimitedError(IdentityError):
+    code = "RATE_LIMITED"
+    http_status = 429

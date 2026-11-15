@@ -12,12 +12,25 @@ Contract: `sentinel.task-contracts.v1`, SHA-256
 
 - Customer self-register (customer role only; privileged fields ignored/rejected;
   password length ≥ 8)
+- Merchant self-register `POST /v1/auth/merchant/register` (owner ruling, #154):
+  `display_name`, `email`, `password`, `business_name`, optional
+  `preferred_language`. Creates a `staff` user plus one active `merchant`
+  assignment in `tenant-demo` with a server-generated `merchant_ref`
+  (`merchant-<12 hex>`, scope `tenant:tenant-demo|merchant:<ref>`). Same
+  validation, password floor, email-verify flow and 409 `CONFLICT` duplicate
+  handling as customer register. Privileged keys (`role`, `roles`, `role_id`,
+  `tenant_id`, `subject`, `subject_refs`, `merchant_ref`, `account_type`,
+  `permissions`, …) → 422. Identity has no merchant-org table: `business_name`
+  is returned and kept in the `merchant.registered` audit event; a merchant-teams
+  org record (if needed) is a separate peer step. Operator, supervisor, risk
+  officer and platform admin stay invite-only.
 - Login / logout / me / `PATCH /v1/auth/me` profile (`display_name`,
   `preferred_language`; privilege fields rejected) / notifications inbox
   (`GET /v1/auth/notifications`, `POST .../{id}/read`) / sandbox verify-email,
   MFA challenge (numeric loopback code), forgot/reset password /
-  workspaces select with hashed session tokens (multi-role login requires
-  `requested_role` or returns 409)
+  workspaces select with hashed session tokens (multi-role login without
+  `requested_role` returns `active_assignment: null` and an unscoped session with
+  no permissions until `POST /v1/auth/workspaces/select`)
 - Platform Admin invite / grant / revoke / suspend / reactivate / list / audit
 - Accept invitation (single-use; deny expired/revoked/mismatched; new password ≥ 8)
 - Sandbox invite delivery: durable outbox + `GET /v1/sandbox/inbox` acceptance links
@@ -47,6 +60,30 @@ for Platform Admin staff directory only.
 **Non-goals:** ledger approvals, provider writes, Case API ownership, portal UI
 (M2 admin UI / M1.3 web auth live in `apps/web`). Service principals never get
 interactive logins.
+
+## Login signals and account enumeration (#154)
+
+`POST /v1/auth/login` outcomes, in order:
+
+| Condition | HTTP | `code` |
+| --- | --- | --- |
+| Missing email/password or email without `@` | 422 | `INVALID_INPUT` |
+| ≥ 5 failures for this email or ≥ 20 for this client IP in 15 min | 429 | `RATE_LIMITED` |
+| No account for this email | 404 | `ACCOUNT_NOT_FOUND` |
+| Wrong password for an existing account | 401 | `UNAUTHORIZED` (generic) |
+| Account not active / no workspace | 403 | `FORBIDDEN` |
+
+**Trade-off (owner decision):** `ACCOUNT_NOT_FOUND` lets the web send unknown
+emails to sign-up, and it also tells anyone whether an email is registered.
+Mitigations: wrong passwords stay generic; unknown-email and wrong-password
+attempts both count toward the per-email and per-IP limits; a successful login
+clears only that email's counter. Limits live in process memory
+(`LoginRateLimiter`, ≤ 10 000 keys) and are not shared across replicas.
+
+Client IP is the direct peer address. `X-Forwarded-For` (rightmost hop) is used
+only when the direct peer is in `IDENTITY_TRUSTED_PROXIES` (comma list, default
+`127.0.0.1,::1`). Set it to the web BFF address when identity is not on the same
+host, or every portal user shares one per-IP bucket.
 
 ## Standalone setup
 

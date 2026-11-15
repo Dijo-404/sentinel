@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### Added — merchant self-signup + email login signals (#154)
+
+- `POST /v1/auth/merchant/register`: merchant user + assignment in `tenant-demo`
+  with server-generated `merchant_ref`; privileged fields (now also
+  `merchant_ref`, `subject`) rejected; duplicate email 409 like customer.
+- `POST /v1/auth/login`: input validation first (422), then distinct
+  `ACCOUNT_NOT_FOUND` (404) for unknown email; wrong password stays generic 401.
+- Bounded in-memory login failure limiter: 5/email and 20/client IP per 15 min
+  → 429 `RATE_LIMITED`. `IDENTITY_TRUSTED_PROXIES` gates `X-Forwarded-For`.
+- Multi-workspace login without `requested_role` now returns 200 with
+  `active_assignment: null` and an unscoped session (no permissions) instead of
+  409, so clients can use `GET /v1/auth/workspaces` + `POST .../select`.
+
 ### Added — labeled sandbox/dev-deploy credentials
 
 - Document portal seed accounts under `deploy/dev/CREDENTIALS.md` with shared

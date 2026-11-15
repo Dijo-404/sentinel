@@ -19,6 +19,8 @@ class AppServices:
     identity: IdentityService
     mode: str
     component: str = "identity"
+    # Direct peers whose X-Forwarded-For is trusted for the login rate-limit key.
+    trusted_proxies: frozenset[str] = frozenset({"127.0.0.1", "::1"})
 
 
 def create_app(services: AppServices) -> FastAPI:
@@ -63,6 +65,32 @@ def create_app(services: AppServices) -> FastAPI:
         except IdentityError as exc:
             return _error(exc, request_id)
 
+    @app.post("/v1/auth/merchant/register")
+    async def register_merchant(request: Request) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            body = await _json_object(request)
+            allowed = {
+                "email",
+                "password",
+                "display_name",
+                "business_name",
+                "preferred_language",
+            }
+            extra = {k: v for k, v in body.items() if k not in allowed}
+            result = services.identity.register_merchant(
+                email=str(body.get("email", "")),
+                password=str(body.get("password", "")),
+                display_name=str(body.get("display_name", "")),
+                business_name=str(body.get("business_name", "")),
+                preferred_language=str(body.get("preferred_language", "")),
+                extra=extra,
+                request_id=request_id,
+            )
+            return JSONResponse(result, status_code=201)
+        except IdentityError as exc:
+            return _error(exc, request_id)
+
     @app.post("/v1/auth/login")
     async def login(request: Request) -> JSONResponse:
         request_id = _request_id(request)
@@ -72,6 +100,7 @@ def create_app(services: AppServices) -> FastAPI:
                 email=str(body.get("email", "")),
                 password=str(body.get("password", "")),
                 requested_role=body.get("requested_role"),
+                client_ip=_client_ip(request, services.trusted_proxies),
                 request_id=request_id,
             )
             return JSONResponse(result)
@@ -556,6 +585,15 @@ async def _json_object(request: Request) -> dict[str, Any]:
     if not isinstance(body, dict):
         raise ValidationError("Request body must be JSON object")
     return body
+
+
+def _client_ip(request: Request, trusted_proxies: frozenset[str]) -> str:
+    peer = request.client.host if request.client else ""
+    forwarded = request.headers.get("x-forwarded-for") or ""
+    if peer in trusted_proxies and forwarded.strip():
+        # Rightmost hop is the one the trusted proxy (web BFF) appended.
+        return forwarded.split(",")[-1].strip()
+    return peer
 
 
 def _request_id(request: Request) -> str:
