@@ -120,6 +120,9 @@ session — not matrix `tok-*`), policy `GET /v1/policies` (`tok-platform-admin`
 platform-ai `GET /v1/config` + `/v1/integrations` (`admin-token`), evals
 `GET /v1/reports` (`admin-token`, `eval-sandbox-1`), observability
 `GET /v1/signals` (`admin-token`, `sig-seed-request-handle`).
+Wave 6 offline gate: `make verify-wave6` / `./scripts/verify_wave6.sh`
+(portal stub scan + fixture honesty + approval-ui smoke). Optional
+`VERIFY_WAVE6_LIVE=1` runs a real-peers provider subset when peers are up.
 Compose DB names: see [compose/init-databases.sql](../compose/init-databases.sql).
 
 ## Path honesty

@@ -381,6 +381,35 @@ curl -sS -H "Authorization: Bearer admin-token" \
   http://127.0.0.1:8033/v1/signals
 ```
 
+### Wave 6 money-path honesty gate
+
+Offline aggregator (part of module `make check` via tests; also a Makefile target).
+No live peers required by default.
+
+```sh
+make -C integration/core verify-wave6
+# or: ./scripts/verify_wave6.sh
+```
+
+Asserts:
+
+| Check | What |
+| --- | --- |
+| portal stub scan | `apps/web/src/app/**` has no "Not available yet" / "Fixture placeholder" / "not connected to its service yet" |
+| fixture assembly | in-process journeys PASS with `payment_provider=simulator`, `path=browser-to-credit-fixture`, `sn009_authority_exercised=true`, `assembled_mvp_claimed=false` |
+| approval-ui package | `packages/approval-ui` exports `ApprovalPanel` |
+| approval-ui slot | `apps/web` real-peers slot mounts package panel (not local substitute first) |
+| live real-peers | **skipped** unless `VERIFY_WAVE6_LIVE=1` (then provider subset; peers must be up) |
+
+Optional live (simulator only — never live payment rails):
+
+```sh
+VERIFY_WAVE6_LIVE=1 make -C integration/core verify-wave6
+# or full stack journeys: ./scripts/run_sandbox_journeys.sh
+```
+
+Program waves 0–6 complete pending **owner MVP review**. Harness PASS ≠ product release.
+
 #### Curl checklist (wave 3)
 
 ```sh
@@ -436,6 +465,7 @@ integration/core/
   scripts/verify_wave3.sh
   scripts/verify_wave4.sh
   scripts/verify_wave5.sh
+  scripts/verify_wave6.sh
   tests/stubs/
 ```
 
