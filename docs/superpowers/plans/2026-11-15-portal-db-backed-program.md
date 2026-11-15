@@ -15,7 +15,7 @@
 | 5 Admin remainder | `docs/superpowers/plans/2026-11-15-portal-wave5-admin-remainder.md` | done |
 | 6 Money-path E2E | `docs/superpowers/plans/2026-11-15-portal-wave6-money-path-e2e.md` | done |
 
-**Program status:** waves 0–6 complete. Assembled MVP / product release remains an **owner review** decision — harness PASS and `verify-wave6` are not release evidence.
+**Program status:** waves 0–6 complete. Assembled MVP / product release remains an **owner review** decision — harness PASS and `verify-wave6` are not release evidence. Thin pointer: [`2026-11-15-portal-program-complete.md`](2026-11-15-portal-program-complete.md).
 
 ## Global program constraints (all waves)
 
