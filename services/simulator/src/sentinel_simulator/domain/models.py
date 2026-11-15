@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from typing import Literal
 
 PaymentStatus = Literal["CAPTURED", "PENDING", "FAILED"]
@@ -178,12 +179,18 @@ class RefundStats:
 
 @dataclass
 class SimulatorClock:
-    """Injectable clock; default starts at fixed demo instant."""
+    """Injectable clock; default starts at fixed demo instant.
 
-    instant: str = "2026-11-13T12:00:00Z"
+    ``instant=None`` uses real UTC time, so provider events pass downstream
+    freshness/replay checks in real-peers assemblies.
+    """
+
+    instant: str | None = "2026-11-13T12:00:00Z"
     _seq: int = field(default=0, repr=False)
 
     def now(self) -> str:
+        if self.instant is None:
+            return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
         return self.instant
 
     def next_event_id(self, prefix: str) -> str:
