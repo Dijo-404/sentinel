@@ -17,8 +17,10 @@ export function DashboardHeader({ title, description, displayName, workspace, ch
         <h1>{title}</h1>
         <p className="dash-header__desc">{description}</p>
       </div>
-      <span className="dash-header__workspace">{workspace}</span>
-      {children ? <div className="dash-header__extra">{children}</div> : null}
+      <div className="dash-header__aside">
+        <span className="dash-header__workspace">{workspace}</span>
+        {children ? <div className="dash-header__extra row">{children}</div> : null}
+      </div>
     </header>
   );
 }

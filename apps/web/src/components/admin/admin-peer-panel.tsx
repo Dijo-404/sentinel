@@ -20,6 +20,7 @@ export type AdminPeerView =
 
 type Props = {
   view: AdminPeerView;
+  headingLevel?: 1 | 2;
   /** Test override; defaults to browser fetch (BFF cookie session). */
   fetchImpl?: typeof fetch;
 };
@@ -130,7 +131,8 @@ async function fetchJson(path: string, fetchImpl: typeof fetch): Promise<unknown
  * Admin remainder pages: BFF → peer list/summary.
  * Real-peer failure stays visible — never “Not available yet”.
  */
-export function AdminPeerPanel({ view, fetchImpl }: Props) {
+export function AdminPeerPanel({ view, fetchImpl, headingLevel = 1 }: Props) {
+  const Heading = headingLevel === 1 ? "h1" : "h2";
   const copy = VIEW_COPY[view];
   const [load, setLoad] = useState<LoadState>({ status: "loading" });
   const doFetch = fetchImpl ?? fetch;
@@ -178,7 +180,7 @@ export function AdminPeerPanel({ view, fetchImpl }: Props) {
 
   return (
     <div className="panel stack" data-testid={`admin-${view}`}>
-      <h1>{copy.title}</h1>
+      <Heading>{copy.title}</Heading>
       <p className="muted">{copy.muted}</p>
 
       {load.status === "loading" ? <UiState tone="loading" title="Loading admin data…" /> : null}

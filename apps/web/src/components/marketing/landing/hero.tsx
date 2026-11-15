@@ -86,15 +86,14 @@ export function Hero({ dashboardHref }: { dashboardHref?: string | null }) {
       )}
       <div className="lp-hero__inner">
         <div className="lp-hero__copy">
-          <p className="lp-badge">MONEY OPERATIONS · REFUNDS · DISPUTES</p>
+          <p className="lp-badge">Payment exceptions, from evidence to outcome</p>
           <MaskHeadline
             className="lp-hero__title"
             text="Every refund, from complaint to confirmed credit."
-            accentFrom={5}
           />
           <p className="lp-hero__lead">
-            AI investigates. Humans approve one exact payload. One dispatcher writes to the
-            provider. Nothing closes until the money provably lands.
+            Investigate payment exceptions, review the exact proposed action, and track the verified
+            outcome. Keep your team in control of every financial decision.
           </p>
           <div className="lp-hero__cta">
             {dashboardHref ? (
@@ -107,7 +106,7 @@ export function Hero({ dashboardHref }: { dashboardHref?: string | null }) {
               </Link>
             )}
             <a href="#simulator" className="btn btn-lg btn-glass">
-              Run a live case
+              Try the simulator
             </a>
           </div>
           <dl className="lp-hero__facts">

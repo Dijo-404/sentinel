@@ -49,7 +49,9 @@ describe("merchant dashboard viz", () => {
     expect(await screen.findByTestId("merchant-kpi-row")).toBeInTheDocument();
     expect(screen.queryByTestId("fixture-banner")).not.toBeInTheDocument();
     expect(screen.getByText("Unresolved")).toBeInTheDocument();
-    expect(screen.getByText("INR 1000.00")).toBeInTheDocument();
+    expect(screen.getByText("₹1,000.00")).toBeInTheDocument();
+    expect(screen.getByText("40.0%")).toBeInTheDocument();
+    expect(screen.getByText("45m")).toBeInTheDocument();
     expect(screen.queryByText("$128,400")).not.toBeInTheDocument();
   });
 

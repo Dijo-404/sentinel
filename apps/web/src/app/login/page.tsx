@@ -1,3 +1,4 @@
+import { AuthShell } from "@/components/auth/auth-shell";
 import { redirect } from "next/navigation";
 import { RoleLogin } from "@/components/auth/role-login";
 import { getAuthSession, portalPath } from "@/lib/server/auth";
@@ -14,8 +15,8 @@ export default async function LoginPage({
   }
 
   return (
-    <div className="auth-page auth-page--night">
+    <AuthShell>
       <RoleLogin next={params.next} />
-    </div>
+    </AuthShell>
   );
 }

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import { ShellProvider } from "@/adapters/shell-context";
-import { Cursor } from "@/components/cursor";
 import "./tokens.css";
 import "./globals.css";
 import "./premium.css";
@@ -23,7 +22,8 @@ const jetbrains = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "Sentinel — every refund, from complaint to confirmed credit",
-  description: "SN-038 six role portals + SN-012 intake/ops shell (web-shell.v1)",
+  description:
+    "Investigate payment exceptions, review exact approvals, and track verified outcomes in one workspace.",
   icons: { icon: "/brand/sentinel-mark.svg" },
 };
 
@@ -42,7 +42,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <ShellProvider>{children}</ShellProvider>
-        <Cursor />
       </body>
     </html>
   );

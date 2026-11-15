@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { NavItem } from "@/components/layout/protected-shell";
 import { ThemeToggle } from "@/components/motion/theme-toggle";
@@ -59,15 +59,24 @@ export function PortalTopbar({
   mode: string;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const currentPage = [...nav]
+    .sort((a, b) => b.href.length - a.href.length)
+    .find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));
   const [open, setOpen] = useState(false);
   const [help, setHelp] = useState(false);
   const [dense, setDense] = useState(false);
   const gPending = useRef<number | null>(null);
+  const helpDialog = useRef<HTMLDialogElement>(null);
   const shortcuts = navShortcuts(nav);
 
   useEffect(() => {
     setDense(document.documentElement.dataset.density === "compact");
   }, []);
+
+  useEffect(() => {
+    if (help) helpDialog.current?.showModal();
+  }, [help]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -109,9 +118,15 @@ export function PortalTopbar({
 
   return (
     <div className="topbar">
+      <div className="topbar__location" aria-label="Current workspace page">
+        <span>Workspace</span>
+        <span aria-hidden="true">/</span>
+        <strong>{currentPage?.label ?? "Case details"}</strong>
+      </div>
       <button
         type="button"
         className="topbar__search"
+        aria-label="Search pages and actions"
         onClick={() => setOpen(true)}
         data-testid="open-palette"
       >
@@ -131,8 +146,8 @@ export function PortalTopbar({
         <kbd className="kbd">⌘K</kbd>
       </button>
       <div className="topbar__right">
-        <span className="topbar__mode" title="NEXT_PUBLIC_SHELL_MODE">
-          <span className="live-dot" aria-hidden="true" />
+        <span className="topbar__mode">
+          <span className="topbar__mode-dot" aria-hidden="true" />
           {mode}
         </span>
         <button
@@ -172,12 +187,15 @@ export function PortalTopbar({
         actions={PORTAL_ACTIONS[portal]}
       />
       {help && (
-        <div
+        <dialog
+          ref={helpDialog}
           className="shortcut-sheet"
-          role="dialog"
-          aria-modal="true"
           aria-label="Keyboard shortcuts"
-          onClick={() => setHelp(false)}
+          onClose={() => setHelp(false)}
+          onCancel={() => setHelp(false)}
+          onClick={(event) => {
+            if (event.target === event.currentTarget) setHelp(false);
+          }}
         >
           <div className="pnl shortcut-sheet__card" onClick={(e) => e.stopPropagation()}>
             <div className="shortcut-sheet__head">
@@ -214,7 +232,7 @@ export function PortalTopbar({
               ))}
             </dl>
           </div>
-        </div>
+        </dialog>
       )}
     </div>
   );

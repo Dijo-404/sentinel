@@ -1,7 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { AnimatePresence, motion, useScroll, useTransform, type MotionValue } from "framer-motion";
+import {
+  AnimatePresence,
+  motion,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+  type MotionValue,
+} from "framer-motion";
 import { useRef, useState } from "react";
 import { Reveal } from "@/components/motion/reveal";
 import { HoverArea, Sparkline } from "@/components/ledger/charts";
@@ -72,10 +79,13 @@ function LitPhrase({
   progress: MotionValue<number>;
   accent?: boolean;
 }) {
+  const reduce = useReducedMotion();
   const start = i / PROBLEM.length;
   const opacity = useTransform(progress, [start, start + 0.18], [0.14, 1]);
   return (
-    <motion.span style={{ opacity, color: accent ? "var(--primary)" : undefined }}>
+    <motion.span
+      style={{ opacity: reduce ? 1 : opacity, color: accent ? "var(--primary)" : undefined }}
+    >
       {text}{" "}
     </motion.span>
   );

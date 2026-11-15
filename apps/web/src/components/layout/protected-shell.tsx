@@ -26,8 +26,11 @@ export function ProtectedShell({ role, session, nav, children }: Props) {
   return (
     <PortalCaseShell role={role}>
       <div className="portal-shell" data-portal={role}>
+        <a className="skip-link" href="#portal-content">
+          Skip to content
+        </a>
         <AppSidebar role={role} session={session} nav={nav} />
-        <main className="portal-main stack">
+        <main id="portal-content" tabIndex={-1} className="portal-main stack">
           <PortalTopbar portal={role} nav={nav} mode={modeLabel()} />
           {children}
         </main>

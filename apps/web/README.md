@@ -12,6 +12,19 @@
 
 Mercury marketing landing at `/`, shared email/password-only `/login`, and six role portal trees (customer, merchant, operator, supervisor, risk, admin) behind a night sidebar shell (`AppSidebar` + `ProtectedShell`). Merchant, operator, and supervisor dashboards ship rich fixture viz (stat blocks, trend pills, chart cards). Customer and merchant self-registration use `/signup`; fixture mode uses local identity doubles and real-peers uses identity HTTP. Role-specific `/<role>/login` routes redirect to `/login?portal=<role>`. Legacy `/intake` and `/ops` routes remain. Financial authority stays on the server; the UI masks PII and payment identifiers.
 
+## Visual system
+
+Public pages, account flows, and all six portals share slate/blue semantic tokens,
+consistent controls, readable dark/light themes, and common dashboard headings.
+The sidebar shows the active workspace; the utility bar keeps search, density,
+shortcuts, theme, and the configured evidence mode together. The mobile drawer
+supports keyboard dismissal and focus return. Account screens use one shared
+layout and sign-in links to password recovery.
+
+See the [UI design guide](docs/ui-design.md) for colors, typography, layout,
+interaction behavior, and the verification boundary. Theme and density preferences
+persist in the browser; reduced motion keeps landing content immediately readable.
+
 ## Standalone setup
 
 Requires Node.js 20+.

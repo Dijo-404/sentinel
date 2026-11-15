@@ -1,3 +1,4 @@
+import { AuthShell } from "@/components/auth/auth-shell";
 import { CustomerRegisterForm } from "@/components/auth/customer-register";
 
 export default async function SignupPage({
@@ -7,11 +8,11 @@ export default async function SignupPage({
 }) {
   const params = await searchParams;
   return (
-    <div className="auth-page auth-page--night">
+    <AuthShell>
       <CustomerRegisterForm
         accountType={params.type === "merchant" ? "merchant" : "customer"}
         email={params.email}
       />
-    </div>
+    </AuthShell>
   );
 }

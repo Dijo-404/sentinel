@@ -1,5 +1,22 @@
 /** Stroke icons keyed by nav label; unknown labels get a neutral dot. */
 const PATHS: Record<string, string> = {
+  profile: "M20 21v-2a7 7 0 00-14 0v2M12 11a4 4 0 100-8 4 4 0 000 8z",
+  notifications: "M6 8a6 6 0 0112 0v7l2 3H4l2-3zM10 21h4",
+  exceptions: "M12 8v5M12 17h.01M12 3L2 21h20z",
+  disputes: "M12 3l8 4v6c0 4-5 7-8 8-3-1-8-4-8-8V7zM12 8v5M12 16h.01",
+  analytics: "M4 20h16M7 16v-5M12 16V4M17 16V8",
+  settings: "M4 7h16M4 17h16M8 4v6M16 14v6",
+  tenants: "M4 21V4h10v17M14 10h6v11M8 8h2M8 12h2M8 16h2M2 21h20",
+  teams:
+    "M4 21v-3a5 5 0 0110 0v3M9 11a4 4 0 100-8 4 4 0 000 8zM17 4a4 4 0 010 7M17 14a5 5 0 015 4v3",
+  merchants: "M3 10l2-7h14l2 7M3 10a3 3 0 006 0 3 3 0 006 0 3 3 0 006 0M5 13v8h14v-8M10 21v-6h4v6",
+  policies: "M6 3h9l4 4v14H6zM14 3v5h5M9 12h7M9 16h5",
+  security: "M12 3l8 4v6c0 4-5 7-8 8-3-1-8-4-8-8V7zM9 12l2 2 4-4",
+  configuration: "M4 7h16M4 17h16M8 4v6M16 14v6",
+  integrations: "M8 3v5M16 3v5M5 8h14v4a7 7 0 01-14 0zM12 19v3",
+  evaluations: "M9 4h6v3H9zM6 6H4v15h16V6h-2M8 13l2 2 5-5",
+  observability: "M2 12h5l3-8 4 16 3-8h5",
+  reports: "M5 3h10l4 4v14H5zM14 3v5h5M8 17v-3M12 17v-6M16 17v-4",
   dashboard: "M4 13h6V4H4zM14 20h6V11h-6zM4 20h6v-3H4zM14 7h6V4h-6z",
   transactions: "M4 8h13l-3-3M20 16H7l3 3",
   settlements: "M4 7h16v10H4zM4 11h16M8 15h3",

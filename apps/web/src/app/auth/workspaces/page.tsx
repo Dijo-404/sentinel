@@ -1,3 +1,4 @@
+import { AuthShell } from "@/components/auth/auth-shell";
 import Link from "next/link";
 import { WorkspacePicker } from "@/components/auth/workspace-picker";
 import { PeerError } from "@/domain/types";
@@ -8,7 +9,7 @@ export default async function AuthWorkspacesPage() {
   const sessionId = await readSessionId();
   if (!sessionId) {
     return (
-      <div className="auth-page auth-page--night">
+      <AuthShell>
         <div className="auth-card panel stack" data-testid="auth-workspaces">
           <p className="brand auth-brand">Sentinel</p>
           <h1>Choose workspace</h1>
@@ -17,7 +18,7 @@ export default async function AuthWorkspacesPage() {
             <Link href="/login">Sign in</Link>
           </p>
         </div>
-      </div>
+      </AuthShell>
     );
   }
 
@@ -25,17 +26,17 @@ export default async function AuthWorkspacesPage() {
     const listed = await getIdentityClient().listWorkspaces(sessionId);
     const workspaces = workspaceChoices(listed.workspaces);
     return (
-      <div className="auth-page auth-page--night">
+      <AuthShell>
         <WorkspacePicker
           workspaces={workspaces}
           activeAssignmentId={listed.active_assignment?.assignment_id}
         />
-      </div>
+      </AuthShell>
     );
   } catch (err) {
     const message = err instanceof PeerError ? err.message : "Identity peer unavailable";
     return (
-      <div className="auth-page auth-page--night">
+      <AuthShell>
         <WorkspacePicker
           workspaces={[]}
           error={{
@@ -43,7 +44,7 @@ export default async function AuthWorkspacesPage() {
             message,
           }}
         />
-      </div>
+      </AuthShell>
     );
   }
 }

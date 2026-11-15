@@ -1,9 +1,10 @@
+import { AuthShell } from "@/components/auth/auth-shell";
 import { Suspense } from "react";
 import { ResetPasswordForm } from "@/components/auth/reset-password-form";
 
 export default function AuthResetPasswordPage() {
   return (
-    <div className="auth-page">
+    <AuthShell>
       <Suspense
         fallback={
           <div className="auth-card panel stack">
@@ -15,6 +16,6 @@ export default function AuthResetPasswordPage() {
       >
         <ResetPasswordForm />
       </Suspense>
-    </div>
+    </AuthShell>
   );
 }
