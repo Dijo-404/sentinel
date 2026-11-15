@@ -66,3 +66,20 @@ class AiRun:
             "status": self.status,
             "started_at": self.started_at,
         }
+
+
+@dataclass(frozen=True, slots=True)
+class AiIntegration:
+    integration_id: str
+    tenant_id: str
+    name: str
+    status: str
+    updated_at: str
+
+    def to_wire(self) -> dict[str, str]:
+        return {
+            "integration_id": self.integration_id,
+            "name": self.name,
+            "status": self.status,
+            "updated_at": self.updated_at,
+        }

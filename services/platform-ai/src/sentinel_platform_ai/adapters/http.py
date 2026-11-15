@@ -1,4 +1,4 @@
-"""FastAPI boundary for platform-ai.v1 routes (metadata only)."""
+"""FastAPI boundary for platform-ai.v1 routes (config/runs/integrations metadata)."""
 
 from __future__ import annotations
 
@@ -60,6 +60,16 @@ def create_app(services: AppServices) -> FastAPI:
             principal = services.authenticator.authenticate(request.headers.get("authorization"))
             runs = services.service.list_runs(principal)
             return JSONResponse({"runs": [run.to_wire() for run in runs]})
+        except PlatformAiError as exc:
+            return _error(exc, request_id)
+
+    @app.get("/v1/integrations")
+    def list_integrations(request: Request) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            principal = services.authenticator.authenticate(request.headers.get("authorization"))
+            integrations = services.service.list_integrations(principal)
+            return JSONResponse({"integrations": [item.to_wire() for item in integrations]})
         except PlatformAiError as exc:
             return _error(exc, request_id)
 

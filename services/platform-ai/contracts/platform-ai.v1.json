@@ -2,7 +2,7 @@
   "port": "platform-ai.v1",
   "contract_version": "sentinel.task-contracts.v1",
   "contract_sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb",
-  "produces": ["AiConfig", "AiRun"],
+  "produces": ["AiConfig", "AiRun", "AiIntegration"],
   "consumes": [],
   "money_authority": false,
   "routes": [
@@ -32,6 +32,22 @@
       },
       "roles": ["platform_admin", "sandbox-admin"],
       "notes": "Run metadata only; no money fields"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/integrations",
+      "response": {
+        "integrations": [
+          {
+            "integration_id": "string",
+            "name": "string",
+            "status": "string",
+            "updated_at": "rfc3339"
+          }
+        ]
+      },
+      "roles": ["platform_admin", "sandbox-admin"],
+      "notes": "Integration metadata only; no money fields"
     }
   ],
   "also": ["/healthz", "/readyz", "/v1/capabilities"]
