@@ -21,8 +21,7 @@ type Props = {
 function longestMatchingHref(pathname: string, nav: NavItem[]): string | null {
   let best: string | null = null;
   for (const item of nav) {
-    const matches =
-      pathname === item.href || pathname.startsWith(`${item.href}/`);
+    const matches = pathname === item.href || pathname.startsWith(`${item.href}/`);
     if (matches && (best === null || item.href.length > best.length)) {
       best = item.href;
     }
@@ -69,10 +68,7 @@ export function AppSidebar({ role, session, nav }: Props) {
           onClick={() => setOpen(false)}
         />
       ) : null}
-      <aside
-        id="app-sidebar-nav"
-        className={`app-sidebar${open ? " is-open" : ""}`}
-      >
+      <aside id="app-sidebar-nav" className={`app-sidebar${open ? " is-open" : ""}`}>
         <div className="app-sidebar__brand">
           <Link href="/" className="landing-wordmark">
             <LogoMark inverse size={28} />
@@ -124,11 +120,7 @@ export function AppSidebar({ role, session, nav }: Props) {
             />
           ) : null}
           <form action={logoutAction} className="app-sidebar__logout">
-            <button
-              type="submit"
-              className="btn btn-glass"
-              data-testid="logout"
-            >
+            <button type="submit" className="btn btn-glass" data-testid="logout">
               Sign out
             </button>
           </form>

@@ -14,10 +14,7 @@ export function MfaChallengeForm() {
     mfaChallengeAction,
     initial,
   );
-  const [verifyState, verifyAction, verifyPending] = useActionState(
-    mfaVerifyAction,
-    initial,
-  );
+  const [verifyState, verifyAction, verifyPending] = useActionState(mfaVerifyAction, initial);
 
   const peerError =
     (challengeState && !challengeState.ok && challengeState.peerError) ||
@@ -33,29 +30,19 @@ export function MfaChallengeForm() {
       ? challengeState.message
       : null;
   const verifySoftError =
-    verifyState && !verifyState.ok && !verifyState.peerError
-      ? verifyState.message
-      : null;
-  const success =
-    (challengeState && challengeState.ok) || (verifyState && verifyState.ok);
+    verifyState && !verifyState.ok && !verifyState.peerError ? verifyState.message : null;
+  const success = (challengeState && challengeState.ok) || (verifyState && verifyState.ok);
 
   return (
     <div className="auth-card panel stack" data-testid="auth-mfa">
       <div>
         <p className="brand auth-brand">Sentinel</p>
         <h1>Multi-factor authentication</h1>
-        <p className="muted">
-          Issue a sandbox MFA challenge, then enter the code.
-        </p>
+        <p className="muted">Issue a sandbox MFA challenge, then enter the code.</p>
       </div>
 
       {peerError ? (
-        <div
-          className="state-banner"
-          data-tone="error"
-          data-testid="peer-error"
-          role="alert"
-        >
+        <div className="state-banner" data-tone="error" data-testid="peer-error" role="alert">
           <strong>Identity unavailable</strong>
           <p className="muted" style={{ margin: "0.35rem 0 0" }}>
             {peerMessage}
@@ -64,12 +51,7 @@ export function MfaChallengeForm() {
       ) : null}
 
       {success && !peerError ? (
-        <div
-          className="state-banner"
-          data-tone="empty"
-          data-testid="mfa-success"
-          role="status"
-        >
+        <div className="state-banner" data-tone="empty" data-testid="mfa-success" role="status">
           <p>
             {verifyState && verifyState.ok
               ? verifyState.message
@@ -77,9 +59,7 @@ export function MfaChallengeForm() {
                 ? challengeState.message
                 : null}
           </p>
-          {challengeState &&
-          challengeState.ok &&
-          challengeState.sandbox_code ? (
+          {challengeState && challengeState.ok && challengeState.sandbox_code ? (
             <p className="muted" data-testid="mfa-sandbox-code">
               Sandbox code: {challengeState.sandbox_code}
             </p>
@@ -89,20 +69,11 @@ export function MfaChallengeForm() {
 
       <form action={challengeAction} className="stack">
         {challengeSoftError ? (
-          <div
-            className="state-banner"
-            data-tone="error"
-            data-testid="mfa-error"
-            role="alert"
-          >
+          <div className="state-banner" data-tone="error" data-testid="mfa-error" role="alert">
             <p>{challengeSoftError}</p>
           </div>
         ) : null}
-        <button
-          type="submit"
-          disabled={challengePending}
-          data-testid="mfa-challenge"
-        >
+        <button type="submit" disabled={challengePending} data-testid="mfa-challenge">
           {challengePending ? "Issuing…" : "Send MFA challenge"}
         </button>
       </form>
@@ -119,20 +90,11 @@ export function MfaChallengeForm() {
           />
         </label>
         {verifySoftError ? (
-          <div
-            className="state-banner"
-            data-tone="error"
-            data-testid="mfa-error"
-            role="alert"
-          >
+          <div className="state-banner" data-tone="error" data-testid="mfa-error" role="alert">
             <p>{verifySoftError}</p>
           </div>
         ) : null}
-        <button
-          type="submit"
-          disabled={verifyPending}
-          data-testid="mfa-verify"
-        >
+        <button type="submit" disabled={verifyPending} data-testid="mfa-verify">
           {verifyPending ? "Verifying…" : "Verify"}
         </button>
       </form>

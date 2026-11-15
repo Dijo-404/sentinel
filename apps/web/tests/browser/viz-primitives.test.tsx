@@ -46,12 +46,8 @@ describe("chart labelling", () => {
       />,
     );
     expect(screen.getByText("85")).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Mon: 40 cases" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Tue: 45 cases" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Mon: 40 cases" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Tue: 45 cases" })).toBeInTheDocument();
   });
 });
 
@@ -67,9 +63,7 @@ describe("viz primitives", () => {
     expect(screen.getByTestId("fixture-banner")).toHaveTextContent(
       "Simulator / fixture — not live production metrics",
     );
-    expect(screen.getByTestId("stat-block")).toHaveTextContent(
-      "Open exceptions",
-    );
+    expect(screen.getByTestId("stat-block")).toHaveTextContent("Open exceptions");
     expect(screen.getByTestId("stat-block")).toHaveTextContent("12");
     expect(screen.getByTestId("stat-block")).toHaveTextContent("Last 24h");
   });
@@ -83,10 +77,7 @@ describe("viz primitives", () => {
         </ChartCard>
       </>,
     );
-    expect(screen.getByTestId("trend-pill")).toHaveAttribute(
-      "data-direction",
-      "up",
-    );
+    expect(screen.getByTestId("trend-pill")).toHaveAttribute("data-direction", "up");
     expect(screen.getByTestId("chart-card")).toHaveTextContent("Volume");
   });
 

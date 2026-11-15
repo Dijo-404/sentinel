@@ -17,11 +17,7 @@ export function PipelineFunnel({ stages, highlight }: Props) {
   return (
     <ol className="funnel">
       {stages.map((s, i) => (
-        <li
-          key={s.key}
-          className="funnel__row"
-          data-highlight={s.key === highlight || undefined}
-        >
+        <li key={s.key} className="funnel__row" data-highlight={s.key === highlight || undefined}>
           <span className="funnel__step tnum" aria-hidden="true">
             {i + 1}
           </span>

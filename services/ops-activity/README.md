@@ -13,9 +13,9 @@ Compatibility: [contracts/COMPATIBILITY.md](contracts/COMPATIBILITY.md).
 
 ## Routes
 
-| Method | Path | Roles | Response |
-| --- | --- | --- | --- |
-| `GET` | `/v1/activity` | operator, supervisor | `{ items: ActivityItem[] }` |
+| Method | Path           | Roles                | Response                    |
+| ------ | -------------- | -------------------- | --------------------------- |
+| `GET`  | `/v1/activity` | operator, supervisor | `{ items: ActivityItem[] }` |
 
 Also: `/healthz`, `/readyz`, `/v1/capabilities` (`mode: fixture|real-peers`,
 `financial_authority: false`).

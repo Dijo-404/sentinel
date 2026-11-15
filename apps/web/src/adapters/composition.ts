@@ -24,29 +24,18 @@ function demoPrincipal(role: string) {
 }
 
 export function loadShellConfig(
-  env: Record<string, string | undefined> = process.env as Record<
-    string,
-    string | undefined
-  >,
+  env: Record<string, string | undefined> = process.env as Record<string, string | undefined>,
 ): ShellConfig {
   // Product default is real-peers (DB/API path). Explicit fixture for module checks.
   const mode = (env.NEXT_PUBLIC_SHELL_MODE ?? "real-peers") as ShellConfig["mode"];
   if (mode !== "fixture" && mode !== "real-peers") {
-    throw new PeerError(
-      "INVALID_CONFIG",
-      `Unknown SHELL_MODE: ${mode}`,
-      "cfg-mode",
-    );
+    throw new PeerError("INVALID_CONFIG", `Unknown SHELL_MODE: ${mode}`, "cfg-mode");
   }
   const role = env.NEXT_PUBLIC_DEMO_ROLE ?? "customer";
   // ShellProvider is a client component: never embed a process-wide case bearer.
   // Portal real-peers uses BFF + sentinel_session. CASE_API_BEARER_TOKEN is
   // service-only (server case client / BFF fallback), never shell config.
-  if (
-    mode === "real-peers" &&
-    env.NEXT_PUBLIC_DEMO_TOKEN &&
-    !env.CASE_API_BASE_URL
-  ) {
+  if (mode === "real-peers" && env.NEXT_PUBLIC_DEMO_TOKEN && !env.CASE_API_BASE_URL) {
     throw new PeerError(
       "INVALID_CONFIG",
       "CASE_API_BASE_URL is required in real-peers mode; never put secrets in NEXT_PUBLIC_*",
@@ -89,11 +78,7 @@ export function createShellRuntime(
   } else if (config.mode === "fixture") {
     // Role for decide() comes from PortalCaseShell (active assignment), not DEMO_ROLE.
     caseClient = createCaseApiStub("valid");
-  } else if (
-    overrides?.fetchImpl &&
-    config.caseApiBaseUrl &&
-    config.bearerToken
-  ) {
+  } else if (overrides?.fetchImpl && config.caseApiBaseUrl && config.bearerToken) {
     // Test / direct-peer harness only — not the portal ShellProvider path.
     caseClient = createRealPeerCaseClient({
       baseUrl: config.caseApiBaseUrl,

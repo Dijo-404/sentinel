@@ -1,8 +1,4 @@
-import type {
-  CaseClient,
-  OpsAuditEvent,
-  OpsMessage,
-} from "@/application/ports";
+import type { CaseClient, OpsAuditEvent, OpsMessage } from "@/application/ports";
 import {
   PeerError,
   isApiError,
@@ -86,9 +82,7 @@ export function createRealPeerCaseClient(options: RealPeerOptions): CaseClient {
       response = await fetchImpl(`${root}${path}`, {
         method,
         headers: {
-          ...(authMode === "bearer"
-            ? { Authorization: `Bearer ${options.bearerToken}` }
-            : {}),
+          ...(authMode === "bearer" ? { Authorization: `Bearer ${options.bearerToken}` } : {}),
           Accept: "application/json",
           "X-Request-Id": requestId,
           ...(init?.body ? { "Content-Type": "application/json" } : {}),
@@ -100,9 +94,7 @@ export function createRealPeerCaseClient(options: RealPeerOptions): CaseClient {
     } catch (err) {
       throw new PeerError(
         "PEER_UNAVAILABLE",
-        err instanceof Error
-          ? err.message
-          : `Network failure contacting ${peerLabel}`,
+        err instanceof Error ? err.message : `Network failure contacting ${peerLabel}`,
         requestId,
         503,
       );
@@ -125,12 +117,7 @@ export function createRealPeerCaseClient(options: RealPeerOptions): CaseClient {
 
     if (!response.ok) {
       if (isApiError(json)) {
-        throw new PeerError(
-          json.code,
-          json.message,
-          json.request_id,
-          response.status,
-        );
+        throw new PeerError(json.code, json.message, json.request_id, response.status);
       }
       throw new PeerError(
         response.status === 403 || response.status === 401
@@ -160,10 +147,7 @@ export function createRealPeerCaseClient(options: RealPeerOptions): CaseClient {
   }
 
   return {
-    createCase(
-      input: CaseCreate,
-      idempotencyKey: string,
-    ): Promise<CaseCreated> {
+    createCase(input: CaseCreate, idempotencyKey: string): Promise<CaseCreated> {
       return request("POST", "/v1/cases", {
         body: input,
         headers: { "Idempotency-Key": idempotencyKey },
@@ -176,37 +160,25 @@ export function createRealPeerCaseClient(options: RealPeerOptions): CaseClient {
       });
     },
     postMessage(caseId, body): Promise<Case> {
-      return request(
-        "POST",
-        `/v1/cases/${encodeURIComponent(caseId)}/messages`,
-        {
-          body,
-          validate: validateCase,
-        },
-      );
+      return request("POST", `/v1/cases/${encodeURIComponent(caseId)}/messages`, {
+        body,
+        validate: validateCase,
+      });
     },
     listEvents(caseId, after): Promise<{ events: CaseEvent[] }> {
       const q = after != null ? `?format=json&after=${after}` : "?format=json";
-      return request(
-        "GET",
-        `/v1/cases/${encodeURIComponent(caseId)}/events${q}`,
-        {
-          validate: (json, requestId) => {
-            if (
-              !json ||
-              typeof json !== "object" ||
-              !Array.isArray((json as { events?: unknown }).events)
-            ) {
-              throw new PeerError(
-                "MALFORMED_PEER_RESPONSE",
-                "Missing events array",
-                requestId,
-              );
-            }
-            return json as { events: CaseEvent[] };
-          },
+      return request("GET", `/v1/cases/${encodeURIComponent(caseId)}/events${q}`, {
+        validate: (json, requestId) => {
+          if (
+            !json ||
+            typeof json !== "object" ||
+            !Array.isArray((json as { events?: unknown }).events)
+          ) {
+            throw new PeerError("MALFORMED_PEER_RESPONSE", "Missing events array", requestId);
+          }
+          return json as { events: CaseEvent[] };
         },
-      );
+      });
     },
     listOpsCases(query): Promise<OpsCaseList> {
       const params = new URLSearchParams();
@@ -225,46 +197,40 @@ export function createRealPeerCaseClient(options: RealPeerOptions): CaseClient {
             typeof json !== "object" ||
             !Array.isArray((json as { messages?: unknown }).messages)
           ) {
-            throw new PeerError(
-              "MALFORMED_PEER_RESPONSE",
-              "Missing messages array",
-              requestId,
-            );
+            throw new PeerError("MALFORMED_PEER_RESPONSE", "Missing messages array", requestId);
           }
-          const messages = (json as { messages: unknown[] }).messages.map(
-            (row, i) => {
-              if (!row || typeof row !== "object") {
-                throw new PeerError(
-                  "MALFORMED_PEER_RESPONSE",
-                  `Ops message[${i}] is not an object`,
-                  requestId,
-                );
-              }
-              const o = row as Record<string, unknown>;
-              if (
-                typeof o.case_id !== "string" ||
-                typeof o.message_id !== "string" ||
-                typeof o.text !== "string" ||
-                typeof o.language !== "string" ||
-                typeof o.author !== "string" ||
-                typeof o.occurred_at !== "string"
-              ) {
-                throw new PeerError(
-                  "MALFORMED_PEER_RESPONSE",
-                  `Ops message[${i}] missing required fields`,
-                  requestId,
-                );
-              }
-              return {
-                case_id: o.case_id,
-                message_id: o.message_id,
-                text: o.text,
-                language: o.language,
-                author: o.author,
-                occurred_at: o.occurred_at,
-              };
-            },
-          );
+          const messages = (json as { messages: unknown[] }).messages.map((row, i) => {
+            if (!row || typeof row !== "object") {
+              throw new PeerError(
+                "MALFORMED_PEER_RESPONSE",
+                `Ops message[${i}] is not an object`,
+                requestId,
+              );
+            }
+            const o = row as Record<string, unknown>;
+            if (
+              typeof o.case_id !== "string" ||
+              typeof o.message_id !== "string" ||
+              typeof o.text !== "string" ||
+              typeof o.language !== "string" ||
+              typeof o.author !== "string" ||
+              typeof o.occurred_at !== "string"
+            ) {
+              throw new PeerError(
+                "MALFORMED_PEER_RESPONSE",
+                `Ops message[${i}] missing required fields`,
+                requestId,
+              );
+            }
+            return {
+              case_id: o.case_id,
+              message_id: o.message_id,
+              text: o.text,
+              language: o.language,
+              author: o.author,
+              occurred_at: o.occurred_at,
+            };
+          });
           const next =
             typeof (json as { next_cursor?: unknown }).next_cursor === "string"
               ? (json as { next_cursor: string }).next_cursor
@@ -284,47 +250,41 @@ export function createRealPeerCaseClient(options: RealPeerOptions): CaseClient {
             typeof json !== "object" ||
             !Array.isArray((json as { events?: unknown }).events)
           ) {
-            throw new PeerError(
-              "MALFORMED_PEER_RESPONSE",
-              "Missing events array",
-              requestId,
-            );
+            throw new PeerError("MALFORMED_PEER_RESPONSE", "Missing events array", requestId);
           }
-          const events = (json as { events: unknown[] }).events.map(
-            (row, i) => {
-              if (!row || typeof row !== "object") {
-                throw new PeerError(
-                  "MALFORMED_PEER_RESPONSE",
-                  `Ops audit event[${i}] is not an object`,
-                  requestId,
-                );
-              }
-              const o = row as Record<string, unknown>;
-              if (
-                typeof o.case_id !== "string" ||
-                typeof o.sequence !== "number" ||
-                !Number.isInteger(o.sequence) ||
-                typeof o.type !== "string" ||
-                typeof o.occurred_at !== "string" ||
-                !o.payload ||
-                typeof o.payload !== "object" ||
-                Array.isArray(o.payload)
-              ) {
-                throw new PeerError(
-                  "MALFORMED_PEER_RESPONSE",
-                  `Ops audit event[${i}] missing required fields`,
-                  requestId,
-                );
-              }
-              return {
-                case_id: o.case_id,
-                sequence: o.sequence,
-                type: o.type,
-                occurred_at: o.occurred_at,
-                payload: o.payload as Record<string, unknown>,
-              };
-            },
-          );
+          const events = (json as { events: unknown[] }).events.map((row, i) => {
+            if (!row || typeof row !== "object") {
+              throw new PeerError(
+                "MALFORMED_PEER_RESPONSE",
+                `Ops audit event[${i}] is not an object`,
+                requestId,
+              );
+            }
+            const o = row as Record<string, unknown>;
+            if (
+              typeof o.case_id !== "string" ||
+              typeof o.sequence !== "number" ||
+              !Number.isInteger(o.sequence) ||
+              typeof o.type !== "string" ||
+              typeof o.occurred_at !== "string" ||
+              !o.payload ||
+              typeof o.payload !== "object" ||
+              Array.isArray(o.payload)
+            ) {
+              throw new PeerError(
+                "MALFORMED_PEER_RESPONSE",
+                `Ops audit event[${i}] missing required fields`,
+                requestId,
+              );
+            }
+            return {
+              case_id: o.case_id,
+              sequence: o.sequence,
+              type: o.type,
+              occurred_at: o.occurred_at,
+              payload: o.payload as Record<string, unknown>,
+            };
+          });
           const next =
             typeof (json as { next_cursor?: unknown }).next_cursor === "string"
               ? (json as { next_cursor: string }).next_cursor
@@ -334,11 +294,9 @@ export function createRealPeerCaseClient(options: RealPeerOptions): CaseClient {
       });
     },
     getOpsEvidence(caseId: string): Promise<EvidenceBundle> {
-      return request(
-        "GET",
-        `/v1/ops/cases/${encodeURIComponent(caseId)}/evidence`,
-        { validate: validateEvidenceBundle },
-      );
+      return request("GET", `/v1/ops/cases/${encodeURIComponent(caseId)}/evidence`, {
+        validate: validateEvidenceBundle,
+      });
     },
     getAction(actionId: string): Promise<ActionRecord> {
       if (!ledgerBase) {
@@ -358,30 +316,21 @@ export function createRealPeerCaseClient(options: RealPeerOptions): CaseClient {
       );
     },
     decide(actionId: string, decision: DecisionRequest): Promise<Approval> {
-      return request(
-        "POST",
-        `/v1/ops/actions/${encodeURIComponent(actionId)}/decisions`,
-        {
-          body: decision,
-          validate: (json, requestId) => {
-            if (!json || typeof json !== "object") {
-              throw new PeerError(
-                "MALFORMED_PEER_RESPONSE",
-                "Approval is not an object",
-                requestId,
-              );
-            }
-            return json as Approval;
-          },
+      return request("POST", `/v1/ops/actions/${encodeURIComponent(actionId)}/decisions`, {
+        body: decision,
+        validate: (json, requestId) => {
+          if (!json || typeof json !== "object") {
+            throw new PeerError("MALFORMED_PEER_RESPONSE", "Approval is not an object", requestId);
+          }
+          return json as Approval;
         },
-      );
+      });
     },
     escalate(caseId, body): Promise<Case> {
-      return request(
-        "POST",
-        `/v1/ops/cases/${encodeURIComponent(caseId)}/escalate`,
-        { body, validate: validateCase },
-      );
+      return request("POST", `/v1/ops/cases/${encodeURIComponent(caseId)}/escalate`, {
+        body,
+        validate: validateCase,
+      });
     },
     getOperatorDashboard() {
       return request("GET", "/v1/operator/dashboard", {
@@ -449,11 +398,7 @@ export function createRealPeerCaseClient(options: RealPeerOptions): CaseClient {
             typeof json !== "object" ||
             !Array.isArray((json as { cases?: unknown }).cases)
           ) {
-            throw new PeerError(
-              "MALFORMED_PEER_RESPONSE",
-              "Missing cases array",
-              requestId,
-            );
+            throw new PeerError("MALFORMED_PEER_RESPONSE", "Missing cases array", requestId);
           }
           const cases = (json as { cases: unknown[] }).cases.map((row, i) => {
             if (!row || typeof row !== "object") {

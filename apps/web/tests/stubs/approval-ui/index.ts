@@ -5,11 +5,7 @@ import caseDemo from "../../../contracts/fixtures/case-demo.json";
 import evidenceBundle from "../../../contracts/fixtures/evidence-bundle.json";
 import type { Case, Evidence } from "@/domain/types";
 
-export type StubApprovalUi =
-  | "valid"
-  | "unavailable"
-  | "malformed"
-  | "unauthorized_or_out_of_scope";
+export type StubApprovalUi = "valid" | "unavailable" | "malformed" | "unauthorized_or_out_of_scope";
 
 export type ApprovalUiStubResult =
   | { status: "ok"; props: ApprovalSlotProps }
@@ -40,12 +36,7 @@ export function createApprovalUiStub(
   if (scenario === "unauthorized_or_out_of_scope") {
     return {
       status: "error",
-      error: new PeerError(
-        "FORBIDDEN",
-        "approval-ui out of scope",
-        "req-approval-forbidden",
-        403,
-      ),
+      error: new PeerError("FORBIDDEN", "approval-ui out of scope", "req-approval-forbidden", 403),
     };
   }
   if (scenario === "malformed") {

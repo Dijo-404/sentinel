@@ -41,34 +41,34 @@ Stable seed ids: `inv-seed-case-demo-42`, `rst-seed-case-demo-42`, `fnd-seed-cas
 
 ## Routes
 
-| Method | Path | Auth | Notes |
-| --- | --- | --- | --- |
-| GET | `/healthz` | none | liveness |
-| GET | `/readyz` | none | labels `mode` |
-| GET | `/v1/capabilities` | none | `financial_authority=false` |
-| GET | `/v1/risk/dashboard` | risk_officer | aggregates (portal analytics) |
-| GET | `/v1/risk/reports` | risk_officer | dashboard + `report_kind=summary` (portal reports) |
-| GET | `/v1/risk/investigations` | risk_officer | list (portal queue) |
-| POST | `/v1/risk/investigations` | risk_officer | create + active restriction |
-| GET | `/v1/risk/investigations/{id}` | risk_officer | get |
-| POST | `/v1/risk/investigations/{id}/findings` | risk_officer | versioned finding |
-| GET | `/v1/risk/findings` | risk_officer | list findings (portal audit); `?investigation_id=` / `?case_id=` |
-| GET | `/v1/risk/restrictions` | risk_officer | list (portal holds/transactions); query `blocks_financial_actions`, `has_transaction_ref`, `status`, `case_id` |
-| POST | `/v1/risk/restrictions/{id}/decision` | risk_officer | CLEAR/MAINTAIN/CONFIRM_FRAUD; requires `expected_revision` (CAS) |
-| GET | `/v1/risk/cases/{case_id}/blocks` | risk_officer, workflow | blocks flag for portal + workflow hold gate |
-| POST | `/v1/ops/actions/{id}/decisions` | any authed | always deny (AUTH-21) |
-| POST | `/v1/ledger/approvals` | any authed | always deny (AUTH-21) |
+| Method | Path                                    | Auth                   | Notes                                                                                                          |
+| ------ | --------------------------------------- | ---------------------- | -------------------------------------------------------------------------------------------------------------- |
+| GET    | `/healthz`                              | none                   | liveness                                                                                                       |
+| GET    | `/readyz`                               | none                   | labels `mode`                                                                                                  |
+| GET    | `/v1/capabilities`                      | none                   | `financial_authority=false`                                                                                    |
+| GET    | `/v1/risk/dashboard`                    | risk_officer           | aggregates (portal analytics)                                                                                  |
+| GET    | `/v1/risk/reports`                      | risk_officer           | dashboard + `report_kind=summary` (portal reports)                                                             |
+| GET    | `/v1/risk/investigations`               | risk_officer           | list (portal queue)                                                                                            |
+| POST   | `/v1/risk/investigations`               | risk_officer           | create + active restriction                                                                                    |
+| GET    | `/v1/risk/investigations/{id}`          | risk_officer           | get                                                                                                            |
+| POST   | `/v1/risk/investigations/{id}/findings` | risk_officer           | versioned finding                                                                                              |
+| GET    | `/v1/risk/findings`                     | risk_officer           | list findings (portal audit); `?investigation_id=` / `?case_id=`                                               |
+| GET    | `/v1/risk/restrictions`                 | risk_officer           | list (portal holds/transactions); query `blocks_financial_actions`, `has_transaction_ref`, `status`, `case_id` |
+| POST   | `/v1/risk/restrictions/{id}/decision`   | risk_officer           | CLEAR/MAINTAIN/CONFIRM_FRAUD; requires `expected_revision` (CAS)                                               |
+| GET    | `/v1/risk/cases/{case_id}/blocks`       | risk_officer, workflow | blocks flag for portal + workflow hold gate                                                                    |
+| POST   | `/v1/ops/actions/{id}/decisions`        | any authed             | always deny (AUTH-21)                                                                                          |
+| POST   | `/v1/ledger/approvals`                  | any authed             | always deny (AUTH-21)                                                                                          |
 
 ### Portal page → route map
 
-| Portal page | Peer GET |
-| --- | --- |
-| `/risk/queue` | `/v1/risk/investigations` |
-| `/risk/holds` | `/v1/risk/restrictions?blocks_financial_actions=true` |
-| `/risk/transactions` | `/v1/risk/restrictions?has_transaction_ref=true` |
-| `/risk/analytics` | `/v1/risk/dashboard` |
-| `/risk/reports` | `/v1/risk/reports` |
-| `/risk/audit` | `/v1/risk/findings` |
+| Portal page          | Peer GET                                              |
+| -------------------- | ----------------------------------------------------- |
+| `/risk/queue`        | `/v1/risk/investigations`                             |
+| `/risk/holds`        | `/v1/risk/restrictions?blocks_financial_actions=true` |
+| `/risk/transactions` | `/v1/risk/restrictions?has_transaction_ref=true`      |
+| `/risk/analytics`    | `/v1/risk/dashboard`                                  |
+| `/risk/reports`      | `/v1/risk/reports`                                    |
+| `/risk/audit`        | `/v1/risk/findings`                                   |
 
 ## Local stubs
 

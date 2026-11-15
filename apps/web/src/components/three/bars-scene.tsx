@@ -78,15 +78,7 @@ function place(
   el.dataset.placed = "true";
 }
 
-function Bars({
-  bars,
-  active,
-  onActive,
-  tone,
-  reduced,
-  labelRefs,
-  tickRefs,
-}: Props) {
+function Bars({ bars, active, onActive, tone, reduced, labelRefs, tickRefs }: Props) {
   const group = useRef<THREE.Group>(null);
   const meshes = useRef<(THREE.Mesh | null)[]>([]);
   const heights = useRef<number[]>(bars.map(() => 0));
@@ -134,12 +126,7 @@ function Bars({
       const ready = reduced || elapsed > i * 0.07;
       const h = reduced
         ? goal
-        : THREE.MathUtils.damp(
-            heights.current[i] ?? 0,
-            ready ? goal : 0,
-            5,
-            dt,
-          );
+        : THREE.MathUtils.damp(heights.current[i] ?? 0, ready ? goal : 0, 5, dt);
       heights.current[i] = h;
       mesh.scale.y = h;
       mesh.updateMatrixWorld();
@@ -148,21 +135,12 @@ function Bars({
       if (mat) {
         const on = active === i;
         mat.color.lerp(on ? palette.active : palette.bar, Math.min(1, dt * 10));
-        mat.emissiveIntensity = THREE.MathUtils.damp(
-          mat.emissiveIntensity,
-          on ? 0.3 : 0,
-          10,
-          dt,
-        );
+        mat.emissiveIntensity = THREE.MathUtils.damp(mat.emissiveIntensity, on ? 0.3 : 0, 10, dt);
       }
 
       // Geometry is unit height with its base at 0, so local y=1 is the top face.
       const label = labelRefs?.current?.[i];
-      place(
-        label,
-        scratch.set(0, 1, 0).applyMatrix4(mesh.matrixWorld).project(camera),
-        size,
-      );
+      place(label, scratch.set(0, 1, 0).applyMatrix4(mesh.matrixWorld).project(camera), size);
       if (label) label.style.opacity = h > goal * 0.6 ? "1" : "0";
       place(
         tickRefs?.current?.[i],
@@ -218,11 +196,7 @@ export default function BarsScene(props: Props) {
       >
         <hemisphereLight args={["#ffffff", palette.hemiGround, palette.hemi]} />
         <directionalLight position={[-6, 10, 6]} intensity={2.4} />
-        <directionalLight
-          position={[7, 2, -3]}
-          intensity={0.5}
-          color="#9cb4e8"
-        />
+        <directionalLight position={[7, 2, -3]} intensity={0.5} color="#9cb4e8" />
         <Bars {...props} />
       </Canvas>
     </div>

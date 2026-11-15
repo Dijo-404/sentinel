@@ -72,16 +72,12 @@ export function LocalVoiceSubstitute({ enabled, client, onTranscript }: Props) {
     >
       <h2 id="voice-slot-title">Voice input</h2>
       <p className="muted">
-        Optional voice.v1 peer. Text fallback stays when peer is down. Never
-        grants financial authority.
+        Optional voice.v1 peer. Text fallback stays when peer is down. Never grants financial
+        authority.
       </p>
       <label>
         <span>Consent to process audio/text</span>
-        <input
-          type="checkbox"
-          checked={consent}
-          onChange={(e) => setConsent(e.target.checked)}
-        />
+        <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
       </label>
       <label>
         Text fallback
@@ -100,9 +96,7 @@ export function LocalVoiceSubstitute({ enabled, client, onTranscript }: Props) {
           {evidenceMode ? (
             <>
               {" "}
-              <span data-testid="voice-evidence-mode">
-                (evidence_mode={evidenceMode})
-              </span>
+              <span data-testid="voice-evidence-mode">(evidence_mode={evidenceMode})</span>
             </>
           ) : null}
         </p>

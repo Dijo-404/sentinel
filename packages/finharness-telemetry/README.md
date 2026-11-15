@@ -70,11 +70,11 @@ report = run(
 
 Under [tests/stubs/](tests/stubs/):
 
-| Port | Cases |
-| --- | --- |
-| `telemetry.v1` | valid, unavailable, malformed, unauthorized_or_out_of_scope |
+| Port                    | Cases                                                       |
+| ----------------------- | ----------------------------------------------------------- |
+| `telemetry.v1`          | valid, unavailable, malformed, unauthorized_or_out_of_scope |
 | `finharness-runtime.v1` | valid, unavailable, malformed, unauthorized_or_out_of_scope |
-| `finbench.v1` | valid, unavailable, malformed, unauthorized_or_out_of_scope |
+| `finbench.v1`           | valid, unavailable, malformed, unauthorized_or_out_of_scope |
 
 Real-peer adapters live in [adapters.py](src/sentinel_finharness_telemetry/adapters.py).
 

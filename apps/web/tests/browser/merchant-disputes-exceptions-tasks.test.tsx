@@ -40,21 +40,14 @@ const sessionStub = {
 describe("merchant disputes / exceptions / tasks", () => {
   it("disputes: list region when fetch succeeds — never stub copy", async () => {
     render(
-      <ShellProvider
-        config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}
-      >
-        <DisputesPanel
-          session={sessionStub}
-          disputesClient={createMerchantDisputesStub("valid")}
-        />
+      <ShellProvider config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}>
+        <DisputesPanel session={sessionStub} disputesClient={createMerchantDisputesStub("valid")} />
       </ShellProvider>,
     );
 
     expect(screen.getByTestId("merchant-disputes")).toBeInTheDocument();
     expect(screen.queryByText("Not available yet")).not.toBeInTheDocument();
-    expect(
-      await screen.findByTestId("merchant-disputes-list"),
-    ).toBeInTheDocument();
+    expect(await screen.findByTestId("merchant-disputes-list")).toBeInTheDocument();
     expect(screen.getByText("dispute-seed-demo-1")).toBeInTheDocument();
   });
 
@@ -75,28 +68,19 @@ describe("merchant disputes / exceptions / tasks", () => {
 
     expect(await screen.findByTestId("peer-error")).toBeInTheDocument();
     expect(screen.queryByText("Not available yet")).not.toBeInTheDocument();
-    expect(
-      screen.queryByTestId("merchant-disputes-list"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId("merchant-disputes-list")).not.toBeInTheDocument();
   });
 
   it("exceptions: list region when fetch succeeds — never stub copy", async () => {
     render(
-      <ShellProvider
-        config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}
-      >
-        <ExceptionsPanel
-          session={sessionStub}
-          inboxClient={createMerchantInboxStub("valid")}
-        />
+      <ShellProvider config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}>
+        <ExceptionsPanel session={sessionStub} inboxClient={createMerchantInboxStub("valid")} />
       </ShellProvider>,
     );
 
     expect(screen.getByTestId("merchant-exceptions")).toBeInTheDocument();
     expect(screen.queryByText("Not available yet")).not.toBeInTheDocument();
-    expect(
-      await screen.findByTestId("merchant-exceptions-list"),
-    ).toBeInTheDocument();
+    expect(await screen.findByTestId("merchant-exceptions-list")).toBeInTheDocument();
     expect(screen.getByText("exc-paid-unfulfilled-1")).toBeInTheDocument();
   });
 
@@ -139,9 +123,7 @@ describe("merchant disputes / exceptions / tasks", () => {
 
   it("tasks: fixture also fail closed — no synthetic SLA rows", () => {
     render(
-      <ShellProvider
-        config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}
-      >
+      <ShellProvider config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}>
         <MerchantTasksPage />
       </ShellProvider>,
     );

@@ -1,5 +1,18 @@
 # Contributing to Sentinel
 
+## Lint and formatting
+
+Install the pinned tools once, then run from the repository root:
+
+```sh
+make setup-lint
+make lint
+make format  # Apply safe lint fixes and formatting before committing.
+```
+
+See [tooling/lint/README.md](tooling/lint/README.md) for prerequisites, rule scope, and protected fixture/contract exclusions.
+Run the affected module's `make check` and root `make check` after fixing diagnostics.
+
 ## Start with a task
 
 Use the [Agents queue](https://github.com/Dijo-404/sentinel/issues?q=is%3Aissue%20is%3Aopen%20label%3Aagents), [task register](docs/task-register.md), and [AGENTS.md](AGENTS.md). The owner-created saved view should use:
@@ -14,14 +27,14 @@ Every component can start from the same baseline. Phase, priority and lane do no
 
 ## Status and ownership
 
-| Label | Meaning |
-| --- | --- |
-| `status:backlog` | Scope, contracts or admission need work; no predecessor gate. |
-| `status:ready` | Self-contained scope/contracts/root are supplied; available to claim. |
-| `status:in-progress` | One agreed owner and agent/session are working. |
-| `status:blocked` | An actual environment/scope/contract blocker and next action are recorded. |
-| `status:review` | PR and standalone evidence are ready for owner review. |
-| `status:done` | PR merged and component evidence accepted; issue closed. |
+| Label                | Meaning                                                                    |
+| -------------------- | -------------------------------------------------------------------------- |
+| `status:backlog`     | Scope, contracts or admission need work; no predecessor gate.              |
+| `status:ready`       | Self-contained scope/contracts/root are supplied; available to claim.      |
+| `status:in-progress` | One agreed owner and agent/session are working.                            |
+| `status:blocked`     | An actual environment/scope/contract blocker and next action are recorded. |
+| `status:review`      | PR and standalone evidence are ready for owner review.                     |
+| `status:done`        | PR merged and component evidence accepted; issue closed.                   |
 
 Keep exactly one status. Lane A is backend/workflow; B simulation/safety; C product/language; D tooling/observability/evaluation. These are responsibility categories, not assigned people. Keep one active task per human/agent pair; document an explicit handoff or non-conflicting replacement if blocked.
 

@@ -37,13 +37,8 @@ const sessionStub = {
 describe("merchant team page", () => {
   it("never shows stub copy; lists staff when fetch succeeds", async () => {
     render(
-      <ShellProvider
-        config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}
-      >
-        <TeamPanel
-          session={sessionStub}
-          teamsClient={createMerchantTeamsStub("valid")}
-        />
+      <ShellProvider config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}>
+        <TeamPanel session={sessionStub} teamsClient={createMerchantTeamsStub("valid")} />
       </ShellProvider>,
     );
 
@@ -62,10 +57,7 @@ describe("merchant team page", () => {
           CASE_API_BASE_URL: "http://127.0.0.1:9",
         })}
       >
-        <TeamPanel
-          session={sessionStub}
-          teamsClient={createMerchantTeamsStub("unavailable")}
-        />
+        <TeamPanel session={sessionStub} teamsClient={createMerchantTeamsStub("unavailable")} />
       </ShellProvider>,
     );
 
@@ -77,13 +69,8 @@ describe("merchant team page", () => {
 
   it("empty team is honest empty — no invented rows", async () => {
     render(
-      <ShellProvider
-        config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}
-      >
-        <TeamPanel
-          session={sessionStub}
-          teamsClient={createMerchantTeamsStub("empty")}
-        />
+      <ShellProvider config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}>
+        <TeamPanel session={sessionStub} teamsClient={createMerchantTeamsStub("empty")} />
       </ShellProvider>,
     );
 

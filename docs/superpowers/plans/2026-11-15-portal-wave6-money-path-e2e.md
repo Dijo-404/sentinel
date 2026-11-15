@@ -30,11 +30,13 @@
 ### Task 1: Portal stub inventory scanner
 
 **Files:**
+
 - Create: `integration/core/src/sentinel_core_assembly/adapters/portal_stub_scan.py`
 - Create: `integration/core/tests/test_portal_stub_scan.py`
 - Optional: Makefile target used by verify-wave6
 
 **Interfaces:**
+
 - `scan_portal_stubs(web_app_root: Path) -> StubScanReport` with `status: PASS|FAIL`, `hits: list[{path, line, text}]`
 - Patterns: `Not available yet`, `Fixture placeholder`, `not connected to its service yet`
 - Scan `apps/web/src/app/**/*.{tsx,ts}` relative to repo root discovered from integration/core
@@ -46,11 +48,13 @@
 ### Task 2: Assembly honesty assertions in fixture journeys
 
 **Files:**
+
 - Modify journey/report tests under `integration/core/tests/`
 - Modify domain/report builders only if a label is wrong
 - README honesty section
 
 **Interfaces:**
+
 - Fixture `sentinel-core-assembly run --mode fixture` report must include:
   - `payment_provider == "simulator"` (or documented equivalent field)
   - `path` in `{fixture, authority-fixture, …}` — never `live-provider`
@@ -66,6 +70,7 @@
 **Files:** `apps/web/tests/` — composition default real-peers; approval-slot real-peers ≠ local substitute; voice enabled path fail-closed already exists — add/confirm
 
 **Interfaces:**
+
 - Test: `loadShellConfig({})` mode is `real-peers`
 - Test: ApprovalSlot with mode real-peers does not set `data-slot="approval-ui.v1-local"`
 - Commit under apps/web if new tests needed
@@ -77,12 +82,14 @@
 ### Task 4: `verify-wave6` aggregator + Makefile/script
 
 **Files:**
+
 - `integration/core/src/sentinel_core_assembly/adapters/verify_wave6.py`
 - `integration/core/scripts/verify_wave6.sh`
 - Makefile `verify-wave6`, CLI entry, README, CHANGELOG
 - Tests: scanner fail injected; honesty fields on fixture assembly invoke; approval import smoke
 
 **Interfaces:**
+
 - `verify_wave6(env) -> VerifyReport` checks:
   1. portal stub scan PASS
   2. fixture assembly journeys PASS (in-process)
@@ -97,6 +104,7 @@
 ### Task 5: Program completion docs
 
 **Files:**
+
 - Update `docs/superpowers/plans/2026-11-15-portal-db-backed-program.md` — all waves done; owner gate for MVP
 - Spec status note or short `docs/superpowers/plans/2026-11-15-portal-program-complete.md` pointer (optional thin)
 - sandbox-runbook: wave6 verify command

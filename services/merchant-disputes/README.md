@@ -8,10 +8,10 @@ Contract: `sentinel.task-contracts.v1`, SHA-256 `0db3ba2bba994f10d3060bc71730353
 
 ## HTTP list / get paths
 
-| Method | Path | Notes |
-| --- | --- | --- |
-| `GET` | `/v1/merchants/{merchant_ref}/disputes` | Tenant-scoped list; response `{"disputes":[DisputeCase,...]}` |
-| `GET` | `/v1/disputes/{dispute_id}` | Single dispute detail |
+| Method | Path                                    | Notes                                                         |
+| ------ | --------------------------------------- | ------------------------------------------------------------- |
+| `GET`  | `/v1/merchants/{merchant_ref}/disputes` | Tenant-scoped list; response `{"disputes":[DisputeCase,...]}` |
+| `GET`  | `/v1/disputes/{dispute_id}`             | Single dispute detail                                         |
 
 Both require `Authorization: Bearer <token>` with operator/supervisor role and merchant (and case for detail) scope.
 

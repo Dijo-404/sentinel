@@ -24,13 +24,7 @@ type Props = {
  * 3D bar chart (WebGL) with every value labelled. Axis labels are buttons, so the
  * chart is readable by keyboard and screen reader; falls back to flat bars without WebGL.
  */
-export function Bars3D({
-  bars,
-  unit,
-  format = String,
-  tone = "light",
-  height = 280,
-}: Props) {
+export function Bars3D({ bars, unit, format = String, tone = "light", height = 280 }: Props) {
   const webgl = useWebGL();
   const reduced = Boolean(useReducedMotion());
   const [active, setActive] = useState<number | null>(null);
@@ -62,9 +56,7 @@ export function Bars3D({
   return (
     <div className="bars3d" data-tone={tone}>
       <p className="bars3d__readout" aria-live="polite">
-        <span className="bars3d__readout-value tnum">
-          {format(shown ? shown.value : total)}
-        </span>
+        <span className="bars3d__readout-value tnum">{format(shown ? shown.value : total)}</span>
         <span className="bars3d__readout-label">
           {shown ? `${unit}, ${shown.label}` : `${unit} in total`}
         </span>
@@ -112,9 +104,7 @@ export function Bars3D({
                 className="bars3d__flat-col"
                 data-active={active === i || undefined}
               >
-                <span className="bars3d__flat-value tnum">
-                  {format(b.value)}
-                </span>
+                <span className="bars3d__flat-value tnum">{format(b.value)}</span>
                 <i style={{ height: `${(b.value / max) * 100}%` }} />
               </div>
             ))}

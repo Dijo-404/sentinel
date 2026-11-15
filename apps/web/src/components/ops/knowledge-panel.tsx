@@ -3,10 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useShell } from "@/adapters/shell-context";
 import { createKnowledgeClientForMode } from "@/adapters/composition-peers";
-import type {
-  KnowledgeArticleSummary,
-  KnowledgeClient,
-} from "@/application/ports";
+import type { KnowledgeArticleSummary, KnowledgeClient } from "@/application/ports";
 import { PeerError } from "@/domain/types";
 import { FixtureBanner } from "@/components/viz/fixture-banner";
 import { UiState } from "@/components/ui-states";
@@ -137,11 +134,10 @@ export function KnowledgePanel({ knowledgeClient }: Props) {
     <div className="panel stack" data-testid="operator-knowledge">
       <h1>Knowledge</h1>
       <p className="muted">
-        Articles from knowledge <code>GET /v1/articles</code> /{" "}
-        <code>/v1/search</code>. Citation only — no money authority.
+        Articles from knowledge <code>GET /v1/articles</code> / <code>/v1/search</code>. Citation
+        only — no money authority.
       </p>
-      {config.mode === "fixture" ||
-      (load.status === "ready" && load.label === "fixture") ? (
+      {config.mode === "fixture" || (load.status === "ready" && load.label === "fixture") ? (
         <FixtureBanner />
       ) : null}
 
@@ -159,31 +155,17 @@ export function KnowledgePanel({ knowledgeClient }: Props) {
         <button type="submit">Search</button>
       </form>
 
-      {load.status === "loading" ? (
-        <UiState tone="loading" title="Loading knowledge…" />
-      ) : null}
+      {load.status === "loading" ? <UiState tone="loading" title="Loading knowledge…" /> : null}
       {load.status === "error" ? (
         <div data-testid="peer-error">
-          <UiState
-            tone="error"
-            title="Knowledge unavailable"
-            detail={load.detail}
-          />
+          <UiState tone="error" title="Knowledge unavailable" detail={load.detail} />
         </div>
       ) : null}
       {load.status === "empty" ? (
-        <UiState
-          tone="empty"
-          title="No articles"
-          detail="No knowledge rows match this query."
-        />
+        <UiState tone="empty" title="No articles" detail="No knowledge rows match this query." />
       ) : null}
       {load.status === "ready" ? (
-        <ul
-          className="stack"
-          aria-label="Knowledge articles"
-          data-testid="operator-knowledge-list"
-        >
+        <ul className="stack" aria-label="Knowledge articles" data-testid="operator-knowledge-list">
           {load.articles.map((row) => (
             <li key={row.article_id} className="stack">
               <strong>{row.title}</strong>

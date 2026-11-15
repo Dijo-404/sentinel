@@ -9,9 +9,7 @@ import { createAssistantStub } from "../stubs/assistant";
 describe("operator assistant page", () => {
   it("never shows stub copy; lists threads when fetch succeeds", async () => {
     render(
-      <ShellProvider
-        config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}
-      >
+      <ShellProvider config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}>
         <AssistantPanel
           role="operator"
           testId="operator-assistant"
@@ -22,9 +20,7 @@ describe("operator assistant page", () => {
 
     expect(screen.getByTestId("operator-assistant")).toBeInTheDocument();
     expect(screen.queryByText("Not available yet")).not.toBeInTheDocument();
-    expect(
-      await screen.findByTestId("operator-assistant-threads"),
-    ).toBeInTheDocument();
+    expect(await screen.findByTestId("operator-assistant-threads")).toBeInTheDocument();
     expect(screen.getByText("Operator sandbox thread")).toBeInTheDocument();
     expect(screen.getByText("thr-op-fixture-1")).toBeInTheDocument();
   });
@@ -32,9 +28,7 @@ describe("operator assistant page", () => {
   it("selecting a thread loads messages — no stub copy", async () => {
     const user = userEvent.setup();
     render(
-      <ShellProvider
-        config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}
-      >
+      <ShellProvider config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}>
         <AssistantPanel
           role="operator"
           testId="operator-assistant"
@@ -45,12 +39,8 @@ describe("operator assistant page", () => {
 
     await screen.findByTestId("operator-assistant-threads");
     await user.click(screen.getByTestId("assistant-thread-thr-op-fixture-1"));
-    expect(
-      await screen.findByTestId("operator-assistant-messages"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Hello from tenant-demo sandbox seed."),
-    ).toBeInTheDocument();
+    expect(await screen.findByTestId("operator-assistant-messages")).toBeInTheDocument();
+    expect(screen.getByText("Hello from tenant-demo sandbox seed.")).toBeInTheDocument();
     expect(screen.queryByText("Not available yet")).not.toBeInTheDocument();
   });
 
@@ -72,16 +62,12 @@ describe("operator assistant page", () => {
 
     expect(await screen.findByTestId("peer-error")).toBeInTheDocument();
     expect(screen.queryByText("Not available yet")).not.toBeInTheDocument();
-    expect(
-      screen.queryByTestId("operator-assistant-threads"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId("operator-assistant-threads")).not.toBeInTheDocument();
   });
 
   it("empty threads is honest empty — no invented rows", async () => {
     render(
-      <ShellProvider
-        config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}
-      >
+      <ShellProvider config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}>
         <AssistantPanel
           role="operator"
           testId="operator-assistant"
@@ -91,9 +77,7 @@ describe("operator assistant page", () => {
     );
 
     expect(await screen.findByTestId("state-empty")).toBeInTheDocument();
-    expect(
-      screen.queryByText("Operator sandbox thread"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Operator sandbox thread")).not.toBeInTheDocument();
     expect(screen.queryByText("Not available yet")).not.toBeInTheDocument();
   });
 });

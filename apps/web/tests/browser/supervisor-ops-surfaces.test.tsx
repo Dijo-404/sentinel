@@ -44,9 +44,7 @@ describe("supervisor escalations page", () => {
 
     expect(screen.getByTestId("supervisor-escalations")).toBeInTheDocument();
     expect(screen.queryByText("Not available yet")).not.toBeInTheDocument();
-    expect(
-      await screen.findByTestId("supervisor-escalations-list"),
-    ).toBeInTheDocument();
+    expect(await screen.findByTestId("supervisor-escalations-list")).toBeInTheDocument();
     expect(screen.getByTestId("escalation-link-case-escalated-1")).toHaveAttribute(
       "href",
       "/supervisor/cases/case-escalated-1",
@@ -68,9 +66,7 @@ describe("supervisor escalations page", () => {
 
     expect(await screen.findByTestId("peer-error")).toBeInTheDocument();
     expect(screen.queryByText("Not available yet")).not.toBeInTheDocument();
-    expect(
-      screen.queryByTestId("supervisor-escalations-list"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId("supervisor-escalations-list")).not.toBeInTheDocument();
   });
 
   it("empty escalated list stays honest — no stub copy", async () => {
@@ -104,9 +100,7 @@ describe("supervisor history page", () => {
 
     expect(screen.getByTestId("supervisor-history")).toBeInTheDocument();
     expect(screen.queryByText("Not available yet")).not.toBeInTheDocument();
-    expect(
-      await screen.findByTestId("supervisor-history-list"),
-    ).toBeInTheDocument();
+    expect(await screen.findByTestId("supervisor-history-list")).toBeInTheDocument();
     expect(screen.getByTestId("history-link-case-demo-history-1")).toHaveAttribute(
       "href",
       "/supervisor/cases/case-demo-history-1",
@@ -128,9 +122,7 @@ describe("supervisor history page", () => {
 
     expect(await screen.findByTestId("peer-error")).toBeInTheDocument();
     expect(screen.queryByText("Not available yet")).not.toBeInTheDocument();
-    expect(
-      screen.queryByTestId("supervisor-history-list"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId("supervisor-history-list")).not.toBeInTheDocument();
   });
 
   it("empty history list stays honest — no stub copy", async () => {
@@ -164,14 +156,14 @@ describe("supervisor audit page", () => {
 
     expect(screen.getByTestId("supervisor-audit")).toBeInTheDocument();
     expect(screen.queryByText("Not available yet")).not.toBeInTheDocument();
-    expect(
-      await screen.findByTestId("supervisor-audit-list"),
-    ).toBeInTheDocument();
+    expect(await screen.findByTestId("supervisor-audit-list")).toBeInTheDocument();
     expect(screen.getByText("STATUS_CHANGED")).toBeInTheDocument();
     expect(screen.getByText("case-demo-42")).toBeInTheDocument();
     expect(screen.getByText("2026-11-13T12:00:30Z")).toBeInTheDocument();
     expect(screen.queryByTestId("supervisor-decision-workspace")).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /approve|reject|decide/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /approve|reject|decide/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("peer failure shows peer-error — no stub copy", async () => {
@@ -189,9 +181,7 @@ describe("supervisor audit page", () => {
 
     expect(await screen.findByTestId("peer-error")).toBeInTheDocument();
     expect(screen.queryByText("Not available yet")).not.toBeInTheDocument();
-    expect(
-      screen.queryByTestId("supervisor-audit-list"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId("supervisor-audit-list")).not.toBeInTheDocument();
   });
 
   it("empty audit list stays honest — no stub copy", async () => {

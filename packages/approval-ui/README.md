@@ -64,16 +64,16 @@ import {
 
 ## Layout
 
-| Path | Role |
-| --- | --- |
-| `src/domain/` | Wire types, view-model rules, error mapping |
-| `src/application/` | `DecideClient` port and submit use case |
-| `src/adapters/` | Real-peer HTTP clients |
-| `src/ui/` | Accessible `ApprovalPanel` |
-| `src/preview/` | Standalone preview entry |
-| `fixtures/` | Synthetic preview bundle (labeled fixture) |
-| `contracts/` | Port snapshots + baseline hash |
-| `tests/stubs/` | `case-api.v1` and `action-ledger.v1` doubles |
+| Path               | Role                                         |
+| ------------------ | -------------------------------------------- |
+| `src/domain/`      | Wire types, view-model rules, error mapping  |
+| `src/application/` | `DecideClient` port and submit use case      |
+| `src/adapters/`    | Real-peer HTTP clients                       |
+| `src/ui/`          | Accessible `ApprovalPanel`                   |
+| `src/preview/`     | Standalone preview entry                     |
+| `fixtures/`        | Synthetic preview bundle (labeled fixture)   |
+| `contracts/`       | Port snapshots + baseline hash               |
+| `tests/stubs/`     | `case-api.v1` and `action-ledger.v1` doubles |
 
 ## Acceptance coverage
 

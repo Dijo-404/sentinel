@@ -16,13 +16,7 @@ import { FixtureBanner } from "@/components/viz/fixture-banner";
 import { StatBlock } from "@/components/viz/stat-block";
 import { UiState } from "@/components/ui-states";
 
-export type RiskPeerView =
-  | "queue"
-  | "holds"
-  | "transactions"
-  | "audit"
-  | "analytics"
-  | "reports";
+export type RiskPeerView = "queue" | "holds" | "transactions" | "audit" | "analytics" | "reports";
 
 type Props = {
   view: RiskPeerView;
@@ -44,10 +38,7 @@ type LoadState =
         | { kind: "report"; metrics: RiskReport };
     };
 
-const VIEW_COPY: Record<
-  RiskPeerView,
-  { title: string; muted: string; peerPath: string }
-> = {
+const VIEW_COPY: Record<RiskPeerView, { title: string; muted: string; peerPath: string }> = {
   queue: {
     title: "Risk queue",
     muted: "Investigations from risk via BFF. Not payment authority.",
@@ -55,14 +46,12 @@ const VIEW_COPY: Record<
   },
   holds: {
     title: "Holds",
-    muted:
-      "Restrictions that block financial actions. Clearance is not ledger approval.",
+    muted: "Restrictions that block financial actions. Clearance is not ledger approval.",
     peerPath: "GET /v1/risk/restrictions?blocks_financial_actions=true",
   },
   transactions: {
     title: "Transactions",
-    muted:
-      "Restrictions with a transaction_ref. Not a payment ledger; not customer credit.",
+    muted: "Restrictions with a transaction_ref. Not a payment ledger; not customer credit.",
     peerPath: "GET /v1/risk/restrictions?has_transaction_ref=true",
   },
   audit: {
@@ -168,29 +157,20 @@ export function RiskPeerPanel({ view, riskClient }: Props) {
   }, [client, config.mode, view]);
 
   const caption =
-    load.status === "ready" && load.source === "live"
-      ? copy.peerPath
-      : "Fixture peer";
+    load.status === "ready" && load.source === "live" ? copy.peerPath : "Fixture peer";
 
   return (
     <div className="panel stack" data-testid={`risk-${view}`}>
       <h1>{copy.title}</h1>
       <p className="muted">{copy.muted}</p>
-      {config.mode === "fixture" ||
-      (load.status === "ready" && load.source === "fixture") ? (
+      {config.mode === "fixture" || (load.status === "ready" && load.source === "fixture") ? (
         <FixtureBanner />
       ) : null}
 
-      {load.status === "loading" ? (
-        <UiState tone="loading" title="Loading risk data…" />
-      ) : null}
+      {load.status === "loading" ? <UiState tone="loading" title="Loading risk data…" /> : null}
       {load.status === "error" ? (
         <div data-testid="peer-error">
-          <UiState
-            tone="error"
-            title="Risk peer unavailable"
-            detail={load.detail}
-          />
+          <UiState tone="error" title="Risk peer unavailable" detail={load.detail} />
         </div>
       ) : null}
       {load.status === "ready" ? (
@@ -217,9 +197,7 @@ export function RiskPeerPanel({ view, riskClient }: Props) {
               metrics={load.payload.metrics}
               caption={caption}
               reportKind={
-                load.payload.kind === "report"
-                  ? load.payload.metrics.report_kind
-                  : undefined
+                load.payload.kind === "report" ? load.payload.metrics.report_kind : undefined
               }
             />
           ) : null}
@@ -247,9 +225,7 @@ function KpiGrid({
         gap: "0.85rem",
       }}
     >
-      {reportKind ? (
-        <StatBlock label="Report kind" value={reportKind} caption={caption} />
-      ) : null}
+      {reportKind ? <StatBlock label="Report kind" value={reportKind} caption={caption} /> : null}
       <StatBlock
         label="Open investigations"
         value={String(metrics.open_investigations)}
@@ -274,13 +250,7 @@ function KpiGrid({
   );
 }
 
-function InvestigationTable({
-  items,
-  empty,
-}: {
-  items: RiskInvestigation[];
-  empty: string;
-}) {
+function InvestigationTable({ items, empty }: { items: RiskInvestigation[]; empty: string }) {
   if (items.length === 0) {
     return <UiState tone="empty" title={empty} />;
   }
@@ -356,13 +326,7 @@ function RestrictionTable({
   );
 }
 
-function FindingTable({
-  items,
-  empty,
-}: {
-  items: RiskFinding[];
-  empty: string;
-}) {
+function FindingTable({ items, empty }: { items: RiskFinding[]; empty: string }) {
   if (items.length === 0) {
     return <UiState tone="empty" title={empty} />;
   }

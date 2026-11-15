@@ -41,8 +41,7 @@ async function proxy(
 
   const suffix = path.map(encodeURIComponent).join("/");
   const target = `${base}/${suffix}${req.nextUrl.search}`;
-  const requestId =
-    req.headers.get("x-request-id") ?? `web-bff-ledger-${crypto.randomUUID()}`;
+  const requestId = req.headers.get("x-request-id") ?? `web-bff-ledger-${crypto.randomUUID()}`;
 
   let upstream: Response;
   try {
@@ -55,9 +54,7 @@ async function proxy(
     if (contentType) headers["Content-Type"] = contentType;
 
     const body =
-      req.method === "GET" || req.method === "HEAD"
-        ? undefined
-        : await req.arrayBuffer();
+      req.method === "GET" || req.method === "HEAD" ? undefined : await req.arrayBuffer();
 
     upstream = await fetch(target, {
       method: req.method,
@@ -69,10 +66,7 @@ async function proxy(
     return NextResponse.json(
       {
         code: "PEER_UNAVAILABLE",
-        message:
-          err instanceof Error
-            ? err.message
-            : "Network failure contacting action ledger",
+        message: err instanceof Error ? err.message : "Network failure contacting action ledger",
         request_id: requestId,
       },
       { status: 503 },
@@ -83,8 +77,7 @@ async function proxy(
   return new NextResponse(text, {
     status: upstream.status,
     headers: {
-      "Content-Type":
-        upstream.headers.get("content-type") ?? "application/json",
+      "Content-Type": upstream.headers.get("content-type") ?? "application/json",
       "X-Request-Id": upstream.headers.get("x-request-id") ?? requestId,
     },
   });

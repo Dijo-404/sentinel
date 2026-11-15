@@ -2,14 +2,14 @@
 
 **Technical specification | Proposed product extension | v1.0**
 
-| Field | Value |
-|---|---|
-| Product | Sentinel — autonomous AI teammate for payment operations |
-| Repository | [Dijo-404/sentinel](https://github.com/Dijo-404/sentinel) |
-| Target | Six human-facing portals, centralized identity, scoped RBAC, and secure inter-role workflows |
-| Frontend | Existing Next.js / TypeScript application in `apps/web` |
-| Backend | FastAPI, PostgreSQL, existing Sentinel services and versioned contracts |
-| Status | Design and implementation plan; not a claim of completed functionality |
+| Field                      | Value                                                                                                                            |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Product                    | Sentinel — autonomous AI teammate for payment operations                                                                         |
+| Repository                 | [Dijo-404/sentinel](https://github.com/Dijo-404/sentinel)                                                                        |
+| Target                     | Six human-facing portals, centralized identity, scoped RBAC, and secure inter-role workflows                                     |
+| Frontend                   | Existing Next.js / TypeScript application in `apps/web`                                                                          |
+| Backend                    | FastAPI, PostgreSQL, existing Sentinel services and versioned contracts                                                          |
+| Status                     | Design and implementation plan; not a claim of completed functionality                                                           |
 | Data / payment environment | Synthetic accounts and simulated payment provider for the hackathon; authorized external integrations only after separate review |
 
 ## 0. Executive summary
@@ -35,18 +35,18 @@ The design extends the current repository instead of replacing its independent s
 
 ### 0.2 Scope and implementation evidence
 
-| Component | Current repository baseline (previously inspected) | Target extension in this specification |
-|---|---|---|
-| Core human authorization | `customer`, `operator`, `supervisor` principals; synthetic opaque bearer-token maps | Real account lifecycle, secure sessions and centrally managed role assignments |
-| Service identities | `workflow`, `dispatcher`, `verifier`, `sandbox-admin` | Retain separate machine authentication and restricted sandbox administration |
-| Web shell | `/intake`, `/cases/[caseId]`, `/ops`, evidence pages; fixture and real-peer adapters | Six role portals, dedicated login pages, protected layouts and real dashboard aggregation |
-| Case API | Intake, messages, scoped queries, events/SSE, ops queue, escalation, supervisor decision proxy | Identity integration, role-specific list/read endpoints, assignments and risk workflows |
-| Approval UI | Independent typed component with digest/revision/expiry checks | Embed into supervisor portal using authenticated real-peer client |
-| Merchant operations | Independent settlement, inbox, refund, dispute, SLA, analytics, comms and team modules | Merchant-facing portal and role-scoped service adapters |
-| Merchant team roles | `viewer`, `operator`, `approver`, `admin` under tenant + merchant | Identity-backed memberships; platform-admin provisioning by default |
-| Fraud | Existing `FRAUD` owner queue | Dedicated `risk_officer` principal, dashboard and authorized risk decisions |
-| Observability / FinHarness / FinBench | Standalone packages and optional extensions | Restricted administrative observability and evaluation workspace |
-| Assembly | Previously documented provider-only sandbox path; full case→workflow→ledger evidence not established | Prove complete role-driven flows across real components in the simulator |
+| Component                             | Current repository baseline (previously inspected)                                                   | Target extension in this specification                                                    |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Core human authorization              | `customer`, `operator`, `supervisor` principals; synthetic opaque bearer-token maps                  | Real account lifecycle, secure sessions and centrally managed role assignments            |
+| Service identities                    | `workflow`, `dispatcher`, `verifier`, `sandbox-admin`                                                | Retain separate machine authentication and restricted sandbox administration              |
+| Web shell                             | `/intake`, `/cases/[caseId]`, `/ops`, evidence pages; fixture and real-peer adapters                 | Six role portals, dedicated login pages, protected layouts and real dashboard aggregation |
+| Case API                              | Intake, messages, scoped queries, events/SSE, ops queue, escalation, supervisor decision proxy       | Identity integration, role-specific list/read endpoints, assignments and risk workflows   |
+| Approval UI                           | Independent typed component with digest/revision/expiry checks                                       | Embed into supervisor portal using authenticated real-peer client                         |
+| Merchant operations                   | Independent settlement, inbox, refund, dispute, SLA, analytics, comms and team modules               | Merchant-facing portal and role-scoped service adapters                                   |
+| Merchant team roles                   | `viewer`, `operator`, `approver`, `admin` under tenant + merchant                                    | Identity-backed memberships; platform-admin provisioning by default                       |
+| Fraud                                 | Existing `FRAUD` owner queue                                                                         | Dedicated `risk_officer` principal, dashboard and authorized risk decisions               |
+| Observability / FinHarness / FinBench | Standalone packages and optional extensions                                                          | Restricted administrative observability and evaluation workspace                          |
+| Assembly                              | Previously documented provider-only sandbox path; full case→workflow→ledger evidence not established | Prove complete role-driven flows across real components in the simulator                  |
 
 **Design assumption:** This is based on the previously inspected repository baseline and the requested six-role design, not a fresh execution or full re-audit of the latest branch. Existing files and contracts must be rechecked before editing. New endpoints, permissions, UI routes and migrations below are proposals, not assertions that they already exist.
 
@@ -56,14 +56,14 @@ The design extends the current repository instead of replacing its independent s
 
 ### 1.1 Human-facing roles
 
-| Role ID (proposed canonical identifier) | Display name | Provisioning | Home dashboard |
-|---|---|---|---|
-| `customer` | Customer | Self-registration and verified identity | `/customer/dashboard` |
-| `merchant` | Merchant | Platform-admin invitation + merchant membership | `/merchant/dashboard` |
-| `operator` | Support Operator | Platform-admin invitation | `/operator/dashboard` |
-| `supervisor` | Supervisor | Platform-admin invitation with privileged-role review | `/supervisor/dashboard` |
-| `risk_officer` | Risk & Fraud Officer | Platform-admin invitation with approved risk scope | `/risk/dashboard` |
-| `platform_admin` | Platform Admin | Controlled bootstrap or independently authorized privileged invitation | `/admin/dashboard` |
+| Role ID (proposed canonical identifier) | Display name         | Provisioning                                                           | Home dashboard          |
+| --------------------------------------- | -------------------- | ---------------------------------------------------------------------- | ----------------------- |
+| `customer`                              | Customer             | Self-registration and verified identity                                | `/customer/dashboard`   |
+| `merchant`                              | Merchant             | Platform-admin invitation + merchant membership                        | `/merchant/dashboard`   |
+| `operator`                              | Support Operator     | Platform-admin invitation                                              | `/operator/dashboard`   |
+| `supervisor`                            | Supervisor           | Platform-admin invitation with privileged-role review                  | `/supervisor/dashboard` |
+| `risk_officer`                          | Risk & Fraud Officer | Platform-admin invitation with approved risk scope                     | `/risk/dashboard`       |
+| `platform_admin`                        | Platform Admin       | Controlled bootstrap or independently authorized privileged invitation | `/admin/dashboard`      |
 
 `customer`, `operator` and `supervisor` are existing contract role names. `merchant`, `risk_officer` and `platform_admin` are proposed platform-level additions. Do not alias `platform_admin` to `sandbox-admin` or silently map a merchant `approver` to `supervisor`.
 
@@ -73,23 +73,23 @@ A user may have multiple staff assignments when explicitly authorized. A workspa
 
 A merchant user is a member of exactly the merchant organizations granted by the administrator. A membership contains one or more authorized merchant-scoped subroles:
 
-| Subrole | Allowed responsibilities | Explicit limitation |
-|---|---|---|
-| `viewer` | View scoped transactions, settlement summaries, disputes and reports | Cannot submit or approve requests |
-| `operator` | Investigate exceptions, submit refund requests, respond to disputes and perform allowed operational tasks | Cannot approve ledger refunds |
-| `approver` | Review internal merchant requests and approve/reject them where configured | Advisory/internal approval only; cannot authorize money in Sentinel |
-| `admin` | Manage merchant settings and view team directory; optional delegated staff management later | Cannot assign platform roles or access unrelated merchants |
+| Subrole    | Allowed responsibilities                                                                                  | Explicit limitation                                                 |
+| ---------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `viewer`   | View scoped transactions, settlement summaries, disputes and reports                                      | Cannot submit or approve requests                                   |
+| `operator` | Investigate exceptions, submit refund requests, respond to disputes and perform allowed operational tasks | Cannot approve ledger refunds                                       |
+| `approver` | Review internal merchant requests and approve/reject them where configured                                | Advisory/internal approval only; cannot authorize money in Sentinel |
+| `admin`    | Manage merchant settings and view team directory; optional delegated staff management later               | Cannot assign platform roles or access unrelated merchants          |
 
 For the requested initial design, **Platform Admin is the sole staff-provisioning authority**, including merchant staff. Merchant-admin self-service staff invitations remain disabled behind a feature flag until a delegated model is explicitly approved. Merchant roles and platform roles use separate namespaces so that `merchant:admin` cannot become `platform_admin`, and `merchant:operator` cannot become the platform `operator`.
 
 ### 1.3 Non-human principals
 
-| Principal | Purpose | Credential type | Login / dashboard |
-|---|---|---|---|
-| `workflow` | Process case work, retrieve evidence, propose/reserve via authorized ledger ports | Scoped workload credential | None |
-| `dispatcher` | Claim ledger commands, submit/reconcile simulator/provider operations | Scoped workload credential | None |
-| `verifier` | Authenticate provider events, assess proof and publish outcomes | Scoped workload credential | None |
-| `sandbox-admin` | Seed/reset simulated data and faults for authorized development | Development-only credential | No ordinary staff login; optional restricted demo console |
+| Principal       | Purpose                                                                           | Credential type             | Login / dashboard                                         |
+| --------------- | --------------------------------------------------------------------------------- | --------------------------- | --------------------------------------------------------- |
+| `workflow`      | Process case work, retrieve evidence, propose/reserve via authorized ledger ports | Scoped workload credential  | None                                                      |
+| `dispatcher`    | Claim ledger commands, submit/reconcile simulator/provider operations             | Scoped workload credential  | None                                                      |
+| `verifier`      | Authenticate provider events, assess proof and publish outcomes                   | Scoped workload credential  | None                                                      |
+| `sandbox-admin` | Seed/reset simulated data and faults for authorized development                   | Development-only credential | No ordinary staff login; optional restricted demo console |
 
 Additional service principals may be registered for API-to-service calls where required, using the specific existing contract role and scope. Do not give all services one universal bearer token. A service must never use a client-supplied staff identity to mint itself a more privileged principal.
 
@@ -118,14 +118,14 @@ flowchart TD
 
 ### 2.1 Page map
 
-| Role | Login | Registration / activation | Protected landing |
-|---|---|---|---|
-| Customer | `/customer/login` | `/customer/register` | `/customer/dashboard` |
-| Merchant | `/merchant/login` | `/auth/accept-invitation` | `/merchant/dashboard` |
-| Support Operator | `/operator/login` | `/auth/accept-invitation` | `/operator/dashboard` |
-| Supervisor | `/supervisor/login` | `/auth/accept-invitation` | `/supervisor/dashboard` |
-| Risk Officer | `/risk/login` | `/auth/accept-invitation` | `/risk/dashboard` |
-| Platform Admin | `/admin/login` | Controlled invitation/bootstrap | `/admin/dashboard` |
+| Role             | Login               | Registration / activation       | Protected landing       |
+| ---------------- | ------------------- | ------------------------------- | ----------------------- |
+| Customer         | `/customer/login`   | `/customer/register`            | `/customer/dashboard`   |
+| Merchant         | `/merchant/login`   | `/auth/accept-invitation`       | `/merchant/dashboard`   |
+| Support Operator | `/operator/login`   | `/auth/accept-invitation`       | `/operator/dashboard`   |
+| Supervisor       | `/supervisor/login` | `/auth/accept-invitation`       | `/supervisor/dashboard` |
+| Risk Officer     | `/risk/login`       | `/auth/accept-invitation`       | `/risk/dashboard`       |
+| Platform Admin   | `/admin/login`      | Controlled invitation/bootstrap | `/admin/dashboard`      |
 
 Shared pages: `/auth/verify`, `/auth/mfa`, `/auth/forgot-password`, `/auth/reset-password`, `/auth/workspaces`, `/unauthorized`, `/account/security`. Each role login screen uses a shared authentication component and a role-specific heading and visual identity. Login routes are presentation hints; they do not grant roles.
 
@@ -202,17 +202,17 @@ After successful authentication, `GET /v1/auth/workspaces` returns authorized as
 
 ### 3.1 Navigation and pages
 
-| Route | Purpose | Key UI elements |
-|---|---|---|
-| `/customer/dashboard` | Personal overview | Open issues, action required, pending refunds, recent payments, report button |
-| `/customer/transactions` | Authorized transaction history | Search/filter by date/status, masked references, amount and merchant |
-| `/customer/transactions/[transactionId]` | Transaction detail | Payment status, related cases, report issue |
-| `/customer/report` | New complaint | Selected transaction, text/voice input, language, review extracted details |
-| `/customer/cases` | My issues | Status filters, latest update, action required |
-| `/customer/cases/[caseId]` | Case timeline | Messages, customer-visible evidence summary, next action, refund reference/status |
-| `/customer/assistant` | Contextual AI help | Guided intake, multilingual chat, voice when enabled |
-| `/customer/notifications` | Notifications | Verification requests, status updates, resolution summaries |
-| `/customer/profile` | Personal preferences | Language, contact settings, security |
+| Route                                    | Purpose                        | Key UI elements                                                                   |
+| ---------------------------------------- | ------------------------------ | --------------------------------------------------------------------------------- |
+| `/customer/dashboard`                    | Personal overview              | Open issues, action required, pending refunds, recent payments, report button     |
+| `/customer/transactions`                 | Authorized transaction history | Search/filter by date/status, masked references, amount and merchant              |
+| `/customer/transactions/[transactionId]` | Transaction detail             | Payment status, related cases, report issue                                       |
+| `/customer/report`                       | New complaint                  | Selected transaction, text/voice input, language, review extracted details        |
+| `/customer/cases`                        | My issues                      | Status filters, latest update, action required                                    |
+| `/customer/cases/[caseId]`               | Case timeline                  | Messages, customer-visible evidence summary, next action, refund reference/status |
+| `/customer/assistant`                    | Contextual AI help             | Guided intake, multilingual chat, voice when enabled                              |
+| `/customer/notifications`                | Notifications                  | Verification requests, status updates, resolution summaries                       |
+| `/customer/profile`                      | Personal preferences           | Language, contact settings, security                                              |
 
 ### 3.2 Dashboard states
 
@@ -278,21 +278,21 @@ Customer may upload a receipt only if an attachment pipeline is implemented: res
 
 ### 4.1 Navigation and pages
 
-| Route | Purpose | Key UI elements |
-|---|---|---|
-| `/merchant/dashboard` | Business overview | Captured payment volume, settlement status, unresolved exceptions, pending requests |
-| `/merchant/transactions` | Merchant payment explorer | Date/status filters, reference, amount, order match |
-| `/merchant/transactions/[id]` | Payment evidence | Order linkage, existing refunds, create request |
-| `/merchant/settlements` | Settlement reconciliation | Expected vs actual, date, difference, finding status |
-| `/merchant/settlements/[id]` | Settlement details | Matched/unmatched entries, evidence, investigation actions |
-| `/merchant/exceptions` | Exception inbox | Unpaid order mismatch, delayed payment, priority, assignment |
-| `/merchant/refunds` | Refund requests | Requested amount, internal approval, ledger/provider/credit status |
-| `/merchant/refunds/new` | Create refund request | Transaction selection, reason, amount, validation summary |
-| `/merchant/disputes` | Dispute management | Customer complaint packet, deadlines, permitted evidence |
-| `/merchant/tasks` | SLA tasks | Due dates, owners, overdue items |
-| `/merchant/analytics` | Scoped business trends | Success rates, volumes, refund latency, reconciliation trends |
-| `/merchant/team` | Memberships | Staff, subroles, advisory limits, invite request to platform admin |
-| `/merchant/settings` | Business preferences | Notification language and configuration |
+| Route                         | Purpose                   | Key UI elements                                                                     |
+| ----------------------------- | ------------------------- | ----------------------------------------------------------------------------------- |
+| `/merchant/dashboard`         | Business overview         | Captured payment volume, settlement status, unresolved exceptions, pending requests |
+| `/merchant/transactions`      | Merchant payment explorer | Date/status filters, reference, amount, order match                                 |
+| `/merchant/transactions/[id]` | Payment evidence          | Order linkage, existing refunds, create request                                     |
+| `/merchant/settlements`       | Settlement reconciliation | Expected vs actual, date, difference, finding status                                |
+| `/merchant/settlements/[id]`  | Settlement details        | Matched/unmatched entries, evidence, investigation actions                          |
+| `/merchant/exceptions`        | Exception inbox           | Unpaid order mismatch, delayed payment, priority, assignment                        |
+| `/merchant/refunds`           | Refund requests           | Requested amount, internal approval, ledger/provider/credit status                  |
+| `/merchant/refunds/new`       | Create refund request     | Transaction selection, reason, amount, validation summary                           |
+| `/merchant/disputes`          | Dispute management        | Customer complaint packet, deadlines, permitted evidence                            |
+| `/merchant/tasks`             | SLA tasks                 | Due dates, owners, overdue items                                                    |
+| `/merchant/analytics`         | Scoped business trends    | Success rates, volumes, refund latency, reconciliation trends                       |
+| `/merchant/team`              | Memberships               | Staff, subroles, advisory limits, invite request to platform admin                  |
+| `/merchant/settings`          | Business preferences      | Notification language and configuration                                             |
 
 ### 4.2 Merchant onboarding and dashboard
 
@@ -358,17 +358,17 @@ Example synthetic settlement: expected ₹2,45,000, received ₹2,42,500, discre
 
 ### 5.1 Navigation and dashboard
 
-| Route | Purpose | Key UI elements |
-|---|---|---|
-| `/operator/dashboard` | Workload overview | Assigned/open/overdue cases, intervention count, SLA, recent verified outcomes |
-| `/operator/queue` | Assigned and authorized queue | Priority, status, language, merchant, due time, ownership |
-| `/operator/cases/[caseId]` | Case workspace | Complaint, timeline, evidence, AI recommendation, action controls |
-| `/operator/cases/[caseId]/evidence` | Evidence details | Source, observed time, freshness, digest, conflicting facts |
-| `/operator/escalations` | Escalated cases | Destination queue, reason, owner, status |
-| `/operator/messages` | Customer communications | Conversation history and verified draft replies |
-| `/operator/assistant` | AI copilot | Scoped case summary, clarification and policy guidance |
-| `/operator/knowledge` | Approved support policies | Versioned procedures, searchable guidance |
-| `/operator/activity` | Operational history | Own actions, assignment history, completed tasks |
+| Route                               | Purpose                       | Key UI elements                                                                |
+| ----------------------------------- | ----------------------------- | ------------------------------------------------------------------------------ |
+| `/operator/dashboard`               | Workload overview             | Assigned/open/overdue cases, intervention count, SLA, recent verified outcomes |
+| `/operator/queue`                   | Assigned and authorized queue | Priority, status, language, merchant, due time, ownership                      |
+| `/operator/cases/[caseId]`          | Case workspace                | Complaint, timeline, evidence, AI recommendation, action controls              |
+| `/operator/cases/[caseId]/evidence` | Evidence details              | Source, observed time, freshness, digest, conflicting facts                    |
+| `/operator/escalations`             | Escalated cases               | Destination queue, reason, owner, status                                       |
+| `/operator/messages`                | Customer communications       | Conversation history and verified draft replies                                |
+| `/operator/assistant`               | AI copilot                    | Scoped case summary, clarification and policy guidance                         |
+| `/operator/knowledge`               | Approved support policies     | Versioned procedures, searchable guidance                                      |
+| `/operator/activity`                | Operational history           | Own actions, assignment history, completed tasks                               |
 
 Queue tabs: Assigned to me, Unassigned (if permitted), Waiting for customer, Needs human review, Awaiting approval, Waiting for provider, Escalated and Verified. Use server-side pagination, not full datasets. Dashboard aggregates are calculated from authorized scope. Automated cases need not be manually assigned unless human intervention is required.
 
@@ -426,16 +426,16 @@ The AI copilot receives only authorized case context. It cannot query arbitrary 
 
 ### 6.1 Navigation and dashboard
 
-| Route | Purpose | Key UI elements |
-|---|---|---|
-| `/supervisor/dashboard` | Approval and team overview | Pending count, oldest request, expired/stale requests, team SLA, financial exposure |
-| `/supervisor/approvals` | Approval queue | Case, amount, policy, merchant, age, evidence freshness, risk indicators |
-| `/supervisor/approvals/[actionId]` | Exact decision workspace | Evidence, digest, revision, expiry, prior refunds, approve/reject controls |
-| `/supervisor/history` | Decisions and outcomes | Approved/rejected/expired, provider and credit status, reviewer history |
-| `/supervisor/team` | Operational oversight | Scoped workloads, assignments, escalation queues |
-| `/supervisor/cases/[caseId]` | Case review | Evidence and timeline, linked approval/action |
-| `/supervisor/escalations` | Management exceptions | Reason, required decision, ownership |
-| `/supervisor/audit` | Financial decision history | Scoped immutable action and approval audit summaries |
+| Route                              | Purpose                    | Key UI elements                                                                     |
+| ---------------------------------- | -------------------------- | ----------------------------------------------------------------------------------- |
+| `/supervisor/dashboard`            | Approval and team overview | Pending count, oldest request, expired/stale requests, team SLA, financial exposure |
+| `/supervisor/approvals`            | Approval queue             | Case, amount, policy, merchant, age, evidence freshness, risk indicators            |
+| `/supervisor/approvals/[actionId]` | Exact decision workspace   | Evidence, digest, revision, expiry, prior refunds, approve/reject controls          |
+| `/supervisor/history`              | Decisions and outcomes     | Approved/rejected/expired, provider and credit status, reviewer history             |
+| `/supervisor/team`                 | Operational oversight      | Scoped workloads, assignments, escalation queues                                    |
+| `/supervisor/cases/[caseId]`       | Case review                | Evidence and timeline, linked approval/action                                       |
+| `/supervisor/escalations`          | Management exceptions      | Reason, required decision, ownership                                                |
+| `/supervisor/audit`                | Financial decision history | Scoped immutable action and approval audit summaries                                |
 
 Exposure should come from authoritative ledger balances, not sums of every proposal. Distinguish proposed, reserved, pending and confirmed amounts. Approval history shows the action's subsequent state even if the approval has already been consumed.
 
@@ -517,16 +517,16 @@ A change in amount, transaction or bound case context requires a new eligible ac
 
 ### 7.1 Navigation and dashboard
 
-| Route | Purpose | Key UI elements |
-|---|---|---|
-| `/risk/dashboard` | Risk operations overview | Open investigations, new alerts, aging cases, holds, blocked actions |
-| `/risk/queue` | Scoped fraud queue | Severity, reason codes, case owner, evidence freshness, due time |
-| `/risk/investigations/[caseId]` | Investigation workspace | Case facts, linked records, history, findings and authorized decision controls |
-| `/risk/transactions` | Restricted transaction explorer | Search within granted investigation scope, related transactions, refund history |
-| `/risk/holds` | Financial-action restrictions | Active restriction, reason, applicable action, review owner, expiry/review date |
-| `/risk/reports` | Investigation reports | Findings, evidence links, review status, disposition |
-| `/risk/analytics` | Risk trends | Alert reasons, fraud queue volume, confirmed vs unconfirmed outcomes |
-| `/risk/audit` | Risk decision audit | Who decided, evidence references, timestamps, prior/new state |
+| Route                           | Purpose                         | Key UI elements                                                                 |
+| ------------------------------- | ------------------------------- | ------------------------------------------------------------------------------- |
+| `/risk/dashboard`               | Risk operations overview        | Open investigations, new alerts, aging cases, holds, blocked actions            |
+| `/risk/queue`                   | Scoped fraud queue              | Severity, reason codes, case owner, evidence freshness, due time                |
+| `/risk/investigations/[caseId]` | Investigation workspace         | Case facts, linked records, history, findings and authorized decision controls  |
+| `/risk/transactions`            | Restricted transaction explorer | Search within granted investigation scope, related transactions, refund history |
+| `/risk/holds`                   | Financial-action restrictions   | Active restriction, reason, applicable action, review owner, expiry/review date |
+| `/risk/reports`                 | Investigation reports           | Findings, evidence links, review status, disposition                            |
+| `/risk/analytics`               | Risk trends                     | Alert reasons, fraud queue volume, confirmed vs unconfirmed outcomes            |
+| `/risk/audit`                   | Risk decision audit             | Who decided, evidence references, timestamps, prior/new state                   |
 
 Use an evidence-first UI. Avoid presenting a model-generated risk score as proof of fraud. Labels should distinguish suspected, under investigation, legitimate, inconclusive and confirmed by the applicable human review procedure. Sensitive facts should remain masked unless needed and authorized. Do not show fraud allegations in the customer's portal.
 
@@ -582,23 +582,23 @@ Risk officer requests missing evidence; operator communicates with customer/merc
 
 ### 8.1 Navigation and dashboard
 
-| Route | Purpose | Key UI elements |
-|---|---|---|
-| `/admin/dashboard` | Platform overview | Active staff, pending invitations, active merchants, system health, case volumes and alerts |
-| `/admin/users` | Staff directory | Search, role, tenant, scope, invitation/account status, actions |
-| `/admin/users/invite` | Provision staff | Name, work email, role, tenant, team/merchant scope, review and invite |
-| `/admin/users/[userId]` | Staff account detail | Active assignments, profile, sessions, history, suspend/reactivate |
-| `/admin/roles` | Role catalog | Permission matrix, assignable roles, privilege classification and grant rules |
-| `/admin/tenants` | Organization management | Authorized organizations and lifecycle state |
-| `/admin/merchants` | Merchant onboarding | Business records, membership scopes, contacts and team assignments |
-| `/admin/teams` | Operational teams | Queues, member assignments, authorized workload scope |
-| `/admin/policies` | Policy management | Draft versions, test results, reviewer status, rollout history |
-| `/admin/integrations` | Provider configuration | Connection health, environment, scopes, credential references (never raw secrets) |
-| `/admin/observability` | Operational monitoring | Service health, queues, traces, alerts, cost and safety metrics |
-| `/admin/ai` | AI configuration | Model adapters, prompt/runtime versions, execution budgets, feature flags |
-| `/admin/evaluations` | Evaluation / replay | FinBench-Indic runs, safety regressions, candidate comparisons, promotion review |
-| `/admin/audit` | Governance audit | Staff role changes, invitations, security events, configuration decisions |
-| `/admin/security` | Access security | MFA policy, session revocation, access reviews, privileged change requests |
+| Route                   | Purpose                 | Key UI elements                                                                             |
+| ----------------------- | ----------------------- | ------------------------------------------------------------------------------------------- |
+| `/admin/dashboard`      | Platform overview       | Active staff, pending invitations, active merchants, system health, case volumes and alerts |
+| `/admin/users`          | Staff directory         | Search, role, tenant, scope, invitation/account status, actions                             |
+| `/admin/users/invite`   | Provision staff         | Name, work email, role, tenant, team/merchant scope, review and invite                      |
+| `/admin/users/[userId]` | Staff account detail    | Active assignments, profile, sessions, history, suspend/reactivate                          |
+| `/admin/roles`          | Role catalog            | Permission matrix, assignable roles, privilege classification and grant rules               |
+| `/admin/tenants`        | Organization management | Authorized organizations and lifecycle state                                                |
+| `/admin/merchants`      | Merchant onboarding     | Business records, membership scopes, contacts and team assignments                          |
+| `/admin/teams`          | Operational teams       | Queues, member assignments, authorized workload scope                                       |
+| `/admin/policies`       | Policy management       | Draft versions, test results, reviewer status, rollout history                              |
+| `/admin/integrations`   | Provider configuration  | Connection health, environment, scopes, credential references (never raw secrets)           |
+| `/admin/observability`  | Operational monitoring  | Service health, queues, traces, alerts, cost and safety metrics                             |
+| `/admin/ai`             | AI configuration        | Model adapters, prompt/runtime versions, execution budgets, feature flags                   |
+| `/admin/evaluations`    | Evaluation / replay     | FinBench-Indic runs, safety regressions, candidate comparisons, promotion review            |
+| `/admin/audit`          | Governance audit        | Staff role changes, invitations, security events, configuration decisions                   |
+| `/admin/security`       | Access security         | MFA policy, session revocation, access reviews, privileged change requests                  |
 
 Customer accounts may appear in a separate restricted support-account lookup only where there is a legitimate administrative need; do not place customer registration or role conversion in the staff invitation form. Aggregate customer counts do not grant raw customer financial-data access. Admin should see operational health and redacted incident summaries by default, not every transcript and transaction.
 
@@ -660,14 +660,14 @@ Admin creates a draft policy version, not an immediate override. The policy serv
 
 Configuration boundaries:
 
-| Configuration | Admin action | Required constraint |
-|---|---|---|
-| Refund policy | Propose versioned changes | Existing invariants and mandatory approval cannot be removed casually; financial-policy review and tests required |
-| Escalation rules | Draft reason/routing changes | Review of risk and workflow semantics |
-| Model provider / prompt | Select approved configuration or propose candidate | No direct payment authority; evaluation and release gates |
-| Payment adapter | Manage authorized connection configuration | Secrets in vault/config reference; production integrations separately authorized |
-| Feature flags | Enable approved functionality for scope | Default off for optional or unsafe/unvalidated paths; rollback preserves in-flight state |
-| Staff permissions | Assign known scoped roles | Grant authority, independent review for privileged grants, audit and session invalidation |
+| Configuration           | Admin action                                       | Required constraint                                                                                               |
+| ----------------------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Refund policy           | Propose versioned changes                          | Existing invariants and mandatory approval cannot be removed casually; financial-policy review and tests required |
+| Escalation rules        | Draft reason/routing changes                       | Review of risk and workflow semantics                                                                             |
+| Model provider / prompt | Select approved configuration or propose candidate | No direct payment authority; evaluation and release gates                                                         |
+| Payment adapter         | Manage authorized connection configuration         | Secrets in vault/config reference; production integrations separately authorized                                  |
+| Feature flags           | Enable approved functionality for scope            | Default off for optional or unsafe/unvalidated paths; rollback preserves in-flight state                          |
+| Staff permissions       | Assign known scoped roles                          | Grant authority, independent review for privileged grants, audit and session invalidation                         |
 
 Do not expose an admin "force refund" button. Do not allow changing a payment status, marking a customer credited, or editing immutable ledger history. These remain the domain of authorized financial and verification services.
 
@@ -685,31 +685,31 @@ Optional Phase 2 panels: FinHarness runtime mode (`legacy`, `shadow`, `harness` 
 
 This matrix defines the proposed target product, not the exact current service route permissions. `S` = allowed only within authorized resource scope; `M` = depends on merchant subrole; `P` = allowed through a controlled policy/review process; `—` = not granted. Permissions must be explicitly mapped to endpoints; hiding buttons is only UX.
 
-| Capability | Customer | Merchant | Operator | Supervisor | Risk | Platform Admin |
-|---|---|---|---|---|---|---|
-| Read own account | S | S | S | S | S | S |
-| Read customer-owned payments | S | M (own merchant transaction only) | S | S | S (investigation) | — by default |
-| Create customer complaint | S | — (merchant request instead) | S (on behalf of verified subject) | — | — | — |
-| Read customer case/timeline | S | M (merchant-safe view) | S | S | S (investigation) | — by default |
-| Send case messages | S | M (merchant channel) | S | S if granted | P via investigation channel | — |
-| Investigate payment evidence | — | M | S | S | S | — by default |
-| Claim/assign support case | — | — | S | S | — | P (team governance, not financial) |
-| Submit refund request | S | M | S | S (separate reviewer if required) | — | — |
-| Approve merchant internal request | — | M (approver) | — | — | — | — |
-| Submit exact financial approval | — | — | — | S (ledger + policy) | — | — |
-| Call provider write directly | — | — | — | — | — | — |
-| Escalate case | Request review only | M | S | S | S | — |
-| Investigate fraud / record findings | — | — | — | S read if granted | S | — |
-| Clear authorized risk restriction | — | — | — | — unless separate assignment | P | — |
-| View business analytics | Own case history | M | S | S | S risk | S redacted aggregates |
-| View approval/action audit | Own public outcome | M safe summary | S case summary | S | S investigation | P redacted / explicitly granted |
-| Manage merchant organization settings | — | M (admin) | — | — | — | S |
-| Invite/assign staff | — | — initial MVP | — | — | — | P |
-| Manage platform role catalog | — | — | — | — | — | P |
-| Manage security / revoke sessions | Own sessions | Own sessions | Own sessions | Own sessions | Own sessions | S administrative |
-| Draft/activate configuration | — | Own preferences | — | — | Policy reviewer if assigned | Policy reviewer if assigned | P |
-| Run FinBench / manage evaluation | — | — | — | P review | P review | P |
-| Access raw secrets | — | — | — | — | — | — (use credential references) |
+| Capability                            | Customer            | Merchant                          | Operator                          | Supervisor                        | Risk                        | Platform Admin                     |
+| ------------------------------------- | ------------------- | --------------------------------- | --------------------------------- | --------------------------------- | --------------------------- | ---------------------------------- |
+| Read own account                      | S                   | S                                 | S                                 | S                                 | S                           | S                                  |
+| Read customer-owned payments          | S                   | M (own merchant transaction only) | S                                 | S                                 | S (investigation)           | — by default                       |
+| Create customer complaint             | S                   | — (merchant request instead)      | S (on behalf of verified subject) | —                                 | —                           | —                                  |
+| Read customer case/timeline           | S                   | M (merchant-safe view)            | S                                 | S                                 | S (investigation)           | — by default                       |
+| Send case messages                    | S                   | M (merchant channel)              | S                                 | S if granted                      | P via investigation channel | —                                  |
+| Investigate payment evidence          | —                   | M                                 | S                                 | S                                 | S                           | — by default                       |
+| Claim/assign support case             | —                   | —                                 | S                                 | S                                 | —                           | P (team governance, not financial) |
+| Submit refund request                 | S                   | M                                 | S                                 | S (separate reviewer if required) | —                           | —                                  |
+| Approve merchant internal request     | —                   | M (approver)                      | —                                 | —                                 | —                           | —                                  |
+| Submit exact financial approval       | —                   | —                                 | —                                 | S (ledger + policy)               | —                           | —                                  |
+| Call provider write directly          | —                   | —                                 | —                                 | —                                 | —                           | —                                  |
+| Escalate case                         | Request review only | M                                 | S                                 | S                                 | S                           | —                                  |
+| Investigate fraud / record findings   | —                   | —                                 | —                                 | S read if granted                 | S                           | —                                  |
+| Clear authorized risk restriction     | —                   | —                                 | —                                 | — unless separate assignment      | P                           | —                                  |
+| View business analytics               | Own case history    | M                                 | S                                 | S                                 | S risk                      | S redacted aggregates              |
+| View approval/action audit            | Own public outcome  | M safe summary                    | S case summary                    | S                                 | S investigation             | P redacted / explicitly granted    |
+| Manage merchant organization settings | —                   | M (admin)                         | —                                 | —                                 | —                           | S                                  |
+| Invite/assign staff                   | —                   | — initial MVP                     | —                                 | —                                 | —                           | P                                  |
+| Manage platform role catalog          | —                   | —                                 | —                                 | —                                 | —                           | P                                  |
+| Manage security / revoke sessions     | Own sessions        | Own sessions                      | Own sessions                      | Own sessions                      | Own sessions                | S administrative                   |
+| Draft/activate configuration          | —                   | Own preferences                   | —                                 | —                                 | Policy reviewer if assigned | Policy reviewer if assigned        | P   |
+| Run FinBench / manage evaluation      | —                   | —                                 | —                                 | P review                          | P review                    | P                                  |
+| Access raw secrets                    | —                   | —                                 | —                                 | —                                 | —                           | — (use credential references)      |
 
 ### 9.1 Proposed granular permission identifiers
 
@@ -763,6 +763,7 @@ Service-only permissions are separate: e.g. `ledger.reserve`, `ledger.claim_disp
 
 ```python
 from dataclasses import dataclass
+
 
 @dataclass(frozen=True)
 class AccessContext:
@@ -847,31 +848,31 @@ sequenceDiagram
 
 UI labels should be derived from current authoritative case/action records, not used as new backend enum values. Reuse actual `CaseState` and `ActionState` wire types, versioning only where necessary.
 
-| Event | Customer view | Operator view | Supervisor view | Merchant view |
-|---|---|---|---|---|
-| Complaint accepted | Investigating | New / queued | Not yet in approval queue | Related exception if authorized |
-| Missing evidence | More information needed | Needs input | No approval available | Evidence requested |
-| Proposal created | Refund under review | Awaiting supervisor | Pending exact approval | Request under review |
-| Approval recorded | Under review / preparing refund | Approved; awaiting reservation | Approved, not yet executed | Approval recorded (safe summary) |
-| Ledger reserved | Refund processing | Reserved / dispatch ready | Reserved amount | Processing |
-| Response lost | Confirming refund status | Outcome unknown, reconcile | Unknown with reserved exposure | Confirming status |
-| Provider confirms only | Refund processing | Provider confirmed, credit pending | Provider confirmed | Provider confirmed; credit pending |
-| Credit verified | Refunded / resolved | Verified resolved | Verified outcome | Confirmed refund |
-| Risk escalation | Specialist review | Fraud queue, not resolved | Action blocked / review needed | Specialist review (safe summary) |
+| Event                  | Customer view                   | Operator view                      | Supervisor view                | Merchant view                      |
+| ---------------------- | ------------------------------- | ---------------------------------- | ------------------------------ | ---------------------------------- |
+| Complaint accepted     | Investigating                   | New / queued                       | Not yet in approval queue      | Related exception if authorized    |
+| Missing evidence       | More information needed         | Needs input                        | No approval available          | Evidence requested                 |
+| Proposal created       | Refund under review             | Awaiting supervisor                | Pending exact approval         | Request under review               |
+| Approval recorded      | Under review / preparing refund | Approved; awaiting reservation     | Approved, not yet executed     | Approval recorded (safe summary)   |
+| Ledger reserved        | Refund processing               | Reserved / dispatch ready          | Reserved amount                | Processing                         |
+| Response lost          | Confirming refund status        | Outcome unknown, reconcile         | Unknown with reserved exposure | Confirming status                  |
+| Provider confirms only | Refund processing               | Provider confirmed, credit pending | Provider confirmed             | Provider confirmed; credit pending |
+| Credit verified        | Refunded / resolved             | Verified resolved                  | Verified outcome               | Confirmed refund                   |
+| Risk escalation        | Specialist review               | Fraud queue, not resolved          | Action blocked / review needed | Specialist review (safe summary)   |
 
 ### 10.2 Failure handling responsibilities
 
-| Failure | User experience | Required backend response |
-|---|---|---|
-| Unauthorized access | Generic access denied / unavailable | Deny scoped resource, audit sensitive attempts |
-| Stale case or approval | Refresh required; no silent overwrite | 409 or existing conflict error; retain authoritative state |
-| Model outage / malformed proposal | Investigation delayed or human review | Bounded retry / escalation; no fabricated proposal |
-| Provider timeout | Await confirmation | Preserve original operation/provider reference and reservation |
-| Duplicate webhook | No duplicate timeline outcome | Durable dedupe and current-state reconciliation |
-| Credit pending | No "money returned" claim | Scheduled recheck / event-driven resume |
-| Account suspended mid-case | User signed out; case continues | Revoke human session; retain workflow and reconcile in-flight money |
-| Risk peer unavailable | Review needed / action blocked | Fail closed for applicable new writes, continue safe reconciliation |
-| Telemetry outage | Monitoring degraded indicator | Keep authoritative financial audit and state; no bypass of controls |
+| Failure                           | User experience                       | Required backend response                                           |
+| --------------------------------- | ------------------------------------- | ------------------------------------------------------------------- |
+| Unauthorized access               | Generic access denied / unavailable   | Deny scoped resource, audit sensitive attempts                      |
+| Stale case or approval            | Refresh required; no silent overwrite | 409 or existing conflict error; retain authoritative state          |
+| Model outage / malformed proposal | Investigation delayed or human review | Bounded retry / escalation; no fabricated proposal                  |
+| Provider timeout                  | Await confirmation                    | Preserve original operation/provider reference and reservation      |
+| Duplicate webhook                 | No duplicate timeline outcome         | Durable dedupe and current-state reconciliation                     |
+| Credit pending                    | No "money returned" claim             | Scheduled recheck / event-driven resume                             |
+| Account suspended mid-case        | User signed out; case continues       | Revoke human session; retain workflow and reconcile in-flight money |
+| Risk peer unavailable             | Review needed / action blocked        | Fail closed for applicable new writes, continue safe reconciliation |
+| Telemetry outage                  | Monitoring degraded indicator         | Keep authoritative financial audit and state; no bypass of controls |
 
 ---
 
@@ -881,25 +882,25 @@ Use a dedicated identity-owned PostgreSQL schema or database. Do not write other
 
 ### 11.1 Entity definitions
 
-| Entity | Important fields and constraints |
-|---|---|
-| `users` | `user_id` UUID, `account_type` (`customer`/`staff`), normalized verified contact/identity reference, display name, status, `authz_version`, timestamps; unique provider identity |
-| `external_identities` | user ID, issuer, subject, verification metadata; unique `(issuer, subject)`; no duplicate mapping |
-| `tenants` | tenant UUID/reference, name, status, timestamps |
-| `merchant_directory` | tenant + merchant reference, display name, lifecycle; references existing merchant identity contract |
-| `roles` | role ID, namespace, display name, account type, privilege classification, version, enabled |
-| `permissions` | permission ID, description, human/service classification |
-| `role_permissions` | role + permission, version; unique mapping |
-| `user_role_assignments` | assignment ID, user, role, tenant, optional team/merchant scope, state, granted by, grant/review ref, timestamps, revocation info |
-| `merchant_memberships` | assignment ID, merchant reference, subrole(s), status; scoped to tenant; one authoritative mapping |
-| `customer_subject_links` | customer account, tenant, verified provider/customer subject, status, proof reference; unique approved linkage |
-| `teams` | tenant, team ID, queue type, name, active state |
-| `team_memberships` | user/assignment, team, active state |
-| `staff_invitations` | invite ID, target contact, proposed role/scope, token hash, expiry, inviter, review state, accepted/revoked timestamps |
-| `privileged_change_requests` | target, requested change, maker, independent reviewer, state, reasons, expected version, expiry |
-| `sessions` | session token hash, user, active assignment, issued/expiry/last-seen, authz version, MFA state, revoked time |
-| `identity_audit_events` | immutable event ID, actor, tenant/scope, target, action, before/after sanitized values, reason, request ID, timestamp |
-| `identity_outbox` | event ID, aggregate, version, payload, creation, publication status; durable role/suspension propagation |
+| Entity                       | Important fields and constraints                                                                                                                                                 |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `users`                      | `user_id` UUID, `account_type` (`customer`/`staff`), normalized verified contact/identity reference, display name, status, `authz_version`, timestamps; unique provider identity |
+| `external_identities`        | user ID, issuer, subject, verification metadata; unique `(issuer, subject)`; no duplicate mapping                                                                                |
+| `tenants`                    | tenant UUID/reference, name, status, timestamps                                                                                                                                  |
+| `merchant_directory`         | tenant + merchant reference, display name, lifecycle; references existing merchant identity contract                                                                             |
+| `roles`                      | role ID, namespace, display name, account type, privilege classification, version, enabled                                                                                       |
+| `permissions`                | permission ID, description, human/service classification                                                                                                                         |
+| `role_permissions`           | role + permission, version; unique mapping                                                                                                                                       |
+| `user_role_assignments`      | assignment ID, user, role, tenant, optional team/merchant scope, state, granted by, grant/review ref, timestamps, revocation info                                                |
+| `merchant_memberships`       | assignment ID, merchant reference, subrole(s), status; scoped to tenant; one authoritative mapping                                                                               |
+| `customer_subject_links`     | customer account, tenant, verified provider/customer subject, status, proof reference; unique approved linkage                                                                   |
+| `teams`                      | tenant, team ID, queue type, name, active state                                                                                                                                  |
+| `team_memberships`           | user/assignment, team, active state                                                                                                                                              |
+| `staff_invitations`          | invite ID, target contact, proposed role/scope, token hash, expiry, inviter, review state, accepted/revoked timestamps                                                           |
+| `privileged_change_requests` | target, requested change, maker, independent reviewer, state, reasons, expected version, expiry                                                                                  |
+| `sessions`                   | session token hash, user, active assignment, issued/expiry/last-seen, authz version, MFA state, revoked time                                                                     |
+| `identity_audit_events`      | immutable event ID, actor, tenant/scope, target, action, before/after sanitized values, reason, request ID, timestamp                                                            |
+| `identity_outbox`            | event ID, aggregate, version, payload, creation, publication status; durable role/suspension propagation                                                                         |
 
 `case_assignments` and `risk_investigations` are **not identity-owned**. Add them to Case API or a dedicated operational service and risk module respectively. They reference identity IDs and enforce scope via authorized ports. Do not create foreign keys across independent service databases; validate relationships via service contracts and maintain local projections where needed.
 
@@ -987,39 +988,39 @@ The endpoints below are a proposed external API surface. Preserve existing route
 
 ### 12.1 Authentication endpoints
 
-| Method / route | Input / behavior |
-|---|---|
-| `POST /v1/auth/customer/register` | Verified-contact enrollment request; server assigns only customer role |
-| `POST /v1/auth/customer/verify` | Verify customer contact challenge; establish approved identity link separately |
-| `POST /v1/auth/login` | Approved credential/identity flow; generic errors, rate-limits; no caller-controlled role |
-| `POST /v1/auth/mfa/verify` | Complete trusted provider challenge / step-up |
-| `POST /v1/auth/accept-invitation` | Single-use token and verified recipient; activate approved scope |
-| `POST /v1/auth/refresh` | Rotate session and resolve current authorization |
-| `POST /v1/auth/logout` | Revoke current session |
-| `GET /v1/auth/me` | Account status, active assignment, safe profile, permissions projection |
-| `GET /v1/auth/workspaces` | Current authorized workspace list |
-| `POST /v1/auth/workspaces/select` | Select an existing authorized assignment; rotate/update session |
+| Method / route                    | Input / behavior                                                                          |
+| --------------------------------- | ----------------------------------------------------------------------------------------- |
+| `POST /v1/auth/customer/register` | Verified-contact enrollment request; server assigns only customer role                    |
+| `POST /v1/auth/customer/verify`   | Verify customer contact challenge; establish approved identity link separately            |
+| `POST /v1/auth/login`             | Approved credential/identity flow; generic errors, rate-limits; no caller-controlled role |
+| `POST /v1/auth/mfa/verify`        | Complete trusted provider challenge / step-up                                             |
+| `POST /v1/auth/accept-invitation` | Single-use token and verified recipient; activate approved scope                          |
+| `POST /v1/auth/refresh`           | Rotate session and resolve current authorization                                          |
+| `POST /v1/auth/logout`            | Revoke current session                                                                    |
+| `GET /v1/auth/me`                 | Account status, active assignment, safe profile, permissions projection                   |
+| `GET /v1/auth/workspaces`         | Current authorized workspace list                                                         |
+| `POST /v1/auth/workspaces/select` | Select an existing authorized assignment; rotate/update session                           |
 
 Production OIDC callback/challenge details depend on the chosen provider. Do not build a custom password cryptography scheme; if passwords are used by an approved framework, use maintained password hashing and credential recovery mechanisms.
 
 ### 12.2 Admin endpoints
 
-| Method / route | Permission / behavior |
-|---|---|
-| `GET /v1/admin/users` | `identity.staff.manage`; staff-only paginated directory within admin scope |
-| `POST /v1/admin/invitations` | `identity.staff.invite`; validate role, account class, tenant, grant authority |
-| `GET /v1/admin/invitations` | Scoped invitation history/status |
-| `POST /v1/admin/invitations/{id}/revoke` | Authorized revoke; token invalidation and audit |
-| `GET /v1/admin/users/{id}` | Scoped staff detail |
-| `PATCH /v1/admin/users/{id}` | Allowed profile changes only; do not smuggle role updates through generic patch |
-| `POST /v1/admin/users/{id}/roles` | `identity.role.grant`; scoped grant or create privileged change request |
-| `DELETE /v1/admin/users/{id}/roles/{assignmentId}` | `identity.role.revoke`; audited revocation and session invalidation |
-| `POST /v1/admin/users/{id}/suspend` | Authorized status transition, revoke sessions |
-| `POST /v1/admin/users/{id}/reactivate` | Explicit reviewed reactivation |
-| `GET /v1/admin/roles` | Role catalog and assignable scopes |
-| `POST /v1/admin/privileged-changes/{id}/decision` | Independent authorized review, exact requested change and revision |
-| `GET /v1/admin/audit-events` | `identity.audit.read`; paginated redacted audit |
-| `POST /v1/admin/users/{id}/sessions/revoke` | `identity.session.revoke`; scoped revocation |
+| Method / route                                     | Permission / behavior                                                           |
+| -------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `GET /v1/admin/users`                              | `identity.staff.manage`; staff-only paginated directory within admin scope      |
+| `POST /v1/admin/invitations`                       | `identity.staff.invite`; validate role, account class, tenant, grant authority  |
+| `GET /v1/admin/invitations`                        | Scoped invitation history/status                                                |
+| `POST /v1/admin/invitations/{id}/revoke`           | Authorized revoke; token invalidation and audit                                 |
+| `GET /v1/admin/users/{id}`                         | Scoped staff detail                                                             |
+| `PATCH /v1/admin/users/{id}`                       | Allowed profile changes only; do not smuggle role updates through generic patch |
+| `POST /v1/admin/users/{id}/roles`                  | `identity.role.grant`; scoped grant or create privileged change request         |
+| `DELETE /v1/admin/users/{id}/roles/{assignmentId}` | `identity.role.revoke`; audited revocation and session invalidation             |
+| `POST /v1/admin/users/{id}/suspend`                | Authorized status transition, revoke sessions                                   |
+| `POST /v1/admin/users/{id}/reactivate`             | Explicit reviewed reactivation                                                  |
+| `GET /v1/admin/roles`                              | Role catalog and assignable scopes                                              |
+| `POST /v1/admin/privileged-changes/{id}/decision`  | Independent authorized review, exact requested change and revision              |
+| `GET /v1/admin/audit-events`                       | `identity.audit.read`; paginated redacted audit                                 |
+| `POST /v1/admin/users/{id}/sessions/revoke`        | `identity.session.revoke`; scoped revocation                                    |
 
 Example proposed invitation payload:
 
@@ -1029,7 +1030,7 @@ Example proposed invitation payload:
   "work_email": "operator@example.test",
   "tenant_id": "tenant-demo",
   "role_id": "operator",
-  "scope": {"team_id": "payments-support"},
+  "scope": { "team_id": "payments-support" },
   "reason": "New support staff onboarding",
   "idempotency_key": "invite-demo-op-001"
 }
@@ -1039,36 +1040,36 @@ Response: invitation ID, pending/approved status, expiry and sanitized role/scop
 
 ### 12.3 Portal and domain APIs
 
-| Portal | Proposed endpoint | Integration |
-|---|---|---|
-| Customer | `GET /v1/customer/dashboard` | Scoped cases and payment-subject aggregation |
-| Customer | `GET /v1/customer/transactions` | Authorized customer transaction adapter, new if absent |
-| Customer | `GET /v1/customer/cases` | Customer-scoped list (new projection if absent) |
-| Customer | `POST /v1/cases` | Existing authenticated intake; server-resolved subject |
-| Customer/operator | `POST /v1/cases/{caseId}/messages` | Existing revision-bound messages |
-| Customer/operator/supervisor | `GET /v1/cases/{caseId}/events` | Existing SSE/JSON; apply role-specific response projection |
-| Merchant | `GET /v1/merchant/dashboard` | Merchant analytics and scoped operational data |
-| Merchant | `GET /v1/merchant/transactions` | Merchant transaction projection |
-| Merchant | `GET /v1/merchant/settlements` | Merchant settlement module adapter |
-| Merchant | `GET /v1/merchant/exceptions` | Merchant inbox module adapter |
-| Merchant | `POST /v1/merchant/refund-requests` | Merchant refund request module; no direct ledger execution |
-| Merchant | `GET /v1/merchant/disputes` | Merchant dispute service |
-| Merchant | `GET /v1/merchant/team` | Authoritative membership projection |
-| Operator | `GET /v1/operator/dashboard` | Scoped queue aggregates |
-| Operator/supervisor | `GET /v1/ops/cases` | Existing ops queue; tenant/queue filter extension where required |
-| Operator/supervisor | `GET /v1/ops/cases/{caseId}/evidence` | Existing authorized evidence proxy |
-| Operator | `POST /v1/ops/cases/{caseId}/claim` | New atomic assignment action |
-| Operator/supervisor | `POST /v1/ops/cases/{caseId}/escalate` | Existing escalation route and revision |
-| Supervisor | `GET /v1/supervisor/dashboard` | Approval/exposure/team aggregates |
-| Supervisor | `GET /v1/supervisor/approvals` | New authorized ledger-backed list projection |
-| Supervisor | `POST /v1/ops/actions/{actionId}/decisions` | Existing case-api proxy; exact authenticated supervisor decision |
-| Risk | `GET /v1/risk/dashboard` | New scoped risk aggregate |
-| Risk | `GET /v1/risk/investigations` | New investigation list |
-| Risk | `POST /v1/risk/investigations/{id}/findings` | Versioned finding record |
-| Risk | `POST /v1/risk/restrictions/{id}/decision` | New policy-controlled risk decision |
-| Admin | `GET /v1/admin/dashboard` | Redacted identity/platform aggregates |
-| Admin | `GET /v1/admin/system-health` | Restricted operational health projection |
-| Admin | `POST /v1/admin/evaluations/runs` | Optional sandbox evaluation runner |
+| Portal                       | Proposed endpoint                            | Integration                                                      |
+| ---------------------------- | -------------------------------------------- | ---------------------------------------------------------------- |
+| Customer                     | `GET /v1/customer/dashboard`                 | Scoped cases and payment-subject aggregation                     |
+| Customer                     | `GET /v1/customer/transactions`              | Authorized customer transaction adapter, new if absent           |
+| Customer                     | `GET /v1/customer/cases`                     | Customer-scoped list (new projection if absent)                  |
+| Customer                     | `POST /v1/cases`                             | Existing authenticated intake; server-resolved subject           |
+| Customer/operator            | `POST /v1/cases/{caseId}/messages`           | Existing revision-bound messages                                 |
+| Customer/operator/supervisor | `GET /v1/cases/{caseId}/events`              | Existing SSE/JSON; apply role-specific response projection       |
+| Merchant                     | `GET /v1/merchant/dashboard`                 | Merchant analytics and scoped operational data                   |
+| Merchant                     | `GET /v1/merchant/transactions`              | Merchant transaction projection                                  |
+| Merchant                     | `GET /v1/merchant/settlements`               | Merchant settlement module adapter                               |
+| Merchant                     | `GET /v1/merchant/exceptions`                | Merchant inbox module adapter                                    |
+| Merchant                     | `POST /v1/merchant/refund-requests`          | Merchant refund request module; no direct ledger execution       |
+| Merchant                     | `GET /v1/merchant/disputes`                  | Merchant dispute service                                         |
+| Merchant                     | `GET /v1/merchant/team`                      | Authoritative membership projection                              |
+| Operator                     | `GET /v1/operator/dashboard`                 | Scoped queue aggregates                                          |
+| Operator/supervisor          | `GET /v1/ops/cases`                          | Existing ops queue; tenant/queue filter extension where required |
+| Operator/supervisor          | `GET /v1/ops/cases/{caseId}/evidence`        | Existing authorized evidence proxy                               |
+| Operator                     | `POST /v1/ops/cases/{caseId}/claim`          | New atomic assignment action                                     |
+| Operator/supervisor          | `POST /v1/ops/cases/{caseId}/escalate`       | Existing escalation route and revision                           |
+| Supervisor                   | `GET /v1/supervisor/dashboard`               | Approval/exposure/team aggregates                                |
+| Supervisor                   | `GET /v1/supervisor/approvals`               | New authorized ledger-backed list projection                     |
+| Supervisor                   | `POST /v1/ops/actions/{actionId}/decisions`  | Existing case-api proxy; exact authenticated supervisor decision |
+| Risk                         | `GET /v1/risk/dashboard`                     | New scoped risk aggregate                                        |
+| Risk                         | `GET /v1/risk/investigations`                | New investigation list                                           |
+| Risk                         | `POST /v1/risk/investigations/{id}/findings` | Versioned finding record                                         |
+| Risk                         | `POST /v1/risk/restrictions/{id}/decision`   | New policy-controlled risk decision                              |
+| Admin                        | `GET /v1/admin/dashboard`                    | Redacted identity/platform aggregates                            |
+| Admin                        | `GET /v1/admin/system-health`                | Restricted operational health projection                         |
+| Admin                        | `POST /v1/admin/evaluations/runs`            | Optional sandbox evaluation runner                               |
 
 Use typed Pydantic request/response models, pagination cursors, idempotency for creation/mutation where applicable, optimistic revisions for mutable resources, bounded input sizes, and stable error codes. Monetary fields are integer minor units. Return minimal role-appropriate representations; do not expose internal provider credentials or raw evidence to a customer or merchant.
 
@@ -1232,18 +1233,18 @@ Every dashboard needs loading, empty, error, unauthorized, stale-data and servic
 
 ### 13.2 Shared components and data contracts
 
-| Component | Inputs | Behavior |
-|---|---|---|
-| `RoleLogin` | requested portal, locale | Authenticates; server resolves role, never grants it |
-| `ProtectedShell` | current verified session, authorized navigation | Enforces role scope, shows active workspace and logout |
-| `StatusBadge` | canonical case/action state | Maps known states to role-appropriate labels |
-| `CaseTimeline` | sanitized authorized events | Ordered events, resumable cursor, stale/reconnect handling |
-| `EvidencePanel` | scoped evidence DTOs | Provenance/freshness, masked sensitive values, conflicts |
-| `ApprovalPanel` | existing SN-013 typed case/action/evidence/decide client | Exact digest/revision/expiry decision, refresh/conflict handling |
-| `InviteStaffForm` | assignable roles/scopes | Server-validated invite, privilege preview and review status |
-| `PermissionPreview` | proposed role and scope | Readable summary; advisory UI only, no enforcement authority |
-| `Money` | integer minor units + currency | Correct localized formatting, no floating-point transaction calculations |
-| `ServiceStatus` | authorized health status | Clear degraded/unavailable states, no fabricated success |
+| Component           | Inputs                                                   | Behavior                                                                 |
+| ------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `RoleLogin`         | requested portal, locale                                 | Authenticates; server resolves role, never grants it                     |
+| `ProtectedShell`    | current verified session, authorized navigation          | Enforces role scope, shows active workspace and logout                   |
+| `StatusBadge`       | canonical case/action state                              | Maps known states to role-appropriate labels                             |
+| `CaseTimeline`      | sanitized authorized events                              | Ordered events, resumable cursor, stale/reconnect handling               |
+| `EvidencePanel`     | scoped evidence DTOs                                     | Provenance/freshness, masked sensitive values, conflicts                 |
+| `ApprovalPanel`     | existing SN-013 typed case/action/evidence/decide client | Exact digest/revision/expiry decision, refresh/conflict handling         |
+| `InviteStaffForm`   | assignable roles/scopes                                  | Server-validated invite, privilege preview and review status             |
+| `PermissionPreview` | proposed role and scope                                  | Readable summary; advisory UI only, no enforcement authority             |
+| `Money`             | integer minor units + currency                           | Correct localized formatting, no floating-point transaction calculations |
+| `ServiceStatus`     | authorized health status                                 | Clear degraded/unavailable states, no fabricated success                 |
 
 ---
 
@@ -1348,23 +1349,23 @@ Propagate request/trace IDs across verified service boundaries. Long-running cas
 
 ### 15.2 Metrics and dashboard definitions
 
-| Proposed metric | Operational meaning |
-|---|---|
-| `identity_login_attempts_total{role,result}` | Authentication reliability and failure signals |
-| `identity_staff_invitations_total{result}` | Staff onboarding outcomes |
-| `identity_role_changes_total{role,operation}` | Role grants/revocations and audit reconciliation |
-| `identity_authz_denied_total{permission,reason}` | Authorization violations; bounded reason labels |
-| `identity_session_revocation_latency_seconds` | Time until revoked access is denied |
-| `case_queue_depth{queue,status}` | Backlog and escalation health |
-| `case_assignment_conflicts_total` | Concurrent claim/update conflicts |
-| `approval_wait_seconds` | Time between eligible proposal and decision |
-| `financial_action_blocked_total{reason}` | Policy and safety controls triggered |
-| `refund_unknown_outcomes` | Current unknown refund actions (gauge) |
-| `verified_resolution_total{scenario}` | Case-specific verified outcomes |
-| `risk_investigation_age_seconds` | Investigation backlog duration |
-| `risk_restrictions_active` | Active authorized restrictions (gauge) |
-| `workflow_investigation_duration_seconds` | Investigation processing time, not total bank wait |
-| `evaluation_safety_failures_total{suite}` | Optional evaluation/release failures |
+| Proposed metric                                  | Operational meaning                                |
+| ------------------------------------------------ | -------------------------------------------------- |
+| `identity_login_attempts_total{role,result}`     | Authentication reliability and failure signals     |
+| `identity_staff_invitations_total{result}`       | Staff onboarding outcomes                          |
+| `identity_role_changes_total{role,operation}`    | Role grants/revocations and audit reconciliation   |
+| `identity_authz_denied_total{permission,reason}` | Authorization violations; bounded reason labels    |
+| `identity_session_revocation_latency_seconds`    | Time until revoked access is denied                |
+| `case_queue_depth{queue,status}`                 | Backlog and escalation health                      |
+| `case_assignment_conflicts_total`                | Concurrent claim/update conflicts                  |
+| `approval_wait_seconds`                          | Time between eligible proposal and decision        |
+| `financial_action_blocked_total{reason}`         | Policy and safety controls triggered               |
+| `refund_unknown_outcomes`                        | Current unknown refund actions (gauge)             |
+| `verified_resolution_total{scenario}`            | Case-specific verified outcomes                    |
+| `risk_investigation_age_seconds`                 | Investigation backlog duration                     |
+| `risk_restrictions_active`                       | Active authorized restrictions (gauge)             |
+| `workflow_investigation_duration_seconds`        | Investigation processing time, not total bank wait |
+| `evaluation_safety_failures_total{suite}`        | Optional evaluation/release failures               |
 
 Metric labels must be bounded and non-identifying. User-facing dashboards derive personal or merchant-scoped aggregates through authorized APIs, not direct unrestricted Grafana queries. Display rates with denominator/time window, distinguish current gauges and cumulative counters, and label synthetic results. Do not count escalated, pending or rejected cases as verified resolutions.
 
@@ -1380,53 +1381,53 @@ Do not treat root repository `make check`, successful fixture previews, or provi
 
 ### 16.1 Authentication and authorization tests
 
-| ID | Test | Expected result |
-|---|---|---|
-| AUTH-01 | Customer registers with extra `role=admin` field | Reject or ignore privileged field; account is customer only |
-| AUTH-02 | Public staff signup attempt | No staff account or role created |
-| AUTH-03 | Valid invited operator accepts link twice | First succeeds; replay rejected/idempotent without new grant |
-| AUTH-04 | Expired, revoked, mismatched-email invitation | Denied; no assignment activated |
-| AUTH-05 | Operator opens supervisor login/dashboard URL | Role mismatch / denied; no protected data |
-| AUTH-06 | Operator calls decision API directly | 403; ledger state unchanged |
-| AUTH-07 | Merchant A changes URL to merchant B resource | Denied; no existence leak as appropriate |
-| AUTH-08 | Customer requests another subject's case or transaction | Denied; no data returned |
-| AUTH-09 | Merchant approver attempts ledger approval | Denied; internal approval grants no money authority |
-| AUTH-10 | Merchant admin attempts platform staff grant | Denied |
-| AUTH-11 | Admin attempts to grant customer role through staff invite | Denied |
-| AUTH-12 | Admin attempts unauthorized privileged self-grant | Denied or pending independent review; no effective grant |
-| AUTH-13 | Role revoked while user has active session | Subsequent protected access denied within documented window |
-| AUTH-14 | Suspended supervisor attempts decision | Denied; audit records failure |
-| AUTH-15 | Forged tenant/role header or modified browser session | Denied; no role escalation |
-| AUTH-16 | Multi-workspace user switches to unassigned tenant | Denied; existing scope unchanged |
-| AUTH-17 | CSRF mutation against active cookie session | Denied |
-| AUTH-18 | Staff/admin sensitive login without required MFA | Challenge required; no privileged session |
-| AUTH-19 | Replay logged-out/revoked session token | Denied |
-| AUTH-20 | Admin attempts direct provider write or financial override | Denied; no money authority |
-| AUTH-21 | Risk officer calls ledger approval endpoint | Denied |
-| AUTH-22 | Service token used as browser staff identity | Denied |
-| AUTH-23 | Staff directory or dashboard cache reused across tenants | No cross-tenant response leakage |
-| AUTH-24 | Customer account used to accept staff invite | Denied under separate account-class policy |
+| ID      | Test                                                       | Expected result                                              |
+| ------- | ---------------------------------------------------------- | ------------------------------------------------------------ |
+| AUTH-01 | Customer registers with extra `role=admin` field           | Reject or ignore privileged field; account is customer only  |
+| AUTH-02 | Public staff signup attempt                                | No staff account or role created                             |
+| AUTH-03 | Valid invited operator accepts link twice                  | First succeeds; replay rejected/idempotent without new grant |
+| AUTH-04 | Expired, revoked, mismatched-email invitation              | Denied; no assignment activated                              |
+| AUTH-05 | Operator opens supervisor login/dashboard URL              | Role mismatch / denied; no protected data                    |
+| AUTH-06 | Operator calls decision API directly                       | 403; ledger state unchanged                                  |
+| AUTH-07 | Merchant A changes URL to merchant B resource              | Denied; no existence leak as appropriate                     |
+| AUTH-08 | Customer requests another subject's case or transaction    | Denied; no data returned                                     |
+| AUTH-09 | Merchant approver attempts ledger approval                 | Denied; internal approval grants no money authority          |
+| AUTH-10 | Merchant admin attempts platform staff grant               | Denied                                                       |
+| AUTH-11 | Admin attempts to grant customer role through staff invite | Denied                                                       |
+| AUTH-12 | Admin attempts unauthorized privileged self-grant          | Denied or pending independent review; no effective grant     |
+| AUTH-13 | Role revoked while user has active session                 | Subsequent protected access denied within documented window  |
+| AUTH-14 | Suspended supervisor attempts decision                     | Denied; audit records failure                                |
+| AUTH-15 | Forged tenant/role header or modified browser session      | Denied; no role escalation                                   |
+| AUTH-16 | Multi-workspace user switches to unassigned tenant         | Denied; existing scope unchanged                             |
+| AUTH-17 | CSRF mutation against active cookie session                | Denied                                                       |
+| AUTH-18 | Staff/admin sensitive login without required MFA           | Challenge required; no privileged session                    |
+| AUTH-19 | Replay logged-out/revoked session token                    | Denied                                                       |
+| AUTH-20 | Admin attempts direct provider write or financial override | Denied; no money authority                                   |
+| AUTH-21 | Risk officer calls ledger approval endpoint                | Denied                                                       |
+| AUTH-22 | Service token used as browser staff identity               | Denied                                                       |
+| AUTH-23 | Staff directory or dashboard cache reused across tenants   | No cross-tenant response leakage                             |
+| AUTH-24 | Customer account used to accept staff invite               | Denied under separate account-class policy                   |
 
 ### 16.2 Financial and cross-role integration tests
 
-| ID | Test | Required evidence |
-|---|---|---|
-| FLOW-01 | Customer creates duplicate-payment case; workflow proposes; supervisor approves | Actual Case API, workflow, ledger, dispatcher, simulator and verifier exercised |
-| FLOW-02 | Commit-then-timeout after refund request | Same provider reference reconciled; exactly one logical refund; correct ledger balance |
-| FLOW-03 | Supervisor rejects proposal | No reservation/provider write for rejected action |
-| FLOW-04 | Stale digest/revision/expiry | Approval or reservation rejected safely; new proposal required |
-| FLOW-05 | Two concurrent refund reservations | Total exposure never exceeds captured amount |
-| FLOW-06 | Duplicate/out-of-order webhook | Idempotent processing; authoritative state not regressed |
-| FLOW-07 | Provider confirms but credit pending | Customer and merchant views remain pending, case not resolved |
-| FLOW-08 | Credit confirmed with wrong action/amount/tenant | Rejected; no fabricated closure |
-| FLOW-09 | Operator requests clarification and customer responds | Revision and durable workflow resume; old proposal not silently reused |
-| FLOW-10 | Suspicious case enters fraud queue | Risk officer can review; regular refund path blocked as applicable |
-| FLOW-11 | Authorized risk clearance | Re-evaluate current state; separate supervisor approval still required |
-| FLOW-12 | Suspend staff after provider outcome becomes unknown | Human access revoked; dispatcher/verifier continue reconciliation |
-| FLOW-13 | Merchant mismatch case | Verified order reconciliation or truthful human escalation; no premature closure |
-| FLOW-14 | Merchant refund request and internal review | Merchant approval not sufficient; ledger still enforces supervisor decision |
-| FLOW-15 | Real peer unavailable | Visible degraded/failure state; no silent fixture fallback |
-| FLOW-16 | Financial audit available when telemetry export fails | Financial records persist; no sampled audit loss |
+| ID      | Test                                                                            | Required evidence                                                                      |
+| ------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| FLOW-01 | Customer creates duplicate-payment case; workflow proposes; supervisor approves | Actual Case API, workflow, ledger, dispatcher, simulator and verifier exercised        |
+| FLOW-02 | Commit-then-timeout after refund request                                        | Same provider reference reconciled; exactly one logical refund; correct ledger balance |
+| FLOW-03 | Supervisor rejects proposal                                                     | No reservation/provider write for rejected action                                      |
+| FLOW-04 | Stale digest/revision/expiry                                                    | Approval or reservation rejected safely; new proposal required                         |
+| FLOW-05 | Two concurrent refund reservations                                              | Total exposure never exceeds captured amount                                           |
+| FLOW-06 | Duplicate/out-of-order webhook                                                  | Idempotent processing; authoritative state not regressed                               |
+| FLOW-07 | Provider confirms but credit pending                                            | Customer and merchant views remain pending, case not resolved                          |
+| FLOW-08 | Credit confirmed with wrong action/amount/tenant                                | Rejected; no fabricated closure                                                        |
+| FLOW-09 | Operator requests clarification and customer responds                           | Revision and durable workflow resume; old proposal not silently reused                 |
+| FLOW-10 | Suspicious case enters fraud queue                                              | Risk officer can review; regular refund path blocked as applicable                     |
+| FLOW-11 | Authorized risk clearance                                                       | Re-evaluate current state; separate supervisor approval still required                 |
+| FLOW-12 | Suspend staff after provider outcome becomes unknown                            | Human access revoked; dispatcher/verifier continue reconciliation                      |
+| FLOW-13 | Merchant mismatch case                                                          | Verified order reconciliation or truthful human escalation; no premature closure       |
+| FLOW-14 | Merchant refund request and internal review                                     | Merchant approval not sufficient; ledger still enforces supervisor decision            |
+| FLOW-15 | Real peer unavailable                                                           | Visible degraded/failure state; no silent fixture fallback                             |
+| FLOW-16 | Financial audit available when telemetry export fails                           | Financial records persist; no sampled audit loss                                       |
 
 ### 16.3 UI end-to-end test coverage
 
@@ -1448,17 +1449,17 @@ Use Playwright or another suitable browser testing tool if adopted in the web mo
 
 The product can support six portals, but the near-term priority is a fully integrated primary case journey rather than building dozens of decorative pages.
 
-| Milestone | Priority | Deliverables | Exit criterion |
-|---|---|---|---|
-| M0 — Baseline and contracts | P0 | Confirm current branch, role catalog, identity propagation design, new task ownership | Reviewed role/scope contract and no duplicate financial authority |
-| M1 — Identity and login | P0 | Customer registration, seeded/invited staff, sessions, role-specific login and protected layouts | Real per-user scope enforced, customer/staff separation and negative tests |
-| M2 — Admin provisioning | P0 | Staff invite, role/scope assignment, directory, suspension, audit | Admin creates authorized operator/supervisor; revoked role cannot act |
-| M3 — Customer + operator | P0 | Dashboards, complaint intake, case timeline, evidence queue, clarification/escalation | Authenticated case moves through actual workflow |
-| M4 — Supervisor + money path | P0 | Real approval UI, ledger reservation, dispatcher recovery, verification | ₹1,500 hero demo with exactly one simulated refund and verified closure |
-| M5 — Observability and validation | P0 | Trace correlation, safety checks, release evidence, status correctness | Reproducible integrated demonstration and measured results |
-| M6 — Merchant portal | P1 | Scoped merchant dashboard, exception, settlement/refund/dispute pages, team membership | Merchant A/B isolation; internal approvals cannot authorize refund |
-| M7 — Risk portal | P1 | Dedicated role/queue, investigations, restrictions and resume events | Fraud route blocks inappropriate execution; safe legitimate-case return |
-| M8 — Governance extensions | P2 | Advanced admin policies, privileged reviews, FinHarness and FinBench controls | Versioned reviewed deployment and optional benchmark evidence |
+| Milestone                         | Priority | Deliverables                                                                                     | Exit criterion                                                             |
+| --------------------------------- | -------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
+| M0 — Baseline and contracts       | P0       | Confirm current branch, role catalog, identity propagation design, new task ownership            | Reviewed role/scope contract and no duplicate financial authority          |
+| M1 — Identity and login           | P0       | Customer registration, seeded/invited staff, sessions, role-specific login and protected layouts | Real per-user scope enforced, customer/staff separation and negative tests |
+| M2 — Admin provisioning           | P0       | Staff invite, role/scope assignment, directory, suspension, audit                                | Admin creates authorized operator/supervisor; revoked role cannot act      |
+| M3 — Customer + operator          | P0       | Dashboards, complaint intake, case timeline, evidence queue, clarification/escalation            | Authenticated case moves through actual workflow                           |
+| M4 — Supervisor + money path      | P0       | Real approval UI, ledger reservation, dispatcher recovery, verification                          | ₹1,500 hero demo with exactly one simulated refund and verified closure    |
+| M5 — Observability and validation | P0       | Trace correlation, safety checks, release evidence, status correctness                           | Reproducible integrated demonstration and measured results                 |
+| M6 — Merchant portal              | P1       | Scoped merchant dashboard, exception, settlement/refund/dispute pages, team membership           | Merchant A/B isolation; internal approvals cannot authorize refund         |
+| M7 — Risk portal                  | P1       | Dedicated role/queue, investigations, restrictions and resume events                             | Fraud route blocks inappropriate execution; safe legitimate-case return    |
+| M8 — Governance extensions        | P2       | Advanced admin policies, privileged reviews, FinHarness and FinBench controls                    | Versioned reviewed deployment and optional benchmark evidence              |
 
 M6/M7 can be developed independently against typed doubles in the repository's existing task model, but their real portal integration must not be declared complete until the necessary identity and domain contracts are assembled. Avoid implementing authentication by granting every frontend the same broad fixture credential.
 

@@ -90,9 +90,7 @@ class VerdictTests(unittest.TestCase):
             payment_provider=manifest.payment_provider,
             model=manifest.model,
             components=tuple(
-                ComponentEvidence.from_dict(
-                    {**c.to_dict(), "artifact_digest": "0" * 64}
-                )
+                ComponentEvidence.from_dict({**c.to_dict(), "artifact_digest": "0" * 64})
                 for c in manifest.components
             ),
             required_checks=manifest.required_checks,
@@ -105,9 +103,7 @@ class VerdictTests(unittest.TestCase):
 
     def test_verify_wire_report_shape(self) -> None:
         manifest = load_manifest(MANIFESTS / "positive-fixture-selftest.json")
-        report, verdict = verify_manifest(
-            manifest, mode="fixture", run_id="unit-1"
-        )
+        report, verdict = verify_manifest(manifest, mode="fixture", run_id="unit-1")
         self.assertEqual(report.contract_version, "sentinel.task-contracts.v1")
         self.assertEqual(report.mode, "fixture")
         self.assertEqual(report.status, "PASS")

@@ -6,9 +6,7 @@ import { authorizedJson, type AuthorizedHttpConfig } from "./http.js";
  * Real-peer adapter for case-api.v1:
  * POST /v1/ops/actions/{action_id}/decisions
  */
-export function createCaseApiDecideClient(
-  config: AuthorizedHttpConfig,
-): DecideClient {
+export function createCaseApiDecideClient(config: AuthorizedHttpConfig): DecideClient {
   return async (actionId: string, request: DecisionRequest): Promise<Approval> => {
     return authorizedJson<Approval>(
       config,

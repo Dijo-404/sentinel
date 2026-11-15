@@ -27,19 +27,19 @@
 
 ## Page → peer map (binding)
 
-| Page | Peer / route |
-| --- | --- |
-| Roles | identity `GET /v1/admin/roles` |
-| Audit | identity `GET /v1/admin/audit-events` |
-| Tenants | identity `GET /v1/admin/tenants` (add if missing) |
-| Teams | identity `GET /v1/admin/teams` (add if missing; assignment aggregates OK) |
-| Security | identity `GET /v1/admin/security` (add: MFA/session summary counts from DB) |
-| Policies | policy `GET /v1/policies` (add list of versioned policy ids) |
-| Merchants | merchant-teams `GET /v1/admin/merchants` (add) |
-| Integrations | platform-ai `GET /v1/integrations` (add thin seeded rows) OR identity — prefer platform-ai |
-| AI | platform-ai `GET /v1/config` + `GET /v1/runs` |
-| Evaluations | evals `GET /v1/reports` |
-| Observability | observability `GET /v1/signals` (or spans) |
+| Page          | Peer / route                                                                               |
+| ------------- | ------------------------------------------------------------------------------------------ |
+| Roles         | identity `GET /v1/admin/roles`                                                             |
+| Audit         | identity `GET /v1/admin/audit-events`                                                      |
+| Tenants       | identity `GET /v1/admin/tenants` (add if missing)                                          |
+| Teams         | identity `GET /v1/admin/teams` (add if missing; assignment aggregates OK)                  |
+| Security      | identity `GET /v1/admin/security` (add: MFA/session summary counts from DB)                |
+| Policies      | policy `GET /v1/policies` (add list of versioned policy ids)                               |
+| Merchants     | merchant-teams `GET /v1/admin/merchants` (add)                                             |
+| Integrations  | platform-ai `GET /v1/integrations` (add thin seeded rows) OR identity — prefer platform-ai |
+| AI            | platform-ai `GET /v1/config` + `GET /v1/runs`                                              |
+| Evaluations   | evals `GET /v1/reports`                                                                    |
+| Observability | observability `GET /v1/signals` (or spans)                                                 |
 
 ---
 
@@ -48,6 +48,7 @@
 **Files:** `services/identity/` HTTP + service + tests + seed + contract JSON + CHANGELOG
 
 **Interfaces:**
+
 - `GET /v1/admin/tenants` → `{ tenants: [{ tenant_id, display_name?, status }] }` — at least `tenant-demo` from seed/assignments
 - `GET /v1/admin/teams` → `{ teams: [{ team_id, name, member_count }] }` derived from assignments/team_id or synthetic sandbox team row
 - `GET /v1/admin/security` → `{ mfa_verified_sessions, active_sessions, suspended_users, updated_at }` counts only
@@ -62,6 +63,7 @@
 **Files:** `services/policy/`
 
 **Interfaces:**
+
 - `GET /v1/policies` → `{ policies: [{ policy_id, version, status, updated_at }] }` including `demo-policy-v1`
 - Auth: platform_admin / workflow / sandbox token as peer pattern allows; document
 - No mutate-from-UI of evaluate rules in this wave
@@ -75,6 +77,7 @@
 **Files:** `services/merchant-teams/`
 
 **Interfaces:**
+
 - `GET /v1/admin/merchants` → `{ merchants: [{ merchant_ref, display_name?, status }] }` from DB/seed (`merchant-demo-1`)
 - platform_admin / sandbox-admin bearer
 
@@ -87,6 +90,7 @@
 **Files:** `services/platform-ai/`
 
 **Interfaces:**
+
 - `GET /v1/integrations` → `{ integrations: [{ integration_id, name, status, updated_at }] }` seeded ≥1 synthetic
 - Keep money_authority false
 
@@ -97,6 +101,7 @@
 ### Task 5: Web BFFs for evals / observability / platform-ai / policy
 
 **Files:**
+
 - `apps/web/src/app/api/bff/evals/[...path]/route.ts`
 - `apps/web/src/app/api/bff/observability/[...path]/route.ts`
 - `apps/web/src/app/api/bff/platform-ai/[...path]/route.ts`
@@ -114,6 +119,7 @@
 **Files:** Replace stubs under `apps/web/src/app/admin/(protected)/{roles,tenants,teams,policies,security,integrations,merchants,ai,evaluations,observability,audit}/page.tsx`
 
 **Interfaces:**
+
 - Shared panel component(s) OK: fetch via BFF, render table/list, `peer-error`, `data-testid` matching existing (`admin-roles`, etc.)
 - Never “Not available yet”
 - Browser tests covering ≥1 page per peer family + peer-error

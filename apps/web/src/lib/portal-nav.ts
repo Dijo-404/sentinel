@@ -6,9 +6,7 @@ import type { NavItem } from "@/components/layout/protected-shell";
  * Dashboard stays portal-local; other items use canonical routes so both
  * roles land on the same screens (layouts accept either role).
  */
-export function opsPortalNav(
-  portal: "operator" | "supervisor",
-): NavItem[] {
+export function opsPortalNav(portal: "operator" | "supervisor"): NavItem[] {
   return [
     { href: `/${portal}/dashboard`, label: "Dashboard" },
     { href: "/operator/queue", label: "Queue" },

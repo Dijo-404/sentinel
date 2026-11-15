@@ -2,8 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createCaseApiStub } from "../stubs/case-api";
 import { PeerError } from "@/domain/types";
 
-const demoDigest =
-  "d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993";
+const demoDigest = "d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993";
 
 const decideBody = {
   decision: "APPROVE" as const,
@@ -16,17 +15,12 @@ const decideBody = {
 describe("createCaseApiStub valid client", () => {
   it("decide rejects non-supervisor with FORBIDDEN", async () => {
     const denied = createCaseApiStub("valid");
-    await expect(denied.decide("action-demo-1", decideBody)).rejects.toMatchObject(
-      {
-        code: "FORBIDDEN",
-        httpStatus: 403,
-      },
-    );
+    await expect(denied.decide("action-demo-1", decideBody)).rejects.toMatchObject({
+      code: "FORBIDDEN",
+      httpStatus: 403,
+    });
     await expect(
-      createCaseApiStub("valid", { reviewerRole: "operator" }).decide(
-        "action-demo-1",
-        decideBody,
-      ),
+      createCaseApiStub("valid", { reviewerRole: "operator" }).decide("action-demo-1", decideBody),
     ).rejects.toBeInstanceOf(PeerError);
 
     const allowed = createCaseApiStub("valid", {
@@ -95,10 +89,7 @@ describe("createCaseApiStub valid client", () => {
   it("postMessage and escalate append timeline events and persist status", async () => {
     const client = createCaseApiStub("valid");
     const before = await client.listEvents("case-demo-42");
-    expect(before.events.map((e) => e.type)).toEqual([
-      "CASE_CREATED",
-      "STATUS_CHANGED",
-    ]);
+    expect(before.events.map((e) => e.type)).toEqual(["CASE_CREATED", "STATUS_CHANGED"]);
 
     const afterMsg = await client.postMessage("case-demo-42", {
       message: "need more info",
@@ -128,12 +119,8 @@ describe("createCaseApiStub valid client", () => {
     const types = events.events.map((e) => e.type);
     expect(types).toContain("MESSAGE_ADDED");
     expect(types).toContain("ESCALATED");
-    expect(
-      events.events.find((e) => e.type === "MESSAGE_ADDED")?.case_revision,
-    ).toBe(3);
-    expect(
-      events.events.find((e) => e.type === "ESCALATED")?.case_revision,
-    ).toBe(4);
+    expect(events.events.find((e) => e.type === "MESSAGE_ADDED")?.case_revision).toBe(3);
+    expect(events.events.find((e) => e.type === "ESCALATED")?.case_revision).toBe(4);
   });
 
   it("listOpsMessages and listOpsAuditEvents return seeded fixture shapes", async () => {

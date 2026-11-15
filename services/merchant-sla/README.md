@@ -35,21 +35,21 @@ Synthetic tokens are in `contracts/principals.json`. Example bearer: `merchant-o
 
 ## Routes
 
-| Method | Path | Auth | Notes |
-| --- | --- | --- | --- |
-| GET | `/healthz` | none | liveness |
-| GET | `/readyz` | none | labels `mode` |
-| GET | `/v1/capabilities` | none | `contract_version`, `component=merchant-sla`, `mode` |
-| POST | `/v1/policies` | merchant ops bearer | upsert `SlaPolicy` |
-| GET | `/v1/policies/{policy_id}` | merchant ops bearer | fetch policy |
-| GET | `/v1/policies?merchant_ref=` | merchant ops bearer | list policies |
-| POST | `/v1/tasks` | merchant ops bearer | create task from case + policy |
-| GET | `/v1/tasks/{task_id}` | merchant ops bearer | fetch task (refreshes `overdue`) |
-| GET | `/v1/tasks` | merchant ops bearer | filter by merchant/case/`overdue_only` |
-| POST | `/v1/tasks/{task_id}/assign` | merchant ops bearer | set assignee |
-| POST | `/v1/tasks/{task_id}/follow-ups` | merchant ops bearer | schedule `follow_up_at` |
-| POST | `/v1/tasks/{task_id}/escalate` | merchant ops bearer | `ESCALATED` ≠ `DONE` / financial resolve |
-| POST | `/v1/tasks/{task_id}/complete` | merchant ops bearer | explicit non-financial `DONE` |
+| Method | Path                             | Auth                | Notes                                                |
+| ------ | -------------------------------- | ------------------- | ---------------------------------------------------- |
+| GET    | `/healthz`                       | none                | liveness                                             |
+| GET    | `/readyz`                        | none                | labels `mode`                                        |
+| GET    | `/v1/capabilities`               | none                | `contract_version`, `component=merchant-sla`, `mode` |
+| POST   | `/v1/policies`                   | merchant ops bearer | upsert `SlaPolicy`                                   |
+| GET    | `/v1/policies/{policy_id}`       | merchant ops bearer | fetch policy                                         |
+| GET    | `/v1/policies?merchant_ref=`     | merchant ops bearer | list policies                                        |
+| POST   | `/v1/tasks`                      | merchant ops bearer | create task from case + policy                       |
+| GET    | `/v1/tasks/{task_id}`            | merchant ops bearer | fetch task (refreshes `overdue`)                     |
+| GET    | `/v1/tasks`                      | merchant ops bearer | filter by merchant/case/`overdue_only`               |
+| POST   | `/v1/tasks/{task_id}/assign`     | merchant ops bearer | set assignee                                         |
+| POST   | `/v1/tasks/{task_id}/follow-ups` | merchant ops bearer | schedule `follow_up_at`                              |
+| POST   | `/v1/tasks/{task_id}/escalate`   | merchant ops bearer | `ESCALATED` ≠ `DONE` / financial resolve             |
+| POST   | `/v1/tasks/{task_id}/complete`   | merchant ops bearer | explicit non-financial `DONE`                        |
 
 ## Local peers
 

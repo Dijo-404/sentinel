@@ -55,9 +55,7 @@ export type IdentityClient = {
     sessionCredential: string,
     input: PatchProfileInput,
   ): Promise<{ user: IdentityUser }>;
-  listNotifications(
-    sessionCredential: string,
-  ): Promise<{ notifications: IdentityNotification[] }>;
+  listNotifications(sessionCredential: string): Promise<{ notifications: IdentityNotification[] }>;
   markNotificationRead(
     sessionCredential: string,
     notificationId: string,
@@ -79,10 +77,7 @@ export type IdentityClient = {
     purpose: "email_verify" | "mfa",
   ): Promise<{ code: string }>;
   /** Sandbox inbox: GET /v1/auth/sandbox/password-reset-code (token header). */
-  sandboxPasswordResetCode(
-    email: string,
-    sandboxToken: string,
-  ): Promise<{ code: string }>;
+  sandboxPasswordResetCode(email: string, sandboxToken: string): Promise<{ code: string }>;
   resetPassword(input: {
     email: string;
     code: string;
@@ -93,25 +88,12 @@ export type IdentityClient = {
     active_assignment: WorkspaceAssignment | null;
   }>;
   /** POST /v1/auth/workspaces/select — alias of selectAssignment. */
-  selectWorkspace(
-    sessionCredential: string,
-    assignmentId: string,
-  ): Promise<SessionRecord | null>;
-  selectAssignment(
-    sessionCredential: string,
-    assignmentId: string,
-  ): Promise<SessionRecord | null>;
+  selectWorkspace(sessionCredential: string, assignmentId: string): Promise<SessionRecord | null>;
+  selectAssignment(sessionCredential: string, assignmentId: string): Promise<SessionRecord | null>;
   logout(sessionCredential: string): Promise<void>;
-  listStaffUsers(
-    sessionCredential: string,
-  ): Promise<IdentityUser[] | { error: "FORBIDDEN" }>;
-  listInvitations(
-    sessionCredential: string,
-  ): Promise<Invitation[] | { error: "FORBIDDEN" }>;
-  inviteStaff(
-    sessionCredential: string,
-    input: InviteStaffInput,
-  ): Promise<InviteResult>;
+  listStaffUsers(sessionCredential: string): Promise<IdentityUser[] | { error: "FORBIDDEN" }>;
+  listInvitations(sessionCredential: string): Promise<Invitation[] | { error: "FORBIDDEN" }>;
+  inviteStaff(sessionCredential: string, input: InviteStaffInput): Promise<InviteResult>;
   acceptInvitation(input: {
     token: string;
     email: string;
@@ -128,10 +110,7 @@ export type IdentityClient = {
   >;
   assignableRoles(): Promise<
     Array<{
-      role_id: Exclude<
-        import("../../../tests/stubs/identity").PortalRole,
-        "customer"
-      >;
+      role_id: Exclude<import("../../../tests/stubs/identity").PortalRole, "customer">;
       label: string;
     }>
   >;
@@ -169,12 +148,7 @@ function wrapFixtureStub(stub: StubIdentity): IdentityClient {
     listNotifications: async (sessionId) => {
       const result = stub.listNotifications(sessionId);
       if (!result) {
-        throw new PeerError(
-          "UNAUTHORIZED",
-          "Session required",
-          "fixture-notifications",
-          401,
-        );
+        throw new PeerError("UNAUTHORIZED", "Session required", "fixture-notifications", 401);
       }
       return result;
     },
@@ -183,9 +157,7 @@ function wrapFixtureStub(stub: StubIdentity): IdentityClient {
       if (!result.ok) {
         throw new PeerError(
           result.code,
-          result.code === "NOT_FOUND"
-            ? "Notification not found"
-            : "Session required",
+          result.code === "NOT_FOUND" ? "Notification not found" : "Session required",
           "fixture-notification-read",
           result.code === "NOT_FOUND" ? 404 : 401,
         );
@@ -198,12 +170,7 @@ function wrapFixtureStub(stub: StubIdentity): IdentityClient {
     requestVerify: async (sessionId) => {
       const result = stub.requestVerify(sessionId);
       if (!result) {
-        throw new PeerError(
-          "UNAUTHORIZED",
-          "Session required",
-          "fixture-verify-request",
-          401,
-        );
+        throw new PeerError("UNAUTHORIZED", "Session required", "fixture-verify-request", 401);
       }
       return result;
     },
@@ -222,12 +189,7 @@ function wrapFixtureStub(stub: StubIdentity): IdentityClient {
     mfaChallenge: async (sessionId) => {
       const result = stub.mfaChallenge(sessionId);
       if (!result) {
-        throw new PeerError(
-          "UNAUTHORIZED",
-          "Session required",
-          "fixture-mfa-challenge",
-          401,
-        );
+        throw new PeerError("UNAUTHORIZED", "Session required", "fixture-mfa-challenge", 401);
       }
       return result;
     },
@@ -277,12 +239,7 @@ function wrapFixtureStub(stub: StubIdentity): IdentityClient {
     listWorkspaces: async (sessionId) => {
       const result = stub.listWorkspaces(sessionId);
       if (!result) {
-        throw new PeerError(
-          "UNAUTHORIZED",
-          "Session required",
-          "fixture-workspaces",
-          401,
-        );
+        throw new PeerError("UNAUTHORIZED", "Session required", "fixture-workspaces", 401);
       }
       return result;
     },
@@ -326,10 +283,7 @@ function wrapFixtureStub(stub: StubIdentity): IdentityClient {
  * Session tokens and passwords never come from NEXT_PUBLIC_*.
  */
 export function getIdentityClient(
-  env: Record<string, string | undefined> = process.env as Record<
-    string,
-    string | undefined
-  >,
+  env: Record<string, string | undefined> = process.env as Record<string, string | undefined>,
   overrides?: { fetchImpl?: typeof fetch },
 ): IdentityClient {
   const mode = (env.NEXT_PUBLIC_SHELL_MODE ?? "real-peers") as IdentityMode;
@@ -367,9 +321,7 @@ export function getIdentityClient(
 
   const g = globalThis as IdentityClientGlobal;
   if (!g.__sentinelFixtureIdentityClient) {
-    g.__sentinelFixtureIdentityClient = wrapFixtureStub(
-      getSharedIdentityStub(),
-    );
+    g.__sentinelFixtureIdentityClient = wrapFixtureStub(getSharedIdentityStub());
   }
   return g.__sentinelFixtureIdentityClient;
 }

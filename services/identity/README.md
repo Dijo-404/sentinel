@@ -112,23 +112,23 @@ See `fixtures/seed_users.json` and `contracts/principals.json`. Seed JSON has
 no plaintext passwords; hashes are derived at load time from
 `IDENTITY_DEMO_PASSWORD` (default `x`).
 
-| Email | Role | Tenant |
-| --- | --- | --- |
-| customer@example.test | customer | tenant-demo |
-| merchant@example.test | merchant | tenant-demo |
-| operator@example.test | operator | tenant-demo |
-| supervisor@example.test | supervisor | tenant-demo |
-| risk@example.test | risk_officer | tenant-demo |
-| admin@example.test | platform_admin | tenant-demo |
-| admin-reviewer@example.test | platform_admin | tenant-demo |
-| outsider@other.test | operator | tenant-other |
+| Email                       | Role           | Tenant       |
+| --------------------------- | -------------- | ------------ |
+| customer@example.test       | customer       | tenant-demo  |
+| merchant@example.test       | merchant       | tenant-demo  |
+| operator@example.test       | operator       | tenant-demo  |
+| supervisor@example.test     | supervisor     | tenant-demo  |
+| risk@example.test           | risk_officer   | tenant-demo  |
+| admin@example.test          | platform_admin | tenant-demo  |
+| admin-reviewer@example.test | platform_admin | tenant-demo  |
+| outsider@other.test         | operator       | tenant-other |
 
 ## Evidence labels
 
-| Dimension | This module check |
-| --- | --- |
-| Component under test | Real `identity` implementation |
-| Storage | In-memory fixture (`make check`) |
-| Postgres adapter | Present; optional `@pytest.mark.postgres` |
-| Payment / ledger | N/A (no money authority) |
-| Portal UI / BFF | UNVERIFIED (M2 / SN-038) |
+| Dimension            | This module check                         |
+| -------------------- | ----------------------------------------- |
+| Component under test | Real `identity` implementation            |
+| Storage              | In-memory fixture (`make check`)          |
+| Postgres adapter     | Present; optional `@pytest.mark.postgres` |
+| Payment / ledger     | N/A (no money authority)                  |
+| Portal UI / BFF      | UNVERIFIED (M2 / SN-038)                  |

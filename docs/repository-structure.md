@@ -2,34 +2,34 @@
 
 ## Root responsibilities
 
-| Path | Responsibility |
-| --- | --- |
-| `AGENTS.md`, `CONTRIBUTING.md` | Shared rules, claims, branches, review and handoff |
-| `README.md`, `CHANGELOG.md` | Honest project entry point and coordinated release/repository changes |
-| `.editorconfig`, `.gitattributes`, `.gitignore` | Portable formatting, binary handling, ignored secrets/build output/worktrees |
-| `.env.example` | Documentation-only defaults; each implemented module owns real local configuration |
-| `Makefile` | Python-standard-library repository validation and regression tests |
-| `.github/` | Issue/PR templates, CODEOWNERS and pinned-action repository CI |
-| `scripts/repository/` | Metadata validation, issue rendering and explicit publication |
-| `tests/repository/` | Repository-tool tests only; no implied product coverage |
-| `docs/` | Preserved source specs/PDF, approved task contracts, architecture, instructions and published issue map |
+| Path                                            | Responsibility                                                                                          |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `AGENTS.md`, `CONTRIBUTING.md`                  | Shared rules, claims, branches, review and handoff                                                      |
+| `README.md`, `CHANGELOG.md`                     | Honest project entry point and coordinated release/repository changes                                   |
+| `.editorconfig`, `.gitattributes`, `.gitignore` | Portable formatting, binary handling, ignored secrets/build output/worktrees                            |
+| `.env.example`                                  | Documentation-only defaults; each implemented module owns real local configuration                      |
+| `Makefile`                                      | Python-standard-library repository validation and regression tests                                      |
+| `.github/`                                      | Issue/PR templates, CODEOWNERS and pinned-action repository CI                                          |
+| `scripts/repository/`                           | Metadata validation, issue rendering and explicit publication                                           |
+| `tests/repository/`                             | Repository-tool tests only; no implied product coverage                                                 |
+| `docs/`                                         | Preserved source specs/PDF, approved task contracts, architecture, instructions and published issue map |
 
 ## Independent module roots
 
 The [task register](task-register.md) lists all task-owned roots and their owning task. Parent directories group purpose rather than shared builds:
 
-| Parent | Components |
-| --- | --- |
-| `apps/` | `api`, `web` |
-| `services/` | `simulator`, `policy`, `evidence`, `workflow`, `action-ledger`, `dispatcher`, `verifier`, `voice`, `finharness-runtime`, `merchant-settlement`, `merchant-inbox`, `merchant-refunds`, `merchant-disputes`, `merchant-sla`, `merchant-analytics`, `merchant-teams` |
-| `packages/` | `contract-checks`, `persistence`, `approval-ui`, `telemetry`, `finharness-sdk`, `indic-context`, `finharness-telemetry`, `merchant-comms` |
-| `tooling/` | `workspace` |
-| `integration/` | `core` |
-| `evals/` | `core` |
-| `replay/` | `core`, `finharness` |
-| `benchmarks/` | `finbench_indic` |
-| `release/` | `mvp` |
-| `validation/` | `sandbox-pilot` |
+| Parent         | Components                                                                                                                                                                                                                                                        |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `apps/`        | `api`, `web`                                                                                                                                                                                                                                                      |
+| `services/`    | `simulator`, `policy`, `evidence`, `workflow`, `action-ledger`, `dispatcher`, `verifier`, `voice`, `finharness-runtime`, `merchant-settlement`, `merchant-inbox`, `merchant-refunds`, `merchant-disputes`, `merchant-sla`, `merchant-analytics`, `merchant-teams` |
+| `packages/`    | `contract-checks`, `persistence`, `approval-ui`, `telemetry`, `finharness-sdk`, `indic-context`, `finharness-telemetry`, `merchant-comms`                                                                                                                         |
+| `tooling/`     | `workspace`                                                                                                                                                                                                                                                       |
+| `integration/` | `core`                                                                                                                                                                                                                                                            |
+| `evals/`       | `core`                                                                                                                                                                                                                                                            |
+| `replay/`      | `core`, `finharness`                                                                                                                                                                                                                                              |
+| `benchmarks/`  | `finbench_indic`                                                                                                                                                                                                                                                  |
+| `release/`     | `mvp`                                                                                                                                                                                                                                                             |
+| `validation/`  | `sandbox-pilot`                                                                                                                                                                                                                                                   |
 
 Each root starts with `AGENTS.md`, `README.md` and `CHANGELOG.md`, plus the module's own manifests, tests and `make check`. Presence of a module on `main` means the component is independently checkable; it does not by itself mean an assembled product runtime or release evidence exists.
 

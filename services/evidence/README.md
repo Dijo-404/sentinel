@@ -8,10 +8,10 @@ Contract: `sentinel.task-contracts.v1`, SHA-256 `0db3ba2bba994f10d3060bc71730353
 
 ## Routes
 
-| Method | Path | Roles | Response |
-| --- | --- | --- | --- |
-| `POST` | `/v1/evidence/collect` | workflow, verifier | `EvidenceBundle` |
-| `GET` | `/v1/cases/{case_id}/evidence` | workflow, verifier, operator, supervisor | `EvidenceBundle` |
+| Method | Path                           | Roles                                    | Response         |
+| ------ | ------------------------------ | ---------------------------------------- | ---------------- |
+| `POST` | `/v1/evidence/collect`         | workflow, verifier                       | `EvidenceBundle` |
+| `GET`  | `/v1/cases/{case_id}/evidence` | workflow, verifier, operator, supervisor | `EvidenceBundle` |
 
 Also: `/healthz`, `/readyz`, `/v1/capabilities` (`mode: fixture|real-peers`).
 
@@ -37,15 +37,15 @@ make check
 
 `tests/stubs/` implements `payment-provider.v1` cases:
 
-| Module | Behavior |
-| --- | --- |
-| `valid` | Two distinct captured payments, under-fulfilled order, merchant-confirmed duplicate |
-| order suffix `#equal` | Equal amounts without merchant confirmation → `EQUAL_AMOUNTS_INSUFFICIENT` (never `DUPLICATE_PAYMENT`) |
-| order suffix `#stale` | Expired snapshot → `UNVERIFIED` + `STALE_PROVIDER_SNAPSHOT` |
-| order suffix `#conflict` | Contradictory payment records → `CONFLICTING` |
-| `unavailable` / `#unavailable` | `PEER_UNAVAILABLE` (503) |
-| `malformed` / `#malformed` | `PEER_MALFORMED` (502) |
-| `unauthorized_or_out_of_scope` / `#unauthorized` | `PEER_UNAUTHORIZED` (403) |
+| Module                                           | Behavior                                                                                               |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| `valid`                                          | Two distinct captured payments, under-fulfilled order, merchant-confirmed duplicate                    |
+| order suffix `#equal`                            | Equal amounts without merchant confirmation → `EQUAL_AMOUNTS_INSUFFICIENT` (never `DUPLICATE_PAYMENT`) |
+| order suffix `#stale`                            | Expired snapshot → `UNVERIFIED` + `STALE_PROVIDER_SNAPSHOT`                                            |
+| order suffix `#conflict`                         | Contradictory payment records → `CONFLICTING`                                                          |
+| `unavailable` / `#unavailable`                   | `PEER_UNAVAILABLE` (503)                                                                               |
+| `malformed` / `#malformed`                       | `PEER_MALFORMED` (502)                                                                                 |
+| `unauthorized_or_out_of_scope` / `#unauthorized` | `PEER_UNAUTHORIZED` (403)                                                                              |
 
 Authorized case `order_reference` may be `{subject_ref}/{customer_order_id}` (or `:`). Collect derives the bare provider key for payment-provider calls and keeps the authorized value on the collect request/store row. Fixture scenario markers use `#` so they never collide with subject boundaries.
 

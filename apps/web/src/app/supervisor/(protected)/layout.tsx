@@ -7,16 +7,9 @@ export default async function SupervisorProtectedLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await requireAnyRole(
-    ["operator", "supervisor"],
-    "supervisor",
-  );
+  const session = await requireAnyRole(["operator", "supervisor"], "supervisor");
   return (
-    <ProtectedShell
-      role="supervisor"
-      session={session}
-      nav={opsPortalNav("supervisor")}
-    >
+    <ProtectedShell role="supervisor" session={session} nav={opsPortalNav("supervisor")}>
       {children}
     </ProtectedShell>
   );

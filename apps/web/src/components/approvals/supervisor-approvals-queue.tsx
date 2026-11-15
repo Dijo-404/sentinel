@@ -37,10 +37,7 @@ export function SupervisorApprovalsQueue({ caseClient, mode }: Props) {
         setCases(result.cases);
       } catch (err) {
         if (cancelled) return;
-        if (
-          err instanceof PeerError &&
-          (err.httpStatus === 403 || err.code === "FORBIDDEN")
-        ) {
+        if (err instanceof PeerError && (err.httpStatus === 403 || err.code === "FORBIDDEN")) {
           setPermission(`${err.code}: ${err.message}`);
         } else if (err instanceof PeerError) {
           setError(`${err.code}: ${err.message}`);
@@ -61,18 +58,10 @@ export function SupervisorApprovalsQueue({ caseClient, mode }: Props) {
     return <UiState tone="loading" title="Loading approval queue…" />;
   }
   if (permission) {
-    return (
-      <UiState
-        tone="permission"
-        title="Permission denied"
-        detail={permission}
-      />
-    );
+    return <UiState tone="permission" title="Permission denied" detail={permission} />;
   }
   if (error) {
-    return (
-      <UiState tone="error" title="Approvals unavailable" detail={error} />
-    );
+    return <UiState tone="error" title="Approvals unavailable" detail={error} />;
   }
 
   return (
@@ -116,10 +105,7 @@ export function SupervisorApprovalsQueue({ caseClient, mode }: Props) {
                 return (
                   <tr key={c.case_id} data-testid={`approval-row-${c.case_id}`}>
                     <td>
-                      <MaskedRef
-                        label="case_id"
-                        masked={maskReference(c.case_id, "case-…")}
-                      />
+                      <MaskedRef label="case_id" masked={maskReference(c.case_id, "case-…")} />
                     </td>
                     <td>
                       <StatusChip label={labelCaseStatus(c.status)} />
@@ -138,11 +124,7 @@ export function SupervisorApprovalsQueue({ caseClient, mode }: Props) {
                         <span className="muted">No action</span>
                       )}
                       {" · "}
-                      <Link
-                        href={`/supervisor/cases/${encodeURIComponent(c.case_id)}`}
-                      >
-                        Case
-                      </Link>
+                      <Link href={`/supervisor/cases/${encodeURIComponent(c.case_id)}`}>Case</Link>
                     </td>
                   </tr>
                 );

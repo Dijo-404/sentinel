@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createCaseApiStub, STUB_SCENARIOS } from "./stubs/case-api";
-import {
-  APPROVAL_UI_SCENARIOS,
-  createApprovalUiStub,
-} from "./stubs/approval-ui";
+import { APPROVAL_UI_SCENARIOS, createApprovalUiStub } from "./stubs/approval-ui";
 import { VOICE_SCENARIOS, createVoiceStub } from "./stubs/voice";
 import { PeerError } from "@/domain/types";
 import { createRealPeerCaseClient } from "@/adapters/real-peer-case-client";
@@ -46,9 +43,7 @@ describe("peer stubs cover required scenarios", () => {
   });
 
   it("malformed stub fails validation", () => {
-    expect(() => validateCase({ case_id: "x" }, "req-malformed")).toThrow(
-      PeerError,
-    );
+    expect(() => validateCase({ case_id: "x" }, "req-malformed")).toThrow(PeerError);
   });
 
   it("approval and voice stubs expose failure modes", async () => {
@@ -114,8 +109,7 @@ describe("real-peer adapter", () => {
         mode: "real-peers",
         voiceEnabled: false,
         contractVersion: "sentinel.task-contracts.v1",
-        contractSha256:
-          "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb",
+        contractSha256: "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb",
         caseApiBaseUrl: "http://missing.peer",
         bearerToken: "x",
         principal: {
@@ -132,9 +126,7 @@ describe("real-peer adapter", () => {
         },
       },
     );
-    await expect(
-      runtime.caseClient.getCase("case-demo-42"),
-    ).rejects.toMatchObject({
+    await expect(runtime.caseClient.getCase("case-demo-42")).rejects.toMatchObject({
       code: "PEER_UNAVAILABLE",
     });
   });

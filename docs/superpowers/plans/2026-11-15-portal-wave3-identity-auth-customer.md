@@ -39,6 +39,7 @@
 ### Task 1: Identity profile read/update
 
 **Files:**
+
 - Modify: `services/identity/src/sentinel_identity/adapters/http.py`
 - Modify: `services/identity/src/sentinel_identity/application/service.py`
 - Modify: `services/identity/contracts/identity.v1.json` (additive routes)
@@ -46,6 +47,7 @@
 - Modify: README/CHANGELOG
 
 **Interfaces:**
+
 - `GET /v1/auth/me` already returns user — ensure `display_name`, `email`, `preferred_language` present
 - `PATCH /v1/auth/me` body `{ display_name?, preferred_language? }` → updated user public; reject unknown fields / role/tenant keys with 422
 - Auth: Bearer session
@@ -61,6 +63,7 @@
 ### Task 2: Identity notifications store + list/mark-read
 
 **Files:**
+
 - Migration under `services/identity/migrations/` for `identity.notifications`
 - Storage memory + postgres adapters
 - HTTP: `GET /v1/auth/notifications`, `POST /v1/auth/notifications/{id}/read`
@@ -68,6 +71,7 @@
 - Tests + README/CHANGELOG
 
 **Interfaces:**
+
 - List → `{ "notifications": [ { "notification_id", "title", "body", "created_at", "read_at" | null } ] }` newest first, max 50
 - Mark read → `{ "notification_id", "read_at" }`; 404 other-user
 - Roles: any authenticated session for own notifications
@@ -79,6 +83,7 @@
 ### Task 3: Sandbox verify-email + MFA challenge + forgot/reset password
 
 **Files:**
+
 - Tables or reuse: `identity.auth_challenges` (type: email_verify | mfa | password_reset; code_hash; expires_at; consumed_at; user_id)
 - Delivery log table/adapter (sandbox): append-only `{ channel: "loopback", destination, purpose, created_at }` — plaintext code **only** in test helper / `IDENTITY_EXPOSE_SANDBOX_CODES=true` for module checks, never default real-peers product
 - Routes:
@@ -98,12 +103,14 @@
 ### Task 4: Web identity client + BFF coverage for new routes
 
 **Files:**
+
 - Extend `IdentityClient` / real-peer client / fixture stub
 - Confirm `/api/bff/identity/[...path]` passthrough (created Wave 2)
 - Tests in `apps/web/tests`
 - CHANGELOG
 
 **Interfaces:**
+
 - `getMe`, `patchProfile`, `listNotifications`, `markNotificationRead`, `requestVerify`, `confirmVerify`, `mfaChallenge`, `mfaVerify`, `forgotPassword`, `resetPassword`, `listWorkspaces`, `selectWorkspace` (reuse existing where present)
 
 - [ ] **Steps: TDD, `make -C apps/web check`, commit** `feat(web): identity client auth surface extensions`
@@ -113,6 +120,7 @@
 ### Task 5: Auth pages — workspaces, verify, MFA, forgot, reset
 
 **Files:**
+
 - Replace placeholders:
   - `apps/web/src/app/auth/workspaces/page.tsx`
   - `apps/web/src/app/auth/verify/page.tsx`
@@ -130,6 +138,7 @@
 ### Task 6: Customer Profile + Notifications pages
 
 **Files:**
+
 - Replace: `apps/web/src/app/customer/(protected)/profile/page.tsx`
 - Replace: `apps/web/src/app/customer/(protected)/notifications/page.tsx`
 - Components: `profile-panel.tsx`, `notifications-panel.tsx`
@@ -144,6 +153,7 @@
 ### Task 7: Seed + verify-wave3
 
 **Files:**
+
 - Extend identity `make seed` / sandbox seed for profile fields, ≥1 notification, optional challenge fixtures for tests only
 - `integration/core` verify-wave3: hit me/notifications (with session token), forgot returns 202, workspaces list
 - Makefile target + README

@@ -1,10 +1,7 @@
 import Link from "next/link";
 import { WorkspacePicker } from "@/components/auth/workspace-picker";
 import { PeerError } from "@/domain/types";
-import {
-  getAuthSession,
-  workspaceChoices,
-} from "@/lib/server/auth";
+import { getAuthSession, workspaceChoices } from "@/lib/server/auth";
 import { getIdentityClient } from "@/lib/server/identity-client";
 
 export default async function AuthWorkspacesPage() {
@@ -25,26 +22,20 @@ export default async function AuthWorkspacesPage() {
   }
 
   try {
-    const listed = await getIdentityClient().listWorkspaces(
-      session.session.session_id,
-    );
+    const listed = await getIdentityClient().listWorkspaces(session.session.session_id);
     const workspaces = workspaceChoices(listed.workspaces);
     return (
       <div className="auth-page">
         <WorkspacePicker
           workspaces={workspaces}
           activeAssignmentId={
-            listed.active_assignment?.assignment_id ??
-            session.assignment.assignment_id
+            listed.active_assignment?.assignment_id ?? session.assignment.assignment_id
           }
         />
       </div>
     );
   } catch (err) {
-    const message =
-      err instanceof PeerError
-        ? err.message
-        : "Identity peer unavailable";
+    const message = err instanceof PeerError ? err.message : "Identity peer unavailable";
     return (
       <div className="auth-page">
         <WorkspacePicker

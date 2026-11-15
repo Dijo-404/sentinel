@@ -33,11 +33,11 @@ Requires Python ≥3.11 and `uv`. No database. No sibling Sentinel packages. No 
 
 ## Local peer doubles
 
-| Port | Location | Cases |
-| --- | --- | --- |
+| Port                    | Location                          | Cases                                                       |
+| ----------------------- | --------------------------------- | ----------------------------------------------------------- |
 | `finharness-runtime.v1` | `tests/stubs/finharness_runtime/` | valid, unavailable, malformed, unauthorized_or_out_of_scope |
-| `finbench.v1` | `tests/stubs/finbench/` | valid, unavailable, malformed, unauthorized_or_out_of_scope |
-| `replay.v1` | `tests/stubs/replay/` | valid, unavailable, malformed, unauthorized_or_out_of_scope |
+| `finbench.v1`           | `tests/stubs/finbench/`           | valid, unavailable, malformed, unauthorized_or_out_of_scope |
+| `replay.v1`             | `tests/stubs/replay/`             | valid, unavailable, malformed, unauthorized_or_out_of_scope |
 
 Sandbox refunds use an in-process simulator (`sandbox://…`). Real adapters live in `adapters/real_peers.py` and raise when peers are missing.
 
@@ -47,14 +47,14 @@ See `.env.example`. Defaults: `SENTINEL_HARNESS_REPLAY_MODE=fixture`, seed `42`,
 
 ## Evidence limits
 
-| Claim | Status |
-| --- | --- |
-| Standalone `make check` | Required; local only |
-| Real finharness-runtime peer | Unverified until assembled |
-| Real finbench peer | Unverified until assembled |
-| Real replay.v1 peer | Unverified until assembled |
-| Live model inference | Not used (`fake`) |
-| Product / pilot release | Out of scope for this module |
+| Claim                        | Status                       |
+| ---------------------------- | ---------------------------- |
+| Standalone `make check`      | Required; local only         |
+| Real finharness-runtime peer | Unverified until assembled   |
+| Real finbench peer           | Unverified until assembled   |
+| Real replay.v1 peer          | Unverified until assembled   |
+| Live model inference         | Not used (`fake`)            |
+| Product / pilot release      | Out of scope for this module |
 
 ## Layout
 

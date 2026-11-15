@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed — 15 November 2026
+
+- Applied the repository Prettier baseline to TypeScript, TSX, and documentation without changing approval behavior.
+
 ### Added — 13 November 2026
 
 - Independent module ownership, architecture/interface guide, scoped agent rules and acceptance checklist.

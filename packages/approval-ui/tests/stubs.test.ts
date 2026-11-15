@@ -20,10 +20,12 @@ describe("required peer stubs", () => {
       reviewer_id: "supervisor-demo-1",
     });
 
-    await expect(createCaseApiStub("unavailable").decide("action-demo-1", request)).rejects.toBeInstanceOf(
-      DecisionClientError,
-    );
-    await expect(createCaseApiStub("malformed").decide("action-demo-1", request)).rejects.toMatchObject({
+    await expect(
+      createCaseApiStub("unavailable").decide("action-demo-1", request),
+    ).rejects.toBeInstanceOf(DecisionClientError);
+    await expect(
+      createCaseApiStub("malformed").decide("action-demo-1", request),
+    ).rejects.toMatchObject({
       uiCode: "MALFORMED",
     });
     await expect(
@@ -44,10 +46,7 @@ describe("required peer stubs", () => {
       createActionLedgerStub("malformed").getAction("action-demo-1"),
     ).rejects.toMatchObject({ uiCode: "MALFORMED" });
     await expect(
-      createActionLedgerStub("unauthorized_or_out_of_scope").decide(
-        "action-demo-1",
-        request,
-      ),
+      createActionLedgerStub("unauthorized_or_out_of_scope").decide("action-demo-1", request),
     ).rejects.toMatchObject({ uiCode: "UNAUTHORIZED" });
   });
 });

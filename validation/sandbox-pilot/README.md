@@ -41,14 +41,14 @@ Configuration example: [.env.example](.env.example). Never production payment cr
 
 ## Drivers
 
-| Driver | Fixture behavior |
-| --- | --- |
-| `second_workflow` | Non-refund status workflow reusing the same peer ports |
-| `load` | Concurrent synthetic operations; zero identity loss |
-| `restart` | Preserves `action_id` / `provider_ref`; continues reconciliation |
-| `restore` | Checkpoint restore keeps runtime pin; forced failure cannot PASS |
-| `kill_switch` | Blocks new financial writes; reconciliation continues |
-| `rollback` | New cases route to rollback runtime; in-flight pin unchanged |
+| Driver            | Fixture behavior                                                 |
+| ----------------- | ---------------------------------------------------------------- |
+| `second_workflow` | Non-refund status workflow reusing the same peer ports           |
+| `load`            | Concurrent synthetic operations; zero identity loss              |
+| `restart`         | Preserves `action_id` / `provider_ref`; continues reconciliation |
+| `restore`         | Checkpoint restore keeps runtime pin; forced failure cannot PASS |
+| `kill_switch`     | Blocks new financial writes; reconciliation continues            |
+| `rollback`        | New cases route to rollback runtime; in-flight pin unchanged     |
 
 ## Real-peer mode
 

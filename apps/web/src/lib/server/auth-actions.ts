@@ -29,8 +29,7 @@ export type ChallengeActionResult =
   | { ok: true; message: string; sandbox_code?: string }
   | { ok: false; message: string; peerError?: boolean };
 
-const FORGOT_GENERIC =
-  "If an account exists for that email, reset instructions were sent.";
+const FORGOT_GENERIC = "If an account exists for that email, reset instructions were sent.";
 const SESSION_REQUIRED = "Sign in to continue this step.";
 
 function truthyEnv(value: string | undefined): boolean {
@@ -39,10 +38,7 @@ function truthyEnv(value: string | undefined): boolean {
 
 /** Server-only: IDENTITY_SANDBOX or SENTINEL_V1_SANDBOX (never NEXT_PUBLIC). */
 function isIdentitySandbox(): boolean {
-  return (
-    truthyEnv(process.env.IDENTITY_SANDBOX) ||
-    truthyEnv(process.env.SENTINEL_V1_SANDBOX)
-  );
+  return truthyEnv(process.env.IDENTITY_SANDBOX) || truthyEnv(process.env.SENTINEL_V1_SANDBOX);
 }
 
 function peerFailure(err: unknown, fallback: string): ChallengeActionResult {
@@ -78,14 +74,7 @@ export async function loginAction(
   const role = String(formData.get("role") ?? "") as PortalRole;
   const next = String(formData.get("next") ?? "");
 
-  const allowed: PortalRole[] = [
-    "customer",
-    "merchant",
-    "operator",
-    "supervisor",
-    "risk",
-    "admin",
-  ];
+  const allowed: PortalRole[] = ["customer", "merchant", "operator", "supervisor", "risk", "admin"];
   if (!allowed.includes(role)) {
     return { ok: false, message: "Unknown portal." };
   }
@@ -193,9 +182,7 @@ export async function inviteStaffAction(
 
 /** Switch active workspace assignment without signing out. */
 export async function switchWorkspaceAction(formData: FormData): Promise<void> {
-  const result = await switchActiveAssignment(
-    String(formData.get("assignment_id") ?? ""),
-  );
+  const result = await switchActiveAssignment(String(formData.get("assignment_id") ?? ""));
   if (!result.ok) {
     redirect("/unauthorized");
   }
@@ -219,15 +206,12 @@ export async function forgotPasswordAction(
     const client = getIdentityClient();
     const result = await client.forgotPassword(email);
     const token = process.env.IDENTITY_SANDBOX_TOKEN ?? "";
-    const sandbox_code = await resolveSandboxCode(
-      result.sandbox_code,
-      async () => {
-        if (!token) {
-          throw new Error("no sandbox token");
-        }
-        return client.sandboxPasswordResetCode(email, token);
-      },
-    );
+    const sandbox_code = await resolveSandboxCode(result.sandbox_code, async () => {
+      if (!token) {
+        throw new Error("no sandbox token");
+      }
+      return client.sandboxPasswordResetCode(email, token);
+    });
     return {
       ok: true,
       message: FORGOT_GENERIC,
@@ -324,9 +308,7 @@ export async function confirmVerifyAction(
       return {
         ok: false,
         message:
-          err.code === "UNAUTHORIZED"
-            ? SESSION_REQUIRED
-            : "Invalid or expired verification code.",
+          err.code === "UNAUTHORIZED" ? SESSION_REQUIRED : "Invalid or expired verification code.",
       };
     }
     return peerFailure(err, "Could not confirm verification.");
@@ -376,10 +358,7 @@ export async function mfaVerifyAction(
     if (err instanceof PeerError && err.httpStatus && err.httpStatus < 500) {
       return {
         ok: false,
-        message:
-          err.code === "UNAUTHORIZED"
-            ? SESSION_REQUIRED
-            : "Invalid or expired MFA code.",
+        message: err.code === "UNAUTHORIZED" ? SESSION_REQUIRED : "Invalid or expired MFA code.",
       };
     }
     return peerFailure(err, "Could not verify MFA.");

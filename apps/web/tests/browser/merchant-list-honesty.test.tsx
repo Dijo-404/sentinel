@@ -9,46 +9,34 @@ import CustomerTransactionsPage from "@/app/customer/(protected)/transactions/pa
 describe("transaction / refund list honesty — no hardcoded product rows", () => {
   it("merchant transactions always fail closed — no synthetic rows", () => {
     render(
-      <ShellProvider
-        config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}
-      >
+      <ShellProvider config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}>
         <MerchantTransactionsPage />
       </ShellProvider>,
     );
 
-    expect(screen.getByTestId("state-error")).toHaveTextContent(
-      "Transactions unavailable",
-    );
+    expect(screen.getByTestId("state-error")).toHaveTextContent("Transactions unavailable");
     expect(screen.queryByText("txn-…2001")).not.toBeInTheDocument();
   });
 
   it("merchant refunds always fail closed — no synthetic rows", () => {
     render(
-      <ShellProvider
-        config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "real-peers" })}
-      >
+      <ShellProvider config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "real-peers" })}>
         <MerchantRefundsPage />
       </ShellProvider>,
     );
 
-    expect(screen.getByTestId("state-error")).toHaveTextContent(
-      "Refund list unavailable",
-    );
+    expect(screen.getByTestId("state-error")).toHaveTextContent("Refund list unavailable");
     expect(screen.queryByText("refund-req-demo-1")).not.toBeInTheDocument();
   });
 
   it("customer transactions always fail closed — no synthetic rows", () => {
     render(
-      <ShellProvider
-        config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}
-      >
+      <ShellProvider config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}>
         <CustomerTransactionsPage />
       </ShellProvider>,
     );
 
-    expect(screen.getByTestId("state-error")).toHaveTextContent(
-      "Transactions unavailable",
-    );
+    expect(screen.getByTestId("state-error")).toHaveTextContent("Transactions unavailable");
     expect(screen.queryByText("txn-…1001")).not.toBeInTheDocument();
   });
 });

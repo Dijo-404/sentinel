@@ -38,12 +38,7 @@ const sessionStub = {
 
 describe("operator dashboard overview", () => {
   it("renders operator-dashboard with KPIs from projection, fixture banner, and chart", async () => {
-    render(
-      <OperatorOverview
-        session={sessionStub}
-        caseClient={createCaseApiStub("valid")}
-      />,
-    );
+    render(<OperatorOverview session={sessionStub} caseClient={createCaseApiStub("valid")} />);
 
     expect(await screen.findByTestId("operator-dashboard")).toBeInTheDocument();
     expect(await screen.findByTestId("operator-kpi-row")).toBeInTheDocument();
@@ -56,9 +51,10 @@ describe("operator dashboard overview", () => {
     expect(screen.getByText("Interventions")).toBeInTheDocument();
     expect(screen.getByTestId("chart-card")).toBeInTheDocument();
     expect(screen.getByTestId("operator-status-chart")).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: /open full queue/i }),
-    ).toHaveAttribute("href", "/operator/queue");
+    expect(screen.getByRole("link", { name: /open full queue/i })).toHaveAttribute(
+      "href",
+      "/operator/queue",
+    );
     expect(screen.queryByTestId("approval-slot")).not.toBeInTheDocument();
   });
 
@@ -86,16 +82,10 @@ describe("operator dashboard overview", () => {
       />,
     );
 
-    expect(await screen.findByTestId("state-empty")).toHaveTextContent(
-      "Metrics unavailable",
-    );
-    expect(screen.getByTestId("state-empty")).toHaveTextContent(
-      "PEER_UNAVAILABLE",
-    );
+    expect(await screen.findByTestId("state-empty")).toHaveTextContent("Metrics unavailable");
+    expect(screen.getByTestId("state-empty")).toHaveTextContent("PEER_UNAVAILABLE");
     expect(screen.queryByTestId("operator-kpi-row")).not.toBeInTheDocument();
-    expect(
-      screen.queryByTestId("operator-status-chart"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId("operator-status-chart")).not.toBeInTheDocument();
   });
 
   it("real-peers peer failure shows unavailable — no silent fixture fill", async () => {
@@ -107,33 +97,19 @@ describe("operator dashboard overview", () => {
       />,
     );
 
-    expect(await screen.findByTestId("state-empty")).toHaveTextContent(
-      "Metrics unavailable",
-    );
-    expect(screen.getByTestId("state-empty")).toHaveTextContent(
-      "PEER_UNAVAILABLE",
-    );
+    expect(await screen.findByTestId("state-empty")).toHaveTextContent("Metrics unavailable");
+    expect(screen.getByTestId("state-empty")).toHaveTextContent("PEER_UNAVAILABLE");
     expect(screen.queryByTestId("fixture-banner")).not.toBeInTheDocument();
     expect(screen.queryByTestId("operator-kpi-row")).not.toBeInTheDocument();
-    expect(
-      screen.queryByTestId("operator-status-chart"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId("operator-status-chart")).not.toBeInTheDocument();
   });
 
   it("missing dashboard method shows unavailable — never listOpsCases KPIs", async () => {
     const client = createCaseApiStub("valid");
     delete client.getOperatorDashboard;
-    render(
-      <OperatorOverview
-        session={sessionStub}
-        caseClient={client}
-        mode="real-peers"
-      />,
-    );
+    render(<OperatorOverview session={sessionStub} caseClient={client} mode="real-peers" />);
 
-    expect(await screen.findByTestId("state-empty")).toHaveTextContent(
-      "Metrics unavailable",
-    );
+    expect(await screen.findByTestId("state-empty")).toHaveTextContent("Metrics unavailable");
     expect(screen.getByTestId("state-empty")).toHaveTextContent(
       "Operator dashboard port not available",
     );
@@ -149,19 +125,11 @@ describe("operator dashboard overview", () => {
       waiting_approval: 0,
       open_total: 0,
     });
-    render(
-      <OperatorOverview
-        session={sessionStub}
-        caseClient={empty}
-        mode="real-peers"
-      />,
-    );
+    render(<OperatorOverview session={sessionStub} caseClient={empty} mode="real-peers" />);
 
     expect(await screen.findByTestId("operator-kpi-row")).toBeInTheDocument();
     expect(screen.queryByTestId("fixture-banner")).not.toBeInTheDocument();
-    expect(
-      screen.getByText("Case status (scoped projection)"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Case status (scoped projection)")).toBeInTheDocument();
     const open = screen.getByText("Open").closest("[data-testid=stat-block]");
     expect(open).toHaveTextContent("0");
     expect(open).toHaveTextContent("Scoped projection");
@@ -171,13 +139,9 @@ describe("operator dashboard overview", () => {
 describe("operator queue wire", () => {
   it("renders queue without approval-slot and links timeline to operator case route", async () => {
     render(<OperatorQueue caseClient={createCaseApiStub("valid")} />);
-    expect(
-      await screen.findByRole("table", { name: "Operator cases" }),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("table", { name: "Operator cases" })).toBeInTheDocument();
     expect(screen.queryByTestId("approval-slot")).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: /approve|reject/i }),
-    ).toBeNull();
+    expect(screen.queryByRole("button", { name: /approve|reject/i })).toBeNull();
     const timeline = screen.getByTestId("timeline-link-case-demo-42");
     expect(timeline).toHaveAttribute("href", "/operator/cases/case-demo-42");
     expect(timeline.getAttribute("href")).not.toMatch(/^\/cases\//);

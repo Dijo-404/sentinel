@@ -1,6 +1,7 @@
 # SN-006 changelog
 
 ## Unreleased
+
 - Refuse non-loopback HTTP bind while demo/sandbox bearer tokens remain configured.
 
 ### Fixed — cross-service order identity

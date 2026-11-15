@@ -19,13 +19,8 @@ const initial: MarkReadActionResult | null = null;
  * Real-peer failure stays visible — never “Not available yet”.
  */
 export function NotificationsPanel({ notifications, error }: Props) {
-  const [rows, setRows] = useState<IdentityNotification[]>(
-    notifications ?? [],
-  );
-  const [state, action, pending] = useActionState(
-    markNotificationReadAction,
-    initial,
-  );
+  const [rows, setRows] = useState<IdentityNotification[]>(notifications ?? []);
+  const [state, action, pending] = useActionState(markNotificationReadAction, initial);
 
   useEffect(() => {
     setRows(notifications ?? []);
@@ -35,17 +30,14 @@ export function NotificationsPanel({ notifications, error }: Props) {
     if (!state || !state.ok) return;
     setRows((prev) =>
       prev.map((n) =>
-        n.notification_id === state.notification_id
-          ? { ...n, read_at: state.read_at }
-          : n,
+        n.notification_id === state.notification_id ? { ...n, read_at: state.read_at } : n,
       ),
     );
   }, [state]);
 
   const loadPeerError = Boolean(error);
   const actionPeerError = Boolean(state && !state.ok && state.peerError);
-  const softError =
-    state && !state.ok && !state.peerError ? state.message : null;
+  const softError = state && !state.ok && !state.peerError ? state.message : null;
   const peerMessage = loadPeerError
     ? error!.message
     : state && !state.ok && state.peerError
@@ -56,12 +48,7 @@ export function NotificationsPanel({ notifications, error }: Props) {
     return (
       <div className="panel stack" data-testid="customer-notifications">
         <h1>Notifications</h1>
-        <div
-          className="state-banner"
-          data-tone="error"
-          data-testid="peer-error"
-          role="alert"
-        >
+        <div className="state-banner" data-tone="error" data-testid="peer-error" role="alert">
           <strong>Identity unavailable</strong>
           <p className="muted" style={{ margin: "0.35rem 0 0" }}>
             {peerMessage}
@@ -79,12 +66,7 @@ export function NotificationsPanel({ notifications, error }: Props) {
       </p>
 
       {actionPeerError ? (
-        <div
-          className="state-banner"
-          data-tone="error"
-          data-testid="peer-error"
-          role="alert"
-        >
+        <div className="state-banner" data-tone="error" data-testid="peer-error" role="alert">
           <strong>Identity unavailable</strong>
           <p className="muted" style={{ margin: "0.35rem 0 0" }}>
             {peerMessage}
@@ -104,12 +86,7 @@ export function NotificationsPanel({ notifications, error }: Props) {
       ) : null}
 
       {rows.length === 0 ? (
-        <div
-          className="state-banner"
-          data-tone="empty"
-          data-testid="state-empty"
-          role="status"
-        >
+        <div className="state-banner" data-tone="empty" data-testid="state-empty" role="status">
           <strong>No notifications</strong>
           <p className="muted" style={{ margin: "0.35rem 0 0" }}>
             Your inbox is empty.
@@ -134,11 +111,7 @@ export function NotificationsPanel({ notifications, error }: Props) {
                 </p>
               ) : (
                 <form action={action}>
-                  <input
-                    type="hidden"
-                    name="notification_id"
-                    value={n.notification_id}
-                  />
+                  <input type="hidden" name="notification_id" value={n.notification_id} />
                   <button
                     type="submit"
                     disabled={pending}

@@ -37,13 +37,19 @@ CLEAN_CHECKOUT_DEMO: tuple[ProcedureStep, ...] = (
     ProcedureStep(
         id="negative_manifests",
         title="Confirm negative manifests block release",
-        command="sentinel-release-mvp verify --manifest contracts/manifests/negative-fixture-only.json --strict-release",
+        command=(
+            "sentinel-release-mvp verify "
+            "--manifest contracts/manifests/negative-fixture-only.json --strict-release"
+        ),
         expected="Exit nonzero; reason FIXTURE_ONLY_NOT_RELEASE_PROOF",
     ),
     ProcedureStep(
         id="owner_assembly",
         title="Owner-run assembly against real component versions",
-        command="sentinel-release-mvp verify --manifest <owner-manifest.json> --strict-release --artifact-root <artifacts>",
+        command=(
+            "sentinel-release-mvp verify --manifest <owner-manifest.json> "
+            "--strict-release --artifact-root <artifacts>"
+        ),
         expected="Separate owner decision; kit does not claim product shipped",
     ),
 )

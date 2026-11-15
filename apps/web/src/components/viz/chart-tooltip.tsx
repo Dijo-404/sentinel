@@ -15,10 +15,7 @@ export function ChartTooltip({ active, label, payload, format }: Props) {
       <p className="chart-tooltip__label">{label}</p>
       {payload.map((p) => (
         <p key={String(p.name)} className="chart-tooltip__row">
-          <span
-            className="chart-tooltip__swatch"
-            style={{ background: p.color }}
-          />
+          <span className="chart-tooltip__swatch" style={{ background: p.color }} />
           <span>{p.name}</span>
           <strong className="tnum">
             {format && typeof p.value === "number" ? format(p.value) : p.value}

@@ -35,16 +35,16 @@ Synthetic tokens are in `contracts/principals.json`. Example merchant operator b
 
 ## Routes
 
-| Method | Path | Auth | Notes |
-| --- | --- | --- | --- |
-| GET | `/healthz` | none | liveness |
-| GET | `/readyz` | none | labels `mode` |
-| GET | `/v1/capabilities` | none | `contract_version`, `component=merchant-inbox`, `mode` |
-| GET | `/v1/exceptions?merchant_ref=&kind=&status=` | merchant operator/supervisor | list/filter |
-| GET | `/v1/exceptions/{item_id}` | merchant operator/supervisor | enriches case-linked items via peers |
-| POST | `/v1/exceptions/{item_id}/assign` | merchant operator/supervisor | `{ assignee }` → `ASSIGNED` |
-| POST | `/v1/exceptions/{item_id}/notes` | merchant operator/supervisor | `{ note }` |
-| POST | `/v1/exceptions/{item_id}/escalate` | merchant operator/supervisor | `{ reason_code, owner_queue? }` → `ESCALATED`, `resolved=false` |
+| Method | Path                                         | Auth                         | Notes                                                           |
+| ------ | -------------------------------------------- | ---------------------------- | --------------------------------------------------------------- |
+| GET    | `/healthz`                                   | none                         | liveness                                                        |
+| GET    | `/readyz`                                    | none                         | labels `mode`                                                   |
+| GET    | `/v1/capabilities`                           | none                         | `contract_version`, `component=merchant-inbox`, `mode`          |
+| GET    | `/v1/exceptions?merchant_ref=&kind=&status=` | merchant operator/supervisor | list/filter                                                     |
+| GET    | `/v1/exceptions/{item_id}`                   | merchant operator/supervisor | enriches case-linked items via peers                            |
+| POST   | `/v1/exceptions/{item_id}/assign`            | merchant operator/supervisor | `{ assignee }` → `ASSIGNED`                                     |
+| POST   | `/v1/exceptions/{item_id}/notes`             | merchant operator/supervisor | `{ note }`                                                      |
+| POST   | `/v1/exceptions/{item_id}/escalate`          | merchant operator/supervisor | `{ reason_code, owner_queue? }` → `ESCALATED`, `resolved=false` |
 
 ## Layout
 

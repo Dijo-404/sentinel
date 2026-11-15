@@ -19,9 +19,7 @@ export const FIXTURE_OPS_TEAM: OpsTeamMember[] = [
 
 export type OpsTeamStub = "valid" | "unavailable" | "empty";
 
-export function createOpsTeamStub(
-  scenario: OpsTeamStub = "valid",
-): OpsTeamClient {
+export function createOpsTeamStub(scenario: OpsTeamStub = "valid"): OpsTeamClient {
   if (scenario === "unavailable") {
     return {
       async listOpsTeam() {

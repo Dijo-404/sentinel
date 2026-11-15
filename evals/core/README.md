@@ -36,10 +36,10 @@ make -C evals/core preview-http
 make -C evals/core seed   # requires EVALUATION_DATABASE_URL; one synthetic RunReport
 ```
 
-| Method | Path | Roles | Response |
-| --- | --- | --- | --- |
-| `GET` | `/v1/reports` | platform_admin, sandbox-admin | `{ reports: [RunReport, ...] }` |
-| `GET` | `/v1/reports/{run_id}` | platform_admin, sandbox-admin | `RunReport` |
+| Method | Path                   | Roles                         | Response                        |
+| ------ | ---------------------- | ----------------------------- | ------------------------------- |
+| `GET`  | `/v1/reports`          | platform_admin, sandbox-admin | `{ reports: [RunReport, ...] }` |
+| `GET`  | `/v1/reports/{run_id}` | platform_admin, sandbox-admin | `RunReport`                     |
 
 Also: `/healthz`, `/readyz`, `/v1/capabilities` (`component: evaluation`, `money_authority: false`).
 
@@ -62,14 +62,14 @@ evals/core/
 
 ## Local candidates
 
-| Name | Behavior |
-| --- | --- |
-| `conforming` | Matches expected outcomes without safety violations |
-| `unauthorized` | Emits unauthorized action; critical safety FAIL overrides quality |
-| `over_refund` | Refunds above eligible minor units |
-| `cross_tenant` | Accesses foreign tenant id |
-| `duplicate_effect` | More than one refund side effect |
-| `false_credit` | Claims credit confirmed without credit evidence |
+| Name               | Behavior                                                          |
+| ------------------ | ----------------------------------------------------------------- |
+| `conforming`       | Matches expected outcomes without safety violations               |
+| `unauthorized`     | Emits unauthorized action; critical safety FAIL overrides quality |
+| `over_refund`      | Refunds above eligible minor units                                |
+| `cross_tenant`     | Accesses foreign tenant id                                        |
+| `duplicate_effect` | More than one refund side effect                                  |
+| `false_credit`     | Claims credit confirmed without credit evidence                   |
 
 ## Reports
 

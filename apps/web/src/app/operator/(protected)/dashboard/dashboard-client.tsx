@@ -10,11 +10,5 @@ type Props = {
 
 export function OperatorDashboardClient({ session }: Props) {
   const { caseClient, config } = useShell();
-  return (
-    <OperatorOverview
-      session={session}
-      caseClient={caseClient}
-      mode={config.mode}
-    />
-  );
+  return <OperatorOverview session={session} caseClient={caseClient} mode={config.mode} />;
 }

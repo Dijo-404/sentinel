@@ -8,11 +8,11 @@ Contract: `sentinel.task-contracts.v1`, SHA-256 `0db3ba2bba994f10d3060bc71730353
 
 ## Honest labeling
 
-| Field | Value |
-| --- | --- |
-| `GET /v1/capabilities` `mode` | `fixture` or `real-peers` via `SIMULATOR_MODE` |
-| `GET /readyz` `payment_provider` | always `simulator` |
-| `GET /readyz` `evidence_mode` | always `fixture` (synthetic) |
+| Field                            | Value                                          |
+| -------------------------------- | ---------------------------------------------- |
+| `GET /v1/capabilities` `mode`    | `fixture` or `real-peers` via `SIMULATOR_MODE` |
+| `GET /readyz` `payment_provider` | always `simulator`                             |
+| `GET /readyz` `evidence_mode`    | always `fixture` (synthetic)                   |
 
 `SIMULATOR_MODE=real-peers` lets the assembly probe treat this peer as wired. It does **not** mean live rails. Never claim `live` / Paytm production.
 
@@ -35,18 +35,18 @@ make -C services/simulator check
 
 Dispatcher, evidence, and verifier talk to this HTTP surface. A future Paytm adapter must implement the same routes/semantics without rewriting ledger or dispatcher rules.
 
-| Method / route | Roles | Notes |
-| --- | --- | --- |
-| `GET /healthz`, `GET /readyz` | none | Ready labels `payment_provider=simulator`, `evidence_mode=fixture` |
-| `GET /v1/capabilities` | none | `mode: fixture\|real-peers`, component `sentinel-simulator` |
-| `GET /v1/transactions?order_reference=` | workflow, verifier, sandbox-admin | Txn status → `{ payments: Payment[] }` |
-| `GET /v1/orders/{order_reference}` | workflow, verifier, sandbox-admin | `Order` |
-| `GET /v1/refunds?transaction_ref=` | workflow, verifier, sandbox-admin | `{ refunds: Refund[] }` |
-| `POST /v1/refunds` | dispatcher | Body `RefundRequest`; `Idempotency-Key` = `provider_ref`; `202` |
-| `GET /v1/refunds/{provider_ref}` | dispatcher, verifier, workflow | Refund status; `404` ≠ write failed |
-| `GET /v1/credits/{provider_ref}` | verifier, workflow | Credit evidence |
-| `GET /v1/settlements/{provider_ref}` | verifier, workflow | Settlement evidence (alias of credits) |
-| `POST /v1/admin/webhooks/emit` | sandbox-admin | Signed webhook envelope for verifier |
+| Method / route                          | Roles                             | Notes                                                              |
+| --------------------------------------- | --------------------------------- | ------------------------------------------------------------------ |
+| `GET /healthz`, `GET /readyz`           | none                              | Ready labels `payment_provider=simulator`, `evidence_mode=fixture` |
+| `GET /v1/capabilities`                  | none                              | `mode: fixture\|real-peers`, component `sentinel-simulator`        |
+| `GET /v1/transactions?order_reference=` | workflow, verifier, sandbox-admin | Txn status → `{ payments: Payment[] }`                             |
+| `GET /v1/orders/{order_reference}`      | workflow, verifier, sandbox-admin | `Order`                                                            |
+| `GET /v1/refunds?transaction_ref=`      | workflow, verifier, sandbox-admin | `{ refunds: Refund[] }`                                            |
+| `POST /v1/refunds`                      | dispatcher                        | Body `RefundRequest`; `Idempotency-Key` = `provider_ref`; `202`    |
+| `GET /v1/refunds/{provider_ref}`        | dispatcher, verifier, workflow    | Refund status; `404` ≠ write failed                                |
+| `GET /v1/credits/{provider_ref}`        | verifier, workflow                | Credit evidence                                                    |
+| `GET /v1/settlements/{provider_ref}`    | verifier, workflow                | Settlement evidence (alias of credits)                             |
+| `POST /v1/admin/webhooks/emit`          | sandbox-admin                     | Signed webhook envelope for verifier                               |
 
 Opaque demo tokens (see [.env.example](.env.example) and `integration/core/docs/sandbox-matrix.md`): `tok-workflow`, `tok-verifier`, `tok-dispatcher`, `tok-sandbox-admin` (legacy `*-demo` aliases still accepted). Default tenant: `tenant-demo`.
 
@@ -54,12 +54,12 @@ Opaque demo tokens (see [.env.example](.env.example) and `integration/core/docs/
 
 Startup loads all four packs (₹1500 = `150000` INR minor units):
 
-| Pack | Order | Shape |
-| --- | --- | --- |
-| `pending` | `JOURNEY-PENDING` | Payment `PENDING`, order unpaid |
-| `merchant_mismatch` | `JOURNEY-MISMATCH` | Payment `CAPTURED`, order `paid=false` |
-| `duplicate_payment` | `DEMO-ORDER-42` | Two `CAPTURED` `TXN-A`/`TXN-B` @ 150000; merchant duplicate confirmed |
-| `refund_pending` | `JOURNEY-REFUND-PENDING` | Captured payment + seeded refund `refund-pending-1` `PENDING` |
+| Pack                | Order                    | Shape                                                                 |
+| ------------------- | ------------------------ | --------------------------------------------------------------------- |
+| `pending`           | `JOURNEY-PENDING`        | Payment `PENDING`, order unpaid                                       |
+| `merchant_mismatch` | `JOURNEY-MISMATCH`       | Payment `CAPTURED`, order `paid=false`                                |
+| `duplicate_payment` | `DEMO-ORDER-42`          | Two `CAPTURED` `TXN-A`/`TXN-B` @ 150000; merchant duplicate confirmed |
+| `refund_pending`    | `JOURNEY-REFUND-PENDING` | Captured payment + seeded refund `refund-pending-1` `PENDING`         |
 
 ```sh
 # Against a running preview (:8094)
@@ -74,11 +74,11 @@ curl -X POST -H "Authorization: Bearer tok-sandbox-admin" \
 
 ## Fault schedules
 
-| Schedule | Effect |
-| --- | --- |
+| Schedule               | Effect                                                                                    |
+| ---------------------- | ----------------------------------------------------------------------------------------- |
 | `timeout-after-accept` | Refund side effect persists; response `504`; recover via `GET /v1/refunds/{provider_ref}` |
-| `duplicate-webhook` | Confirmation emits two refund status events (`duplicate_events`) |
-| `out-of-order` | Credit-looking event before refund confirmation; credit state still absent |
+| `duplicate-webhook`    | Confirmation emits two refund status events (`duplicate_events`)                          |
+| `out-of-order`         | Credit-looking event before refund confirmation; credit state still absent                |
 
 ```sh
 uv run --frozen sentinel-simulator fault timeout-after-accept
@@ -108,10 +108,10 @@ curl -X POST -H "Authorization: Bearer tok-sandbox-admin" \
 
 Set the same secret on simulator and verifier:
 
-| Env | Owner |
-| --- | --- |
-| `SIMULATOR_WEBHOOK_HMAC_KEY` | this module |
-| `VERIFIER_WEBHOOK_HMAC_KEY` | `services/verifier` |
+| Env                          | Owner               |
+| ---------------------------- | ------------------- |
+| `SIMULATOR_WEBHOOK_HMAC_KEY` | this module         |
+| `VERIFIER_WEBHOOK_HMAC_KEY`  | `services/verifier` |
 
 Signing: lowercase hex HMAC-SHA256 over **original JSON bytes** → header `X-Sentinel-Signature`. Demo default `demo-simulator-hmac-key` is synthetic only.
 
@@ -124,21 +124,20 @@ curl -X POST -H "Authorization: Bearer tok-sandbox-admin" \
 
 POST the returned `raw_body` + `headers.X-Sentinel-Signature` to verifier `POST /v1/webhooks/simulator`.
 
-
 ## Fault-control admin routes (`sandbox-admin`)
 
-| Method / route | Behavior |
-| --- | --- |
-| `GET/PUT /v1/admin/faults` | Schedule: `outage`, `delay_ms`, `timeout_after_accept`, `duplicate_events`, `out_of_order_credit` (+ aliases) |
-| `POST /v1/admin/faults/reset` | Clear all faults |
-| `POST /v1/admin/faults/schedules/{name}` | Named journey fault packs |
-| `POST /v1/admin/seeds/{pack}` | Replace store with one journey pack |
-| `POST /v1/admin/demo-reset` | Restore all packs; sandbox + `tenant-demo` only |
-| `POST /v1/admin/webhooks/emit` | Signed webhook envelope |
-| `GET /v1/admin/refunds/{provider_ref}/stats` | `accept_count`, `side_effect_count`, `timeout_count` |
-| `POST /v1/admin/refunds/{provider_ref}/confirm` | Set `PROVIDER_CONFIRMED` without credit |
-| `POST /v1/admin/credits/{provider_ref}/confirm` | Emit separate confirmed `Credit` |
-| `GET /v1/admin/events` | Inspect emitted `REFUND_STATUS` / `CREDIT_STATUS` events |
+| Method / route                                  | Behavior                                                                                                      |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `GET/PUT /v1/admin/faults`                      | Schedule: `outage`, `delay_ms`, `timeout_after_accept`, `duplicate_events`, `out_of_order_credit` (+ aliases) |
+| `POST /v1/admin/faults/reset`                   | Clear all faults                                                                                              |
+| `POST /v1/admin/faults/schedules/{name}`        | Named journey fault packs                                                                                     |
+| `POST /v1/admin/seeds/{pack}`                   | Replace store with one journey pack                                                                           |
+| `POST /v1/admin/demo-reset`                     | Restore all packs; sandbox + `tenant-demo` only                                                               |
+| `POST /v1/admin/webhooks/emit`                  | Signed webhook envelope                                                                                       |
+| `GET /v1/admin/refunds/{provider_ref}/stats`    | `accept_count`, `side_effect_count`, `timeout_count`                                                          |
+| `POST /v1/admin/refunds/{provider_ref}/confirm` | Set `PROVIDER_CONFIRMED` without credit                                                                       |
+| `POST /v1/admin/credits/{provider_ref}/confirm` | Emit separate confirmed `Credit`                                                                              |
+| `GET /v1/admin/events`                          | Inspect emitted `REFUND_STATUS` / `CREDIT_STATUS` events                                                      |
 
 ## Preview
 

@@ -32,18 +32,11 @@ export function OperatorQueue({ caseClient }: Props) {
         setPermission(null);
       }
       try {
-        const result = await caseClient.listOpsCases(
-          after ? { after } : undefined,
-        );
-        setCases((prev) =>
-          append ? [...prev, ...result.cases] : result.cases,
-        );
+        const result = await caseClient.listOpsCases(after ? { after } : undefined);
+        setCases((prev) => (append ? [...prev, ...result.cases] : result.cases));
         setNextCursor(result.next_cursor);
       } catch (err) {
-        if (
-          err instanceof PeerError &&
-          (err.httpStatus === 403 || err.code === "FORBIDDEN")
-        ) {
+        if (err instanceof PeerError && (err.httpStatus === 403 || err.code === "FORBIDDEN")) {
           setPermission(`${err.code}: ${err.message}`);
         } else if (err instanceof PeerError) {
           setError(`${err.code}: ${err.message}`);
@@ -63,31 +56,19 @@ export function OperatorQueue({ caseClient }: Props) {
     void loadPage();
   }, [loadPage]);
 
-  if (loading)
-    return <UiState tone="loading" title="Loading operator queue…" />;
+  if (loading) return <UiState tone="loading" title="Loading operator queue…" />;
   if (permission) {
-    return (
-      <UiState
-        tone="permission"
-        title="Permission denied"
-        detail={permission}
-      />
-    );
+    return <UiState tone="permission" title="Permission denied" detail={permission} />;
   }
-  if (error)
-    return <UiState tone="error" title="Queue unavailable" detail={error} />;
+  if (error) return <UiState tone="error" title="Queue unavailable" detail={error} />;
   if (cases.length === 0) {
-    return (
-      <UiState tone="empty" title="Queue empty" detail="No cases in scope." />
-    );
+    return <UiState tone="empty" title="Queue empty" detail="No cases in scope." />;
   }
 
   return (
     <div className="stack" data-testid="operator-queue-list">
       <h1>Operator queue</h1>
-      <p className="muted">
-        Tenant-scoped cases. Escalation is a handoff, not resolution.
-      </p>
+      <p className="muted">Tenant-scoped cases. Escalation is a handoff, not resolution.</p>
       <div className="panel" style={{ overflowX: "auto" }}>
         <table className="table" aria-label="Operator cases">
           <thead>
@@ -103,13 +84,8 @@ export function OperatorQueue({ caseClient }: Props) {
             {cases.map((c) => (
               <tr key={c.case_id}>
                 <td>
-                  <Link
-                    href={`/operator/cases/${encodeURIComponent(c.case_id)}`}
-                  >
-                    <MaskedRef
-                      label="case_id"
-                      masked={maskReference(c.case_id, "case-…")}
-                    />
+                  <Link href={`/operator/cases/${encodeURIComponent(c.case_id)}`}>
+                    <MaskedRef label="case_id" masked={maskReference(c.case_id, "case-…")} />
                   </Link>
                 </td>
                 <td>
@@ -118,9 +94,7 @@ export function OperatorQueue({ caseClient }: Props) {
                 <td>{c.intent}</td>
                 <td className="mono">{c.revision}</td>
                 <td>
-                  <Link
-                    href={`/operator/cases/${encodeURIComponent(c.case_id)}/evidence`}
-                  >
+                  <Link href={`/operator/cases/${encodeURIComponent(c.case_id)}/evidence`}>
                     Open evidence
                   </Link>
                   {" · "}

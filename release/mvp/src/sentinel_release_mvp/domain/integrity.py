@@ -8,9 +8,7 @@ from pathlib import Path
 
 from sentinel_release_mvp.contracts import CheckResult, ComponentEvidence
 
-_RFC3339_Z = re.compile(
-    r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$"
-)
+_RFC3339_Z = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$")
 
 
 def timestamp_ok(value: str) -> bool:

@@ -30,16 +30,10 @@ describe("wave6 money-path gates", () => {
         now={() => new Date("2026-11-13T12:00:00Z")}
       />,
     );
-    expect(
-      document.querySelector('[data-slot="approval-ui.v1-local"]'),
-    ).toBeNull();
+    expect(document.querySelector('[data-slot="approval-ui.v1-local"]')).toBeNull();
     expect(screen.queryByTestId("approval-slot")).not.toBeInTheDocument();
-    expect(
-      screen.queryByText(/local substitute/i),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: "Approval required" }),
-    ).toBeInTheDocument();
+    expect(screen.queryByText(/local substitute/i)).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Approval required" })).toBeInTheDocument();
   });
 
   it("voice enabled path fails closed on peer down (no fake transcript)", async () => {
@@ -56,9 +50,7 @@ describe("wave6 money-path gates", () => {
     );
     await user.click(screen.getByRole("checkbox"));
     await user.click(screen.getByRole("button", { name: "Transcribe" }));
-    expect(await screen.findByTestId("voice-slot-error")).toHaveTextContent(
-      "PEER_UNAVAILABLE",
-    );
+    expect(await screen.findByTestId("voice-slot-error")).toHaveTextContent("PEER_UNAVAILABLE");
     expect(screen.queryByTestId("voice-slot-result")).not.toBeInTheDocument();
   });
 });

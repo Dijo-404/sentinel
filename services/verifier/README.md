@@ -51,15 +51,15 @@ Evidence mode for `make check`: peers are local stubs; component-under-test is t
 
 ## Layout
 
-| Path | Role |
-| --- | --- |
-| `src/sentinel_verifier/domain/` | Signature, assessment rules, wire types |
-| `src/sentinel_verifier/application/` | `VerifierService` use cases and ports |
-| `src/sentinel_verifier/adapters/` | FastAPI, PostgreSQL store, HTTP peers, auth |
-| `tests/stubs/` | Provider, ledger, evidence, case-api doubles |
-| `contracts/` | `verifier.v1` snapshot and real-peer checklist |
-| `migrations/0001_verifier.sql` | Owned durable schema |
-| `fixtures/` | Demo webhook and verification request |
+| Path                                 | Role                                           |
+| ------------------------------------ | ---------------------------------------------- |
+| `src/sentinel_verifier/domain/`      | Signature, assessment rules, wire types        |
+| `src/sentinel_verifier/application/` | `VerifierService` use cases and ports          |
+| `src/sentinel_verifier/adapters/`    | FastAPI, PostgreSQL store, HTTP peers, auth    |
+| `tests/stubs/`                       | Provider, ledger, evidence, case-api doubles   |
+| `contracts/`                         | `verifier.v1` snapshot and real-peer checklist |
+| `migrations/0001_verifier.sql`       | Owned durable schema                           |
+| `fixtures/`                          | Demo webhook and verification request          |
 
 ## CLI / preview
 

@@ -43,9 +43,7 @@ describe("BFF admin peer proxies", () => {
   function mockSession() {
     vi.mocked(cookies).mockResolvedValue({
       get: (name: string) =>
-        name === SESSION_COOKIE
-          ? { name: SESSION_COOKIE, value: "sess-admin" }
-          : undefined,
+        name === SESSION_COOKIE ? { name: SESSION_COOKIE, value: "sess-admin" } : undefined,
     } as Awaited<ReturnType<typeof cookies>>);
   }
 
@@ -64,17 +62,14 @@ describe("BFF admin peer proxies", () => {
       }),
     );
 
-    const res = await evalsGet(
-      new NextRequest("http://localhost/api/bff/evals/v1/reports"),
-      { params: Promise.resolve({ path: ["v1", "reports"] }) },
-    );
+    const res = await evalsGet(new NextRequest("http://localhost/api/bff/evals/v1/reports"), {
+      params: Promise.resolve({ path: ["v1", "reports"] }),
+    });
 
     expect(res.status).toBe(200);
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(url).toBe("http://evals.test/v1/reports");
-    expect(new Headers(init.headers).get("Authorization")).toBe(
-      "Bearer sess-admin",
-    );
+    expect(new Headers(init.headers).get("Authorization")).toBe("Bearer sess-admin");
   });
 
   it("observability GET /v1/signals forwards session bearer", async () => {
@@ -94,9 +89,7 @@ describe("BFF admin peer proxies", () => {
     expect(res.status).toBe(200);
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(url).toBe("http://observability.test/v1/signals");
-    expect(new Headers(init.headers).get("Authorization")).toBe(
-      "Bearer sess-admin",
-    );
+    expect(new Headers(init.headers).get("Authorization")).toBe("Bearer sess-admin");
   });
 
   it("platform-ai GET /v1/config forwards session bearer", async () => {
@@ -116,9 +109,7 @@ describe("BFF admin peer proxies", () => {
     expect(res.status).toBe(200);
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(url).toBe("http://platform-ai.test/v1/config");
-    expect(new Headers(init.headers).get("Authorization")).toBe(
-      "Bearer sess-admin",
-    );
+    expect(new Headers(init.headers).get("Authorization")).toBe("Bearer sess-admin");
   });
 
   it("policy GET /v1/policies forwards session bearer", async () => {
@@ -130,17 +121,14 @@ describe("BFF admin peer proxies", () => {
       }),
     );
 
-    const res = await policyGet(
-      new NextRequest("http://localhost/api/bff/policy/v1/policies"),
-      { params: Promise.resolve({ path: ["v1", "policies"] }) },
-    );
+    const res = await policyGet(new NextRequest("http://localhost/api/bff/policy/v1/policies"), {
+      params: Promise.resolve({ path: ["v1", "policies"] }),
+    });
 
     expect(res.status).toBe(200);
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(url).toBe("http://policy.test/v1/policies");
-    expect(new Headers(init.headers).get("Authorization")).toBe(
-      "Bearer sess-admin",
-    );
+    expect(new Headers(init.headers).get("Authorization")).toBe("Bearer sess-admin");
   });
 
   it("identity admin path passthrough (GET /v1/admin/tenants)", async () => {
@@ -158,9 +146,7 @@ describe("BFF admin peer proxies", () => {
     );
 
     expect(res.status).toBe(200);
-    expect(String(fetchMock.mock.calls[0]![0])).toBe(
-      "http://identity.test/v1/admin/tenants",
-    );
+    expect(String(fetchMock.mock.calls[0]![0])).toBe("http://identity.test/v1/admin/tenants");
   });
 
   it("merchant-teams admin merchants passthrough", async () => {
@@ -173,9 +159,7 @@ describe("BFF admin peer proxies", () => {
     );
 
     const res = await merchantTeamsGet(
-      new NextRequest(
-        "http://localhost/api/bff/merchant-teams/v1/admin/merchants",
-      ),
+      new NextRequest("http://localhost/api/bff/merchant-teams/v1/admin/merchants"),
       { params: Promise.resolve({ path: ["v1", "admin", "merchants"] }) },
     );
 
@@ -190,16 +174,13 @@ describe("BFF admin peer proxies", () => {
     ["observability", observabilityGet, ["v1", "signals"]],
     ["platform-ai", platformAiGet, ["v1", "config"]],
     ["policy", policyGet, ["v1", "policies"]],
-  ] as const)(
-    "%s missing session returns 401 — no peer call",
-    async (_label, handler, path) => {
-      mockUnauth();
-      const res = await handler(
-        new NextRequest(`http://localhost/api/bff/${_label}/${path.join("/")}`),
-        { params: Promise.resolve({ path: [...path] }) },
-      );
-      expect(res.status).toBe(401);
-      expect(fetchMock).not.toHaveBeenCalled();
-    },
-  );
+  ] as const)("%s missing session returns 401 — no peer call", async (_label, handler, path) => {
+    mockUnauth();
+    const res = await handler(
+      new NextRequest(`http://localhost/api/bff/${_label}/${path.join("/")}`),
+      { params: Promise.resolve({ path: [...path] }) },
+    );
+    expect(res.status).toBe(401);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
 });

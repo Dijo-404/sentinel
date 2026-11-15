@@ -11,12 +11,7 @@ describe("ApprovalSlot mode selection", () => {
     expect(ok.status).toBe("ok");
     if (ok.status !== "ok") return;
     render(
-      <ApprovalSlot
-        state="ready"
-        props={ok.props}
-        mode="fixture"
-        reviewerId="supervisor-demo-1"
-      />,
+      <ApprovalSlot state="ready" props={ok.props} mode="fixture" reviewerId="supervisor-demo-1" />,
     );
     expect(screen.getByTestId("approval-slot")).toHaveAttribute(
       "data-slot",
@@ -39,16 +34,10 @@ describe("ApprovalSlot mode selection", () => {
       />,
     );
     expect(screen.queryByTestId("approval-slot")).not.toBeInTheDocument();
-    expect(
-      screen.queryByText(/local substitute/i),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: "Approval required" }),
-    ).toBeInTheDocument();
+    expect(screen.queryByText(/local substitute/i)).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Approval required" })).toBeInTheDocument();
     expect(screen.getByTestId("approve")).toBeInTheDocument();
-    expect(screen.getByTestId("decision-expires-at")).toHaveTextContent(
-      "2026-12-31T23:59:59Z",
-    );
+    expect(screen.getByTestId("decision-expires-at")).toHaveTextContent("2026-12-31T23:59:59Z");
   });
 
   it("ShellProvider real-peers supplies mode when ApprovalSlot omits prop", () => {
@@ -62,27 +51,18 @@ describe("ApprovalSlot mode selection", () => {
           CASE_API_BASE_URL: "http://127.0.0.1:9",
         })}
       >
-        <ApprovalSlot
-          state="ready"
-          props={ok.props}
-          now={() => new Date("2026-11-13T12:00:00Z")}
-        />
+        <ApprovalSlot state="ready" props={ok.props} now={() => new Date("2026-11-13T12:00:00Z")} />
       </ShellProvider>,
     );
     expect(screen.queryByTestId("approval-slot")).not.toBeInTheDocument();
-    expect(
-      screen.queryByText(/local substitute/i),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: "Approval required" }),
-    ).toBeInTheDocument();
+    expect(screen.queryByText(/local substitute/i)).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Approval required" })).toBeInTheDocument();
   });
 
   it("real-peers decide stays on injected case-api decide (BFF path)", async () => {
     const decide = vi.fn(async () => ({
       approval_id: "approval-demo-1",
-      action_digest:
-        "d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993",
+      action_digest: "d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993",
       case_revision: 1,
       policy_version: "demo-policy-v1",
       decision: "APPROVE" as const,

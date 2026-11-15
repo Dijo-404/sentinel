@@ -9,15 +9,8 @@ import { PeerError } from "@/domain/types";
 
 describe("supervisor approvals", () => {
   it("queue lists waiting cases and links to decision workspace", async () => {
-    render(
-      <SupervisorApprovalsQueue
-        caseClient={createCaseApiStub("valid")}
-        mode="fixture"
-      />,
-    );
-    expect(
-      await screen.findByTestId("supervisor-approvals"),
-    ).toBeInTheDocument();
+    render(<SupervisorApprovalsQueue caseClient={createCaseApiStub("valid")} mode="fixture" />);
+    expect(await screen.findByTestId("supervisor-approvals")).toBeInTheDocument();
     expect(screen.getByTestId("open-approval-action-demo-1")).toHaveAttribute(
       "href",
       "/supervisor/approvals/action-demo-1",
@@ -29,9 +22,7 @@ describe("supervisor approvals", () => {
     const empty = createCaseApiStub("valid");
     empty.listOpsCases = async () => ({ cases: [] });
     render(<SupervisorApprovalsQueue caseClient={empty} mode="fixture" />);
-    expect(await screen.findByTestId("state-empty")).toHaveTextContent(
-      "Queue empty",
-    );
+    expect(await screen.findByTestId("state-empty")).toHaveTextContent("Queue empty");
 
     render(
       <SupervisorApprovalsQueue
@@ -39,9 +30,7 @@ describe("supervisor approvals", () => {
         mode="fixture"
       />,
     );
-    expect(await screen.findByTestId("state-permission")).toHaveTextContent(
-      "Permission denied",
-    );
+    expect(await screen.findByTestId("state-permission")).toHaveTextContent("Permission denied");
   });
 
   it("decision workspace embeds local substitute and posts exact decide payload", async () => {
@@ -53,17 +42,11 @@ describe("supervisor approvals", () => {
     client.decide = decide;
 
     render(
-      <SupervisorDecisionWorkspace
-        actionId="action-demo-1"
-        caseClient={client}
-        mode="fixture"
-      />,
+      <SupervisorDecisionWorkspace actionId="action-demo-1" caseClient={client} mode="fixture" />,
     );
 
     await waitFor(() => {
-      expect(
-        screen.getByTestId("supervisor-decision-workspace"),
-      ).toBeInTheDocument();
+      expect(screen.getByTestId("supervisor-decision-workspace")).toBeInTheDocument();
     });
     expect(screen.getByTestId("approval-slot")).toHaveAttribute(
       "data-slot",
@@ -74,24 +57,21 @@ describe("supervisor approvals", () => {
     );
     expect(screen.getByTestId("approval-case-revision")).toHaveTextContent("2");
     // Evidence-bundle expires_at from getAction/evidence — not a calendar constant.
-    expect(
-      screen.getByTestId("approval-decision-expires-at"),
-    ).toHaveTextContent("2026-11-14T12:00:00Z");
+    expect(screen.getByTestId("approval-decision-expires-at")).toHaveTextContent(
+      "2026-11-14T12:00:00Z",
+    );
 
     await user.click(screen.getByTestId("approval-approve"));
     await waitFor(() => {
       expect(decide).toHaveBeenCalledWith("action-demo-1", {
         decision: "APPROVE",
-        action_digest:
-          "d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993",
+        action_digest: "d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993",
         case_revision: 2,
         policy_version: "demo-policy-v1",
         expires_at: "2026-11-14T12:00:00Z",
       });
     });
-    expect(
-      await screen.findByText(/Decision recorded: APPROVE/),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/Decision recorded: APPROVE/)).toBeInTheDocument();
   });
 
   it("decision workspace surfaces approval peer failure without fixture fallback", async () => {
@@ -106,13 +86,9 @@ describe("supervisor approvals", () => {
         approvalSlot={{ state: "error", error: fail.error }}
       />,
     );
-    expect(
-      await screen.findByTestId("supervisor-decision-workspace"),
-    ).toBeInTheDocument();
+    expect(await screen.findByTestId("supervisor-decision-workspace")).toBeInTheDocument();
     expect(screen.getByRole("alert")).toHaveTextContent("PEER_UNAVAILABLE");
-    expect(screen.getByRole("alert")).toHaveTextContent(
-      "fixture fallback is not used",
-    );
+    expect(screen.getByRole("alert")).toHaveTextContent("fixture fallback is not used");
     expect(screen.queryByTestId("approval-approve")).not.toBeInTheDocument();
   });
 
@@ -133,16 +109,10 @@ describe("supervisor approvals", () => {
         mode="real-peers"
       />,
     );
-    expect(await screen.findByTestId("state-error")).toHaveTextContent(
-      "Decision unavailable",
-    );
-    expect(screen.getByTestId("state-error")).toHaveTextContent(
-      "PEER_UNAVAILABLE",
-    );
+    expect(await screen.findByTestId("state-error")).toHaveTextContent("Decision unavailable");
+    expect(screen.getByTestId("state-error")).toHaveTextContent("PEER_UNAVAILABLE");
     expect(screen.queryByTestId("approval-approve")).not.toBeInTheDocument();
-    expect(
-      screen.queryByTestId("approval-action-digest"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId("approval-action-digest")).not.toBeInTheDocument();
   });
 
   it("real-peers mounts SN-013 ApprovalPanel not local substitute", async () => {
@@ -158,22 +128,14 @@ describe("supervisor approvals", () => {
       />,
     );
     await waitFor(() => {
-      expect(
-        screen.getByTestId("supervisor-decision-workspace"),
-      ).toBeInTheDocument();
+      expect(screen.getByTestId("supervisor-decision-workspace")).toBeInTheDocument();
     });
     expect(getAction).toHaveBeenCalledWith("action-demo-1");
     expect(screen.queryByTestId("approval-slot")).not.toBeInTheDocument();
-    expect(
-      screen.queryByText(/local substitute/i),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/local substitute/i)).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Approval required" })).toBeInTheDocument();
-    expect(screen.getByTestId("decision-expires-at")).toHaveTextContent(
-      "2026-11-14T12:00:00Z",
-    );
-    expect(screen.getByTestId("decision-expires-at")).not.toHaveTextContent(
-      "2026-12-31T23:59:59Z",
-    );
+    expect(screen.getByTestId("decision-expires-at")).toHaveTextContent("2026-11-14T12:00:00Z");
+    expect(screen.getByTestId("decision-expires-at")).not.toHaveTextContent("2026-12-31T23:59:59Z");
     expect(screen.getByTestId("action-digest")).toHaveTextContent(
       "d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993",
     );
@@ -204,16 +166,13 @@ describe("supervisor approvals", () => {
     await waitFor(() => {
       expect(decide).toHaveBeenCalledWith("action-demo-1", {
         decision: "APPROVE",
-        action_digest:
-          "d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993",
+        action_digest: "d5ce68ac9b173525d7ed0989eeb374cbb41b0a551f4457f8406d85342e1a8993",
         case_revision: 1,
         policy_version: "demo-policy-v1",
         expires_at: "2026-11-14T12:00:00Z",
       });
     });
-    expect(await screen.findByTestId("decision-result")).toHaveTextContent(
-      "Recorded APPROVE",
-    );
+    expect(await screen.findByTestId("decision-result")).toHaveTextContent("Recorded APPROVE");
   });
 
   it("operator view withholds decide controls", async () => {
@@ -228,9 +187,7 @@ describe("supervisor approvals", () => {
         canDecide={false}
       />,
     );
-    expect(
-      await screen.findByText("Supervisor decision required"),
-    ).toBeInTheDocument();
+    expect(await screen.findByText("Supervisor decision required")).toBeInTheDocument();
     expect(screen.queryByTestId("approval-approve")).not.toBeInTheDocument();
     expect(decide).not.toHaveBeenCalled();
   });

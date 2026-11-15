@@ -3,10 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useShell } from "@/adapters/shell-context";
 import { createMerchantTeamsClientForMode } from "@/adapters/composition-peers";
-import type {
-  MerchantStaff,
-  MerchantTeamsClient,
-} from "@/application/ports";
+import type { MerchantStaff, MerchantTeamsClient } from "@/application/ports";
 import { PeerError } from "@/domain/types";
 import { formatAmountMinor } from "@/domain/mask";
 import type { AuthSession } from "@/lib/server/auth";
@@ -77,8 +74,7 @@ export function TeamPanel({ session, teamsClient }: Props) {
         if (!cancelled) {
           setLoad({
             status: "error",
-            detail:
-              "Active assignment has no merchant_ref; team list withheld",
+            detail: "Active assignment has no merchant_ref; team list withheld",
           });
         }
         return;
@@ -117,40 +113,24 @@ export function TeamPanel({ session, teamsClient }: Props) {
     <div className="panel stack" data-testid="merchant-team">
       <h1>Team</h1>
       <p className="muted">
-        Merchant staff from merchant-teams{" "}
-        <code>GET /v1/merchant/team</code>. Advisory limits only — not payment
-        authority.
+        Merchant staff from merchant-teams <code>GET /v1/merchant/team</code>. Advisory limits only
+        — not payment authority.
       </p>
-      {config.mode === "fixture" ||
-      (load.status === "ready" && load.label === "fixture") ? (
+      {config.mode === "fixture" || (load.status === "ready" && load.label === "fixture") ? (
         <FixtureBanner />
       ) : null}
 
-      {load.status === "loading" ? (
-        <UiState tone="loading" title="Loading merchant team…" />
-      ) : null}
+      {load.status === "loading" ? <UiState tone="loading" title="Loading merchant team…" /> : null}
       {load.status === "error" ? (
         <div data-testid="peer-error">
-          <UiState
-            tone="error"
-            title="Team unavailable"
-            detail={load.detail}
-          />
+          <UiState tone="error" title="Team unavailable" detail={load.detail} />
         </div>
       ) : null}
       {load.status === "empty" ? (
-        <UiState
-          tone="empty"
-          title="No team members"
-          detail="No staff in merchant scope."
-        />
+        <UiState tone="empty" title="No team members" detail="No staff in merchant scope." />
       ) : null}
       {load.status === "ready" ? (
-        <table
-          className="table"
-          aria-label="Merchant team"
-          data-testid="merchant-team-list"
-        >
+        <table className="table" aria-label="Merchant team" data-testid="merchant-team-list">
           <thead>
             <tr>
               <th>Staff</th>
@@ -169,10 +149,7 @@ export function TeamPanel({ session, teamsClient }: Props) {
                 <td>{row.active ? "Active" : "Inactive"}</td>
                 <td className="tnum">
                   {row.approval_limit_minor != null
-                    ? formatAmountMinor(
-                        row.approval_limit_minor,
-                        row.currency ?? "INR",
-                      )
+                    ? formatAmountMinor(row.approval_limit_minor, row.currency ?? "INR")
                     : "—"}
                 </td>
               </tr>

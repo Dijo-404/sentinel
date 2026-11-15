@@ -10,17 +10,9 @@ export type KnowledgePeerOptions = Omit<PeerJsonOptions, "peerLabel"> & {
   peerLabel?: string;
 };
 
-function validateSummary(
-  row: unknown,
-  index: number,
-  requestId: string,
-): KnowledgeArticleSummary {
+function validateSummary(row: unknown, index: number, requestId: string): KnowledgeArticleSummary {
   if (!row || typeof row !== "object") {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      `Article[${index}] is not an object`,
-      requestId,
-    );
+    throw new PeerError("MALFORMED_PEER_RESPONSE", `Article[${index}] is not an object`, requestId);
   }
   const o = row as Record<string, unknown>;
   if (
@@ -52,21 +44,13 @@ function validateArticles(
     typeof json !== "object" ||
     !Array.isArray((json as { articles?: unknown }).articles)
   ) {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      "Missing articles array",
-      requestId,
-    );
+    throw new PeerError("MALFORMED_PEER_RESPONSE", "Missing articles array", requestId);
   }
   const body = json as { articles: unknown[]; source?: unknown };
   const source =
-    typeof body.source === "string" && body.source.trim()
-      ? body.source.trim()
-      : "live";
+    typeof body.source === "string" && body.source.trim() ? body.source.trim() : "live";
   return {
-    articles: body.articles.map((row, i) =>
-      validateSummary(row, i, requestId),
-    ),
+    articles: body.articles.map((row, i) => validateSummary(row, i, requestId)),
     source,
   };
 }
@@ -75,54 +59,31 @@ function validateHits(
   json: unknown,
   requestId: string,
 ): { hits: KnowledgeArticleSummary[]; source: string } {
-  if (
-    !json ||
-    typeof json !== "object" ||
-    !Array.isArray((json as { hits?: unknown }).hits)
-  ) {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      "Missing hits array",
-      requestId,
-    );
+  if (!json || typeof json !== "object" || !Array.isArray((json as { hits?: unknown }).hits)) {
+    throw new PeerError("MALFORMED_PEER_RESPONSE", "Missing hits array", requestId);
   }
   const body = json as { hits: unknown[]; source?: unknown };
   const source =
-    typeof body.source === "string" && body.source.trim()
-      ? body.source.trim()
-      : "live";
+    typeof body.source === "string" && body.source.trim() ? body.source.trim() : "live";
   return {
     hits: body.hits.map((row, i) => validateSummary(row, i, requestId)),
     source,
   };
 }
 
-function validateArticle(
-  json: unknown,
-  requestId: string,
-): KnowledgeArticle {
+function validateArticle(json: unknown, requestId: string): KnowledgeArticle {
   if (!json || typeof json !== "object") {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      "Article response is not an object",
-      requestId,
-    );
+    throw new PeerError("MALFORMED_PEER_RESPONSE", "Article response is not an object", requestId);
   }
   const summary = validateSummary(json, 0, requestId);
   const o = json as Record<string, unknown>;
   if (typeof o.body !== "string") {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      "Article missing body",
-      requestId,
-    );
+    throw new PeerError("MALFORMED_PEER_RESPONSE", "Article missing body", requestId);
   }
   return { ...summary, body: o.body };
 }
 
-export function createRealPeerKnowledgeClient(
-  options: KnowledgePeerOptions,
-): KnowledgeClient {
+export function createRealPeerKnowledgeClient(options: KnowledgePeerOptions): KnowledgeClient {
   const request = createPeerJsonFetcher({
     ...options,
     peerLabel: options.peerLabel ?? "knowledge",
@@ -133,11 +94,7 @@ export function createRealPeerKnowledgeClient(
       return request("GET", "/v1/articles", validateArticles);
     },
     getArticle(articleId) {
-      return request(
-        "GET",
-        `/v1/articles/${encodeURIComponent(articleId)}`,
-        validateArticle,
-      );
+      return request("GET", `/v1/articles/${encodeURIComponent(articleId)}`, validateArticle);
     },
     search(q) {
       const params = new URLSearchParams({ q });
@@ -147,9 +104,7 @@ export function createRealPeerKnowledgeClient(
 }
 
 /** Browser path: same-origin BFF with session cookie. */
-export function createBffKnowledgeClient(options?: {
-  fetchImpl?: typeof fetch;
-}): KnowledgeClient {
+export function createBffKnowledgeClient(options?: { fetchImpl?: typeof fetch }): KnowledgeClient {
   return createRealPeerKnowledgeClient({
     baseUrl: "/api/bff/knowledge",
     authMode: "credentials",

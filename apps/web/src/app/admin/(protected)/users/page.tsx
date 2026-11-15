@@ -6,9 +6,7 @@ export default async function AdminUsersPage() {
   const session = await requireRole("admin");
   const identity = getIdentityClient();
   const staff = await identity.listStaffUsers(session.session.session_id);
-  const invitations = await identity.listInvitations(
-    session.session.session_id,
-  );
+  const invitations = await identity.listInvitations(session.session.session_id);
 
   if ("error" in staff || "error" in invitations) {
     return (

@@ -84,17 +84,24 @@ RLS is defense in depth. A runtime login can set a custom PostgreSQL setting, so
 
 With the disposable database and roles provisioned above, export `PERSISTENCE_SCHEMA=demo_intake`, `PERSISTENCE_RUNTIME_ROLE=demo_intake_runtime`, `PERSISTENCE_ENVIRONMENT=sandbox`, and `PERSISTENCE_TENANT_ID=demo-tenant-a`. Set `DATABASE_URL` to the appropriate local identity for each operation:
 
-| Command | Database identity | Behavior |
-| --- | --- | --- |
-| `uv run --frozen sentinel-persistence migrate` | Schema owner | Upgrade this schema's bundled demo Alembic chain; repeat is a no-op. |
-| `uv run --frozen sentinel-persistence seed` | Disposable sandbox administrator with all-row visibility | Insert exactly two synthetic records and two related notes; repeat is a no-op. |
-| `make preview` | Runtime login | Emit a JSON report of a real tenant-scoped read and supported demo migration. |
-| `uv run --frozen sentinel-persistence reset` | Disposable sandbox administrator with all-row visibility | Delete only the validated fixture set in this schema; retain schema/migration state. |
+| Command                                        | Database identity                                        | Behavior                                                                             |
+| ---------------------------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `uv run --frozen sentinel-persistence migrate` | Schema owner                                             | Upgrade this schema's bundled demo Alembic chain; repeat is a no-op.                 |
+| `uv run --frozen sentinel-persistence seed`    | Disposable sandbox administrator with all-row visibility | Insert exactly two synthetic records and two related notes; repeat is a no-op.       |
+| `make preview`                                 | Runtime login                                            | Emit a JSON report of a real tenant-scoped read and supported demo migration.        |
+| `uv run --frozen sentinel-persistence reset`   | Disposable sandbox administrator with all-row visibility | Delete only the validated fixture set in this schema; retain schema/migration state. |
 
 `python -m sentinel_persistence` exposes the same operations. Exit 0 means the requested database operation succeeded; exit 2 means unsafe/missing/incompatible configuration; exit 1 means a database failure. Errors suppress credentials, raw SQL and record values. There is no fixture fallback. Example report:
 
 ```json
-{"contract_version":"sentinel.task-contracts.v1","evidence_mode":"real-postgresql/synthetic-records","migration_revision":"0001_demo_notes","port":"persistence-kit.v1","schema":"demo_intake","tenant_records":1}
+{
+  "contract_version": "sentinel.task-contracts.v1",
+  "evidence_mode": "real-postgresql/synthetic-records",
+  "migration_revision": "0001_demo_notes",
+  "port": "persistence-kit.v1",
+  "schema": "demo_intake",
+  "tenant_records": 1
+}
 ```
 
 Every mutating demo helper requires **all three** guards: environment exactly `sandbox`, schema starting `demo_`, database starting `sentinel_demo_`. Seed/reset acquire exclusive transactional locks and inspect every tenant with `row_security=off`; this requires sandbox administrative all-row visibility and fails for ordinary runtime/forced-owner credentials. Unknown tenants, extra IDs and altered record/note contents are refused without mutation. A naming guard alone is not an environment credential boundary: supply only disposable sandbox credentials.

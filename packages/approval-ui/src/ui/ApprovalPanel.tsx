@@ -2,10 +2,7 @@ import { useMemo, useState } from "react";
 import type { DecideClient } from "../application/ports.js";
 import { submitDecision } from "../application/submit-decision.js";
 import { accessibleMessage } from "../domain/errors.js";
-import {
-  buildApprovalViewModel,
-  ViewModelError,
-} from "../domain/view-model.js";
+import { buildApprovalViewModel, ViewModelError } from "../domain/view-model.js";
 import type {
   Approval,
   ApprovalUiInput,
@@ -50,10 +47,7 @@ export function ApprovalPanel(props: ApprovalPanelProps) {
     } catch (error) {
       return {
         ok: false as const,
-        message:
-          error instanceof ViewModelError
-            ? error.message
-            : "Invalid approval input",
+        message: error instanceof ViewModelError ? error.message : "Invalid approval input",
       };
     }
   }, [
@@ -127,9 +121,7 @@ export function ApprovalPanel(props: ApprovalPanelProps) {
         </div>
         <div>
           <dt>Amount</dt>
-          <dd data-testid="amount">
-            {formatMinorUnits(view.amount_minor, view.currency)}
-          </dd>
+          <dd data-testid="amount">{formatMinorUnits(view.amount_minor, view.currency)}</dd>
         </div>
         <div>
           <dt>Policy version</dt>
@@ -155,9 +147,7 @@ export function ApprovalPanel(props: ApprovalPanelProps) {
       <ul aria-labelledby="evidence-heading" className="sentinel-approval__evidence">
         {view.evidence_ages.map((item) => (
           <li key={item.evidence_id} data-testid={`evidence-${item.evidence_id}`}>
-            <span data-testid={`evidence-id-${item.evidence_id}`}>
-              {item.evidence_id}
-            </span>
+            <span data-testid={`evidence-id-${item.evidence_id}`}>{item.evidence_id}</span>
             <span data-testid={`evidence-age-${item.evidence_id}`}>
               age {formatAgeSeconds(item.age_seconds)}
             </span>
@@ -181,8 +171,7 @@ export function ApprovalPanel(props: ApprovalPanelProps) {
 
       {approval ? (
         <p role="status" data-testid="decision-result">
-          Recorded {approval.decision} as {approval.approval_id} by{" "}
-          {approval.reviewer_id}
+          Recorded {approval.decision} as {approval.approval_id} by {approval.reviewer_id}
         </p>
       ) : (
         <div className="sentinel-approval__actions">

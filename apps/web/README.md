@@ -35,20 +35,20 @@ Open `http://localhost:3012/` for the Mercury landing. Use **Get started** / **L
 
 See `.env.example`.
 
-| Variable | Purpose |
-| --- | --- |
-| `NEXT_PUBLIC_SHELL_MODE` | `fixture` (default) or `real-peers` |
-| `NEXT_PUBLIC_VOICE_ENABLED` | `true` in `.env.example` for product demo; off unless set |
-| `VOICE_BASE_URL` | Real-peers voice peer (default `http://127.0.0.1:8017`); BFF `/api/bff/voice` |
-| `EVALS_BASE_URL` | Evals HTTP serve (default `http://127.0.0.1:8031`); BFF `/api/bff/evals` |
-| `OBSERVABILITY_BASE_URL` | Observability peer (default `http://127.0.0.1:8033`); BFF `/api/bff/observability` |
-| `PLATFORM_AI_BASE_URL` | Platform-ai peer (default `http://127.0.0.1:8036`); BFF `/api/bff/platform-ai` |
-| `POLICY_BASE_URL` | Policy peer (default `http://127.0.0.1:8005`); BFF `/api/bff/policy` |
-| `CASE_API_BASE_URL` | Required in real-peers mode |
-| `CASE_API_BEARER_TOKEN` | Optional service-only fallback (server); portals use session cookie |
-| `IDENTITY_BASE_URL` | Required in real-peers mode (default `http://127.0.0.1:8012`) |
-| `IDENTITY_SANDBOX` / `SENTINEL_V1_SANDBOX` | Server-only: after verify/MFA/forgot, fetch sandbox inbox codes |
-| `IDENTITY_SANDBOX_TOKEN` | Server-only token for password-reset inbox (never `NEXT_PUBLIC_*`) |
+| Variable                                   | Purpose                                                                            |
+| ------------------------------------------ | ---------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SHELL_MODE`                   | `fixture` (default) or `real-peers`                                                |
+| `NEXT_PUBLIC_VOICE_ENABLED`                | `true` in `.env.example` for product demo; off unless set                          |
+| `VOICE_BASE_URL`                           | Real-peers voice peer (default `http://127.0.0.1:8017`); BFF `/api/bff/voice`      |
+| `EVALS_BASE_URL`                           | Evals HTTP serve (default `http://127.0.0.1:8031`); BFF `/api/bff/evals`           |
+| `OBSERVABILITY_BASE_URL`                   | Observability peer (default `http://127.0.0.1:8033`); BFF `/api/bff/observability` |
+| `PLATFORM_AI_BASE_URL`                     | Platform-ai peer (default `http://127.0.0.1:8036`); BFF `/api/bff/platform-ai`     |
+| `POLICY_BASE_URL`                          | Policy peer (default `http://127.0.0.1:8005`); BFF `/api/bff/policy`               |
+| `CASE_API_BASE_URL`                        | Required in real-peers mode                                                        |
+| `CASE_API_BEARER_TOKEN`                    | Optional service-only fallback (server); portals use session cookie                |
+| `IDENTITY_BASE_URL`                        | Required in real-peers mode (default `http://127.0.0.1:8012`)                      |
+| `IDENTITY_SANDBOX` / `SENTINEL_V1_SANDBOX` | Server-only: after verify/MFA/forgot, fetch sandbox inbox codes                    |
+| `IDENTITY_SANDBOX_TOKEN`                   | Server-only token for password-reset inbox (never `NEXT_PUBLIC_*`)                 |
 
 Real-peer failures are visible. Never put bearers, identity passwords, or session tokens in `NEXT_PUBLIC_*`. Fixture auth uses `tests/stubs/identity` seeded users. Real-peers calls identity.v1 (`/v1/auth/login|me|workspaces|accept-invitation`, register, admin invite) via the server-only identity client; the httpOnly `sentinel_session` cookie stores the identity `session_token`. Portal case-api traffic goes through `/api/bff/case/**`, which forwards that session as the case-api bearer (one principal per request). Supervisor Team uses `/api/bff/identity/**` → `GET /v1/ops/team` (supervisor-safe tenant roster; does **not** call `/v1/admin/users`, which remains platform_admin-only).
 
@@ -66,14 +66,14 @@ server env + `IDENTITY_SANDBOX_TOKEN`:
 
 ### Fixture demo credentials (synthetic only)
 
-| Portal | Email | Password |
-| --- | --- | --- |
-| Customer | `customer@example.test` | `demo-customer` |
-| Merchant | `merchant@example.test` | `demo-merchant` |
-| Operator | `operator@example.test` | `demo-operator` |
+| Portal     | Email                     | Password          |
+| ---------- | ------------------------- | ----------------- |
+| Customer   | `customer@example.test`   | `demo-customer`   |
+| Merchant   | `merchant@example.test`   | `demo-merchant`   |
+| Operator   | `operator@example.test`   | `demo-operator`   |
 | Supervisor | `supervisor@example.test` | `demo-supervisor` |
-| Risk | `risk@example.test` | `demo-risk` |
-| Admin | `admin@example.test` | `demo-admin` |
+| Risk       | `risk@example.test`       | `demo-risk`       |
+| Admin      | `admin@example.test`      | `demo-admin`      |
 
 ## Layout
 
@@ -91,34 +91,34 @@ server env + `IDENTITY_SANDBOX_TOKEN`:
 
 ## Routes
 
-| Route | Role |
-| --- | --- |
-| `/` | Mercury landing (night marketing) |
-| `/login` | Shared login + workspace select (`?portal=` preselect; `?next=` safe redirect) |
-| `/customer/login` → `/login?portal=customer` | Customer (redirect) |
-| `/merchant/login` → `/login?portal=merchant` | Merchant (redirect) |
-| `/operator/login` → `/login?portal=operator` | Support Operator (redirect) |
-| `/supervisor/login` → `/login?portal=supervisor` | Supervisor (redirect) |
-| `/risk/login` → `/login?portal=risk` | Risk Officer (redirect) |
-| `/admin/login` → `/login?portal=admin` | Platform Admin (redirect) |
-| `/customer/register` · `/customer/dashboard` | Customer register + protected shell |
-| `/merchant/dashboard` | Merchant overview (rich viz) |
-| `/operator/dashboard` · `/operator/queue` | Operator overview (rich viz) + queue |
-| `/supervisor/dashboard` | Supervisor overview (rich viz) |
-| `/supervisor/team` | Ops roster via `/api/bff/identity` → `GET /v1/ops/team` (fail closed) |
-| `/supervisor/approvals` · `/supervisor/approvals/[actionId]` | Supervisor approval queue + exact decide UI (local substitute) |
-| `/supervisor/cases/[caseId]` | Supervisor case review with opt-in approval slot |
-| `/risk/dashboard` | Risk Officer |
-| `/risk/queue` · `/holds` · `/transactions` · `/audit` · `/analytics` · `/reports` | Risk lists/KPIs via `/api/bff/risk` (fail closed) |
-| `/admin/dashboard` | Platform Admin |
-| `/admin/users` · `/admin/users/invite` | Staff directory + invite (stub) |
+| Route                                                                                                                            | Role                                                                                                     |
+| -------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `/`                                                                                                                              | Mercury landing (night marketing)                                                                        |
+| `/login`                                                                                                                         | Shared login + workspace select (`?portal=` preselect; `?next=` safe redirect)                           |
+| `/customer/login` → `/login?portal=customer`                                                                                     | Customer (redirect)                                                                                      |
+| `/merchant/login` → `/login?portal=merchant`                                                                                     | Merchant (redirect)                                                                                      |
+| `/operator/login` → `/login?portal=operator`                                                                                     | Support Operator (redirect)                                                                              |
+| `/supervisor/login` → `/login?portal=supervisor`                                                                                 | Supervisor (redirect)                                                                                    |
+| `/risk/login` → `/login?portal=risk`                                                                                             | Risk Officer (redirect)                                                                                  |
+| `/admin/login` → `/login?portal=admin`                                                                                           | Platform Admin (redirect)                                                                                |
+| `/customer/register` · `/customer/dashboard`                                                                                     | Customer register + protected shell                                                                      |
+| `/merchant/dashboard`                                                                                                            | Merchant overview (rich viz)                                                                             |
+| `/operator/dashboard` · `/operator/queue`                                                                                        | Operator overview (rich viz) + queue                                                                     |
+| `/supervisor/dashboard`                                                                                                          | Supervisor overview (rich viz)                                                                           |
+| `/supervisor/team`                                                                                                               | Ops roster via `/api/bff/identity` → `GET /v1/ops/team` (fail closed)                                    |
+| `/supervisor/approvals` · `/supervisor/approvals/[actionId]`                                                                     | Supervisor approval queue + exact decide UI (local substitute)                                           |
+| `/supervisor/cases/[caseId]`                                                                                                     | Supervisor case review with opt-in approval slot                                                         |
+| `/risk/dashboard`                                                                                                                | Risk Officer                                                                                             |
+| `/risk/queue` · `/holds` · `/transactions` · `/audit` · `/analytics` · `/reports`                                                | Risk lists/KPIs via `/api/bff/risk` (fail closed)                                                        |
+| `/admin/dashboard`                                                                                                               | Platform Admin                                                                                           |
+| `/admin/users` · `/admin/users/invite`                                                                                           | Staff directory + invite (stub)                                                                          |
 | `/auth/workspaces` · `/auth/verify` · `/auth/mfa` · `/auth/forgot-password` · `/auth/reset-password` · `/auth/accept-invitation` | Identity auth flows (forgot/reset via IdentityClient server actions; workspaces/verify/MFA need session) |
-| `/unauthorized` | Role mismatch — authorized workspaces only |
-| `/intake` | Legacy customer text intake (requires customer session) |
-| `/cases/[caseId]` | Case timeline (requires customer session) |
-| `/ops` | Legacy operator queue (requires operator or supervisor) |
-| `/ops/cases/[caseId]/evidence` | Evidence only (no approve controls; operator-safe) |
-| `/v1/capabilities` | Assembly probe |
+| `/unauthorized`                                                                                                                  | Role mismatch — authorized workspaces only                                                               |
+| `/intake`                                                                                                                        | Legacy customer text intake (requires customer session)                                                  |
+| `/cases/[caseId]`                                                                                                                | Case timeline (requires customer session)                                                                |
+| `/ops`                                                                                                                           | Legacy operator queue (requires operator or supervisor)                                                  |
+| `/ops/cases/[caseId]/evidence`                                                                                                   | Evidence only (no approve controls; operator-safe)                                                       |
+| `/v1/capabilities`                                                                                                               | Assembly probe                                                                                           |
 
 Staff portals have **no** public sign-up. Customer registration rejects privileged fields (`roles`, `tenant_id`, `subject_refs`). Admin invite rejects `role_id=customer`. Protected portals use the night sidebar shell; financial authority remains server-side.
 
@@ -142,15 +142,15 @@ Root `make check` validates repository metadata only.
 
 ## Evidence labels
 
-| Dimension | This module check |
-| --- | --- |
-| Component under test | Real web-shell + Mercury portal scaffold |
-| Case API peer | Local fixture stub (+ real-peer adapter unit doubles) |
-| Identity peer | Local fixture stub (+ real-peer HTTP adapter with fetch doubles) |
-| Approval UI | Local substitute / package (Task 8) |
-| Voice | BFF peer client when enabled; fixture stub in fixture mode |
-| Payment provider | N/A (UI only) |
-| Model/voice live Sarvam | Off for `make check` |
-| Money-path assembly | **Not claimed** |
+| Dimension               | This module check                                                |
+| ----------------------- | ---------------------------------------------------------------- |
+| Component under test    | Real web-shell + Mercury portal scaffold                         |
+| Case API peer           | Local fixture stub (+ real-peer adapter unit doubles)            |
+| Identity peer           | Local fixture stub (+ real-peer HTTP adapter with fetch doubles) |
+| Approval UI             | Local substitute / package (Task 8)                              |
+| Voice                   | BFF peer client when enabled; fixture stub in fixture mode       |
+| Payment provider        | N/A (UI only)                                                    |
+| Model/voice live Sarvam | Off for `make check`                                             |
+| Money-path assembly     | **Not claimed**                                                  |
 
 Assembled live identity + case-api integration remains **unverified** until owner assembly.

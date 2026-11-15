@@ -10,17 +10,22 @@ import unittest
 from pathlib import Path
 
 from sentinel_release_mvp.adapters.real_peer import RealPeerRunner
-from sentinel_release_mvp.application.verify import render_release_report, verify_manifest, load_manifest
+from sentinel_release_mvp.application.verify import (
+    load_manifest,
+    render_release_report,
+    verify_manifest,
+)
 from sentinel_release_mvp.contracts import (
     CONTRACT_VERSION,
     PeerError,
     RunInput,
 )
 from sentinel_release_mvp.domain.procedures import procedure_checklist
-from tests.stubs.core_assembly import valid as ca_valid
-from tests.stubs.core_assembly import unavailable as ca_unavail
+
 from tests.stubs.core_assembly import malformed as ca_malformed
 from tests.stubs.core_assembly import unauthorized_or_out_of_scope as ca_unauth
+from tests.stubs.core_assembly import unavailable as ca_unavail
+from tests.stubs.core_assembly import valid as ca_valid
 from tests.stubs.evaluation import valid as ev_valid
 from tests.stubs.replay import valid as rp_valid
 from tests.stubs.telemetry import valid as tm_valid
@@ -67,9 +72,7 @@ class StubPeerTests(unittest.TestCase):
 
 class RealPeerAdapterTests(unittest.TestCase):
     def test_file_peer_valid(self) -> None:
-        runner = RealPeerRunner(
-            "core-assembly.v1", str(PEERS / "core-assembly.valid.json")
-        )
+        runner = RealPeerRunner("core-assembly.v1", str(PEERS / "core-assembly.valid.json"))
         report = runner.run(_run_input())
         self.assertEqual(report.status, "PASS")
 
@@ -97,12 +100,8 @@ class RealPeerAdapterTests(unittest.TestCase):
                 "core-assembly.v1", str(PEERS / "core-assembly.valid.json")
             ),
             "evaluation.v1": RealPeerRunner("evaluation.v1", ""),
-            "replay.v1": RealPeerRunner(
-                "replay.v1", str(PEERS / "replay.valid.json")
-            ),
-            "telemetry.v1": RealPeerRunner(
-                "telemetry.v1", str(PEERS / "telemetry.valid.json")
-            ),
+            "replay.v1": RealPeerRunner("replay.v1", str(PEERS / "replay.valid.json")),
+            "telemetry.v1": RealPeerRunner("telemetry.v1", str(PEERS / "telemetry.valid.json")),
         }
         manifest = load_manifest(MANIFESTS / "positive-real.json")
         report, verdict = verify_manifest(
@@ -114,9 +113,7 @@ class RealPeerAdapterTests(unittest.TestCase):
         )
         self.assertEqual(report.status, "FAIL")
         self.assertFalse(verdict.release_approved)
-        self.assertTrue(
-            any(c.reason_code == "PEER_UNAVAILABLE" for c in report.checks)
-        )
+        self.assertTrue(any(c.reason_code == "PEER_UNAVAILABLE" for c in report.checks))
 
 
 class CliAndProcedureTests(unittest.TestCase):
@@ -186,9 +183,7 @@ class CliAndProcedureTests(unittest.TestCase):
 
     def test_render_helper_mentions_checks(self) -> None:
         manifest = load_manifest(MANIFESTS / "negative-missing-component.json")
-        report, verdict = verify_manifest(
-            manifest, mode="real-peers", run_id="render-1"
-        )
+        report, verdict = verify_manifest(manifest, mode="real-peers", run_id="render-1")
         text = render_release_report(report, verdict)
         self.assertIn("MISSING_COMPONENT", text)
         self.assertIn("release_approved: `false`", text)

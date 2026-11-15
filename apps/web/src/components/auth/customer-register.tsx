@@ -2,38 +2,25 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import {
-  registerCustomerAction,
-  type ActionResult,
-} from "@/lib/server/auth-actions";
+import { registerCustomerAction, type ActionResult } from "@/lib/server/auth-actions";
 
 const initial: ActionResult | null = null;
 
 export function CustomerRegisterForm() {
-  const [state, formAction, pending] = useActionState(
-    registerCustomerAction,
-    initial,
-  );
+  const [state, formAction, pending] = useActionState(registerCustomerAction, initial);
 
   return (
     <div className="auth-card panel stack" data-testid="customer-register">
       <div>
         <p className="brand auth-brand">Sentinel</p>
         <h1>Create customer account</h1>
-        <p className="muted">
-          Server assigns the customer role. Privileged fields are rejected.
-        </p>
+        <p className="muted">Server assigns the customer role. Privileged fields are rejected.</p>
       </div>
 
       <form action={formAction} className="stack" noValidate>
         <label>
           Full name
-          <input
-            name="display_name"
-            required
-            autoComplete="name"
-            data-testid="register-name"
-          />
+          <input name="display_name" required autoComplete="name" data-testid="register-name" />
         </label>
         <label>
           Email

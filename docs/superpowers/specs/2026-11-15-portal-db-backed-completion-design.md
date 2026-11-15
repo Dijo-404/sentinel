@@ -30,14 +30,14 @@ Why now: web + case-api already run locally, but most nav is shell-only and fixt
 
 ## Stub inventory (must leave stub state)
 
-| Portal | Routes |
-| --- | --- |
-| Operator / Supervisor | Activity, Knowledge, Messages, Assistant, Escalations, History, Team, Audit |
-| Customer | Profile, Notifications, Assistant |
-| Merchant | Analytics, Disputes, Exceptions, Settings, Tasks, Team |
-| Risk | Queue, Holds, Audit, Analytics, Reports, Transactions |
-| Admin | Roles, Audit, AI, Evaluations, Integrations, Merchants, Observability, Policies, Security, Teams, Tenants |
-| Auth | MFA, verify, forgot/reset password, workspaces |
+| Portal                | Routes                                                                                                    |
+| --------------------- | --------------------------------------------------------------------------------------------------------- |
+| Operator / Supervisor | Activity, Knowledge, Messages, Assistant, Escalations, History, Team, Audit                               |
+| Customer              | Profile, Notifications, Assistant                                                                         |
+| Merchant              | Analytics, Disputes, Exceptions, Settings, Tasks, Team                                                    |
+| Risk                  | Queue, Holds, Audit, Analytics, Reports, Transactions                                                     |
+| Admin                 | Roles, Audit, AI, Evaluations, Integrations, Merchants, Observability, Policies, Security, Teams, Tenants |
+| Auth                  | MFA, verify, forgot/reset password, workspaces                                                            |
 
 ## Non-goals
 
@@ -67,17 +67,17 @@ Why now: web + case-api already run locally, but most nav is shell-only and fixt
 
 ## Decisions (from conversation)
 
-| Topic | Decision |
-| --- | --- |
-| Scope | **Everything** in the stub list + close the five shell limits |
-| Data | **No mock UI data**; seed into DB; UI fetches via API only |
-| Assistant / Knowledge / platform-ai / ops-activity | **New** HTTP+DB services under `services/` |
-| Evaluations / Observability | **Most scalable:** extend SN-016 / SN-015 line — not duplicate contracts (see below) |
-| Approvals UI | **Real** `packages/approval-ui` (SN-013); local substitute out of real-peers path |
-| Voice | **On and wired** (SN-017); owner has Sarvam credits; secrets server-side only |
-| Mode for product demo | **real-peers** + shared sandbox matrix tokens/ports |
-| Money | Simulator only; SN-009 authority preserved |
-| Delivery | Multi-wave program with parallel subagents per owned module after design + plan approval |
+| Topic                                              | Decision                                                                                 |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Scope                                              | **Everything** in the stub list + close the five shell limits                            |
+| Data                                               | **No mock UI data**; seed into DB; UI fetches via API only                               |
+| Assistant / Knowledge / platform-ai / ops-activity | **New** HTTP+DB services under `services/`                                               |
+| Evaluations / Observability                        | **Most scalable:** extend SN-016 / SN-015 line — not duplicate contracts (see below)     |
+| Approvals UI                                       | **Real** `packages/approval-ui` (SN-013); local substitute out of real-peers path        |
+| Voice                                              | **On and wired** (SN-017); owner has Sarvam credits; secrets server-side only            |
+| Mode for product demo                              | **real-peers** + shared sandbox matrix tokens/ports                                      |
+| Money                                              | Simulator only; SN-009 authority preserved                                               |
+| Delivery                                           | Multi-wave program with parallel subagents per owned module after design + plan approval |
 
 ### Evaluations / Observability — locked architecture (builder-check #1)
 
@@ -122,15 +122,15 @@ New peers are **read/write within their domain only**. Assistant may call read-o
 
 ## Wave order
 
-| Wave | Outcome |
-| --- | --- |
-| **0 — Foundation** | Shared sandbox compose/seed: Postgres schemas up, matrix tokens, web+api+identity+ledger+dispatcher+simulator+verifier+workflow+evidence+policy in real-peers; document ports/env |
-| **1 — Merchant + Risk wire** | Analytics, disputes, settlements, refunds, team, exceptions/tasks; risk queue/holds/audit/analytics/reports/transactions — all from existing services + DB |
-| **2 — Ops case surfaces** | Escalations, messages, history, audit, team via case-api/identity/merchant-teams |
-| **3 — Identity / auth / customer** | Profile, notifications, workspaces, MFA/verify/forgot-reset as DB-backed sandbox flows |
-| **4 — Intel + voice + approval-ui** | assistant, knowledge, ops-activity, platform-ai; evals/core HTTP+DB; services/observability; wire SN-013 approval-ui + SN-017 voice (Sarvam opt-in) |
-| **5 — Admin remainder** | Roles, tenants, teams, policies, security, integrations, merchants, AI/evals/observability pages |
-| **6 — Money-path E2E** | Assembly journeys green with DB state; real approval-ui; honesty labels; no fixture silent fallback |
+| Wave                                | Outcome                                                                                                                                                                           |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **0 — Foundation**                  | Shared sandbox compose/seed: Postgres schemas up, matrix tokens, web+api+identity+ledger+dispatcher+simulator+verifier+workflow+evidence+policy in real-peers; document ports/env |
+| **1 — Merchant + Risk wire**        | Analytics, disputes, settlements, refunds, team, exceptions/tasks; risk queue/holds/audit/analytics/reports/transactions — all from existing services + DB                        |
+| **2 — Ops case surfaces**           | Escalations, messages, history, audit, team via case-api/identity/merchant-teams                                                                                                  |
+| **3 — Identity / auth / customer**  | Profile, notifications, workspaces, MFA/verify/forgot-reset as DB-backed sandbox flows                                                                                            |
+| **4 — Intel + voice + approval-ui** | assistant, knowledge, ops-activity, platform-ai; evals/core HTTP+DB; services/observability; wire SN-013 approval-ui + SN-017 voice (Sarvam opt-in)                               |
+| **5 — Admin remainder**             | Roles, tenants, teams, policies, security, integrations, merchants, AI/evals/observability pages                                                                                  |
+| **6 — Money-path E2E**              | Assembly journeys green with DB state; real approval-ui; honesty labels; no fixture silent fallback                                                                               |
 
 Waves 1–2 can parallelize with early scaffolding of wave 4 services (empty schema + health) so portals do not stay on stubs longer than needed.
 
@@ -145,11 +145,11 @@ Waves 1–2 can parallelize with early scaffolding of wave 4 services (empty sch
 
 ## Evidence labels
 
-| Dimension | This program |
-| --- | --- |
-| UI data | DB via real-peers |
-| Seed | Synthetic sandbox (`tenant-demo`) |
-| Payments | Simulator only |
+| Dimension           | This program                                                  |
+| ------------------- | ------------------------------------------------------------- |
+| UI data             | DB via real-peers                                             |
+| Seed                | Synthetic sandbox (`tenant-demo`)                             |
+| Payments            | Simulator only                                                |
 | Assembled MVP claim | Only after wave 6 owner review — not implied by partial waves |
 
 ## What’s left to the builder

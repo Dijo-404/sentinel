@@ -4,8 +4,8 @@ Owned schema: `ops_activity`.
 
 When `OPS_ACTIVITY_DATABASE_URL` is set, `PostgresActivityStore.migrate()` creates:
 
-| Table | Purpose |
-| --- | --- |
+| Table            | Purpose                                             |
+| ---------------- | --------------------------------------------------- |
 | `activity_items` | Persisted activity feed rows keyed by `activity_id` |
 
 Apply via serve/bootstrap (auto-migrate on app build) or `make seed`.

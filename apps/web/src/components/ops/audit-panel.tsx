@@ -24,8 +24,7 @@ type LoadState =
  */
 export function AuditPanel({ caseClient: caseClientProp }: Props) {
   const { caseClient: shellClient, config } = useShell();
-  const caseClient =
-    caseClientProp === undefined ? shellClient : caseClientProp;
+  const caseClient = caseClientProp === undefined ? shellClient : caseClientProp;
 
   const [load, setLoad] = useState<LoadState>({ status: "loading" });
 
@@ -74,39 +73,24 @@ export function AuditPanel({ caseClient: caseClientProp }: Props) {
     <div className="panel stack" data-testid="supervisor-audit">
       <h1>Audit</h1>
       <p className="muted">
-        Ops audit feed from case-api <code>GET /v1/ops/audit-events</code>.
-        Read-only — no approval decisions here.
+        Ops audit feed from case-api <code>GET /v1/ops/audit-events</code>. Read-only — no approval
+        decisions here.
       </p>
-      {config.mode === "fixture" ||
-      (load.status === "ready" && load.source === "fixture") ? (
+      {config.mode === "fixture" || (load.status === "ready" && load.source === "fixture") ? (
         <FixtureBanner />
       ) : null}
 
-      {load.status === "loading" ? (
-        <UiState tone="loading" title="Loading audit events…" />
-      ) : null}
+      {load.status === "loading" ? <UiState tone="loading" title="Loading audit events…" /> : null}
       {load.status === "error" ? (
         <div data-testid="peer-error">
-          <UiState
-            tone="error"
-            title="Audit unavailable"
-            detail={load.detail}
-          />
+          <UiState tone="error" title="Audit unavailable" detail={load.detail} />
         </div>
       ) : null}
       {load.status === "empty" ? (
-        <UiState
-          tone="empty"
-          title="No audit events"
-          detail="Audit feed is empty."
-        />
+        <UiState tone="empty" title="No audit events" detail="Audit feed is empty." />
       ) : null}
       {load.status === "ready" ? (
-        <div
-          className="panel"
-          style={{ overflowX: "auto" }}
-          data-testid="supervisor-audit-list"
-        >
+        <div className="panel" style={{ overflowX: "auto" }} data-testid="supervisor-audit-list">
           <table className="table" aria-label="Ops audit events">
             <thead>
               <tr>

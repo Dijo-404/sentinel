@@ -24,8 +24,7 @@ type LoadState =
  */
 export function MessagesPanel({ caseClient: caseClientProp }: Props) {
   const { caseClient: shellClient, config } = useShell();
-  const caseClient =
-    caseClientProp === undefined ? shellClient : caseClientProp;
+  const caseClient = caseClientProp === undefined ? shellClient : caseClientProp;
 
   const [load, setLoad] = useState<LoadState>({ status: "loading" });
 
@@ -76,36 +75,21 @@ export function MessagesPanel({ caseClient: caseClientProp }: Props) {
       <p className="muted">
         Ops message inbox from case-api <code>GET /v1/ops/messages</code>.
       </p>
-      {config.mode === "fixture" ||
-      (load.status === "ready" && load.source === "fixture") ? (
+      {config.mode === "fixture" || (load.status === "ready" && load.source === "fixture") ? (
         <FixtureBanner />
       ) : null}
 
-      {load.status === "loading" ? (
-        <UiState tone="loading" title="Loading messages…" />
-      ) : null}
+      {load.status === "loading" ? <UiState tone="loading" title="Loading messages…" /> : null}
       {load.status === "error" ? (
         <div data-testid="peer-error">
-          <UiState
-            tone="error"
-            title="Messages unavailable"
-            detail={load.detail}
-          />
+          <UiState tone="error" title="Messages unavailable" detail={load.detail} />
         </div>
       ) : null}
       {load.status === "empty" ? (
-        <UiState
-          tone="empty"
-          title="No messages"
-          detail="Message inbox is empty."
-        />
+        <UiState tone="empty" title="No messages" detail="Message inbox is empty." />
       ) : null}
       {load.status === "ready" ? (
-        <div
-          className="panel"
-          style={{ overflowX: "auto" }}
-          data-testid="operator-messages-list"
-        >
+        <div className="panel" style={{ overflowX: "auto" }} data-testid="operator-messages-list">
           <table className="table" aria-label="Ops messages">
             <thead>
               <tr>

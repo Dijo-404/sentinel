@@ -2,14 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import {
-  Bar,
-  BarChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useShell } from "@/adapters/shell-context";
 import type { CaseClient } from "@/application/ports";
 import { PeerError } from "@/domain/types";
@@ -45,13 +38,9 @@ type LoadState =
       source: "live" | "fixture";
     };
 
-export function SupervisorOverview({
-  session,
-  caseClient: caseClientProp,
-}: Props) {
+export function SupervisorOverview({ session, caseClient: caseClientProp }: Props) {
   const { caseClient: shellClient, config } = useShell();
-  const caseClient =
-    caseClientProp === undefined ? shellClient : caseClientProp;
+  const caseClient = caseClientProp === undefined ? shellClient : caseClientProp;
   const [load, setLoad] = useState<LoadState>({ status: "loading" });
   const [chartReady, setChartReady] = useState(false);
 
@@ -91,10 +80,7 @@ export function SupervisorOverview({
         });
       } catch (err) {
         if (cancelled) return;
-        if (
-          err instanceof PeerError &&
-          (err.httpStatus === 403 || err.code === "FORBIDDEN")
-        ) {
+        if (err instanceof PeerError && (err.httpStatus === 403 || err.code === "FORBIDDEN")) {
           setLoad({
             status: "permission",
             detail: `${err.code}: ${err.message}`,
@@ -139,12 +125,9 @@ export function SupervisorOverview({
 
   const meta = PORTAL_META.supervisor;
   const showFixtureBanner =
-    config.mode === "fixture" ||
-    (load.status === "ready" && load.source === "fixture");
+    config.mode === "fixture" || (load.status === "ready" && load.source === "fixture");
   const caption =
-    load.status === "ready" && load.source === "live"
-      ? "Scoped projection"
-      : "Fixture peer";
+    load.status === "ready" && load.source === "live" ? "Scoped projection" : "Fixture peer";
 
   return (
     <div className="stack" data-testid="supervisor-dashboard">
@@ -161,25 +144,13 @@ export function SupervisorOverview({
         <UiState tone="loading" title="Loading supervisor overview…" />
       ) : null}
       {load.status === "permission" ? (
-        <UiState
-          tone="permission"
-          title="Permission denied"
-          detail={load.detail}
-        />
+        <UiState tone="permission" title="Permission denied" detail={load.detail} />
       ) : null}
       {load.status === "error" ? (
-        <UiState
-          tone="error"
-          title="Overview unavailable"
-          detail={load.detail}
-        />
+        <UiState tone="error" title="Overview unavailable" detail={load.detail} />
       ) : null}
       {load.status === "unavailable" ? (
-        <UiState
-          tone="empty"
-          title="Metrics unavailable"
-          detail={load.detail}
-        />
+        <UiState tone="empty" title="Metrics unavailable" detail={load.detail} />
       ) : null}
 
       {load.status === "ready" ? (
@@ -200,43 +171,25 @@ export function SupervisorOverview({
               value={String(load.kpis.pending_approvals)}
               caption="Ledger pending proposals (0 until ledger count wired)"
             />
-            <div
-              className="stack"
-              style={{ gap: "0.5rem", justifyContent: "center" }}
-            >
+            <div className="stack" style={{ gap: "0.5rem", justifyContent: "center" }}>
               <TrendPill
-                value={
-                  load.kpis.waiting_approval_cases > 0
-                    ? "Queue active"
-                    : "Queue clear"
-                }
-                direction={
-                  load.kpis.waiting_approval_cases > 0 ? "up" : "flat"
-                }
+                value={load.kpis.waiting_approval_cases > 0 ? "Queue active" : "Queue clear"}
+                direction={load.kpis.waiting_approval_cases > 0 ? "up" : "flat"}
               />
               <p className="muted" data-testid="supervisor-projection-label">
                 {load.kpis.label}
               </p>
-              <Link
-                href="/supervisor/approvals"
-                data-testid="supervisor-open-approvals"
-              >
+              <Link href="/supervisor/approvals" data-testid="supervisor-open-approvals">
                 Open approvals
               </Link>
             </div>
           </div>
 
           <ChartCard title="Dashboard projection">
-            <div
-              style={{ width: "100%", height: 220 }}
-              data-testid="supervisor-projection-chart"
-            >
+            <div style={{ width: "100%", height: 220 }} data-testid="supervisor-projection-chart">
               {chartReady ? (
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={chartRows}
-                    margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
-                  >
+                  <BarChart data={chartRows} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                     <XAxis
                       dataKey="label"
                       tick={{ fill: "var(--fog)", fontSize: 11 }}
@@ -251,11 +204,7 @@ export function SupervisorOverview({
                       width={28}
                     />
                     <Tooltip />
-                    <Bar
-                      dataKey="count"
-                      fill="var(--periwinkle)"
-                      radius={[4, 4, 0, 0]}
-                    />
+                    <Bar dataKey="count" fill="var(--periwinkle)" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : null}

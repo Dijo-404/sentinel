@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type FormEvent,
-} from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import type { CaseClient } from "@/application/ports";
 import type { Case, CaseEvent } from "@/domain/types";
 import { PeerError } from "@/domain/types";
@@ -25,11 +19,7 @@ type Props = {
   enableInteractions?: boolean;
 };
 
-export function CaseTimeline({
-  caseId,
-  caseClient,
-  enableInteractions = true,
-}: Props) {
+export function CaseTimeline({ caseId, caseClient, enableInteractions = true }: Props) {
   const [loading, setLoading] = useState(true);
   const [caseRecord, setCaseRecord] = useState<Case | null>(null);
   const [events, setEvents] = useState<CaseEvent[]>([]);
@@ -42,10 +32,7 @@ export function CaseTimeline({
   const lastSeq = useRef(0);
 
   const applyError = useCallback((err: unknown) => {
-    if (
-      err instanceof PeerError &&
-      (err.httpStatus === 403 || err.code === "FORBIDDEN")
-    ) {
+    if (err instanceof PeerError && (err.httpStatus === 403 || err.code === "FORBIDDEN")) {
       setPermission(`${err.code}: ${err.message}`);
     } else if (err instanceof PeerError) {
       setError(`${err.code}: ${err.message}`);
@@ -64,10 +51,7 @@ export function CaseTimeline({
       try {
         const [c, ev] = await Promise.all([
           caseClient.getCase(caseId),
-          caseClient.listEvents(
-            caseId,
-            opts?.initial ? undefined : lastSeq.current,
-          ),
+          caseClient.listEvents(caseId, opts?.initial ? undefined : lastSeq.current),
         ]);
         setCaseRecord(c);
         if (opts?.initial) {
@@ -82,10 +66,7 @@ export function CaseTimeline({
             return merged;
           });
         }
-        const maxSeq = ev.events.reduce(
-          (m, e) => Math.max(m, e.sequence),
-          lastSeq.current,
-        );
+        const maxSeq = ev.events.reduce((m, e) => Math.max(m, e.sequence), lastSeq.current);
         lastSeq.current = maxSeq;
         setError(null);
         setPermission(null);
@@ -168,18 +149,10 @@ export function CaseTimeline({
 
   if (loading) return <UiState tone="loading" title="Loading case timeline…" />;
   if (permission) {
-    return (
-      <UiState
-        tone="permission"
-        title="Permission denied"
-        detail={permission}
-      />
-    );
+    return <UiState tone="permission" title="Permission denied" detail={permission} />;
   }
-  if (error)
-    return <UiState tone="error" title="Timeline unavailable" detail={error} />;
-  if (!caseRecord)
-    return <UiState tone="empty" title="No case" detail="Case not found." />;
+  if (error) return <UiState tone="error" title="Timeline unavailable" detail={error} />;
+  if (!caseRecord) return <UiState tone="empty" title="No case" detail="Case not found." />;
 
   return (
     <div className="stack" data-testid="case-timeline">
@@ -188,22 +161,14 @@ export function CaseTimeline({
         <StatusChip label={labelCaseStatus(caseRecord.status)} />
       </div>
       <p className="muted">
-        Case{" "}
-        <MaskedRef
-          label="case_id"
-          masked={maskReference(caseRecord.case_id, "case-…")}
-        />{" "}
-        · revision {caseRecord.revision} · intent {caseRecord.intent}
+        Case <MaskedRef label="case_id" masked={maskReference(caseRecord.case_id, "case-…")} /> ·
+        revision {caseRecord.revision} · intent {caseRecord.intent}
       </p>
       <p className="muted" data-testid="timeline-poll-hint">
         Updates automatically every {POLL_MS / 1000} seconds.
       </p>
       {events.length === 0 ? (
-        <UiState
-          tone="empty"
-          title="No events yet"
-          detail="Timeline is empty."
-        />
+        <UiState tone="empty" title="No events yet" detail="Timeline is empty." />
       ) : (
         <ol className="timeline panel" aria-label="Case events">
           {events.map((event) => (
@@ -229,9 +194,7 @@ export function CaseTimeline({
       {enableInteractions ? (
         <div className="panel stack" data-testid="case-interactions">
           <h2>Case actions</h2>
-          <p className="muted">
-            Message updates the case; escalate is a handoff, not resolution.
-          </p>
+          <p className="muted">Message updates the case; escalate is a handoff, not resolution.</p>
           <form className="stack" onSubmit={(e) => void onMessage(e)}>
             <label>
               Message

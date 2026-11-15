@@ -17,18 +17,10 @@ export const FIXTURE_MERCHANT_METRICS: MerchantMetrics = {
     "7d+": 0,
   },
   median_handling_seconds: 2700,
-  top_causes: [
-    "DUPLICATE_PAYMENT",
-    "PAID_UNFULFILLED",
-    "UNMATCHED_PAYMENT",
-    "STATUS_UPDATE",
-  ],
+  top_causes: ["DUPLICATE_PAYMENT", "PAID_UNFULFILLED", "UNMATCHED_PAYMENT", "STATUS_UPDATE"],
 };
 
-export type MerchantAnalyticsStub =
-  | "valid"
-  | "unavailable"
-  | "unauthorized_or_out_of_scope";
+export type MerchantAnalyticsStub = "valid" | "unavailable" | "unauthorized_or_out_of_scope";
 
 export function createMerchantAnalyticsStub(
   scenario: MerchantAnalyticsStub = "valid",
@@ -48,12 +40,7 @@ export function createMerchantAnalyticsStub(
   if (scenario === "unauthorized_or_out_of_scope") {
     return {
       async getMetrics() {
-        throw new PeerError(
-          "FORBIDDEN",
-          "Merchant metrics out of scope",
-          "req-ma-forbidden",
-          403,
-        );
+        throw new PeerError("FORBIDDEN", "Merchant metrics out of scope", "req-ma-forbidden", 403);
       },
     };
   }

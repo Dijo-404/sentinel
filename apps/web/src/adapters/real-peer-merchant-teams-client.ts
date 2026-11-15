@@ -1,8 +1,4 @@
-import type {
-  MerchantSettings,
-  MerchantStaff,
-  MerchantTeamsClient,
-} from "@/application/ports";
+import type { MerchantSettings, MerchantStaff, MerchantTeamsClient } from "@/application/ports";
 import { PeerError } from "@/domain/types";
 import { createPeerJsonFetcher, type PeerJsonOptions } from "./peer-json";
 
@@ -12,11 +8,7 @@ export type MerchantTeamsPeerOptions = Omit<PeerJsonOptions, "peerLabel"> & {
 
 function validateSettings(json: unknown, requestId: string): MerchantSettings {
   if (!json || typeof json !== "object") {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      "Settings response is not an object",
-      requestId,
-    );
+    throw new PeerError("MALFORMED_PEER_RESPONSE", "Settings response is not an object", requestId);
   }
   const o = json as Record<string, unknown>;
   if (
@@ -26,11 +18,7 @@ function validateSettings(json: unknown, requestId: string): MerchantSettings {
     typeof o.notify_disputes !== "boolean" ||
     typeof o.notify_settlements !== "boolean"
   ) {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      "Settings missing required fields",
-      requestId,
-    );
+    throw new PeerError("MALFORMED_PEER_RESPONSE", "Settings missing required fields", requestId);
   }
   return {
     tenant_id: o.tenant_id,
@@ -48,30 +36,16 @@ function validateTeam(
   staff: MerchantStaff[];
   source: string;
 } {
-  if (
-    !json ||
-    typeof json !== "object" ||
-    !Array.isArray((json as { staff?: unknown }).staff)
-  ) {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      "Missing staff array",
-      requestId,
-    );
+  if (!json || typeof json !== "object" || !Array.isArray((json as { staff?: unknown }).staff)) {
+    throw new PeerError("MALFORMED_PEER_RESPONSE", "Missing staff array", requestId);
   }
   const body = json as { staff: unknown[]; source?: unknown };
   const source =
-    typeof body.source === "string" && body.source.trim()
-      ? body.source.trim()
-      : "local_projection";
+    typeof body.source === "string" && body.source.trim() ? body.source.trim() : "local_projection";
 
   const staff = body.staff.map((row, i) => {
     if (!row || typeof row !== "object") {
-      throw new PeerError(
-        "MALFORMED_PEER_RESPONSE",
-        `Staff[${i}] is not an object`,
-        requestId,
-      );
+      throw new PeerError("MALFORMED_PEER_RESPONSE", `Staff[${i}] is not an object`, requestId);
     }
     const o = row as Record<string, unknown>;
     if (
@@ -106,10 +80,7 @@ function validateTeam(
       roles,
       active: o.active,
     };
-    if (
-      typeof o.approval_limit_minor === "number" &&
-      Number.isInteger(o.approval_limit_minor)
-    ) {
+    if (typeof o.approval_limit_minor === "number" && Number.isInteger(o.approval_limit_minor)) {
       out.approval_limit_minor = o.approval_limit_minor;
     }
     if (typeof o.currency === "string") out.currency = o.currency;
@@ -130,19 +101,11 @@ export function createRealPeerMerchantTeamsClient(
   return {
     listTeam(merchantRef) {
       const params = new URLSearchParams({ merchant_ref: merchantRef });
-      return request(
-        "GET",
-        `/v1/merchant/team?${params}`,
-        validateTeam,
-      );
+      return request("GET", `/v1/merchant/team?${params}`, validateTeam);
     },
     getSettings(merchantRef) {
       const params = new URLSearchParams({ merchant_ref: merchantRef });
-      return request(
-        "GET",
-        `/v1/merchant/settings?${params}`,
-        validateSettings,
-      );
+      return request("GET", `/v1/merchant/settings?${params}`, validateSettings);
     },
   };
 }

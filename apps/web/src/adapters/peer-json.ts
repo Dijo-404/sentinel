@@ -44,9 +44,7 @@ export function createPeerJsonFetcher(options: PeerJsonOptions) {
     let response: Response;
     try {
       const headers: Record<string, string> = {
-        ...(authMode === "bearer"
-          ? { Authorization: `Bearer ${options.bearerToken}` }
-          : {}),
+        ...(authMode === "bearer" ? { Authorization: `Bearer ${options.bearerToken}` } : {}),
         Accept: "application/json",
         "X-Request-Id": requestId,
       };
@@ -62,9 +60,7 @@ export function createPeerJsonFetcher(options: PeerJsonOptions) {
     } catch (err) {
       throw new PeerError(
         "PEER_UNAVAILABLE",
-        err instanceof Error
-          ? err.message
-          : `Network failure contacting ${options.peerLabel}`,
+        err instanceof Error ? err.message : `Network failure contacting ${options.peerLabel}`,
         requestId,
         503,
       );
@@ -87,12 +83,7 @@ export function createPeerJsonFetcher(options: PeerJsonOptions) {
 
     if (!response.ok) {
       if (isApiError(json)) {
-        throw new PeerError(
-          json.code,
-          json.message,
-          json.request_id,
-          response.status,
-        );
+        throw new PeerError(json.code, json.message, json.request_id, response.status);
       }
       throw new PeerError(
         response.status === 403 || response.status === 401

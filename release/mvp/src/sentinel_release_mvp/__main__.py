@@ -13,7 +13,12 @@ from sentinel_release_mvp.application.verify import (
     verify_manifest,
 )
 from sentinel_release_mvp.bootstrap import build_peers, contracts_dir, module_root
-from sentinel_release_mvp.contracts import CONTRACT_SHA256, CONTRACT_VERSION, ContractError, PeerError
+from sentinel_release_mvp.contracts import (
+    CONTRACT_SHA256,
+    CONTRACT_VERSION,
+    ContractError,
+    PeerError,
+)
 from sentinel_release_mvp.domain.procedures import procedure_checklist
 
 
@@ -156,8 +161,7 @@ def _run_self_test(*, emit_json: bool) -> int:
             artifact_root=artifact_root if "positive-real" in name else None,
         )
         ok = (
-            verdict.release_approved is expect_approved
-            and (report.status == "PASS") is expect_pass
+            verdict.release_approved is expect_approved and (report.status == "PASS") is expect_pass
         )
         # Fixture self-test file: status PASS but never approved.
         if name == "positive-fixture-selftest.json":

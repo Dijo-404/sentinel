@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed — 15 November 2026
+
+- Applied the repository Ruff baseline to module discovery, bounded check execution, and tests without changing check behavior.
+
 ### Added — 13 November 2026
 
 - Installable standard-library `sentinel-modules` CLI with module-local manifest,

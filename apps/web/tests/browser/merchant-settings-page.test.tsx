@@ -37,21 +37,14 @@ const sessionStub = {
 describe("merchant settings page", () => {
   it("never shows stub copy; shows settings when fetch succeeds", async () => {
     render(
-      <ShellProvider
-        config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}
-      >
-        <SettingsPanel
-          session={sessionStub}
-          teamsClient={createMerchantTeamsStub("valid")}
-        />
+      <ShellProvider config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}>
+        <SettingsPanel session={sessionStub} teamsClient={createMerchantTeamsStub("valid")} />
       </ShellProvider>,
     );
 
     expect(screen.getByTestId("merchant-settings")).toBeInTheDocument();
     expect(screen.queryByText("Not available yet")).not.toBeInTheDocument();
-    expect(
-      await screen.findByTestId("merchant-settings-data"),
-    ).toBeInTheDocument();
+    expect(await screen.findByTestId("merchant-settings-data")).toBeInTheDocument();
     expect(screen.getByText("merchant-demo-1")).toBeInTheDocument();
     expect(screen.getByText("en")).toBeInTheDocument();
   });
@@ -64,36 +57,24 @@ describe("merchant settings page", () => {
           CASE_API_BASE_URL: "http://127.0.0.1:9",
         })}
       >
-        <SettingsPanel
-          session={sessionStub}
-          teamsClient={createMerchantTeamsStub("unavailable")}
-        />
+        <SettingsPanel session={sessionStub} teamsClient={createMerchantTeamsStub("unavailable")} />
       </ShellProvider>,
     );
 
     expect(await screen.findByTestId("peer-error")).toBeInTheDocument();
     expect(screen.queryByText("Not available yet")).not.toBeInTheDocument();
-    expect(
-      screen.queryByTestId("merchant-settings-data"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId("merchant-settings-data")).not.toBeInTheDocument();
   });
 
   it("missing settings fails closed — no invented row", async () => {
     render(
-      <ShellProvider
-        config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}
-      >
-        <SettingsPanel
-          session={sessionStub}
-          teamsClient={createMerchantTeamsStub("empty")}
-        />
+      <ShellProvider config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}>
+        <SettingsPanel session={sessionStub} teamsClient={createMerchantTeamsStub("empty")} />
       </ShellProvider>,
     );
 
     expect(await screen.findByTestId("peer-error")).toBeInTheDocument();
     expect(screen.queryByText("Not available yet")).not.toBeInTheDocument();
-    expect(
-      screen.queryByTestId("merchant-settings-data"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId("merchant-settings-data")).not.toBeInTheDocument();
   });
 });

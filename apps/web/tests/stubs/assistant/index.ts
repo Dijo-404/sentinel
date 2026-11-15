@@ -1,8 +1,4 @@
-import type {
-  AssistantClient,
-  AssistantMessage,
-  AssistantThread,
-} from "@/application/ports";
+import type { AssistantClient, AssistantMessage, AssistantThread } from "@/application/ports";
 import { PeerError } from "@/domain/types";
 
 /** Seed-aligned fixture threads (synthetic; fixture mode only). */
@@ -37,9 +33,7 @@ export const FIXTURE_MESSAGES: AssistantMessage[] = [
 
 export type AssistantStub = "valid" | "unavailable" | "empty";
 
-export function createAssistantStub(
-  scenario: AssistantStub = "valid",
-): AssistantClient {
+export function createAssistantStub(scenario: AssistantStub = "valid"): AssistantClient {
   if (scenario === "unavailable") {
     return {
       async listThreads() {
@@ -90,9 +84,7 @@ export function createAssistantStub(
   return {
     async listThreads(role) {
       const threads =
-        role === "operator"
-          ? [{ ...FIXTURE_OPERATOR_THREAD }]
-          : [{ ...FIXTURE_CUSTOMER_THREAD }];
+        role === "operator" ? [{ ...FIXTURE_OPERATOR_THREAD }] : [{ ...FIXTURE_CUSTOMER_THREAD }];
       return { threads, source: "fixture" };
     },
     async listMessages(threadId) {

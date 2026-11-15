@@ -33,14 +33,7 @@ function glowTexture() {
   canvas.width = size;
   canvas.height = size;
   const g = canvas.getContext("2d")!;
-  const grad = g.createRadialGradient(
-    size / 2,
-    size / 2,
-    0,
-    size / 2,
-    size / 2,
-    size / 2,
-  );
+  const grad = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
   grad.addColorStop(0, "rgba(255,255,255,1)");
   grad.addColorStop(0.25, "rgba(255,255,255,0.55)");
   grad.addColorStop(1, "rgba(255,255,255,0)");
@@ -97,12 +90,7 @@ function Stars({ glow }: { glow: THREE.Texture }) {
   );
 }
 
-function Rings({
-  stages,
-  active,
-  glow,
-  reduced,
-}: Props & { glow: THREE.Texture }) {
+function Rings({ stages, active, glow, reduced }: Props & { glow: THREE.Texture }) {
   const group = useRef<THREE.Group>(null);
   const ringMats = useRef<THREE.MeshBasicMaterial[]>([]);
   const lightMats = useRef<THREE.PointsMaterial[]>([]);
@@ -115,10 +103,7 @@ function Rings({
     return stages.map((s) => {
       const n = Math.min(14, Math.max(3, Math.round(s.count / 2)));
       const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute(
-        "position",
-        new THREE.BufferAttribute(new Float32Array(n * 3), 3),
-      );
+      geometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(n * 3), 3));
       return { geometry, phases: Array.from({ length: n }, () => rand()) };
     });
   }, [countsKey]);
@@ -128,38 +113,18 @@ function Rings({
     const g = group.current;
     if (g) {
       // Parallax toward the pointer, damped so it glides rather than snaps.
-      g.rotation.y = THREE.MathUtils.damp(
-        g.rotation.y,
-        pointer.x * 0.35,
-        3,
-        dt,
-      );
-      g.rotation.x = THREE.MathUtils.damp(
-        g.rotation.x,
-        -pointer.y * 0.18,
-        3,
-        dt,
-      );
+      g.rotation.y = THREE.MathUtils.damp(g.rotation.y, pointer.x * 0.35, 3, dt);
+      g.rotation.x = THREE.MathUtils.damp(g.rotation.x, -pointer.y * 0.18, 3, dt);
     }
     streams.forEach((stream, i) => {
       const isActive = i === active;
       const ring = ringMats.current[i];
       if (ring) {
-        ring.opacity = THREE.MathUtils.damp(
-          ring.opacity,
-          isActive ? 0.85 : 0.2,
-          6,
-          dt,
-        );
+        ring.opacity = THREE.MathUtils.damp(ring.opacity, isActive ? 0.85 : 0.2, 6, dt);
       }
       const lights = lightMats.current[i];
       if (lights) {
-        lights.size = THREE.MathUtils.damp(
-          lights.size,
-          isActive ? 0.42 : 0.22,
-          6,
-          dt,
-        );
+        lights.size = THREE.MathUtils.damp(lights.size, isActive ? 0.42 : 0.22, 6, dt);
       }
       const r = RING_RADII[i] ?? 2;
       const speed = 0.06 + i * 0.015;
@@ -258,8 +223,7 @@ function Core({ glow, reduced }: { glow: THREE.Texture; reduced: boolean }) {
   useFrame((state) => {
     const t = reduced ? 0 : state.clock.elapsedTime;
     if (orb.current) orb.current.rotation.y = t * 0.08;
-    if (halo.current)
-      halo.current.scale.setScalar(11 + Math.sin(t * 0.9) * 0.35);
+    if (halo.current) halo.current.scale.setScalar(11 + Math.sin(t * 0.9) * 0.35);
   });
   return (
     <group>
@@ -307,11 +271,7 @@ export default function HeroScene(props: Props) {
         }}
       >
         <ambientLight intensity={0.4} />
-        <directionalLight
-          position={[-3, 6, 4]}
-          intensity={2.4}
-          color="#c9cdf5"
-        />
+        <directionalLight position={[-3, 6, 4]} intensity={2.4} color="#c9cdf5" />
         <pointLight position={[5, 0, 4]} intensity={40} color="#5266eb" />
         <Stars glow={glow} />
         {/* Planet rises from the bottom edge so the headline sits on clear sky. */}

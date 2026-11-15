@@ -4,6 +4,11 @@ This file tracks coordinated repository/release changes. Each independent module
 
 ## Unreleased
 
+### Added — 15 November 2026
+
+- Pinned Ruff and Prettier tools under `tooling/lint`, root check/fix commands, and a dedicated CI job.
+- Repository-wide lint and formatting baseline, preserving module-specific rules, supplied specifications, pinned contracts, and byte-sensitive fixtures.
+
 ### Added — 14 November 2026
 
 - Role/RBAC product spec [`docs/roles.md`](docs/roles.md) and implementation plan [`docs/superpowers/plans/2026-11-14-role-portals-identity.md`](docs/superpowers/plans/2026-11-14-role-portals-identity.md).

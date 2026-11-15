@@ -10,11 +10,7 @@ type Props = {
 };
 
 /** Counts from 0 to `value` once in view. Screen readers get the final value only. */
-export function CountUp({
-  value,
-  format = (v) => String(Math.round(v)),
-  duration = 1.4,
-}: Props) {
+export function CountUp({ value, format = (v) => String(Math.round(v)), duration = 1.4 }: Props) {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, margin: "-40px" });
   const reduce = useReducedMotion();

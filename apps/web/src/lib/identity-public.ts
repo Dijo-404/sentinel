@@ -11,9 +11,7 @@ export type PublicProfileUser = {
   account_class: IdentityUser["account_class"];
 };
 
-export function toPublicProfileUser(
-  user: IdentityUser | PublicProfileUser,
-): PublicProfileUser {
+export function toPublicProfileUser(user: IdentityUser | PublicProfileUser): PublicProfileUser {
   return {
     user_id: user.user_id,
     email: user.email,

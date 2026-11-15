@@ -27,14 +27,14 @@ Root `make check` validates repository metadata. It does not substitute for this
 
 ## Behavior
 
-| Surface | Role |
-| --- | --- |
-| `POST /v1/drafts` | Create `CommsDraft` in `DRAFT` for `en` / `ta` / `hi` |
-| `POST /v1/drafts/{id}/decisions` | Operator `APPROVE` or `REJECT` |
-| `POST /v1/drafts/{id}/simulate-send` | Only after approval → `SIMULATED_SENT` + delivery history |
-| `GET /v1/drafts/{id}` | Read draft |
-| Optional `indic-context.v1` | When unavailable/missing → deterministic template labeled `[fake]` |
-| Required `case-api.v1` | Unauthorized / unavailable / malformed → fail closed |
+| Surface                              | Role                                                               |
+| ------------------------------------ | ------------------------------------------------------------------ |
+| `POST /v1/drafts`                    | Create `CommsDraft` in `DRAFT` for `en` / `ta` / `hi`              |
+| `POST /v1/drafts/{id}/decisions`     | Operator `APPROVE` or `REJECT`                                     |
+| `POST /v1/drafts/{id}/simulate-send` | Only after approval → `SIMULATED_SENT` + delivery history          |
+| `GET /v1/drafts/{id}`                | Read draft                                                         |
+| Optional `indic-context.v1`          | When unavailable/missing → deterministic template labeled `[fake]` |
+| Required `case-api.v1`               | Unauthorized / unavailable / malformed → fail closed               |
 
 Preview one lifecycle:
 

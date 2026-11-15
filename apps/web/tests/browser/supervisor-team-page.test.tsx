@@ -8,9 +8,7 @@ import { createOpsTeamStub } from "../stubs/ops-team";
 describe("supervisor team page", () => {
   it("never shows stub copy; lists roster when fetch succeeds", async () => {
     render(
-      <ShellProvider
-        config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}
-      >
+      <ShellProvider config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}>
         <TeamPanel opsTeamClient={createOpsTeamStub("valid")} />
       </ShellProvider>,
     );
@@ -43,9 +41,7 @@ describe("supervisor team page", () => {
 
   it("empty roster is honest empty — no invented rows", async () => {
     render(
-      <ShellProvider
-        config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}
-      >
+      <ShellProvider config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}>
         <TeamPanel opsTeamClient={createOpsTeamStub("empty")} />
       </ShellProvider>,
     );

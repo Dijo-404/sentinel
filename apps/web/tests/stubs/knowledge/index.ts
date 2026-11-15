@@ -23,9 +23,7 @@ export const FIXTURE_ARTICLE_SUMMARY: KnowledgeArticleSummary = {
 
 export type KnowledgeStub = "valid" | "unavailable" | "empty";
 
-export function createKnowledgeStub(
-  scenario: KnowledgeStub = "valid",
-): KnowledgeClient {
+export function createKnowledgeStub(scenario: KnowledgeStub = "valid"): KnowledgeClient {
   if (scenario === "unavailable") {
     return {
       async listArticles() {
@@ -60,12 +58,7 @@ export function createKnowledgeStub(
         return { articles: [], source: "fixture" };
       },
       async getArticle() {
-        throw new PeerError(
-          "NOT_FOUND",
-          "Article not found",
-          "req-kn-missing",
-          404,
-        );
+        throw new PeerError("NOT_FOUND", "Article not found", "req-kn-missing", 404);
       },
       async search() {
         return { hits: [], source: "fixture" };
@@ -81,12 +74,7 @@ export function createKnowledgeStub(
     },
     async getArticle(articleId) {
       if (articleId !== FIXTURE_ARTICLE.article_id) {
-        throw new PeerError(
-          "NOT_FOUND",
-          "Article not found",
-          "req-kn-missing",
-          404,
-        );
+        throw new PeerError("NOT_FOUND", "Article not found", "req-kn-missing", 404);
       }
       return { ...FIXTURE_ARTICLE };
     },

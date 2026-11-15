@@ -13,22 +13,13 @@ type Props = {
   error?: { code: string; message: string } | null;
 };
 
-export function WorkspacePicker({
-  workspaces,
-  activeAssignmentId,
-  error,
-}: Props) {
+export function WorkspacePicker({ workspaces, activeAssignmentId, error }: Props) {
   if (error) {
     return (
       <div className="auth-card panel stack" data-testid="auth-workspaces">
         <p className="brand auth-brand">Sentinel</p>
         <h1>Choose workspace</h1>
-        <div
-          className="state-banner"
-          data-tone="error"
-          data-testid="peer-error"
-          role="alert"
-        >
+        <div className="state-banner" data-tone="error" data-testid="peer-error" role="alert">
           <strong>Identity unavailable</strong>
           <p className="muted" style={{ margin: "0.35rem 0 0" }}>
             {error.message}
@@ -47,12 +38,7 @@ export function WorkspacePicker({
       </div>
 
       {workspaces.length === 0 ? (
-        <div
-          className="state-banner"
-          data-tone="empty"
-          data-testid="state-empty"
-          role="status"
-        >
+        <div className="state-banner" data-tone="empty" data-testid="state-empty" role="status">
           <strong>No workspaces</strong>
           <p className="muted" style={{ margin: "0.35rem 0 0" }}>
             This account has no assignments.
@@ -65,11 +51,7 @@ export function WorkspacePicker({
             return (
               <li key={w.assignment_id}>
                 <form action={switchWorkspaceAction}>
-                  <input
-                    type="hidden"
-                    name="assignment_id"
-                    value={w.assignment_id}
-                  />
+                  <input type="hidden" name="assignment_id" value={w.assignment_id} />
                   <button
                     type="submit"
                     className="btn"

@@ -50,20 +50,20 @@ Every peer must set its mode env to `real-peers` (e.g. `SIMULATOR_MODE=real-peer
 
 Start data peers before orchestrators:
 
-| # | Service | Dir | Port | Notes |
-| --- | --- | ---: | ---: | --- |
-| 1 | Postgres | `integration/core/compose.yaml` | 5432 | step 1 |
-| 2 | payment-provider (simulator) | `services/simulator` | 8094 | `mode=real-peers`; demo-reset/seeds |
-| 3 | policy | `services/policy` | 8005 | optional for assembly probe; used by ledger |
-| 4 | evidence | `services/evidence` | 8006 | optional for probe |
-| 5 | action-ledger | `services/action-ledger` | 8009 | migrate then serve |
-| 6 | dispatcher | `services/dispatcher` | 8010 | HTTP probe + worker CLI |
-| 7 | verifier | `services/verifier` | 8011 | migrate then serve |
-| 8 | workflow | `services/workflow` | 8088 | migrate then serve |
-| 9 | case-api | `apps/api` | 8080 | migrate then serve |
-| 10 | web-shell | `apps/web` | 3012 | `/v1/capabilities` |
-| 11 | identity (optional RBAC) | `services/identity` | 8012 | not in REQUIRED_PEERS; fixture probes use doubles |
-| 12 | risk (optional RBAC) | `services/risk` | 8013 | not in REQUIRED_PEERS; no money authority |
+| #   | Service                      |                             Dir | Port | Notes                                             |
+| --- | ---------------------------- | ------------------------------: | ---: | ------------------------------------------------- |
+| 1   | Postgres                     | `integration/core/compose.yaml` | 5432 | step 1                                            |
+| 2   | payment-provider (simulator) |            `services/simulator` | 8094 | `mode=real-peers`; demo-reset/seeds               |
+| 3   | policy                       |               `services/policy` | 8005 | optional for assembly probe; used by ledger       |
+| 4   | evidence                     |             `services/evidence` | 8006 | optional for probe                                |
+| 5   | action-ledger                |        `services/action-ledger` | 8009 | migrate then serve                                |
+| 6   | dispatcher                   |           `services/dispatcher` | 8010 | HTTP probe + worker CLI                           |
+| 7   | verifier                     |             `services/verifier` | 8011 | migrate then serve                                |
+| 8   | workflow                     |             `services/workflow` | 8088 | migrate then serve                                |
+| 9   | case-api                     |                      `apps/api` | 8080 | migrate then serve                                |
+| 10  | web-shell                    |                      `apps/web` | 3012 | `/v1/capabilities`                                |
+| 11  | identity (optional RBAC)     |             `services/identity` | 8012 | not in REQUIRED_PEERS; fixture probes use doubles |
+| 12  | risk (optional RBAC)         |                 `services/risk` | 8013 | not in REQUIRED_PEERS; no money authority         |
 
 Typical pattern per Python service:
 

@@ -133,13 +133,9 @@ def render_release_report(report: RunReport, verdict: ReleaseVerdict) -> str:
     lines.append("## Output artifacts")
     lines.append("")
     for art in report.output_artifacts:
-        lines.append(
-            f"- `{art.kind}` {art.uri} sha256={art.sha256} mode={art.evidence_mode}"
-        )
+        lines.append(f"- `{art.kind}` {art.uri} sha256={art.sha256} mode={art.evidence_mode}")
     lines.append("")
     if not verdict.release_approved:
-        lines.append(
-            "Note: kit self-test PASS or blocked verdict is not product release proof."
-        )
+        lines.append("Note: kit self-test PASS or blocked verdict is not product release proof.")
         lines.append("")
     return "\n".join(lines)

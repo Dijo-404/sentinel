@@ -63,14 +63,8 @@ describe("OpsCombinedOverview", () => {
   it("renders operator and supervisor KPIs together", async () => {
     const client = createCaseApiStub("valid");
     render(
-      <ShellProvider
-        config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}
-      >
-        <OpsCombinedOverview
-          session={sessionStub}
-          caseClient={client}
-          mode="fixture"
-        />
+      <ShellProvider config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}>
+        <OpsCombinedOverview session={sessionStub} caseClient={client} mode="fixture" />
       </ShellProvider>,
     );
     expect(screen.getByTestId("ops-combined-dashboard")).toBeInTheDocument();
@@ -84,21 +78,13 @@ describe("OpsCombinedOverview", () => {
     const client = createCaseApiStub("valid");
     delete client.getOperatorDashboard;
     render(
-      <ShellProvider
-        config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}
-      >
-        <OpsCombinedOverview
-          session={sessionStub}
-          caseClient={client}
-          mode="fixture"
-        />
+      <ShellProvider config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}>
+        <OpsCombinedOverview session={sessionStub} caseClient={client} mode="fixture" />
       </ShellProvider>,
     );
     await waitFor(() => {
       expect(screen.getByTestId("supervisor-kpi-row")).toBeInTheDocument();
     });
-    expect(
-      screen.getByText("Operator metrics unavailable"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Operator metrics unavailable")).toBeInTheDocument();
   });
 });

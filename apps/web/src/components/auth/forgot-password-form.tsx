@@ -2,18 +2,12 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import {
-  forgotPasswordAction,
-  type ChallengeActionResult,
-} from "@/lib/server/auth-actions";
+import { forgotPasswordAction, type ChallengeActionResult } from "@/lib/server/auth-actions";
 
 const initial: ChallengeActionResult | null = null;
 
 export function ForgotPasswordForm() {
-  const [state, formAction, pending] = useActionState(
-    forgotPasswordAction,
-    initial,
-  );
+  const [state, formAction, pending] = useActionState(forgotPasswordAction, initial);
 
   return (
     <div className="auth-card panel stack" data-testid="auth-forgot">
@@ -21,18 +15,13 @@ export function ForgotPasswordForm() {
         <p className="brand auth-brand">Sentinel</p>
         <h1>Forgot password</h1>
         <p className="muted">
-          Enter your email. If an account exists, reset instructions are issued
-          through identity (sandbox delivery log — no invented email body here).
+          Enter your email. If an account exists, reset instructions are issued through identity
+          (sandbox delivery log — no invented email body here).
         </p>
       </div>
 
       {state && state.ok ? (
-        <div
-          className="state-banner"
-          data-tone="empty"
-          data-testid="forgot-success"
-          role="status"
-        >
+        <div className="state-banner" data-tone="empty" data-testid="forgot-success" role="status">
           <p>{state.message}</p>
           {state.sandbox_code ? (
             <p className="muted" data-testid="forgot-sandbox-code">
@@ -40,8 +29,7 @@ export function ForgotPasswordForm() {
             </p>
           ) : null}
           <p className="muted">
-            Have a code?{" "}
-            <Link href="/auth/reset-password">Reset password</Link>
+            Have a code? <Link href="/auth/reset-password">Reset password</Link>
           </p>
         </div>
       ) : (
@@ -59,12 +47,7 @@ export function ForgotPasswordForm() {
 
           {state && !state.ok ? (
             state.peerError ? (
-              <div
-                className="state-banner"
-                data-tone="error"
-                data-testid="peer-error"
-                role="alert"
-              >
+              <div className="state-banner" data-tone="error" data-testid="peer-error" role="alert">
                 <strong>Identity unavailable</strong>
                 <p className="muted" style={{ margin: "0.35rem 0 0" }}>
                   {state.message}

@@ -2,10 +2,7 @@
 
 import { useActionState, useState } from "react";
 import type { PortalRole } from "../../../tests/stubs/identity";
-import {
-  inviteStaffAction,
-  type ActionResult,
-} from "@/lib/server/auth-actions";
+import { inviteStaffAction, type ActionResult } from "@/lib/server/auth-actions";
 import { PermissionPreview } from "./permission-preview";
 
 const STAFF_OPTIONS: Array<{
@@ -22,19 +19,14 @@ const STAFF_OPTIONS: Array<{
 const initial: ActionResult | null = null;
 
 export function InviteStaffForm() {
-  const [state, formAction, pending] = useActionState(
-    inviteStaffAction,
-    initial,
-  );
+  const [state, formAction, pending] = useActionState(inviteStaffAction, initial);
   const [role, setRole] = useState<Exclude<PortalRole, "customer">>("operator");
 
   return (
     <div className="stack" data-testid="invite-staff-form">
       <form action={formAction} className="panel stack">
         <h1>Invite staff</h1>
-        <p className="muted">
-          Customer accounts cannot be invited here. No public staff sign-up.
-        </p>
+        <p className="muted">Customer accounts cannot be invited here. No public staff sign-up.</p>
 
         <label>
           Full name
@@ -42,30 +34,18 @@ export function InviteStaffForm() {
         </label>
         <label>
           Work email
-          <input
-            name="work_email"
-            type="email"
-            required
-            data-testid="invite-email"
-          />
+          <input name="work_email" type="email" required data-testid="invite-email" />
         </label>
         <label>
           Tenant
-          <input
-            name="tenant_id"
-            defaultValue="tenant-demo"
-            required
-            data-testid="invite-tenant"
-          />
+          <input name="tenant_id" defaultValue="tenant-demo" required data-testid="invite-tenant" />
         </label>
         <label>
           Role
           <select
             name="role_id"
             value={role}
-            onChange={(e) =>
-              setRole(e.target.value as Exclude<PortalRole, "customer">)
-            }
+            onChange={(e) => setRole(e.target.value as Exclude<PortalRole, "customer">)}
             data-testid="invite-role"
           >
             {STAFF_OPTIONS.map((opt) => (
@@ -79,11 +59,7 @@ export function InviteStaffForm() {
           Reason
           <textarea name="reason" rows={3} data-testid="invite-reason" />
         </label>
-        <input
-          type="hidden"
-          name="idempotency_key"
-          value={`invite-${Date.now()}`}
-        />
+        <input type="hidden" name="idempotency_key" value={`invite-${Date.now()}`} />
 
         {state && !state.ok ? (
           <div className="state-banner" data-tone="error" role="alert">

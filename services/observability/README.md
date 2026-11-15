@@ -13,11 +13,11 @@ Compatibility: [contracts/COMPATIBILITY.md](contracts/COMPATIBILITY.md).
 
 ## Routes
 
-| Method | Path | Roles | Response |
-| --- | --- | --- | --- |
-| `POST` | `/v1/ingest` | platform_admin, sandbox-admin | `{ accepted, financial_audit: false }` |
-| `GET` | `/v1/signals` | platform_admin, sandbox-admin | `{ signals, financial_audit: false }` |
-| `GET` | `/v1/spans` | platform_admin, sandbox-admin | `{ spans, financial_audit: false }` |
+| Method | Path          | Roles                         | Response                               |
+| ------ | ------------- | ----------------------------- | -------------------------------------- |
+| `POST` | `/v1/ingest`  | platform_admin, sandbox-admin | `{ accepted, financial_audit: false }` |
+| `GET`  | `/v1/signals` | platform_admin, sandbox-admin | `{ signals, financial_audit: false }`  |
+| `GET`  | `/v1/spans`   | platform_admin, sandbox-admin | `{ spans, financial_audit: false }`    |
 
 Also: `/healthz`, `/readyz`, `/v1/capabilities` (`mode: fixture|real-peers`,
 `financial_audit: false`, `financial_authority: false`).

@@ -1,7 +1,4 @@
-import type {
-  MerchantSettlementClient,
-  SettlementFinding,
-} from "@/application/ports";
+import type { MerchantSettlementClient, SettlementFinding } from "@/application/ports";
 import { PeerError } from "@/domain/types";
 
 export const FIXTURE_SETTLEMENT_FINDINGS: SettlementFinding[] = [

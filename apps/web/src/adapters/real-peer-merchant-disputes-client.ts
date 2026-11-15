@@ -1,39 +1,22 @@
-import type {
-  DisputeCaseSummary,
-  MerchantDisputesClient,
-} from "@/application/ports";
+import type { DisputeCaseSummary, MerchantDisputesClient } from "@/application/ports";
 import { PeerError } from "@/domain/types";
 import { createPeerJsonFetcher, type PeerJsonOptions } from "./peer-json";
 
-export type MerchantDisputesPeerOptions = Omit<
-  PeerJsonOptions,
-  "peerLabel"
-> & {
+export type MerchantDisputesPeerOptions = Omit<PeerJsonOptions, "peerLabel"> & {
   peerLabel?: string;
 };
 
-function validateList(
-  json: unknown,
-  requestId: string,
-): { disputes: DisputeCaseSummary[] } {
+function validateList(json: unknown, requestId: string): { disputes: DisputeCaseSummary[] } {
   if (
     !json ||
     typeof json !== "object" ||
     !Array.isArray((json as { disputes?: unknown }).disputes)
   ) {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      "Missing disputes array",
-      requestId,
-    );
+    throw new PeerError("MALFORMED_PEER_RESPONSE", "Missing disputes array", requestId);
   }
   const disputes = (json as { disputes: unknown[] }).disputes.map((row, i) => {
     if (!row || typeof row !== "object") {
-      throw new PeerError(
-        "MALFORMED_PEER_RESPONSE",
-        `Dispute[${i}] is not an object`,
-        requestId,
-      );
+      throw new PeerError("MALFORMED_PEER_RESPONSE", `Dispute[${i}] is not an object`, requestId);
     }
     const o = row as Record<string, unknown>;
     if (

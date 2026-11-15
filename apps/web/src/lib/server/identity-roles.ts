@@ -2,12 +2,7 @@ import type { PortalRole } from "../../../tests/stubs/identity";
 
 /** identity.v1 role_id values for the six human portals. */
 export type IdentityRoleId =
-  | "customer"
-  | "merchant"
-  | "operator"
-  | "supervisor"
-  | "risk_officer"
-  | "platform_admin";
+  "customer" | "merchant" | "operator" | "supervisor" | "risk_officer" | "platform_admin";
 
 const PORTAL_TO_IDENTITY: Record<PortalRole, IdentityRoleId> = {
   customer: "customer",

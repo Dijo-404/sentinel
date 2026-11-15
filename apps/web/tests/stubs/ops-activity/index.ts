@@ -14,9 +14,7 @@ export const FIXTURE_ACTIVITY: ActivityItem[] = [
 
 export type OpsActivityStub = "valid" | "unavailable" | "empty";
 
-export function createOpsActivityStub(
-  scenario: OpsActivityStub = "valid",
-): OpsActivityClient {
+export function createOpsActivityStub(scenario: OpsActivityStub = "valid"): OpsActivityClient {
   if (scenario === "unavailable") {
     return {
       async listActivity() {

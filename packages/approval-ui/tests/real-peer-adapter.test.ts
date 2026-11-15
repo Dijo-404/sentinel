@@ -14,15 +14,16 @@ const request = {
 
 describe("real-peer adapters", () => {
   it("case-api adapter posts decisions and surfaces peer failures without fixture fallback", async () => {
-    const fetchImpl = vi.fn(async () =>
-      new Response(
-        JSON.stringify({
-          code: "PEER_UNAVAILABLE",
-          message: "Required peer unavailable",
-          request_id: "req-1",
-        }),
-        { status: 503, headers: { "Content-Type": "application/json" } },
-      ),
+    const fetchImpl = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            code: "PEER_UNAVAILABLE",
+            message: "Required peer unavailable",
+            request_id: "req-1",
+          }),
+          { status: 503, headers: { "Content-Type": "application/json" } },
+        ),
     );
 
     const decide = createCaseApiDecideClient({
@@ -31,9 +32,7 @@ describe("real-peer adapters", () => {
       fetchImpl: fetchImpl as unknown as typeof fetch,
     });
 
-    await expect(decide("action-demo-1", request)).rejects.toBeInstanceOf(
-      DecisionClientError,
-    );
+    await expect(decide("action-demo-1", request)).rejects.toBeInstanceOf(DecisionClientError);
     expect(fetchImpl).toHaveBeenCalledWith(
       "https://case-api.example/v1/ops/actions/action-demo-1/decisions",
       expect.objectContaining({
@@ -56,11 +55,12 @@ describe("real-peer adapters", () => {
   });
 
   it("action-ledger adapter returns Approval on 200", async () => {
-    const fetchImpl = vi.fn(async () =>
-      new Response(JSON.stringify(previewBundle.approval_response), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }),
+    const fetchImpl = vi.fn(
+      async () =>
+        new Response(JSON.stringify(previewBundle.approval_response), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
     );
     const decide = createActionLedgerDecideClient({
       baseUrl: "https://ledger.example/",

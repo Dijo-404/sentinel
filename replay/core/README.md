@@ -31,9 +31,9 @@ Requires Python ≥3.11 and `uv`. No database. No sibling Sentinel packages. No 
 
 ## Local peer doubles
 
-| Port | Location | Cases |
-| --- | --- | --- |
-| `evaluation.v1` | `tests/stubs/evaluation/` | valid, unavailable, malformed, unauthorized_or_out_of_scope |
+| Port                  | Location                        | Cases                                                       |
+| --------------------- | ------------------------------- | ----------------------------------------------------------- |
+| `evaluation.v1`       | `tests/stubs/evaluation/`       | valid, unavailable, malformed, unauthorized_or_out_of_scope |
 | `payment-provider.v1` | `tests/stubs/payment_provider/` | valid, unavailable, malformed, unauthorized_or_out_of_scope |
 
 Sandbox refunds use an in-process simulator (`sandbox://…`). Real adapters live in `adapters/real_peers.py` and raise when peers are missing.
@@ -44,13 +44,13 @@ See `.env.example`. Defaults: `SENTINEL_REPLAY_MODE=fixture`, seed `42`, `SENTIN
 
 ## Evidence limits
 
-| Claim | Status |
-| --- | --- |
-| Standalone `make check` | Required; local only |
-| Real evaluation peer | Unverified until assembled |
-| Real payment simulator peer | Unverified until assembled |
-| Live model inference | Not used (`fake`) |
-| Product / pilot release | Out of scope for this module |
+| Claim                       | Status                       |
+| --------------------------- | ---------------------------- |
+| Standalone `make check`     | Required; local only         |
+| Real evaluation peer        | Unverified until assembled   |
+| Real payment simulator peer | Unverified until assembled   |
+| Live model inference        | Not used (`fake`)            |
+| Product / pilot release     | Out of scope for this module |
 
 ## Layout
 

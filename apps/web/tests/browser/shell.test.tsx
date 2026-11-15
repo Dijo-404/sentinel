@@ -15,22 +15,11 @@ describe("standalone browser checks", () => {
   it("intake covers loading and success against local fixture", async () => {
     const user = userEvent.setup();
     const client = createCaseApiStub("valid");
-    render(
-      <IntakeForm
-        caseClient={client}
-        voiceEnabled={false}
-        voiceClient={null}
-      />,
-    );
-    expect(screen.getByTestId("voice-slot")).toHaveAttribute(
-      "data-slot",
-      "voice.v1-disabled",
-    );
+    render(<IntakeForm caseClient={client} voiceEnabled={false} voiceClient={null} />);
+    expect(screen.getByTestId("voice-slot")).toHaveAttribute("data-slot", "voice.v1-disabled");
     await user.type(screen.getByLabelText("Complaint message"), "Paid twice");
     await user.click(screen.getByRole("button", { name: "Submit case" }));
-    expect(await screen.findByTestId("state-empty")).toHaveTextContent(
-      "RECEIVED",
-    );
+    expect(await screen.findByTestId("state-empty")).toHaveTextContent("RECEIVED");
   });
 
   it("intake trims input, blocks blank order reference, clears message after submit", async () => {
@@ -38,26 +27,14 @@ describe("standalone browser checks", () => {
     const client = createCaseApiStub("valid");
     const createCase = vi.fn(client.createCase.bind(client));
     client.createCase = createCase;
-    render(
-      <IntakeForm
-        caseClient={client}
-        voiceEnabled={false}
-        voiceClient={null}
-      />,
-    );
+    render(<IntakeForm caseClient={client} voiceEnabled={false} voiceClient={null} />);
     const submit = screen.getByRole("button", { name: "Submit case" });
-    await user.type(
-      screen.getByLabelText("Complaint message"),
-      "  Paid twice  ",
-    );
+    await user.type(screen.getByLabelText("Complaint message"), "  Paid twice  ");
     await user.clear(screen.getByLabelText("Order reference"));
     await user.type(screen.getByLabelText("Order reference"), "   ");
     expect(submit).toBeDisabled();
     await user.clear(screen.getByLabelText("Order reference"));
-    await user.type(
-      screen.getByLabelText("Order reference"),
-      " DEMO-ORDER-42 ",
-    );
+    await user.type(screen.getByLabelText("Order reference"), " DEMO-ORDER-42 ");
     await user.click(submit);
     await screen.findByTestId("state-empty");
     expect(createCase).toHaveBeenCalledWith(
@@ -81,9 +58,7 @@ describe("standalone browser checks", () => {
     );
     await user.type(screen.getByLabelText("Complaint message"), "hello");
     await user.click(screen.getByRole("button", { name: "Submit case" }));
-    expect(await screen.findByTestId("state-permission")).toHaveTextContent(
-      "FORBIDDEN",
-    );
+    expect(await screen.findByTestId("state-permission")).toHaveTextContent("FORBIDDEN");
 
     render(
       <IntakeForm
@@ -94,41 +69,25 @@ describe("standalone browser checks", () => {
     );
     const forms = screen.getAllByLabelText("Complaint message");
     await user.type(forms[1]!, "hello");
-    await user.click(
-      screen.getAllByRole("button", { name: "Submit case" })[1]!,
-    );
-    expect(await screen.findByTestId("state-error")).toHaveTextContent(
-      "PEER_UNAVAILABLE",
-    );
+    await user.click(screen.getAllByRole("button", { name: "Submit case" })[1]!);
+    expect(await screen.findByTestId("state-error")).toHaveTextContent("PEER_UNAVAILABLE");
   });
 
   it("timeline loading/empty/error and keyboard focus", async () => {
     const user = userEvent.setup();
     const { rerender } = render(
-      <CaseTimeline
-        caseId="case-demo-42"
-        caseClient={createCaseApiStub("valid")}
-      />,
+      <CaseTimeline caseId="case-demo-42" caseClient={createCaseApiStub("valid")} />,
     );
     expect(screen.getByTestId("state-loading")).toBeInTheDocument();
-    expect(
-      await screen.findByRole("list", { name: "Case events" }),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("list", { name: "Case events" })).toBeInTheDocument();
     expect(screen.getAllByText("Waiting approval").length).toBeGreaterThan(0);
     expect(screen.queryByText("TXN-B")).not.toBeInTheDocument();
     expect(screen.getByTestId("case-interactions")).toBeInTheDocument();
     expect(screen.getByTestId("case-message-submit")).toBeInTheDocument();
     expect(screen.getByTestId("case-escalate")).toBeInTheDocument();
 
-    rerender(
-      <CaseTimeline
-        caseId="case-demo-42"
-        caseClient={createCaseApiStub("unavailable")}
-      />,
-    );
-    expect(await screen.findByTestId("state-error")).toHaveTextContent(
-      "PEER_UNAVAILABLE",
-    );
+    rerender(<CaseTimeline caseId="case-demo-42" caseClient={createCaseApiStub("unavailable")} />);
+    expect(await screen.findByTestId("state-error")).toHaveTextContent("PEER_UNAVAILABLE");
 
     render(
       <a href="/ops" data-testid="focus-link">
@@ -172,27 +131,14 @@ describe("standalone browser checks", () => {
     const emptyClient = createCaseApiStub("valid");
     emptyClient.listOpsCases = async () => ({ cases: [] });
     render(<OperatorQueue caseClient={emptyClient} />);
-    expect(await screen.findByTestId("state-empty")).toHaveTextContent(
-      "Queue empty",
-    );
+    expect(await screen.findByTestId("state-empty")).toHaveTextContent("Queue empty");
 
-    render(
-      <OperatorQueue
-        caseClient={createCaseApiStub("unauthorized_or_out_of_scope")}
-      />,
-    );
-    expect(await screen.findByTestId("state-permission")).toHaveTextContent(
-      "Permission denied",
-    );
+    render(<OperatorQueue caseClient={createCaseApiStub("unauthorized_or_out_of_scope")} />);
+    expect(await screen.findByTestId("state-permission")).toHaveTextContent("Permission denied");
   });
 
   it("evidence masks refs and shows pending/provider/credit/escalation labels", async () => {
-    render(
-      <EvidencePanel
-        caseId="case-demo-42"
-        caseClient={createCaseApiStub("valid")}
-      />,
-    );
+    render(<EvidencePanel caseId="case-demo-42" caseClient={createCaseApiStub("valid")} />);
     await waitFor(() => {
       expect(screen.getAllByTestId("evidence-card").length).toBeGreaterThan(0);
     });
@@ -225,12 +171,10 @@ describe("standalone browser checks", () => {
     );
     expect(screen.getByTestId("approval-case-revision")).toHaveTextContent("2");
     // From evidence-bundle expires_at, not 2026-12-31 fixture constant.
-    expect(
-      screen.getByTestId("approval-decision-expires-at"),
-    ).toHaveTextContent("2026-11-14T12:00:00Z");
-    expect(
-      screen.queryByText("2026-12-31T23:59:59Z"),
-    ).not.toBeInTheDocument();
+    expect(screen.getByTestId("approval-decision-expires-at")).toHaveTextContent(
+      "2026-11-14T12:00:00Z",
+    );
+    expect(screen.queryByText("2026-12-31T23:59:59Z")).not.toBeInTheDocument();
   });
 
   it("evidence real-peers approval does not use local substitute data-slot", async () => {
@@ -244,17 +188,11 @@ describe("standalone browser checks", () => {
       />,
     );
     await waitFor(() => {
-      expect(
-        screen.getByRole("heading", { name: "Approval required" }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "Approval required" })).toBeInTheDocument();
     });
     expect(screen.queryByTestId("approval-slot")).not.toBeInTheDocument();
-    expect(
-      screen.queryByText(/local substitute/i),
-    ).not.toBeInTheDocument();
-    expect(
-      document.querySelector('[data-slot="approval-ui.v1-local"]'),
-    ).toBeNull();
+    expect(screen.queryByText(/local substitute/i)).not.toBeInTheDocument();
+    expect(document.querySelector('[data-slot="approval-ui.v1-local"]')).toBeNull();
     expect(screen.getByTestId("approve")).toBeInTheDocument();
   });
 
@@ -263,27 +201,21 @@ describe("standalone browser checks", () => {
     expect(ok.status).toBe("ok");
     if (ok.status === "ok") {
       render(<ApprovalSlot state="ready" props={ok.props} />);
-      expect(screen.getByTestId("approval-slot")).toHaveTextContent(
-        "local substitute",
-      );
+      expect(screen.getByTestId("approval-slot")).toHaveTextContent("local substitute");
     }
     const fail = createApprovalUiStub("unavailable");
     expect(fail.status).toBe("error");
     if (fail.status === "error") {
       render(<ApprovalSlot state="error" error={fail.error} />);
       expect(screen.getByRole("alert")).toHaveTextContent("PEER_UNAVAILABLE");
-      expect(screen.getByRole("alert")).toHaveTextContent(
-        "fixture fallback is not used",
-      );
+      expect(screen.getByRole("alert")).toHaveTextContent("fixture fallback is not used");
     }
   });
 
   it("voice slot disabled by default; enabled peer labels evidence_mode", async () => {
     const user = userEvent.setup();
     render(<LocalVoiceSubstitute enabled={false} client={null} />);
-    expect(screen.getByTestId("voice-slot")).toHaveTextContent(
-      "disabled by default",
-    );
+    expect(screen.getByTestId("voice-slot")).toHaveTextContent("disabled by default");
 
     const transcribe = vi.fn(async () => ({
       original_text: "paid twice",
@@ -296,12 +228,8 @@ describe("standalone browser checks", () => {
     await user.click(screen.getByRole("checkbox"));
     await user.type(screen.getByLabelText("Voice text fallback"), "paid twice");
     await user.click(screen.getByRole("button", { name: "Transcribe" }));
-    expect(await screen.findByTestId("voice-slot-result")).toHaveTextContent(
-      "paid twice",
-    );
-    expect(screen.getByTestId("voice-evidence-mode")).toHaveTextContent(
-      "evidence_mode=recorded",
-    );
+    expect(await screen.findByTestId("voice-slot-result")).toHaveTextContent("paid twice");
+    expect(screen.getByTestId("voice-evidence-mode")).toHaveTextContent("evidence_mode=recorded");
 
     render(
       <LocalVoiceSubstitute
@@ -315,25 +243,14 @@ describe("standalone browser checks", () => {
     );
     const boxes = screen.getAllByRole("checkbox");
     await user.click(boxes[boxes.length - 1]!);
-    await user.click(
-      screen.getAllByRole("button", { name: "Transcribe" }).at(-1)!,
-    );
-    expect(await screen.findByTestId("voice-slot-error")).toHaveTextContent(
-      "PEER_UNAVAILABLE",
-    );
+    await user.click(screen.getAllByRole("button", { name: "Transcribe" }).at(-1)!);
+    expect(await screen.findByTestId("voice-slot-error")).toHaveTextContent("PEER_UNAVAILABLE");
   });
 
   it("responsive layout exposes primary landmarks", async () => {
-    render(
-      <EvidencePanel
-        caseId="case-demo-42"
-        caseClient={createCaseApiStub("valid")}
-      />,
-    );
+    render(<EvidencePanel caseId="case-demo-42" caseClient={createCaseApiStub("valid")} />);
     await screen.findByRole("heading", { name: "Evidence workspace" });
-    expect(
-      screen.getByText(/not proof of customer credit/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/not proof of customer credit/i)).toBeInTheDocument();
     expect(document.querySelector(".evidence-grid")).toBeTruthy();
   });
 });

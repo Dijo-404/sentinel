@@ -10,11 +10,7 @@ export function LogoMark({
 }) {
   return (
     <img
-      src={
-        inverse
-          ? "/brand/sentinel-mark-inverse.svg"
-          : "/brand/sentinel-mark.svg"
-      }
+      src={inverse ? "/brand/sentinel-mark-inverse.svg" : "/brand/sentinel-mark.svg"}
       alt=""
       aria-hidden="true"
       width={Math.round(size * (382 / 466))}

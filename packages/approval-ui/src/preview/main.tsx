@@ -2,13 +2,7 @@ import { StrictMode, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import previewBundle from "../../fixtures/preview-bundle.json";
 import { ApprovalPanel } from "../ui/ApprovalPanel.js";
-import type {
-  ActionRecord,
-  Approval,
-  Case,
-  DecisionRequest,
-  Evidence,
-} from "../domain/types.js";
+import type { ActionRecord, Approval, Case, DecisionRequest, Evidence } from "../domain/types.js";
 import { createCaseApiStub } from "../../tests/stubs/case-api.js";
 
 const caseRecord = previewBundle.case as Case;
@@ -46,12 +40,8 @@ function PreviewApp() {
         reviewerId={previewBundle.reviewer.principal_id}
         decisionExpiresAt={previewBundle.decision_expires_at}
         now={() => virtualNow}
-        onRefresh={(event) =>
-          setEvents((prev) => [...prev, `refresh:${event.reason_code}`])
-        }
-        onConflict={(event) =>
-          setEvents((prev) => [...prev, `conflict:${event.reason_code}`])
-        }
+        onRefresh={(event) => setEvents((prev) => [...prev, `refresh:${event.reason_code}`])}
+        onConflict={(event) => setEvents((prev) => [...prev, `conflict:${event.reason_code}`])}
       />
       <h2>Preview events</h2>
       <ul data-testid="preview-events">

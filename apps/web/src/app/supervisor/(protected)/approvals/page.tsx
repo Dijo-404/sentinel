@@ -5,7 +5,5 @@ import { useShell } from "@/adapters/shell-context";
 
 export default function SupervisorApprovalsPage() {
   const { caseClient, config } = useShell();
-  return (
-    <SupervisorApprovalsQueue caseClient={caseClient} mode={config.mode} />
-  );
+  return <SupervisorApprovalsQueue caseClient={caseClient} mode={config.mode} />;
 }

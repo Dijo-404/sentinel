@@ -49,11 +49,7 @@ export function projectionStatusSlices(kpis: OperatorDashboardKpis): StatusSlice
   ].filter((s) => s.value > 0);
 }
 
-export function OperatorOverview({
-  session,
-  caseClient,
-  mode = "fixture",
-}: Props) {
+export function OperatorOverview({ session, caseClient, mode = "fixture" }: Props) {
   const meta = PORTAL_META.operator;
   const [load, setLoad] = useState<LoadState>({ status: "loading" });
 
@@ -96,9 +92,7 @@ export function OperatorOverview({
   }, [caseClient, mode]);
 
   const caption =
-    load.status === "ready" && load.source === "live"
-      ? "Scoped projection"
-      : "Fixture peer";
+    load.status === "ready" && load.source === "live" ? "Scoped projection" : "Fixture peer";
 
   return (
     <div className="stack" data-testid="operator-dashboard">
@@ -108,8 +102,7 @@ export function OperatorOverview({
         <p className="muted">
           Signed in as {session.user.email} · {session.assignment.label}
         </p>
-        {mode === "fixture" ||
-        (load.status === "ready" && load.source === "fixture") ? (
+        {mode === "fixture" || (load.status === "ready" && load.source === "fixture") ? (
           <FixtureBanner />
         ) : null}
         <p>
@@ -121,11 +114,7 @@ export function OperatorOverview({
         <UiState tone="loading" title="Loading operator overview…" />
       ) : null}
       {load.status === "unavailable" ? (
-        <UiState
-          tone="empty"
-          title="Metrics unavailable"
-          detail={load.detail}
-        />
+        <UiState tone="empty" title="Metrics unavailable" detail={load.detail} />
       ) : null}
 
       {load.status === "ready" ? (
@@ -139,11 +128,7 @@ export function OperatorOverview({
             }}
             data-testid="operator-kpi-row"
           >
-            <StatBlock
-              label="Open"
-              value={String(load.kpis.open_total)}
-              caption={caption}
-            />
+            <StatBlock label="Open" value={String(load.kpis.open_total)} caption={caption} />
             <StatBlock
               label="Waiting"
               value={String(load.kpis.waiting_approval)}
@@ -162,10 +147,7 @@ export function OperatorOverview({
           </div>
 
           <ChartCard title="Case status (scoped projection)">
-            <div
-              style={{ width: "100%", height: 260 }}
-              data-testid="operator-status-chart"
-            >
+            <div style={{ width: "100%", height: 260 }} data-testid="operator-status-chart">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -179,10 +161,7 @@ export function OperatorOverview({
                     paddingAngle={2}
                   >
                     {projectionStatusSlices(load.kpis).map((slice, i) => (
-                      <Cell
-                        key={slice.name}
-                        fill={PIE_COLORS[i % PIE_COLORS.length]}
-                      />
+                      <Cell key={slice.name} fill={PIE_COLORS[i % PIE_COLORS.length]} />
                     ))}
                   </Pie>
                   <Tooltip />

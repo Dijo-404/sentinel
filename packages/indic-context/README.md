@@ -27,12 +27,12 @@ Root `make check` validates repository metadata. It does not substitute for this
 
 ## Behavior
 
-| Surface | Role |
-| --- | --- |
-| `POST /v1/proposals` | `ModelRequest` → `ModelResult` (+ `inference_report`) for workflow callers |
-| `FakeSarvamAdapter` | Labeled `fake-inference`; scenarios for proposal / needs_input / escalate / malformed / hallucinated_ref / prompt_injection / unsupported_action / outage |
-| `LiveSarvamAdapter` | Opt-in `provider-observation` via Sarvam chat completions; records latency and token cost units |
-| Normalization | Tamil/Hindi/English amount, negation, count and reference extraction **without** rewriting `original_text` or `language` |
+| Surface              | Role                                                                                                                                                      |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /v1/proposals` | `ModelRequest` → `ModelResult` (+ `inference_report`) for workflow callers                                                                                |
+| `FakeSarvamAdapter`  | Labeled `fake-inference`; scenarios for proposal / needs_input / escalate / malformed / hallucinated_ref / prompt_injection / unsupported_action / outage |
+| `LiveSarvamAdapter`  | Opt-in `provider-observation` via Sarvam chat completions; records latency and token cost units                                                           |
+| Normalization        | Tamil/Hindi/English amount, negation, count and reference extraction **without** rewriting `original_text` or `language`                                  |
 
 Safety failures (malformed proposals, hallucinated evidence/transaction refs, prompt injection, unsupported actions) return `outcome=ESCALATE` with explicit reason codes and **no** proposal. Ambiguous amounts return `NEEDS_INPUT`.
 

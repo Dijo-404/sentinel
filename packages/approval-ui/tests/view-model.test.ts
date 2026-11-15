@@ -3,10 +3,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import {
-  buildApprovalViewModel,
-  buildDecisionRequest,
-} from "../src/domain/view-model.js";
+import { buildApprovalViewModel, buildDecisionRequest } from "../src/domain/view-model.js";
 import type { ActionRecord, Case, Evidence } from "../src/domain/types.js";
 import previewBundle from "../fixtures/preview-bundle.json";
 
@@ -78,8 +75,6 @@ describe("approval view model", () => {
 
   it("pins the contract baseline hash file", () => {
     const hash = readFileSync(join(root, "contracts/baseline-hash.txt"), "utf8").trim();
-    expect(hash).toBe(
-      "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb",
-    );
+    expect(hash).toBe("0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb");
   });
 });

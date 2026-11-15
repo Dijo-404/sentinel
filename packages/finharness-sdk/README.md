@@ -61,11 +61,11 @@ client = FinHarnessClient(
 
 Capability gates:
 
-| Capability | Default | Gate |
-|---|---|---|
-| Routing (`shadow`/`harness`) | off | `enabled=True` and `execution_mode` in `{shadow,harness}` |
-| Ledger proposal/reservation | off | routing + `financial_writes=True` + not `shadow` |
-| Notifications | off | routing + `notifications=True` |
+| Capability                        | Default | Gate                                                            |
+| --------------------------------- | ------- | --------------------------------------------------------------- |
+| Routing (`shadow`/`harness`)      | off     | `enabled=True` and `execution_mode` in `{shadow,harness}`       |
+| Ledger proposal/reservation       | off     | routing + `financial_writes=True` + not `shadow`                |
+| Notifications                     | off     | routing + `notifications=True`                                  |
 | Reservation without `approval_id` | refused | contract validation + explicit `CapabilityDenied` bypass helper |
 
 The client validates request/response shapes locally, delegates to injected ports, and never mints provider refund IDs or edits ledger tables.

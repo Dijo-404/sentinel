@@ -63,26 +63,18 @@ export default function CustomerCasesPage() {
     <div className="panel stack" data-testid="customer-cases">
       <h1>My cases</h1>
       <p className="muted">
-        Customer-scoped cases from case-api{" "}
-        <code>GET /v1/customer/cases</code>.
+        Customer-scoped cases from case-api <code>GET /v1/customer/cases</code>.
       </p>
-      {config.mode === "fixture" ||
-      (load.status === "ready" && load.source === "fixture") ? (
+      {config.mode === "fixture" || (load.status === "ready" && load.source === "fixture") ? (
         <FixtureBanner />
       ) : null}
 
-      {load.status === "loading" ? (
-        <UiState tone="loading" title="Loading cases…" />
-      ) : null}
+      {load.status === "loading" ? <UiState tone="loading" title="Loading cases…" /> : null}
       {load.status === "error" ? (
         <UiState tone="error" title="Cases unavailable" detail={load.detail} />
       ) : null}
       {load.status === "empty" ? (
-        <UiState
-          tone="empty"
-          title="No cases"
-          detail="No cases in your subject scope."
-        />
+        <UiState tone="empty" title="No cases" detail="No cases in your subject scope." />
       ) : null}
       {load.status === "ready" ? (
         <table className="table" aria-label="Customer cases">
