@@ -7,6 +7,7 @@ const handlers = createSessionPeerProxy({
   peerLabel: "merchant-inbox",
   requestIdPrefix: "web-bff-merchant-inbox",
   // Peer authenticates opaque demo token; portal session stays the BFF gate.
+  upstreamTokenRoles: ["merchant"],
   upstreamTokenEnvKey: "MERCHANT_INBOX_SERVICE_TOKEN",
 });
 

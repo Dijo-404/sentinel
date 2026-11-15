@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     ledger_base_url: str = ""
     verifier_base_url: str = ""
     identity_base_url: str = ""
+    identity_customer_subject_bindings: dict[str, dict[str, list[str]]] = Field(
+        default_factory=dict
+    )
     token_map_path: str = "fixtures/auth_tokens.json"
     identity_sessions_path: str = "fixtures/identity_sessions.json"
     service_token: str = "tok-case-api"

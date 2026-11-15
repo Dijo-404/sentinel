@@ -14,26 +14,28 @@ export default function CustomerTransactionsPage() {
       <p className="muted" data-testid="sandbox-evidence-label">
         {SANDBOX_EVIDENCE_LABEL}
       </p>
-      <table className="table" aria-label="Sandbox customer transactions">
-        <thead>
-          <tr>
-            <th>Transaction</th>
-            <th>Order</th>
-            <th>Status</th>
-            <th>Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          {SANDBOX_TRANSACTIONS.map((row) => (
-            <tr key={row.transaction_ref}>
-              <td>{row.transaction_ref}</td>
-              <td>{row.order_reference}</td>
-              <td>{row.status}</td>
-              <td className="tnum">{formatAmountMinor(row.amount_minor, row.currency)}</td>
+      <div className="table-scroll" role="region" aria-label="Scrollable transactions" tabIndex={0}>
+        <table className="table" aria-label="Sandbox customer transactions">
+          <thead>
+            <tr>
+              <th>Transaction</th>
+              <th>Order</th>
+              <th>Status</th>
+              <th>Amount</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {SANDBOX_TRANSACTIONS.map((row) => (
+              <tr key={row.transaction_ref}>
+                <td>{row.transaction_ref}</td>
+                <td>{row.order_reference}</td>
+                <td>{row.status}</td>
+                <td className="tnum">{formatAmountMinor(row.amount_minor, row.currency)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Fixed — merchant portal list authorization (#168)
+
+- Permit the `merchant` role to list disputes within its authenticated tenant,
+  merchant and case scope. Detail and mutation operations retain their existing
+  operator/supervisor checks. A merchant cannot collect evidence packets or
+  access another merchant's disputes.
+- `make check`: 26 tests, including merchant-read and mutation-denial regression
+  coverage plus disposable PostgreSQL persistence checks.
+
 ### Added
 
 - PostgreSQL adapter (`DISPUTES_DATABASE_URL=postgresql+psycopg://...`), schema

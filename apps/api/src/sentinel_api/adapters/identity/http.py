@@ -10,7 +10,11 @@ import httpx
 from sentinel_api.domain.types import DomainError, Principal
 
 
-def principal_from_me(body: dict[str, Any]) -> Principal:
+def principal_from_me(
+    body: dict[str, Any],
+    *,
+    customer_subject_bindings: dict[str, dict[str, list[str]]] | None = None,
+) -> Principal:
     """Map identity /v1/auth/me payload to case-api Principal."""
     user = body.get("user")
     active = body.get("active_assignment")
@@ -30,10 +34,11 @@ def principal_from_me(body: dict[str, Any]) -> Principal:
         merchant_ref = active.get("merchant_ref")
         if isinstance(merchant_ref, str) and merchant_ref:
             subject_refs = (merchant_ref,)
-    # Identity assignments do not yet carry subject_refs for customers; sandbox matrix
-    # uses subject-demo-42 so customer case projections resolve under portal sessions.
-    if not subject_refs and role_id == "customer":
-        subject_refs = ("subject-demo-42",)
+    # Legacy subjects require an explicit tenant/user grant; never share a demo default.
+    if "subject_refs" not in active and role_id == "customer":
+        subject_refs = _string_tuple(
+            (customer_subject_bindings or {}).get(tenant_id, {}).get(principal_id)
+        )
     case_ids = _string_tuple(active.get("case_ids"))
 
     return Principal(
@@ -61,10 +66,17 @@ def _string_tuple(raw: Any) -> tuple[str, ...]:
 class HttpIdentityPrincipalAdapter:
     """Resolve bearer via identity /v1/auth/me; None only when identity rejects the credential."""
 
-    def __init__(self, base_url: str, client: httpx.Client | None = None) -> None:
+    def __init__(
+        self,
+        base_url: str,
+        client: httpx.Client | None = None,
+        *,
+        customer_subject_bindings: dict[str, dict[str, list[str]]] | None = None,
+    ) -> None:
         if not base_url.strip():
             raise ValueError("identity base_url required when identity peer is enabled")
         self._base = base_url.rstrip("/")
+        self._customer_subject_bindings = customer_subject_bindings
         self._client = client or httpx.Client(timeout=5.0)
 
     def project(self, credential: str) -> Principal | None:
@@ -92,4 +104,4 @@ class HttpIdentityPrincipalAdapter:
             raise DomainError("UNAUTHORIZED", "Identity me response malformed", 401)
         if body.get("active_assignment") is None:
             return None
-        return principal_from_me(body)
+        return principal_from_me(body, customer_subject_bindings=self._customer_subject_bindings)

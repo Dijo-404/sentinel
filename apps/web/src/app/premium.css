@@ -1415,6 +1415,7 @@
 }
 
 .app-sidebar {
+  overflow-y: auto;
   display: none;
   flex-direction: column;
   gap: 1.5rem;
@@ -1530,6 +1531,7 @@
 }
 
 .portal-main {
+  overflow-wrap: anywhere;
   width: min(1240px, 100%);
   margin: 0 auto;
   padding: clamp(1rem, 3vw, 2.25rem);
@@ -2111,7 +2113,14 @@
   font-size: 0.875rem;
 }
 
+.table-scroll table {
+  min-width: 32rem;
+  overflow-wrap: normal;
+}
+
 .table-scroll {
+  min-width: 0;
+  max-width: 100%;
   overflow-x: auto;
 }
 

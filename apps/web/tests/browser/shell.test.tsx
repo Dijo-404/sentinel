@@ -31,6 +31,10 @@ describe("standalone browser checks", () => {
     await user.type(screen.getByLabelText("Complaint message"), "Paid twice");
     await user.click(screen.getByRole("button", { name: "Submit case" }));
     expect(await screen.findByTestId("state-empty")).toHaveTextContent("RECEIVED");
+    expect(screen.getByRole("link", { name: "View case" })).toHaveAttribute(
+      "href",
+      expect.stringMatching(/^\/cases\/case-/),
+    );
   });
 
   it("intake trims input, blocks blank order reference, clears message after submit", async () => {

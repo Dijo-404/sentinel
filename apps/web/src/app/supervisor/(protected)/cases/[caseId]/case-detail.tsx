@@ -9,9 +9,10 @@ type Props = {
   caseId: string;
   /** Authenticated session user id — never shell fixture principal. */
   reviewerId: string;
+  canApprove: boolean;
 };
 
-export function SupervisorCaseDetail({ caseId, reviewerId }: Props) {
+export function SupervisorCaseDetail({ caseId, reviewerId, canApprove }: Props) {
   const { caseClient, config } = useShell();
   return (
     <div className="stack" data-testid="supervisor-case-detail">
@@ -26,7 +27,7 @@ export function SupervisorCaseDetail({ caseId, reviewerId }: Props) {
       <EvidencePanel
         caseId={caseId}
         caseClient={caseClient}
-        enableApproval
+        enableApproval={canApprove}
         mode={config.mode}
         reviewerId={reviewerId}
       />

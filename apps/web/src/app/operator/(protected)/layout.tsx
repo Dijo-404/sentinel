@@ -4,8 +4,9 @@ import { opsPortalNav } from "@/lib/portal-nav";
 
 export default async function OperatorProtectedLayout({ children }: { children: React.ReactNode }) {
   const session = await requireAnyRole(["operator", "supervisor"], "operator");
+  const portal = session.assignment.role === "supervisor" ? "supervisor" : "operator";
   return (
-    <ProtectedShell role="operator" session={session} nav={opsPortalNav("operator")}>
+    <ProtectedShell role={portal} session={session} nav={opsPortalNav(portal)}>
       {children}
     </ProtectedShell>
   );

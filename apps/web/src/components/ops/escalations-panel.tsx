@@ -106,35 +106,42 @@ export function EscalationsPanel({ basePath, caseClient: caseClientProp }: Props
       ) : null}
       {load.status === "ready" ? (
         <div className="panel" style={{ overflowX: "auto" }} data-testid={`${rootTestId}-list`}>
-          <table className="table" aria-label="Escalated cases">
-            <thead>
-              <tr>
-                <th scope="col">Case</th>
-                <th scope="col">Status</th>
-                <th scope="col">Intent</th>
-                <th scope="col">Revision</th>
-              </tr>
-            </thead>
-            <tbody>
-              {load.cases.map((c) => (
-                <tr key={c.case_id}>
-                  <td>
-                    <Link
-                      href={`${basePath}/cases/${encodeURIComponent(c.case_id)}`}
-                      data-testid={`escalation-link-${c.case_id}`}
-                    >
-                      <MaskedRef label="case_id" masked={maskReference(c.case_id, "case-…")} />
-                    </Link>
-                  </td>
-                  <td>
-                    <StatusChip label={labelCaseStatus(c.status)} />
-                  </td>
-                  <td>{c.intent}</td>
-                  <td className="mono">{c.revision}</td>
+          <div
+            className="table-scroll"
+            role="region"
+            aria-label="Scrollable data table"
+            tabIndex={0}
+          >
+            <table className="table" aria-label="Escalated cases">
+              <thead>
+                <tr>
+                  <th scope="col">Case</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Intent</th>
+                  <th scope="col">Revision</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {load.cases.map((c) => (
+                  <tr key={c.case_id}>
+                    <td>
+                      <Link
+                        href={`${basePath}/cases/${encodeURIComponent(c.case_id)}`}
+                        data-testid={`escalation-link-${c.case_id}`}
+                      >
+                        <MaskedRef label="case_id" masked={maskReference(c.case_id, "case-…")} />
+                      </Link>
+                    </td>
+                    <td>
+                      <StatusChip label={labelCaseStatus(c.status)} />
+                    </td>
+                    <td>{c.intent}</td>
+                    <td className="mono">{c.revision}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : null}
     </div>

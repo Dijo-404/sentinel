@@ -276,3 +276,32 @@ def test_real_peers_wires_http_identity(engine, monkeypatch):
     # Service opaque token still resolves without depending on identity body.
     workflow = app.state.tokens.resolve("Bearer tok-workflow")
     assert "workflow" in workflow.roles
+
+
+@pytest.mark.parametrize(
+    "user_id,tenant_id", [("new-customer", "tenant-demo"), ("legacy-customer", "other-tenant")]
+)
+def test_customer_without_subject_grant_never_inherits_demo_subject(user_id, tenant_id):
+    body = {
+        "user": {"user_id": user_id},
+        "active_assignment": {"tenant_id": tenant_id, "role_id": "customer"},
+    }
+    assert principal_from_me(body).subject_refs == ()
+
+
+def test_explicit_customer_binding_is_tenant_and_user_scoped():
+    bindings = {"tenant-demo": {"legacy-customer": ["subject-demo-42"]}}
+    for user_id, tenant_id, expected in [
+        ("legacy-customer", "tenant-demo", ("subject-demo-42",)),
+        ("new-customer", "tenant-demo", ()),
+        ("legacy-customer", "other-tenant", ()),
+    ]:
+        body = {
+            "user": {"user_id": user_id},
+            "active_assignment": {"tenant_id": tenant_id, "role_id": "customer"},
+        }
+        assert principal_from_me(body, customer_subject_bindings=bindings).subject_refs == expected
+    body["active_assignment"]["subject_refs"] = ["authoritative-subject"]
+    assert principal_from_me(body, customer_subject_bindings=bindings).subject_refs == (
+        "authoritative-subject",
+    )

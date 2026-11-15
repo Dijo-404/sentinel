@@ -13,7 +13,9 @@ Contract: `sentinel.task-contracts.v1`, SHA-256 `0db3ba2bba994f10d3060bc71730353
 | `GET`  | `/v1/merchants/{merchant_ref}/disputes` | Tenant-scoped list; response `{"disputes":[DisputeCase,...]}` |
 | `GET`  | `/v1/disputes/{dispute_id}`             | Single dispute detail                                         |
 
-Both require `Authorization: Bearer <token>` with operator/supervisor role and merchant (and case for detail) scope.
+Both require `Authorization: Bearer <token>` and authenticated scope. The list
+accepts merchant, operator or supervisor roles and filters tenant, merchant and
+case scope. Detail and all mutations remain operator/supervisor-only.
 
 ## Standalone setup and checks
 

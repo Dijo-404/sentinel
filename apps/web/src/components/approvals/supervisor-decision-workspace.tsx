@@ -101,22 +101,10 @@ export function SupervisorDecisionWorkspace({
     setError(null);
     setPermission(null);
     try {
-      const listed = await caseClient.listOpsCases({
-        status: "WAITING_APPROVAL",
-      });
-      const match = listed.cases.find((c) => c.action_id === actionId);
-      if (!match) {
-        throw new PeerError(
-          "NOT_FOUND",
-          `No waiting approval for action ${actionId}`,
-          "req-supervisor-action-404",
-          404,
-        );
-      }
-      const [c, bundle, resolvedAction] = await Promise.all([
-        caseClient.getCase(match.case_id),
-        caseClient.getOpsEvidence(match.case_id),
-        caseClient.getAction(actionId),
+      const resolvedAction = await caseClient.getAction(actionId);
+      const [c, bundle] = await Promise.all([
+        caseClient.getCase(resolvedAction.payload.case_id),
+        caseClient.getOpsEvidence(resolvedAction.payload.case_id),
       ]);
       // Derive from action/evidence only — never invent a calendar constant.
       const expires = decisionExpiresFromEvidence(
@@ -131,6 +119,8 @@ export function SupervisorDecisionWorkspace({
           503,
         );
       }
+      setDecided(resolvedAction.approval ?? null);
+      decidedRef.current = Boolean(resolvedAction.approval);
       setCaseRecord(c);
       setEvidence(bundle.evidence);
       setAction(resolvedAction);
@@ -238,8 +228,9 @@ export function SupervisorDecisionWorkspace({
           <h2>Decision recorded: {decided.decision}</h2>
           <p>
             Approval <code className="mono">{decided.approval_id}</code> by {decided.reviewer_id}.
-            Execution and verification continue server-side; status below is as last returned by
-            case-api and the ledger.
+            {decided.decision === "APPROVE"
+              ? "Execution and verification continue server-side; status below is as last returned by case-api and the ledger."
+              : "This rejection does not authorize execution. Status below is as last returned by case-api and the ledger."}
           </p>
           <div className="row">
             <StatusChip label={labelCaseStatus(caseRecord.status)} />

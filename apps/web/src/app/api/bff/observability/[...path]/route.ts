@@ -7,6 +7,7 @@ const handlers = createSessionPeerProxy({
   peerLabel: "observability",
   requestIdPrefix: "web-bff-observability",
   // Peer authenticates opaque demo token; portal session stays the BFF gate.
+  upstreamTokenRoles: ["admin"],
   upstreamTokenEnvKey: "OBSERVABILITY_SERVICE_TOKEN",
 });
 

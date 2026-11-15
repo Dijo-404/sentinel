@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+### Fixed — six-role deployed Playwright review (#168)
+
+- Make HTTP sandbox login persistent with two explicit server-side flags;
+  production cookies remain Secure by default.
+- Bind shared sandbox peer credentials to exact identity user, tenant, role and
+  merchant scope. Admin gate projections now verify the active admin assignment.
+- Load only the active operator/supervisor dashboard projection, preserve that
+  role across shared layouts, and withhold supervisor approval controls from
+  operator case review. Restore a usable workspace link after access denial.
+- Make implemented portal pages reachable in navigation. Admin dashboards show
+  authenticated security projections instead of an unwired metrics placeholder.
+- Contain tables and long values at mobile widths; tables remain accessible via
+  keyboard-focusable scroll regions. Keep mobile navigation scrollable.
+- Retain typed names, email addresses, business names and invitation reasons after
+  validation errors. Successful intake links directly to its accepted case.
+- Reopen decisions by authoritative action ID after their case leaves the pending
+  queue. Recorded decisions stay read-only after refresh, including rejection.
+- Optional Playwright runner and [audit evidence](docs/role-user-journeys.md)
+  document exact deployed scope, negative checks, commands and remaining gaps.
+
 ### Fixed — identity login validation errors (#166)
 
 - Identity login rejections with HTTP 422 or `INVALID_INPUT` now return the same

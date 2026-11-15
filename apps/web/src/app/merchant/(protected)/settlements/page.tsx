@@ -81,30 +81,32 @@ export default function MerchantSettlementsPage() {
         <UiState tone="empty" title="No findings" detail="No settlement findings in scope." />
       ) : null}
       {load.status === "ready" ? (
-        <table className="table" aria-label="Settlement findings">
-          <thead>
-            <tr>
-              <th>Finding</th>
-              <th>Batch</th>
-              <th>Status</th>
-              <th>Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            {load.findings.map((row) => (
-              <tr key={row.finding_id}>
-                <td>{row.finding_id}</td>
-                <td>{row.batch_id ?? "—"}</td>
-                <td>{row.status}</td>
-                <td className="tnum">
-                  {row.expected_minor != null
-                    ? formatAmountMinor(row.expected_minor, row.currency ?? "INR")
-                    : "—"}
-                </td>
+        <div className="table-scroll" role="region" aria-label="Scrollable data table" tabIndex={0}>
+          <table className="table" aria-label="Settlement findings">
+            <thead>
+              <tr>
+                <th>Finding</th>
+                <th>Batch</th>
+                <th>Status</th>
+                <th>Amount</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {load.findings.map((row) => (
+                <tr key={row.finding_id}>
+                  <td>{row.finding_id}</td>
+                  <td>{row.batch_id ?? "—"}</td>
+                  <td>{row.status}</td>
+                  <td className="tnum">
+                    {row.expected_minor != null
+                      ? formatAmountMinor(row.expected_minor, row.currency ?? "INR")
+                      : "—"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : null}
     </div>
   );

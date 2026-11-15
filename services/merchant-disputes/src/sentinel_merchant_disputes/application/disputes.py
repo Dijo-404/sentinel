@@ -98,8 +98,8 @@ class DisputeService:
         return dispute
 
     def list(self, principal: Principal, merchant_ref: str) -> tuple[DisputeCase, ...]:
-        if not principal.is_operator():
-            raise errors.UnauthorizedError("Operator or supervisor role required")
+        if not principal.is_operator() and "merchant" not in principal.roles:
+            raise errors.UnauthorizedError("Merchant, operator or supervisor role required")
         if not principal.allows_merchant(merchant_ref):
             raise errors.UnauthorizedError("Unauthorized or out of scope")
         items = self._store.list(tenant_id=principal.tenant_id, merchant_ref=merchant_ref)

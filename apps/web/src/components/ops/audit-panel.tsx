@@ -91,24 +91,31 @@ export function AuditPanel({ caseClient: caseClientProp }: Props) {
       ) : null}
       {load.status === "ready" ? (
         <div className="panel" style={{ overflowX: "auto" }} data-testid="supervisor-audit-list">
-          <table className="table" aria-label="Ops audit events">
-            <thead>
-              <tr>
-                <th scope="col">Type</th>
-                <th scope="col">Case</th>
-                <th scope="col">Occurred</th>
-              </tr>
-            </thead>
-            <tbody>
-              {load.events.map((e) => (
-                <tr key={`${e.case_id}-${e.sequence}`}>
-                  <td className="mono">{e.type}</td>
-                  <td className="mono">{e.case_id}</td>
-                  <td className="mono">{e.occurred_at}</td>
+          <div
+            className="table-scroll"
+            role="region"
+            aria-label="Scrollable data table"
+            tabIndex={0}
+          >
+            <table className="table" aria-label="Ops audit events">
+              <thead>
+                <tr>
+                  <th scope="col">Type</th>
+                  <th scope="col">Case</th>
+                  <th scope="col">Occurred</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {load.events.map((e) => (
+                  <tr key={`${e.case_id}-${e.sequence}`}>
+                    <td className="mono">{e.type}</td>
+                    <td className="mono">{e.case_id}</td>
+                    <td className="mono">{e.occurred_at}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : null}
     </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useId, useState, type FormEvent } from "react";
 import type { CaseClient } from "@/application/ports";
 import { UiState } from "./ui-states";
@@ -133,11 +134,14 @@ export function IntakeForm({
         <UiState tone="permission" title="Permission denied" detail={permission} />
       ) : null}
       {createdId ? (
-        <UiState
-          tone="empty"
-          title="Case accepted"
-          detail={`case_id=${createdId} · status=RECEIVED`}
-        />
+        <div className="stack">
+          <UiState
+            tone="empty"
+            title="Case accepted"
+            detail={`case_id=${createdId} · status=RECEIVED`}
+          />
+          <Link href={`/cases/${encodeURIComponent(createdId)}`}>View case</Link>
+        </div>
       ) : null}
     </div>
   );

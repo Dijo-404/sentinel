@@ -65,7 +65,10 @@ def build_app(settings: Settings | None = None, *, engine=None, tokens: TokenMap
     identity_url = _identity_base_url(settings)
     identity: IdentityPrincipalPort | None = None
     if identity_url:
-        identity = HttpIdentityPrincipalAdapter(identity_url)
+        identity = HttpIdentityPrincipalAdapter(
+            identity_url,
+            customer_subject_bindings=settings.identity_customer_subject_bindings,
+        )
         identity_sessions = True
     if settings.mode == "fixture" and identity is None:
         fixture_identity = FixtureIdentityPrincipalAdapter.from_path(

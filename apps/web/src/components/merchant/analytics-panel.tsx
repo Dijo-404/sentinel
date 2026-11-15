@@ -130,7 +130,7 @@ export function AnalyticsPanel({ session, analyticsClient }: Props) {
           className="stack"
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(9.5rem, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 12rem), 1fr))",
             gap: "0.85rem",
           }}
           data-testid="merchant-analytics-metrics"
@@ -148,7 +148,7 @@ export function AnalyticsPanel({ session, analyticsClient }: Props) {
           />
           <StatBlock
             label="Top cause"
-            value={load.metrics.top_causes[0] ?? "—"}
+            value={load.metrics.top_causes[0]?.replace(/_/g, " ").toLowerCase() ?? "—"}
             caption={caption}
           />
         </div>

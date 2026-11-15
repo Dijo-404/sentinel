@@ -105,26 +105,28 @@ export function TeamPanel({ opsTeamClient }: Props) {
         />
       ) : null}
       {load.status === "ready" ? (
-        <table className="table" aria-label="Ops team" data-testid="supervisor-team-list">
-          <thead>
-            <tr>
-              <th>User</th>
-              <th>Email</th>
-              <th>Name</th>
-              <th>Role</th>
-            </tr>
-          </thead>
-          <tbody>
-            {load.members.map((row) => (
-              <tr key={`${row.user_id}:${row.role}`}>
-                <td className="mono">{row.user_id}</td>
-                <td className="mono">{row.email}</td>
-                <td>{row.display_name}</td>
-                <td>{row.role}</td>
+        <div className="table-scroll" role="region" aria-label="Scrollable data table" tabIndex={0}>
+          <table className="table" aria-label="Ops team" data-testid="supervisor-team-list">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Email</th>
+                <th>Name</th>
+                <th>Role</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {load.members.map((row) => (
+                <tr key={`${row.user_id}:${row.role}`}>
+                  <td className="mono">{row.user_id}</td>
+                  <td className="mono">{row.email}</td>
+                  <td>{row.display_name}</td>
+                  <td>{row.role}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : null}
     </div>
   );

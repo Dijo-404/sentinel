@@ -15,7 +15,9 @@ type Props = {
 };
 
 export function WorkspaceSwitcher({ workspaces, activeAssignmentId, compact = false }: Props) {
-  const others = workspaces.filter((w) => w.assignment_id !== activeAssignmentId);
+  const others = compact
+    ? workspaces.filter((w) => w.assignment_id !== activeAssignmentId)
+    : workspaces;
   if (others.length === 0) return null;
 
   return (

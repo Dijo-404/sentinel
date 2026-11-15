@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { ShellProvider } from "@/adapters/shell-context";
 import { loadShellConfig } from "@/adapters/composition";
@@ -38,7 +38,7 @@ describe("ops shared nav", () => {
   it("operator and supervisor share the same menu set", () => {
     const op = opsPortalNav("operator").map((i) => i.label);
     const su = opsPortalNav("supervisor").map((i) => i.label);
-    expect(op).toEqual(su);
+    expect(op).toEqual(su.filter((label) => label !== "Team"));
     expect(op).toEqual([
       "Dashboard",
       "Command center",
@@ -50,7 +50,6 @@ describe("ops shared nav", () => {
       "Knowledge",
       "Activity",
       "History",
-      "Team",
       "Audit",
     ]);
     expect(PORTAL_NAV.operator.map((i) => i.label)).toEqual(op);
@@ -61,8 +60,9 @@ describe("ops shared nav", () => {
 });
 
 describe("OpsCombinedOverview", () => {
-  it("renders operator and supervisor KPIs together", async () => {
+  it("loads only the active operator projection", async () => {
     const client = createCaseApiStub("valid");
+    const supervisorMetrics = vi.spyOn(client, "getSupervisorDashboard");
     render(
       <ShellProvider config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}>
         <OpsCombinedOverview session={sessionStub} caseClient={client} mode="fixture" />
@@ -71,21 +71,26 @@ describe("OpsCombinedOverview", () => {
     expect(screen.getByTestId("ops-combined-dashboard")).toBeInTheDocument();
     await waitFor(() => {
       expect(screen.getByTestId("operator-kpi-row")).toBeInTheDocument();
-      expect(screen.getByTestId("supervisor-kpi-row")).toBeInTheDocument();
+      expect(screen.queryByTestId("supervisor-kpi-row")).not.toBeInTheDocument();
     });
+    expect(supervisorMetrics).not.toHaveBeenCalled();
   });
 
   it("keeps supervisor section when operator projection is missing", async () => {
     const client = createCaseApiStub("valid");
     delete client.getOperatorDashboard;
+    const supervisorSession: AuthSession = {
+      ...sessionStub,
+      assignment: { ...sessionStub.assignment, role: "supervisor" },
+    };
     render(
       <ShellProvider config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}>
-        <OpsCombinedOverview session={sessionStub} caseClient={client} mode="fixture" />
+        <OpsCombinedOverview session={supervisorSession} caseClient={client} mode="fixture" />
       </ShellProvider>,
     );
     await waitFor(() => {
       expect(screen.getByTestId("supervisor-kpi-row")).toBeInTheDocument();
     });
-    expect(screen.getByText("Operator metrics unavailable")).toBeInTheDocument();
+    expect(screen.queryByTestId("ops-operator-section")).not.toBeInTheDocument();
   });
 });

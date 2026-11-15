@@ -1,0 +1,72 @@
+{
+  "target": "http://65.2.68.199/",
+  "tested_at_utc": "2026-11-15T11:15:04.064572+00:00",
+  "branch": "fix/role-user-journeys",
+  "contract_sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb",
+  "browser": "Chrome for Testing 158.0.8127.18 / Playwright 1.65.2",
+  "viewports": [
+    [1440, 1000],
+    [390, 844]
+  ],
+  "roles": {
+    "customer": {
+      "pages": 7,
+      "denied_portal_visits": 3,
+      "logout_and_keyboard_theme_mobile": true
+    },
+    "merchant": {
+      "pages": 10,
+      "denied_portal_visits": 4,
+      "logout_and_keyboard_theme_mobile": true
+    },
+    "operator": {
+      "pages": 11,
+      "denied_portal_visits": 3,
+      "logout_and_keyboard_theme_mobile": true
+    },
+    "supervisor": {
+      "pages": 13,
+      "denied_portal_visits": 3,
+      "logout_and_keyboard_theme_mobile": true
+    },
+    "risk": {
+      "pages": 7,
+      "denied_portal_visits": 3,
+      "logout_and_keyboard_theme_mobile": true
+    },
+    "admin": {
+      "pages": 14,
+      "denied_portal_visits": 3,
+      "logout_and_keyboard_theme_mobile": true
+    }
+  },
+  "page_combinations": 62,
+  "unexpected_failures": 0,
+  "checks": {
+    "web": {
+      "files": 57,
+      "tests": 351,
+      "status": "PASS"
+    },
+    "api": {
+      "tests": 90,
+      "status": "PASS"
+    },
+    "merchant_disputes": {
+      "tests": 26,
+      "status": "PASS"
+    },
+    "repository": {
+      "tests": 21,
+      "status": "PASS"
+    },
+    "production_build": "PASS"
+  },
+  "financial_evidence": "Supervisor rejection and recorded-decision reload only; simulator, no fresh approval-to-credit certification.",
+  "remaining_gaps": [
+    "Merchant Tasks page remains unwired.",
+    "Fresh merchants require their own operational-peer provisioning."
+  ],
+  "local_artifacts": "/tmp/sentinel-role-qa/final5",
+  "deployed_web": "/opt/sentinel/.role-qa-5/apps/web"
+}

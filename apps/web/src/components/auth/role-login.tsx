@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { loginAction, type ActionResult } from "@/lib/server/auth-actions";
 
 export function RoleLogin({ next }: { next?: string }) {
+  const [email, setEmail] = useState("");
   const [state, formAction, pending] = useActionState(loginAction, null as ActionResult | null);
   return (
     <div className="auth-card panel stack" data-testid="role-login">
@@ -19,6 +20,8 @@ export function RoleLogin({ next }: { next?: string }) {
           Email
           <input
             name="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
             type="email"
             autoComplete="username"
             required

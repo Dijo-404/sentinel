@@ -8,5 +8,11 @@ export default async function SupervisorCaseDetailPage({
 }) {
   const { caseId } = await params;
   const session = await requireAnyRole(["operator", "supervisor"], "supervisor");
-  return <SupervisorCaseDetail caseId={caseId} reviewerId={session.user.user_id} />;
+  return (
+    <SupervisorCaseDetail
+      caseId={caseId}
+      reviewerId={session.user.user_id}
+      canApprove={session.assignment.role === "supervisor"}
+    />
+  );
 }

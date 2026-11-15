@@ -120,3 +120,14 @@ not stripped to a bare provider id when enqueueing workflow.
 | Assembly / pilot         | Unverified                               |
 
 Real-peer integration against independently built workflow/evidence/ledger/verifier services is an owner assembly concern.
+
+## Customer identity subject grants
+
+The identity HTTP adapter no longer gives every customer the demo subject.
+An authenticated `active_assignment.subject_refs` controls customer scope.
+For legacy identity assignments that omit that field, an explicit server-only
+`SENTINEL_API_IDENTITY_CUSTOMER_SUBJECT_BINDINGS` JSON value maps tenant IDs to
+user IDs to subject-reference arrays. An explicitly empty identity grant stays
+empty. No binding grants no subject access; new users see their own empty scope.
+The deployed sandbox binds only its known seeded customer to `subject-demo-42`.
+Never derive a grant from an email, client body or a model proposal.

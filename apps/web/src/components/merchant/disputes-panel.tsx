@@ -128,32 +128,34 @@ export function DisputesPanel({ session, disputesClient }: Props) {
         <UiState tone="empty" title="No disputes" detail="No dispute cases in merchant scope." />
       ) : null}
       {load.status === "ready" ? (
-        <table
-          className="table"
-          aria-label="Merchant disputes"
-          data-testid="merchant-disputes-list"
-        >
-          <thead>
-            <tr>
-              <th>Dispute</th>
-              <th>Case</th>
-              <th>Reason</th>
-              <th>Deadline</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {load.disputes.map((row) => (
-              <tr key={row.dispute_id}>
-                <td>{row.dispute_id}</td>
-                <td>{row.case_id}</td>
-                <td>{row.reason_code}</td>
-                <td>{row.deadline_at}</td>
-                <td>{row.status}</td>
+        <div className="table-scroll" role="region" aria-label="Scrollable data table" tabIndex={0}>
+          <table
+            className="table"
+            aria-label="Merchant disputes"
+            data-testid="merchant-disputes-list"
+          >
+            <thead>
+              <tr>
+                <th>Dispute</th>
+                <th>Case</th>
+                <th>Reason</th>
+                <th>Deadline</th>
+                <th>Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {load.disputes.map((row) => (
+                <tr key={row.dispute_id}>
+                  <td>{row.dispute_id}</td>
+                  <td>{row.case_id}</td>
+                  <td>{row.reason_code}</td>
+                  <td>{row.deadline_at}</td>
+                  <td>{row.status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : null}
     </div>
   );
