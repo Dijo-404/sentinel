@@ -190,7 +190,9 @@ class CaseService:
             case_id=case_id,
             subject_ref=str(meta["subject_ref"]),
         )
-        return self._evidence.get_case_evidence(case_id, authorization=authorization)
+        # Caller already authorized above (role + tenant/case/subject scope). Evidence.v1 only
+        # trusts service bearers, not portal sessions, so read as case-api.
+        return self._evidence.get_case_evidence(case_id, authorization=self._service_authorization)
 
     def decide(
         self,
