@@ -19,9 +19,26 @@ from sentinel_action_ledger.bootstrap import build_app
 
 pytestmark = pytest.mark.postgres
 
+TENANT_SCOPE = {"scope_key": "tenant:tenant-demo", "merchant_ref": None, "team_id": None}
 SESSIONS = {
-    "sess-supervisor": ("usr-sup-7", "supervisor"),
-    "sess-operator": ("usr-op-3", "operator"),
+    "sess-supervisor": ("usr-sup-7", "supervisor", TENANT_SCOPE),
+    "sess-operator": ("usr-op-3", "operator", TENANT_SCOPE),
+    "sess-sup-merchant": (
+        "usr-sup-m",
+        "supervisor",
+        {"scope_key": "tenant:tenant-demo|merchant:m-1", "merchant_ref": "m-1", "team_id": None},
+    ),
+    "sess-sup-team": (
+        "usr-sup-t",
+        "supervisor",
+        {"scope_key": "tenant:tenant-demo|team:t-1", "merchant_ref": None, "team_id": "t-1"},
+    ),
+    "sess-sup-noscope": ("usr-sup-n", "supervisor", {"merchant_ref": None, "team_id": None}),
+    "sess-sup-othertenant": (
+        "usr-sup-o",
+        "supervisor",
+        {"scope_key": "tenant:tenant-other", "merchant_ref": None, "team_id": None},
+    ),
 }
 
 
@@ -29,12 +46,17 @@ def fake_identity(request: httpx.Request) -> httpx.Response:
     token = request.headers.get("authorization", "").removeprefix("Bearer ")
     if token not in SESSIONS:
         return httpx.Response(401, json={"code": "UNAUTHORIZED"})
-    user_id, role = SESSIONS[token]
+    user_id, role, scope = SESSIONS[token]
     return httpx.Response(
         200,
         json={
             "user": {"user_id": user_id, "status": "active"},
-            "active_assignment": {"tenant_id": "tenant-demo", "role_id": role, "status": "active"},
+            "active_assignment": {
+                "tenant_id": "tenant-demo",
+                "role_id": role,
+                "status": "active",
+                **scope,
+            },
         },
     )
 
@@ -116,6 +138,18 @@ def test_session_operator_reads_but_cannot_decide(session_client, engine):
     assert read.status_code == 200, read.text
 
     denied = _decision(session_client, action_id, "sess-operator")
+    assert denied.status_code == 403, denied.text
+    with engine.connect() as connection:
+        count = connection.execute(text("SELECT count(*) FROM approvals")).scalar_one()
+    assert count == 0
+
+
+@pytest.mark.parametrize(
+    "token", ["sess-sup-merchant", "sess-sup-team", "sess-sup-noscope", "sess-sup-othertenant"]
+)
+def test_narrow_or_bad_scope_supervisor_cannot_decide(session_client, engine, token):
+    action_id = _propose(session_client)
+    denied = _decision(session_client, action_id, token)
     assert denied.status_code == 403, denied.text
     with engine.connect() as connection:
         count = connection.execute(text("SELECT count(*) FROM approvals")).scalar_one()

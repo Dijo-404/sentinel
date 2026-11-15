@@ -52,9 +52,13 @@ bearers forwarded by the web BFF / case-api. Unset or empty keeps static-token-o
 4. `principal_id` = identity `user_id` (recorded as approval `reviewer_id` and audit `actor_id`);
    tenant = active assignment tenant; case/subject scope is tenant-wide (`*`), while decide still
    enforces tenant, digest, case revision, policy version and expiry.
+5. The wildcard is granted only when `active_assignment.scope_key` is exactly
+   `tenant:<tenant_id>` and `merchant_ref` / `team_id` are null. Merchant- or team-scoped,
+   missing, malformed or mismatched-tenant scopes → 403.
 
 Fail closed: identity unreachable/timeout/5xx → 503; identity 401, other non-200 or malformed
-body → 401; inactive user, identity 403, revoked/missing assignment or disallowed role → 403.
+body → 401; inactive user, identity 403, revoked/missing assignment, non-tenant-wide scope or
+disallowed role → 403.
 The non-loopback demo-token bind guard is unchanged.
 
 ## Invariants

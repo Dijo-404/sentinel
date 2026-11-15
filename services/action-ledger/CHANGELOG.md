@@ -9,6 +9,9 @@
   `operator`; all other roles 403. `principal_id` is the identity `user_id`, so approvals record
   the exact human reviewer. Identity unavailable/5xx → 503, malformed/non-200 → 401, inactive
   user or missing/revoked assignment → 403. Unset = unchanged static-token behaviour. Refs #144.
+- Session principals get tenant-wide scope only for `scope_key == "tenant:<tenant_id>"` with null
+  `merchant_ref` / `team_id`; merchant/team-scoped, missing, malformed or mismatched-tenant
+  scopes → 403 (security review on #152).
 
 ### Fixed — payment merchant_ref provenance
 

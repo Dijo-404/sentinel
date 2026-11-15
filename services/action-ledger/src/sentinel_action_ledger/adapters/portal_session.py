@@ -49,6 +49,15 @@ def principal_from_me(body: Any) -> Principal:
     role = PORTAL_ROLE_MAP.get(role_id)
     if role is None:
         raise ForbiddenError("Portal role not permitted on the ledger")
+    # identity.v1 scope_key is "tenant:<id>[|merchant:<ref>][|team:<id>]". Only an exact
+    # tenant-wide assignment earns the wildcard; any narrowing/missing/malformed scope is denied
+    # because the ledger cannot enforce merchant/team narrowing on actions.
+    if (
+        active.get("scope_key") != f"tenant:{tenant_id}"
+        or active.get("merchant_ref") is not None
+        or active.get("team_id") is not None
+    ):
+        raise ForbiddenError("Portal assignment scope is not tenant-wide")
     # Tenant-wide case/subject scope: identity assignments carry no case lists, and every
     # route still enforces tenant, exact role, and (for decide) digest/revision/policy/expiry.
     return Principal(

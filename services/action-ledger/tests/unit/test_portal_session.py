@@ -28,7 +28,9 @@ def me_body(role="supervisor", *, user_status="active", tenant="tenant-demo"):
             "assignment_id": "asg-1",
             "tenant_id": tenant,
             "role_id": role,
-            "scope_key": "tenant",
+            "scope_key": f"tenant:{tenant}",
+            "merchant_ref": None,
+            "team_id": None,
             "status": "active",
         },
         "permissions": [],
@@ -95,6 +97,34 @@ def test_inactive_user_forbidden(status):
 def test_revoked_assignment_forbidden():
     body = me_body()
     body["active_assignment"]["status"] = "revoked"
+    auth, _ = resolver(ok(body))
+    with pytest.raises(ForbiddenError):
+        auth.resolve("Bearer sess-x")
+
+
+NARROW_SCOPES = {
+    "merchant_scope_key": {"scope_key": "tenant:tenant-demo|merchant:m-1", "merchant_ref": "m-1"},
+    "team_scope_key": {"scope_key": "tenant:tenant-demo|team:t-1", "team_id": "t-1"},
+    "merchant_ref_only": {"merchant_ref": "m-1"},
+    "team_id_only": {"team_id": "t-1"},
+    "empty_merchant_ref": {"merchant_ref": ""},
+    "missing_scope_key": {"scope_key": None},
+    "empty_scope_key": {"scope_key": ""},
+    "non_string_scope_key": {"scope_key": ["tenant:tenant-demo"]},
+    "bare_tenant_scope_key": {"scope_key": "tenant"},
+    "mismatched_tenant": {"scope_key": "tenant:tenant-other"},
+    "prefix_tenant": {"scope_key": "tenant:tenant-demo-2"},
+    "trailing_scope": {"scope_key": "tenant:tenant-demo|"},
+}
+
+
+@pytest.mark.parametrize("override", NARROW_SCOPES.values(), ids=NARROW_SCOPES.keys())
+@pytest.mark.parametrize("role", ["supervisor", "operator"])
+def test_narrow_missing_or_malformed_scope_forbidden(role, override):
+    body = me_body(role)
+    body["active_assignment"].update(override)
+    if override.get("scope_key", "") is None:
+        del body["active_assignment"]["scope_key"]
     auth, _ = resolver(ok(body))
     with pytest.raises(ForbiddenError):
         auth.resolve("Bearer sess-x")
