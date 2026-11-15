@@ -35,12 +35,13 @@ _PEER_CODE = re.compile(r"[A-Z][A-Z0-9_]{1,63}")
 def _peer_reason(prefix: str, exc: WorkflowError, fallback: str) -> str:
     """Escalation reason `<PREFIX>_<CODE>` for a coded PeerError, else `fallback`. Always logs."""
     reason = fallback
-    if isinstance(exc, PeerError) and _PEER_CODE.fullmatch(exc.code):
+    safe = bool(_PEER_CODE.fullmatch(exc.code))
+    if isinstance(exc, PeerError) and safe:
         reason = f"{prefix}_{exc.code}"
     logger.warning(
         "%s peer error code=%s status=%s reason_code=%s message=%r",
         prefix.lower(),
-        exc.code,
+        exc.code if safe else f"<invalid len={len(exc.code)}>",  # no raw untrusted text in logs
         exc.status_code,
         reason,
         exc.message[:200],

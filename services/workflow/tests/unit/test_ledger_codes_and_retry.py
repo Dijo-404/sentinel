@@ -173,3 +173,14 @@ def test_concurrent_redelivery_of_failed_job_executes_once(session_factory):
         t.join()
     assert len(calls) == 1
     assert service.jobs.get_job("tenant-demo", "race-start")["status"] == "completed"
+
+
+def test_peer_reason_does_not_log_unsafe_code(caplog):
+    with caplog.at_level(logging.WARNING, logger="sentinel_workflow.graph.nodes"):
+        _peer_reason(
+            "LEDGER", PeerError("X\nFORGED log=1", "msg\nline", 409), "LEDGER_PEER_FAILURE"
+        )
+    line = caplog.records[-1].getMessage()
+    assert "\n" not in line
+    assert "FORGED" not in line
+    assert "code=<invalid len=14>" in line
