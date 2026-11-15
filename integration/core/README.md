@@ -38,10 +38,23 @@ make preview
 
 | Mode | Peers | Evidence | MVP claim |
 | --- | --- | --- | --- |
-| `fixture` | In-process reference peers | Labeled `fixture` | Always `assembled_mvp_claimed=false` |
+| `fixture` | In-process reference peers | Labeled `fixture`; report sets `payment_provider=simulator` | Always `assembled_mvp_claimed=false` |
 | `real-peers` | HTTP `/v1/capabilities` + journey drivers | Rejects missing peers, incompatible contract/mode, and `evidence_mode=fixture`; report sets `payment_provider=simulator` | Never auto-claims product release |
 
 Probe rule: every required peer must advertise `mode=real-peers` (including the simulator). Reports still label `payment_provider=simulator` so sandbox is never confused with live rails.
+
+### Honesty labels (fixture + sandbox)
+
+`sentinel-core-assembly run --mode fixture` (and `check`) emit:
+
+| Field | Honest value |
+| --- | --- |
+| `payment_provider` | `simulator` (never omit as if live) |
+| `path` | `browser-to-credit-fixture` when authority journeys pass; else `fixture-reference` — never `live-provider` |
+| `sn009_authority_exercised` | `true` when `browser_to_credit` / `duplicate_approval_deny` postconditions pass |
+| `assembled_mvp_claimed` | always `false` |
+
+Real-peers rejects `evidence_mode=fixture` on input artifacts (fail closed before journeys).
 
 ## V1 sandbox
 
@@ -431,6 +444,7 @@ integration/core/
 - Passing `make check` proves the harness, local doubles, and mocked HTTP drivers.
 - Live script / `SENTINEL_V1_SANDBOX=1` proves assembly against a running mock sandbox.
 - Neither is live-settlement or external pilot evidence.
+- Fixture / simulator path labels are honesty markers, not live-provider proof.
 - Owner-run release selection remains separate (see SN-019).
 
 ## Compatibility checklist (real peers)

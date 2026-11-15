@@ -246,7 +246,8 @@ def _report(
     path: str | None = None,
     sn009: bool = False,
 ) -> RunReport:
-    provider = _SANDBOX_PAYMENT_PROVIDER if run.mode == "real-peers" else None
+    # Fixture and real-peers both use the mock sandbox label — never live rails.
+    provider = _SANDBOX_PAYMENT_PROVIDER
     report_path = path if path is not None else derive_path(run.mode, sn009)
     return RunReport(
         contract_version=CONTRACT_VERSION,

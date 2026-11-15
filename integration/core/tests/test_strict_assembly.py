@@ -96,6 +96,10 @@ def test_strict_rejects_fixture_evidence_as_real() -> None:
     )
     assert report.status == "FAIL"
     assert "FIXTURE_EVIDENCE_REJECTED_IN_REAL_PEERS" in {c.reason_code for c in report.checks}
+    # Fail closed: fixture evidence must not reach journeys or claim live rails.
+    assert not any(c.name.startswith("journey.") for c in report.checks)
+    assert report.path != "live-provider"
+    assert report.sn009_authority_exercised is False
 
 
 def test_strict_rejects_missing_real_evidence() -> None:

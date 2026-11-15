@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Changed — 15 November 2026 (portal wave 6 money-path honesty)
+
+- Fixture assembly reports always set `payment_provider=simulator` (same sandbox
+  label as real-peers); path stays fixture / authority-fixture — never
+  `live-provider`. Authority fixture journeys keep
+  `sn009_authority_exercised=true`. README honesty labels section + tests.
+
 ### Added — 15 November 2026 (portal wave 5 admin verify)
 
 - `verify_wave5` + `scripts/verify_wave5.sh` / `make verify-wave5` /

@@ -9,11 +9,16 @@ from sentinel_core_assembly.adapters.reference import ReferenceBundle
 from sentinel_core_assembly.application.assembly import run_assembly
 from sentinel_core_assembly.domain.journeys import evaluate_journey, expectation_for
 from sentinel_core_assembly.domain.types import (
+    AUTHORITY_FIXTURE_PATH,
     CONTRACT_SHA256,
     CONTRACT_VERSION,
+    FIXTURE_PATH,
     JOURNEYS,
     RunInput,
 )
+
+# Fixture / authority-fixture path labels — never live-provider rails.
+_HONEST_FIXTURE_PATHS = frozenset({FIXTURE_PATH, AUTHORITY_FIXTURE_PATH})
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures"
 
@@ -32,6 +37,10 @@ def test_all_journeys_pass_with_local_reference_peers() -> None:
     assert report.assembled_mvp_claimed is False
     assert report.mode == "fixture"
     assert report.path == "browser-to-credit-fixture"
+    assert report.path in _HONEST_FIXTURE_PATHS
+    assert report.path != "live-provider"
+    assert report.payment_provider == "simulator"
+    assert report.as_dict()["payment_provider"] == "simulator"
     assert report.sn009_authority_exercised is True
     names = {c.name for c in report.checks if c.name.startswith("journey.")}
     assert names == {f"journey.{j}" for j in JOURNEYS}
@@ -89,6 +98,29 @@ def test_fixture_pass_never_claims_mvp_release() -> None:
     mvp = next(c for c in report.checks if c.name == "assembly.mvp_claim")
     assert mvp.reason_code == "HARNESS_PASS_IS_NOT_MVP_RELEASE"
     assert report.output_artifacts[0].evidence_mode == "fixture"
+    assert report.payment_provider == "simulator"
+    assert report.path in _HONEST_FIXTURE_PATHS
+    assert report.path != "live-provider"
+
+
+def test_fixture_report_honesty_labels_for_authority_money_path() -> None:
+    """Fixture assembly must label simulator + authority path; never live-provider."""
+    report = run_assembly(
+        RunInput(
+            contract_version=CONTRACT_VERSION,
+            run_id="honesty-fixture",
+            mode="fixture",
+            parameters={"journeys": "browser_to_credit"},
+        ),
+        ReferenceBundle(),
+    )
+    payload = report.as_dict()
+    assert report.status == "PASS"
+    assert payload["payment_provider"] == "simulator"
+    assert payload["path"] == AUTHORITY_FIXTURE_PATH
+    assert payload["path"] != "live-provider"
+    assert payload["sn009_authority_exercised"] is True
+    assert payload["assembled_mvp_claimed"] is False
 
 
 def test_duplicate_payment_fails_when_timeout_recovery_missing() -> None:
