@@ -1,62 +1,3 @@
-:root {
-  /* Mercury design tokens */
-  --night: #171721;
-  --night-raised: #1e1e2a;
-  --canvas: #fbfcfd;
-  --surface: #ffffff;
-  --lavender: #edecfb;
-  --surface-tint: #fbfbff;
-  --primary: #5266eb;
-  --on-primary: #ffffff;
-  --periwinkle: #9cb4e8;
-  --ink: #28253b;
-  --ink-secondary: #554e7b;
-  --on-dark: #ededf3;
-  --fog: #c3c3cc;
-  --slate: #70707d;
-
-  /* Data viz (product mockups only, never chrome) */
-  --viz-1: #5266eb;
-  --viz-2: #9cb4e8;
-  --viz-3: #7b6cf0;
-  --viz-4: #c9c6f5;
-  --viz-5: #3f4bb8;
-  --viz-ok: #2f9e6f;
-  --viz-warn: #d99a2b;
-  --viz-risk: #d4577a;
-
-  --shadow-soft: 0 1px 2px rgba(40, 37, 59, 0.04), 0 8px 24px rgba(40, 37, 59, 0.06);
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --space-section: clamp(4rem, 9vw, 8rem);
-
-  /* Compat aliases used by existing chrome */
-  --bg: var(--canvas);
-  --graphite: var(--ink);
-  --muted: var(--ink-secondary);
-  --line: var(--fog);
-  --accent: var(--primary);
-  --accent-soft: var(--lavender);
-  --focus: var(--primary);
-
-  /* Domain status chip colors (data viz / chips only) */
-  --warn: #9a5b00;
-  --warn-soft: #fff1d6;
-  --danger: #9b1c1c;
-  --danger-soft: #fde8e8;
-  --ok: #0f6b3a;
-  --ok-soft: #def7e8;
-  --pending: #7a5b00;
-  --provider: #1a4f8b;
-  --credit: #0f6b3a;
-  --escalation: #8a1c3c;
-
-  --radius: 12px;
-  --radius-pill: 40px;
-  --radius-primary-pill: 32px;
-  --font: var(--font-inter), "Inter", "Segoe UI", sans-serif;
-  --mono: "ui-monospace", "SFMono-Regular", monospace;
-}
-
 * {
   box-sizing: border-box;
 }
@@ -206,7 +147,7 @@ select {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 0.55rem 0.9rem;
-  background-color: #fff;
+  background-color: var(--surface);
   color: var(--ink);
   line-height: 1.4;
 }
@@ -221,7 +162,7 @@ select {
 select {
   appearance: none;
   padding-right: 2.6rem;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%23554e7b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%239a9aae' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.9rem center;
   background-size: 16px 16px;
@@ -230,14 +171,14 @@ select {
 button {
   border: 1px solid var(--accent);
   background: var(--accent);
-  color: #fff;
+  color: var(--on-primary);
   border-radius: var(--radius);
   padding: 0.55rem 0.9rem;
   cursor: pointer;
 }
 
 button.secondary {
-  background: #fff;
+  background: transparent;
   color: var(--accent);
 }
 
@@ -263,31 +204,31 @@ button:disabled {
   padding: 0.2rem 0.65rem;
   font-size: 0.85rem;
   border: 1px solid var(--line);
-  background: #f8fafb;
+  background: var(--chip-bg);
 }
 
 .chip[data-kind="pending"] {
   color: var(--pending);
   background: var(--warn-soft);
-  border-color: #efd7a0;
+  border-color: color-mix(in srgb, var(--pending) 35%, transparent);
 }
 
 .chip[data-kind="provider"] {
   color: var(--provider);
-  background: #e7f0fb;
-  border-color: #b7d0ef;
+  background: var(--info-soft);
+  border-color: color-mix(in srgb, var(--provider) 35%, transparent);
 }
 
 .chip[data-kind="credit"] {
   color: var(--credit);
   background: var(--ok-soft);
-  border-color: #9fdab8;
+  border-color: color-mix(in srgb, var(--credit) 35%, transparent);
 }
 
 .chip[data-kind="escalation"] {
   color: var(--escalation);
-  background: #fce8ef;
-  border-color: #efb4c6;
+  background: var(--danger-soft);
+  border-color: color-mix(in srgb, var(--escalation) 35%, transparent);
 }
 
 .chip[data-kind="resolved"] {
@@ -302,24 +243,24 @@ button:disabled {
 }
 
 .state-banner[data-tone="loading"] {
-  background: #eef4f8;
+  background: var(--chip-bg);
 }
 
 .state-banner[data-tone="error"],
 .state-banner[data-tone="permission"] {
   background: var(--danger-soft);
-  border-color: #f0b4b4;
+  border-color: color-mix(in srgb, var(--danger) 35%, transparent);
   color: var(--danger);
 }
 
 .state-banner[data-tone="empty"] {
-  background: #f7f7f7;
+  background: var(--chip-bg);
 }
 
 .state-banner[data-tone="warning"] {
-  background: #fff8e6;
-  border-color: #e6c96a;
-  color: #6b5a12;
+  background: var(--warn-soft);
+  border-color: color-mix(in srgb, var(--warn) 35%, transparent);
+  color: var(--warn);
 }
 
 .timeline {
@@ -389,7 +330,7 @@ button:disabled {
   border: 1px dashed var(--line);
   border-radius: var(--radius);
   padding: 0.85rem;
-  background: #fbfcfd;
+  background: var(--surface-tint);
 }
 
 .approval-facts {
@@ -413,7 +354,7 @@ button:disabled {
 }
 
 .slot-box[data-state="error"] {
-  border-color: #f0b4b4;
+  border-color: color-mix(in srgb, var(--danger) 35%, transparent);
   background: var(--danger-soft);
 }
 
@@ -422,7 +363,8 @@ button:disabled {
   display: grid;
   place-items: center;
   padding: 1.5rem;
-  background: linear-gradient(180deg, #e8eaee 0%, var(--bg) 45%, #ffffff 100%);
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(139, 149, 255, 0.12), transparent 60%), var(--bg);
 }
 
 .auth-card {
@@ -440,7 +382,7 @@ button:disabled {
   padding: 0.45rem 0.65rem;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: #eef0f3;
+  background: var(--chip-bg);
   color: var(--graphite);
   font-size: 0.85rem;
 }

@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 
 from ..application.errors import KnowledgeError, ValidationError
 from ..application.service import KnowledgeService
-from ..domain.types import CONTRACT_VERSION
+from ..domain.types import CONTRACT_VERSION, DEFAULT_SEARCH_LIMIT
 from .auth import TokenAuthenticator
 
 
@@ -20,6 +20,7 @@ class AppServices:
     knowledge: KnowledgeService
     mode: str
     component: str = "knowledge"
+    search: str = "substring"  # "semantic-hybrid" when backed by pgvector embeddings
 
 
 def create_app(services: AppServices) -> FastAPI:
@@ -40,6 +41,7 @@ def create_app(services: AppServices) -> FastAPI:
             "contract_version": CONTRACT_VERSION,
             "component": services.component,
             "mode": services.mode,
+            "search": services.search,
             "financial_authority": False,
         }
 
@@ -71,8 +73,13 @@ def create_app(services: AppServices) -> FastAPI:
             query = request.query_params.get("q")
             if query is None:
                 raise ValidationError("q is required")
-            hits = services.knowledge.search(principal, query)
-            return JSONResponse({"hits": [h.to_hit_wire() for h in hits]})
+            raw_limit = request.query_params.get("limit")
+            try:
+                limit = int(raw_limit) if raw_limit is not None else DEFAULT_SEARCH_LIMIT
+            except ValueError:
+                raise ValidationError("limit must be an integer") from None
+            hits = services.knowledge.search(principal, query, limit)
+            return JSONResponse({"hits": [h.to_wire() for h in hits]})
         except KnowledgeError as exc:
             return _error(exc, request_id)
 

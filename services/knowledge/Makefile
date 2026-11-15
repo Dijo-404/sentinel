@@ -1,6 +1,6 @@
 UV ?= uv
 
-.PHONY: setup check preview seed
+.PHONY: setup check preview seed reindex
 setup:
 	$(UV) sync --frozen
 
@@ -14,3 +14,6 @@ preview: setup
 
 seed: setup
 	$(UV) run --frozen sentinel-knowledge seed
+
+reindex: setup
+	$(UV) run --frozen sentinel-knowledge reindex

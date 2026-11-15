@@ -9,6 +9,7 @@ import { StatusChip } from "./status-chip";
 import { UiState } from "./ui-states";
 import { MaskedRef } from "./masked-ref";
 import { maskReference } from "@/domain/mask";
+import { CaseReplay } from "./ledger/case-replay";
 
 const POLL_MS = 5_000;
 
@@ -167,6 +168,7 @@ export function CaseTimeline({ caseId, caseClient, enableInteractions = true }: 
       <p className="muted" data-testid="timeline-poll-hint">
         Updates automatically every {POLL_MS / 1000} seconds.
       </p>
+      {events.length > 0 ? <CaseReplay events={events} /> : null}
       {events.length === 0 ? (
         <UiState tone="empty" title="No events yet" detail="Timeline is empty." />
       ) : (

@@ -7,6 +7,8 @@ SENTINEL_V1_AUTHORITY_PATH=1; never silently claim MVP release.
 
 from __future__ import annotations
 
+import hashlib
+import json
 import os
 from typing import Any
 
@@ -25,6 +27,16 @@ _AUTHORITY_STAGES = (
     "verifier",
     "closure",
 )
+
+
+def action_digest(payload: dict[str, Any]) -> str:
+    """action-ledger.v1 canonical digest: SHA-256 of sorted, whitespace-free UTF-8 JSON.
+
+    Computed from the payload actually sent; a stored seed digest cannot match once
+    case-api mints a real case_id in real-peers mode.
+    """
+    text = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
 def authority_path_enabled() -> bool:
@@ -102,7 +114,6 @@ def run_browser_to_credit_http(bundle: Any) -> dict[str, object]:
         "evidence_ids": list(seed.get("evidence_ids") or ["evidence-payment-b", "evidence-order"]),
         "policy_version": str(seed["policy_version"]),
     }
-    digest = str(seed["action_digest"])
     operation_key = str(seed["operation_key"])
     order_ref = str(seed["order_reference"])
     expires_at = str(seed["expires_at"])
@@ -134,6 +145,8 @@ def run_browser_to_credit_http(bundle: Any) -> dict[str, object]:
     bundle._require_ok(intake, "case intake")
     case_body = intake.json()
     case_id = str(case_body.get("case_id") or seed["case_id"])
+    payload = {**payload, "case_id": case_id}
+    digest = action_digest(payload)
     stages.append("intake")
 
     # 2) Workflow accepts START (proposal scheduling boundary).
@@ -156,7 +169,7 @@ def run_browser_to_credit_http(bundle: Any) -> dict[str, object]:
         headers=workflow,
         json={
             "operation_key": operation_key,
-            "payload": {**payload, "case_id": case_id},
+            "payload": payload,
             "action_digest": digest,
         },
     )
@@ -183,7 +196,7 @@ def run_browser_to_credit_http(bundle: Any) -> dict[str, object]:
         headers=workflow,
         json={
             "operation_key": operation_key,
-            "payload": {**payload, "case_id": case_id},
+            "payload": payload,
             "action_digest": digest,
             "approval_id": approval_id,
             "order_reference": order_ref.split("/")[-1] if "/" in order_ref else order_ref,
@@ -334,7 +347,7 @@ def run_duplicate_approval_deny_http(bundle: Any) -> dict[str, object]:
         "evidence_ids": list(seed.get("evidence_ids") or ["evidence-payment-b"]),
         "policy_version": str(seed["policy_version"]),
     }
-    digest = str(seed["action_digest"])
+    digest = action_digest(payload)
     operation_key = str(seed["operation_key"])
     ledger_base = bundle._peer_base("action-ledger.v1")
     workflow = bundle._headers("workflow")

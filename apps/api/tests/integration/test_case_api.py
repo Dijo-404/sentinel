@@ -233,9 +233,20 @@ def test_ops_queue_evidence_escalate_and_decision_proxy(client, app):
     assert queue.status_code == 200
     assert any(c["case_id"] == case_id for c in queue.json()["cases"])
 
+    evidence_peer = app.state.peers["evidence"]
+    seen_auth: list[str] = []
+    original_get = evidence_peer.get_case_evidence
+
+    def recording_get(cid, *, authorization):
+        seen_auth.append(authorization)
+        return original_get(cid, authorization=authorization)
+
+    evidence_peer.get_case_evidence = recording_get
     evidence = client.get(f"/v1/ops/cases/{case_id}/evidence", headers=auth("token-operator"))
     assert evidence.status_code == 200
     assert evidence.json()["case_id"] == case_id
+    # Evidence.v1 trusts service bearers only; portal/operator tokens are not forwarded.
+    assert seen_auth == ["Bearer token-case-api-service"]
 
     decision_body = {
         "decision": "APPROVE",
