@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+### Added — 15 November 2026 (portal wave 6 money-path verify)
+
+- `verify_wave6` + `scripts/verify_wave6.sh` / `make verify-wave6` /
+  `sentinel-core-assembly verify-wave6`: portal stub inventory empty,
+  fixture assembly honesty (`payment_provider=simulator`,
+  `path=browser-to-credit-fixture`, `sn009_authority_exercised=true`),
+  `packages/approval-ui` `ApprovalPanel` export + real-peers slot smoke.
+- Live real-peers subset optional via `VERIFY_WAVE6_LIVE=1` (peers up;
+  simulator only). Default skip keeps `make check` credential-free.
+- Program index Wave 6 → done; MVP claim still owner review.
+
+### Changed — 15 November 2026 (portal wave 6 money-path honesty)
+
+- Fixture assembly reports always set `payment_provider=simulator` (same sandbox
+  label as real-peers); path stays fixture / authority-fixture — never
+  `live-provider`. Authority fixture journeys keep
+  `sn009_authority_exercised=true`. README honesty labels section + tests.
+
 ### Added — 15 November 2026 (portal wave 5 admin verify)
 
 - `verify_wave5` + `scripts/verify_wave5.sh` / `make verify-wave5` /

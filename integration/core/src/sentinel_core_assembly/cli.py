@@ -81,6 +81,13 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
             "reports, observability signals"
         ),
     )
+    sub.add_parser(
+        "verify-wave6",
+        help=(
+            "Portal stub scan + fixture assembly honesty + approval-ui ApprovalPanel "
+            "smoke; optional VERIFY_WAVE6_LIVE=1 real-peers subset"
+        ),
+    )
     return parser.parse_args(argv)
 
 
@@ -160,6 +167,14 @@ def main(argv: list[str] | None = None) -> int:
         from sentinel_core_assembly.adapters.verify_wave5 import verify_wave5
 
         report = verify_wave5(dict(os.environ))
+        json.dump(report, sys.stdout, indent=2, sort_keys=True)
+        sys.stdout.write("\n")
+        return 0 if report.get("status") == "PASS" else 1
+
+    if args.command == "verify-wave6":
+        from sentinel_core_assembly.adapters.verify_wave6 import verify_wave6
+
+        report = verify_wave6(dict(os.environ))
         json.dump(report, sys.stdout, indent=2, sort_keys=True)
         sys.stdout.write("\n")
         return 0 if report.get("status") == "PASS" else 1

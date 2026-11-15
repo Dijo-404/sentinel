@@ -53,6 +53,8 @@ def test_cli_check_exits_zero(capsys) -> None:
     assert payload["mode"] == "fixture"
     assert payload["assembled_mvp_claimed"] is False
     assert payload["path"] == "browser-to-credit-fixture"
+    assert payload["path"] != "live-provider"
+    assert payload["payment_provider"] == "simulator"
     assert payload["sn009_authority_exercised"] is True
     assert payload["contract_sha256"] == CONTRACT_SHA256
 

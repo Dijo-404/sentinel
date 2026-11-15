@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added — 15 November 2026 (wave6 money-path composition gates)
+
+- Dedicated `tests/wave6-money-path-gates.test.tsx`: default `loadShellConfig({})`
+  is `real-peers`; ApprovalSlot real-peers never mounts `approval-ui.v1-local`;
+  voice enabled path fails closed on peer down.
+
 ### Added — 15 November 2026 (admin remainder pages from peers)
 
 - Shared `AdminPeerPanel` wires roles, tenants, teams, policies, security,

@@ -1,6 +1,6 @@
 UV ?= uv
 
-.PHONY: setup check preview seed-sandbox verify-wave0-1 verify-wave2 verify-wave3 verify-wave4 verify-wave5
+.PHONY: setup check preview seed-sandbox verify-wave0-1 verify-wave2 verify-wave3 verify-wave4 verify-wave5 verify-wave6
 setup:
 	$(UV) sync --frozen
 
@@ -40,3 +40,8 @@ verify-wave4: setup
 # identity admin + policy + merchant-teams + platform-ai + evals + observability.
 verify-wave5: setup
 	./scripts/verify_wave5.sh
+
+# Offline: portal stub scan + fixture honesty + approval-ui smoke.
+# Optional live: VERIFY_WAVE6_LIVE=1 with peers up (simulator only).
+verify-wave6: setup
+	./scripts/verify_wave6.sh

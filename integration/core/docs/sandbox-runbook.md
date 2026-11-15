@@ -147,6 +147,27 @@ and AUTH-06 (operator supervisor-decide denied; ledger untouched). Labels:
 - `sn009_authority_exercised=false`
 - Not a full case→workflow→ledger money-path claim
 
+## 5c. Wave 6 offline honesty gate
+
+Credential-free aggregator (also covered by module tests). No live peers by default:
+
+```sh
+make -C integration/core verify-wave6
+# or: ./scripts/verify_wave6.sh
+```
+
+Asserts portal stub inventory empty under `apps/web`, fixture assembly honesty
+(`payment_provider=simulator`, `assembled_mvp_claimed=false`, authority path labels
+when exercised), and `packages/approval-ui` `ApprovalPanel` smoke. Optional live
+provider subset when peers are up:
+
+```sh
+VERIFY_WAVE6_LIVE=1 make -C integration/core verify-wave6
+```
+
+Still simulator only — never live payment rails. Program waves 0–6 complete pending
+**owner MVP review**; harness PASS is not product release evidence.
+
 ## 6. Evidence limits
 
 Provider-only sandbox PASS proves payment-provider HTTP drivers against the mock simulator.
@@ -154,4 +175,5 @@ Provider-only sandbox PASS proves payment-provider HTTP drivers against the mock
 wired case→workflow→ledger→dispatcher-role→verifier→closure HTTP path against local
 peers + simulator — still **not** live rails, assembled MVP release, or pilot acceptance.
 Fixture RBAC probes prove local AUTH doubles only (`path=rbac-fixture`).
+`verify-wave6` PASS proves stub scan + fixture honesty + approval-ui smoke only.
 Fixture `make check` alone is never product release evidence.

@@ -38,10 +38,23 @@ make preview
 
 | Mode | Peers | Evidence | MVP claim |
 | --- | --- | --- | --- |
-| `fixture` | In-process reference peers | Labeled `fixture` | Always `assembled_mvp_claimed=false` |
+| `fixture` | In-process reference peers | Labeled `fixture`; report sets `payment_provider=simulator` | Always `assembled_mvp_claimed=false` |
 | `real-peers` | HTTP `/v1/capabilities` + journey drivers | Rejects missing peers, incompatible contract/mode, and `evidence_mode=fixture`; report sets `payment_provider=simulator` | Never auto-claims product release |
 
 Probe rule: every required peer must advertise `mode=real-peers` (including the simulator). Reports still label `payment_provider=simulator` so sandbox is never confused with live rails.
+
+### Honesty labels (fixture + sandbox)
+
+`sentinel-core-assembly run --mode fixture` (and `check`) emit:
+
+| Field | Honest value |
+| --- | --- |
+| `payment_provider` | `simulator` (never omit as if live) |
+| `path` | `browser-to-credit-fixture` when authority journeys pass; else `fixture-reference` — never `live-provider` |
+| `sn009_authority_exercised` | `true` when `browser_to_credit` / `duplicate_approval_deny` postconditions pass |
+| `assembled_mvp_claimed` | always `false` |
+
+Real-peers rejects `evidence_mode=fixture` on input artifacts (fail closed before journeys).
 
 ## V1 sandbox
 
@@ -368,6 +381,35 @@ curl -sS -H "Authorization: Bearer admin-token" \
   http://127.0.0.1:8033/v1/signals
 ```
 
+### Wave 6 money-path honesty gate
+
+Offline aggregator (part of module `make check` via tests; also a Makefile target).
+No live peers required by default.
+
+```sh
+make -C integration/core verify-wave6
+# or: ./scripts/verify_wave6.sh
+```
+
+Asserts:
+
+| Check | What |
+| --- | --- |
+| portal stub scan | `apps/web/src/app/**` has no "Not available yet" / "Fixture placeholder" / "not connected to its service yet" |
+| fixture assembly | in-process journeys PASS with `payment_provider=simulator`, `path=browser-to-credit-fixture`, `sn009_authority_exercised=true`, `assembled_mvp_claimed=false` |
+| approval-ui package | `packages/approval-ui` exports `ApprovalPanel` |
+| approval-ui slot | `apps/web` real-peers slot mounts package panel (not local substitute first) |
+| live real-peers | **skipped** unless `VERIFY_WAVE6_LIVE=1` (then provider subset; peers must be up) |
+
+Optional live (simulator only — never live payment rails):
+
+```sh
+VERIFY_WAVE6_LIVE=1 make -C integration/core verify-wave6
+# or full stack journeys: ./scripts/run_sandbox_journeys.sh
+```
+
+Program waves 0–6 complete pending **owner MVP review**. Harness PASS ≠ product release.
+
 #### Curl checklist (wave 3)
 
 ```sh
@@ -423,6 +465,7 @@ integration/core/
   scripts/verify_wave3.sh
   scripts/verify_wave4.sh
   scripts/verify_wave5.sh
+  scripts/verify_wave6.sh
   tests/stubs/
 ```
 
@@ -431,6 +474,7 @@ integration/core/
 - Passing `make check` proves the harness, local doubles, and mocked HTTP drivers.
 - Live script / `SENTINEL_V1_SANDBOX=1` proves assembly against a running mock sandbox.
 - Neither is live-settlement or external pilot evidence.
+- Fixture / simulator path labels are honesty markers, not live-provider proof.
 - Owner-run release selection remains separate (see SN-019).
 
 ## Compatibility checklist (real peers)

@@ -140,7 +140,7 @@ class RunReport:
             "contract_sha256": CONTRACT_SHA256,
         }
         if self.payment_provider is not None:
-            # real-peers against mock sandbox still labels provider=simulator (not live).
+            # Fixture + real-peers sandbox both label provider=simulator (never live).
             payload["payment_provider"] = self.payment_provider
         if self.path is not None:
             payload["path"] = self.path
