@@ -84,12 +84,12 @@ rows are reclaimable.
 
 Delivery outcome classification:
 
-| Workflow response                         | Outbox result                                                   |
-| ----------------------------------------- | --------------------------------------------------------------- |
-| 2xx `accepted: true`                      | `DELIVERED`                                                     |
-| 5xx / network error (`PEER_UNAVAILABLE`)  | `PENDING`, redelivered on the next pass (unbounded)             |
-| 409 / 422 / 429 (`PEER_REJECTED_<code>`)  | `PENDING` with exponential backoff; `FAILED` after max attempts |
-| 400 / 401 / 403 / 404 / malformed body    | `FAILED` immediately                                            |
+| Workflow response                        | Outbox result                                                   |
+| ---------------------------------------- | --------------------------------------------------------------- |
+| 2xx `accepted: true`                     | `DELIVERED`                                                     |
+| 5xx / network error (`PEER_UNAVAILABLE`) | `PENDING`, redelivered on the next pass (unbounded)             |
+| 409 / 422 / 429 (`PEER_REJECTED_<code>`) | `PENDING` with exponential backoff; `FAILED` after max attempts |
+| 400 / 401 / 403 / 404 / malformed body   | `FAILED` immediately                                            |
 
 Transient retry settings: `SENTINEL_API_WORKFLOW_RETRY_MAX_ATTEMPTS` (default 5),
 `SENTINEL_API_WORKFLOW_RETRY_BASE_SECONDS` (default 2; delay doubles per attempt),
