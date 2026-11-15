@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Fixed — real-time simulator events (Refs #144)
+
+- `SIMULATOR_CLOCK=system` timestamps synthetic provider events with current UTC
+  time so verifier freshness checks can accept real-peers sandbox runs. The default
+  `fixed` mode preserves deterministic fixtures. Demo reset preserves the selected
+  clock mode; unsupported values fail startup.
+
 - Opt-in `paytm_staging` seed pack (₹10 Paytm-shaped duplicate/mismatch/fail/refund).
   Load via admin seeds; not merged into default sandbox seed. Success/refund rows are
   synthetic until an initiate-capable staging MID captures TXN_SUCCESS.

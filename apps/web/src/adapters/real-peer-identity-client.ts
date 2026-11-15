@@ -1,3 +1,4 @@
+import { isIP } from "node:net";
 import {
   type ChallengeAccepted,
   type IdentityNotification,
@@ -180,12 +181,33 @@ export function createRealPeerIdentityClient(options: RealPeerIdentityOptions): 
     }
   }
 
-  async function selfRegister(
-    path: string,
-    body: Record<string, string>,
+  async function registerPublicAccount(
+    input: Parameters<IdentityClient["registerCustomer"]>[0] & { business_name?: string },
+    type: "customer" | "merchant",
   ): Promise<RegisterResult> {
+    const allowed = [
+      "email",
+      "password",
+      "display_name",
+      "language",
+      ...(type === "merchant" ? ["business_name"] : []),
+    ];
+    if (
+      Object.entries(input).some(([key, value]) => value !== undefined && !allowed.includes(key))
+    ) {
+      return { ok: false, code: "PRIVILEGED_FIELDS_REJECTED" };
+    }
     try {
-      const { json, requestId } = await request("POST", path, { body, okStatuses: [201] });
+      const { json, requestId } = await request("POST", `/v1/auth/${type}/register`, {
+        body: {
+          email: input.email,
+          password: input.password,
+          display_name: input.display_name,
+          ...(type === "merchant" ? { business_name: input.business_name } : {}),
+          ...(input.language ? { preferred_language: input.language } : {}),
+        },
+        okStatuses: [201],
+      });
       return mapRegisterSuccess(json, requestId);
     } catch (err) {
       if (err instanceof PeerError) {
@@ -214,22 +236,21 @@ export function createRealPeerIdentityClient(options: RealPeerIdentityOptions): 
       try {
         const { json, requestId } = await request("POST", "/v1/auth/login", {
           body: { email, password },
-          headers: clientIp ? { "X-Forwarded-For": clientIp } : undefined,
+          ...(clientIp && isIP(clientIp) ? { headers: { "X-Forwarded-For": clientIp } } : {}),
           okStatuses: [200],
         });
         return mapLoginSuccess(json, requestId);
       } catch (err) {
         if (err instanceof PeerError) {
-          if (err.code === "ACCOUNT_NOT_FOUND") {
-            return { ok: false, code: "ACCOUNT_NOT_FOUND" };
-          }
-          if (err.httpStatus === 429 || err.code === "RATE_LIMITED") {
+          if (err.code === "ACCOUNT_NOT_FOUND") return { ok: false, code: "ACCOUNT_NOT_FOUND" };
+          if (err.code === "RATE_LIMITED" || err.httpStatus === 429)
             return { ok: false, code: "RATE_LIMITED" };
-          }
-          if (err.httpStatus === 422 || err.code === "INVALID_INPUT") {
-            return { ok: false, code: "INVALID_CREDENTIALS" };
-          }
-          if (err.httpStatus === 401 || err.code === "UNAUTHORIZED") {
+          if (
+            err.httpStatus === 401 ||
+            err.code === "UNAUTHORIZED" ||
+            (err.httpStatus === 422 && err.code !== "MALFORMED_PEER_RESPONSE") ||
+            err.code === "INVALID_INPUT"
+          ) {
             return { ok: false, code: "INVALID_CREDENTIALS" };
           }
           if (err.httpStatus === 403 || err.code === "FORBIDDEN") {
@@ -243,31 +264,8 @@ export function createRealPeerIdentityClient(options: RealPeerIdentityOptions): 
       }
     },
 
-    async registerCustomer(input): Promise<RegisterResult> {
-      if (
-        input.roles !== undefined ||
-        input.tenant_id !== undefined ||
-        input.subject_refs !== undefined
-      ) {
-        return { ok: false, code: "PRIVILEGED_FIELDS_REJECTED" };
-      }
-      return selfRegister("/v1/auth/customer/register", {
-        email: input.email,
-        password: input.password,
-        display_name: input.display_name,
-        ...(input.language ? { preferred_language: input.language } : {}),
-      });
-    },
-
-    async registerMerchant(input): Promise<RegisterResult> {
-      return selfRegister("/v1/auth/merchant/register", {
-        email: input.email,
-        password: input.password,
-        display_name: input.display_name,
-        business_name: input.business_name,
-        ...(input.language ? { preferred_language: input.language } : {}),
-      });
-    },
+    registerCustomer: (input) => registerPublicAccount(input, "customer"),
+    registerMerchant: (input) => registerPublicAccount(input, "merchant"),
 
     async resolveSession(sessionToken) {
       return loadMe(sessionToken);

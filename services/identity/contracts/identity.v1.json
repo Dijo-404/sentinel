@@ -31,13 +31,27 @@
     },
     {
       "method": "POST",
+      "path": "/v1/auth/merchant/register",
+      "request": {
+        "email": "string",
+        "password": "string",
+        "display_name": "string",
+        "business_name": "string",
+        "preferred_language?": "string"
+      },
+      "response": "{ user, assignment, business_name, session_token, expires_at }",
+      "notes": "Server assigns merchant in tenant-demo with server-generated merchant_ref; privileged fields (role/roles/role_id/tenant_id/subject/subject_refs/merchant_ref/account_type/permissions) rejected 422; duplicate email 409 CONFLICT like customer register"
+    },
+    {
+      "method": "POST",
       "path": "/v1/auth/login",
       "request": {
         "email": "string",
         "password": "string",
         "requested_role?": "string"
       },
-      "response": "{ user, workspaces, active_assignment?, session_token, expires_at }"
+      "response": "{ user, workspaces, active_assignment?, session_token, expires_at }",
+      "notes": "422 INVALID_INPUT for missing/malformed email or password; 404 ACCOUNT_NOT_FOUND for unknown email (deliberate enumeration, #154); 401 UNAUTHORIZED generic for wrong password; 429 RATE_LIMITED after 5 failures per (email, client IP), 20 per known client IP in 15 min, or capacity exhaustion. Missing client IP falls back to per-email failed-response limiting without blocking correct credentials; only explicitly configured direct proxies may forward client IP. Several workspaces without requested_role: active_assignment null, unscoped session with no permissions until POST /v1/auth/workspaces/select"
     },
     {
       "method": "POST",

@@ -25,14 +25,17 @@ from ..domain.roles import (
     permissions_for,
 )
 from .errors import (
+    AccountNotFoundError,
     ConflictError,
     ForbiddenError,
     InvalidChallengeError,
     NotFoundError,
+    RateLimitedError,
     UnauthorizedError,
     ValidationError,
 )
 from .ports import Clock, IdentityStore
+from .rate_limit import LoginRateLimiter
 from .security import (
     MAX_CHALLENGE_ATTEMPTS,
     assert_password_acceptable,
@@ -63,8 +66,12 @@ PRIVILEGED_BODY_FIELDS = frozenset(
         "authz_version",
         "permissions",
         "granted_by",
+        "merchant_ref",
+        "subject",
     }
 )
+# Default sandbox tenant for customer + merchant self-signup.
+SELF_SERVICE_TENANT = "tenant-demo"
 
 
 SANDBOX_PASSWORD_RESET_HINT = (
@@ -83,7 +90,9 @@ class IdentityService:
         expose_sandbox_codes: bool = False,
         sandbox: bool = False,
         sandbox_token: str = "",
+        login_limiter: LoginRateLimiter | None = None,
     ) -> None:
+        self._login_limiter = login_limiter or LoginRateLimiter(clock)
         self._store = store
         self._clock = clock
         self._delivery = delivery
@@ -103,11 +112,65 @@ class IdentityService:
         extra: dict[str, Any] | None = None,
         request_id: str = "request-local",
     ) -> dict[str, Any]:
+        return self._self_register(
+            role_id="customer",
+            account_type="customer",
+            email=email,
+            password=password,
+            display_name=display_name,
+            preferred_language=preferred_language,
+            extra=extra,
+            request_id=request_id,
+        )
+
+    def register_merchant(
+        self,
+        *,
+        email: str,
+        password: str,
+        display_name: str,
+        business_name: str,
+        preferred_language: str = "",
+        extra: dict[str, Any] | None = None,
+        request_id: str = "request-local",
+    ) -> dict[str, Any]:
+        """Merchant self-signup (owner ruling, #154): new merchant org, server-side ref."""
+        if PRIVILEGED_BODY_FIELDS & set(extra or {}):
+            raise ValidationError("Privileged registration fields are not permitted")
+        if not business_name.strip():
+            raise ValidationError("business_name is required")
+        return self._self_register(
+            role_id="merchant",
+            account_type="staff",  # matches seeded/invited merchant accounts
+            email=email,
+            password=password,
+            display_name=display_name,
+            preferred_language=preferred_language,
+            extra=extra,
+            request_id=request_id,
+            merchant_ref=f"merchant-{uuid.uuid4().hex[:12]}",
+            business_name=business_name.strip(),
+        )
+
+    def _self_register(
+        self,
+        *,
+        role_id: str,
+        account_type: str,
+        email: str,
+        password: str,
+        display_name: str,
+        preferred_language: str,
+        extra: dict[str, Any] | None,
+        request_id: str,
+        merchant_ref: str | None = None,
+        business_name: str | None = None,
+    ) -> dict[str, Any]:
         body = extra or {}
         if PRIVILEGED_BODY_FIELDS & set(body):
             raise ValidationError("Privileged registration fields are not permitted")
         email_n = normalize_email(email)
-        if not email_n or not password or not display_name.strip():
+        if not email_n or "@" not in email_n or not password or not display_name.strip():
             raise ValidationError("email, password and display_name are required")
         try:
             assert_password_acceptable(password)
@@ -116,9 +179,10 @@ class IdentityService:
         if self._store.get_user_by_email(email_n):
             raise ConflictError("Account already exists")
         now = self._clock.now()
+        tenant_id = SELF_SERVICE_TENANT
         user = User(
             user_id=str(uuid.uuid4()),
-            account_type="customer",
+            account_type=account_type,
             email=email_n,
             display_name=display_name.strip(),
             status="active",
@@ -126,36 +190,48 @@ class IdentityService:
             password_hash=hash_password(password),
             created_at=now,
             updated_at=now,
-            tenant_id="tenant-demo",
+            tenant_id=tenant_id,
             preferred_language=preferred_language.strip(),
         )
         self._store.create_user(user)
+        scope_key = f"tenant:{tenant_id}"
+        if merchant_ref:
+            scope_key = f"{scope_key}|merchant:{merchant_ref}"
         assignment = RoleAssignment(
             assignment_id=str(uuid.uuid4()),
             user_id=user.user_id,
-            tenant_id="tenant-demo",
-            role_id="customer",
-            scope_key="tenant:tenant-demo",
+            tenant_id=tenant_id,
+            role_id=role_id,
+            scope_key=scope_key,
             status="active",
             granted_by=None,
             granted_at=now,
+            merchant_ref=merchant_ref,
         )
         self._store.create_assignment(assignment)
+        details: dict[str, Any] = {}
+        if merchant_ref:
+            # No merchant org table in identity; audit keeps the durable business name.
+            details = {"merchant_ref": merchant_ref, "business_name": business_name}
         self._audit(
             actor=user.user_id,
-            action="customer.registered",
+            action=f"{role_id}.registered",
             target_type="user",
             target_id=user.user_id,
             tenant_id=assignment.tenant_id,
             request_id=request_id,
+            details=details,
         )
         token, session = self._issue_session(user, assignment)
-        return {
+        result: dict[str, Any] = {
             "user": user.to_public(),
             "assignment": assignment.to_workspace(),
             "session_token": token,
             "expires_at": session.expires_at.isoformat(),
         }
+        if business_name:
+            result["business_name"] = business_name
+        return result
 
     def login(
         self,
@@ -163,12 +239,27 @@ class IdentityService:
         email: str,
         password: str,
         requested_role: str | None = None,
+        client_ip: str = "",
         request_id: str = "request-local",
     ) -> dict[str, Any]:
         email_n = normalize_email(email)
+        if not email_n or "@" not in email_n or not password:
+            raise ValidationError("email and password are required")
+        if client_ip and self._login_limiter.is_limited(email=email_n, ip=client_ip):
+            raise RateLimitedError("Too many failed sign-in attempts; try again later")
+        # Without a verified client IP, check only failed credentials: a global
+        # email bucket must never let another client block a correct password.
         user = self._store.get_user_by_email(email_n)
-        if user is None or not verify_password(password, user.password_hash):
+        if user is None:
+            if not self._login_limiter.record_failure(email=email_n, ip=client_ip):
+                raise RateLimitedError("Too many failed sign-in attempts; try again later")
+            # Distinct code by owner ruling (#154); rate limited above.
+            raise AccountNotFoundError("No account for this email")
+        if not verify_password(password, user.password_hash):
+            if not self._login_limiter.record_failure(email=email_n, ip=client_ip):
+                raise RateLimitedError("Too many failed sign-in attempts; try again later")
             raise UnauthorizedError("Invalid credentials")
+        self._login_limiter.reset_email(email_n, ip=client_ip)
         if user.status != "active":
             raise ForbiddenError("Account is not active")
         assignments = [
@@ -184,8 +275,8 @@ class IdentityService:
             selected = matches[0]
         elif len(assignments) == 1:
             selected = assignments[0]
-        else:
-            raise ConflictError("Multiple workspaces; requested_role required")
+        # Several workspaces and no requested_role: unscoped session (no permissions)
+        # until POST /v1/auth/workspaces/select picks one.
         token, session = self._issue_session(user, selected)
         self._audit(
             actor=user.user_id,

@@ -106,6 +106,11 @@ curl -X POST -H "Authorization: Bearer tok-sandbox-admin" \
 
 ## Shared HMAC for verifier webhooks
 
+For real-peers runs, set `SIMULATOR_CLOCK=system` to timestamp synthetic events
+with current UTC time. The default `fixed` mode uses the deterministic demo instant
+and can fail the verifier's event-age checks. Demo reset preserves the clock mode;
+values other than `fixed` or `system` fail startup. Both modes remain simulator evidence.
+
 Set the same secret on simulator and verifier:
 
 | Env                          | Owner               |

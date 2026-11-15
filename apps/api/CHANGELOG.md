@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+### Fixed — workflow outbox transient retry (#144 follow-up 4)
+
+- `flush-workflow` no longer marks every workflow 4xx as permanent `FAILED`.
+  409/422/429 (e.g. DECISION resume racing the ledger) map to
+  `PEER_REJECTED_<status>` and are redelivered with exponential backoff
+  (`SENTINEL_API_WORKFLOW_RETRY_BASE_SECONDS`=2, doubling, capped by
+  `SENTINEL_API_WORKFLOW_RETRY_MAX_SECONDS`=300) up to
+  `SENTINEL_API_WORKFLOW_RETRY_MAX_ATTEMPTS`=5, then `FAILED` with the last code.
+  400/401/403/404/malformed stay permanent; 5xx/network still retry every pass.
+  Stale `CLAIMED` lease reclaim unchanged.
+- Schema: `workflow_outbox.attempts INTEGER NOT NULL DEFAULT 0` (migration `0004`).
+  Deferred `PENDING` rows reuse `lease_expires_at` as next-attempt time; claim
+  skips them until due. Claim now uses the service clock.
+
 ### Added — labeled sandbox public bind opt-in
 
 - `SENTINEL_SANDBOX_PUBLIC_BIND=1` allows non-loopback listen with identity

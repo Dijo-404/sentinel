@@ -38,7 +38,6 @@ export type MeResult = {
  * Fixture wraps the local stub; real-peers calls identity.v1 over HTTP.
  */
 export type IdentityClient = {
-  /** clientIp: end-user address for identity's per-IP login limiter (X-Forwarded-For). */
   login(email: string, password: string, clientIp?: string): Promise<LoginResult>;
   registerCustomer(input: {
     email: string;
@@ -49,14 +48,7 @@ export type IdentityClient = {
     tenant_id?: unknown;
     subject_refs?: unknown;
   }): Promise<RegisterResult>;
-  /** POST /v1/auth/merchant/register — server assigns merchant role + merchant_ref. */
-  registerMerchant(input: {
-    email: string;
-    display_name: string;
-    password: string;
-    business_name: string;
-    language?: string;
-  }): Promise<RegisterResult>;
+  registerMerchant(input: Parameters<StubIdentity["registerMerchant"]>[0]): Promise<RegisterResult>;
   resolveSession(sessionCredential: string): Promise<MeResult | null>;
   /** GET /v1/auth/me — same session binding as resolveSession. */
   getMe(sessionCredential: string): Promise<MeResult | null>;

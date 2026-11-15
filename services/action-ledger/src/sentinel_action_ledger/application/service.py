@@ -291,11 +291,17 @@ class ActionLedgerService:
             )
         )
         snapshot = self._build_eligibility(principal, normalized, evidence_items)
+        # policy.v1 answers REQUIRE_APPROVAL for refunds unless the supervisor approval is
+        # supplied. Read it (short read TX) and forward it; the reservation TX below still
+        # re-validates decision, digest, revision, policy version, expiry and binding.
+        with self._store.transaction() as uow:
+            approval_for_policy = uow.get_approval(principal.tenant_id, approval_id)
         # Policy check also outside reservation TX (peer may be remote).
         policy_result = self._policy.evaluate(
             principal=principal,
             payload=normalized,
             evidence=evidence_items,
+            approval=approval_for_policy,
         )
         _enforce_policy_allow(
             policy_result,

@@ -82,6 +82,22 @@ make -C apps/api flush-workflow
 Lease window: 30s (`WORKFLOW_JOB_LEASE_SECONDS`). Expired or null leases on `CLAIMED`
 rows are reclaimable.
 
+Delivery outcome classification:
+
+| Workflow response                        | Outbox result                                                   |
+| ---------------------------------------- | --------------------------------------------------------------- |
+| 2xx `accepted: true`                     | `DELIVERED`                                                     |
+| 5xx / network error (`PEER_UNAVAILABLE`) | `PENDING`, redelivered on the next pass (unbounded)             |
+| 409 / 422 / 429 (`PEER_REJECTED_<code>`) | `PENDING` with exponential backoff; `FAILED` after max attempts |
+| 400 / 401 / 403 / 404 / malformed body   | `FAILED` immediately                                            |
+
+Transient retry settings: `SENTINEL_API_WORKFLOW_RETRY_MAX_ATTEMPTS` (default 5),
+`SENTINEL_API_WORKFLOW_RETRY_BASE_SECONDS` (default 2; delay doubles per attempt),
+`SENTINEL_API_WORKFLOW_RETRY_MAX_SECONDS` (default 300 cap). `attempts` counts
+transient rejections; a deferred `PENDING` row stores its next attempt time in
+`lease_expires_at`. Existing databases need migration `0004`
+(`uv run alembic upgrade head`): `create_all` does not add columns to an existing table.
+
 ## Order reference
 
 Customer intake requires a subject-bound `order_reference`. Canonical form:

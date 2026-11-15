@@ -1,83 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useState } from "react";
-import type { PortalRole } from "../../../tests/stubs/identity";
-import { ROLE_LABELS } from "../../../tests/stubs/identity";
-import { PORTAL_META } from "@/lib/permissions";
+import { useActionState } from "react";
 import { loginAction, type ActionResult } from "@/lib/server/auth-actions";
 
-const PORTALS: PortalRole[] = ["customer", "merchant", "operator", "supervisor", "risk", "admin"];
-
-type Props = {
-  /** Preselected workspace (e.g. from `?portal=`). */
-  role?: PortalRole;
-  next?: string;
-};
-
-const initial: ActionResult | null = null;
-
-const PICKER_HINTS: Record<PortalRole, string> = {
-  customer: "Cases & refunds",
-  merchant: "Exceptions, settlements",
-  operator: "Queue & evidence",
-  supervisor: "Approvals",
-  risk: "Holds & rings",
-  admin: "Tenants & policy",
-};
-
-export function RoleLogin({ role = "customer", next }: Props) {
-  const [selectedRole, setSelectedRole] = useState<PortalRole>(role);
-  const meta = PORTAL_META[selectedRole];
-  const [state, formAction, pending] = useActionState(loginAction, initial);
-  const showRegister = selectedRole === "customer";
-
+export function RoleLogin({ next }: { next?: string }) {
+  const [state, formAction, pending] = useActionState(loginAction, null as ActionResult | null);
   return (
-    <div className="auth-card panel stack" data-testid="role-login" data-role={selectedRole}>
+    <div className="auth-card panel stack" data-testid="role-login">
       <div>
         <p className="brand auth-brand">Sentinel</p>
         <h1>Sign in</h1>
-        <p className="muted">{meta.description}</p>
+        <p className="muted">Continue to your workspace.</p>
       </div>
-
       <form action={formAction} className="stack">
         {next ? <input type="hidden" name="next" value={next} /> : null}
-
-        <fieldset className="portal-picker">
-          <legend className="eyebrow">Choose a portal</legend>
-          {PORTALS.map((r) => (
-            <button
-              key={r}
-              type="button"
-              aria-pressed={r === selectedRole}
-              onClick={() => setSelectedRole(r)}
-            >
-              {ROLE_LABELS[r]}
-              <small>{PICKER_HINTS[r]}</small>
-            </button>
-          ))}
-        </fieldset>
-
         <label>
-          Workspace
-          <select
-            name="role"
-            required
-            value={selectedRole}
-            onChange={(e) => setSelectedRole(e.target.value as PortalRole)}
-            data-testid="login-workspace"
-            aria-label="Workspace"
-          >
-            {PORTALS.map((r) => (
-              <option key={r} value={r}>
-                {ROLE_LABELS[r]}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label>
-          {selectedRole === "customer" ? "Email or mobile" : "Work email"}
+          Email
           <input
             name="email"
             type="email"
@@ -86,7 +25,6 @@ export function RoleLogin({ role = "customer", next }: Props) {
             data-testid="login-email"
           />
         </label>
-
         <label>
           Password
           <input
@@ -97,67 +35,28 @@ export function RoleLogin({ role = "customer", next }: Props) {
             data-testid="login-password"
           />
         </label>
-
-        {showRegister ? (
-          <label>
-            Preferred language
-            <select name="language" defaultValue="en" aria-label="Preferred language">
-              <option value="en">English</option>
-              <option value="hi">Hindi</option>
-              <option value="ta">Tamil</option>
-            </select>
-          </label>
-        ) : null}
-
         {state && !state.ok ? (
           <div className="state-banner" data-tone="error" data-testid="login-error" role="alert">
-            <p>{state.message}</p>
-            {state.workspaces && state.workspaces.length > 0 ? (
-              <ul data-testid="authorized-workspaces">
-                {state.workspaces.map((w) => (
-                  <li key={w.href}>
-                    <Link href={w.href}>{w.label}</Link>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
+            {state.message}
           </div>
         ) : null}
-
-        <div className="row">
-          <button type="submit" disabled={pending} data-testid="login-submit">
-            {pending ? "Signing in…" : "Sign in"}
-          </button>
-        </div>
+        <button type="submit" disabled={pending} data-testid="login-submit">
+          {pending ? "Signing in…" : "Sign in"}
+        </button>
       </form>
-
-      {showRegister ? (
-        <p className="muted">
-          New here?{" "}
-          <Link href="/customer/register" data-testid="register-link">
-            Create a customer account
-          </Link>
-        </p>
-      ) : (
-        <p className="muted" data-testid="no-signup">
-          Staff accounts are invitation-only. There is no public sign-up for this portal.
-        </p>
-      )}
-
+      <p className="muted">
+        New here?{" "}
+        <Link href="/signup" data-testid="register-link">
+          Create an account
+        </Link>
+      </p>
+      <p className="muted">Staff accounts are invitation-only.</p>
       <details className="demo-users" data-testid="demo-users">
         <summary>Sandbox seed accounts</summary>
         <p className="muted">
-          Identity seed for local and labeled sandbox/dev deploy (
-          <code>IDENTITY_DEMO_PASSWORD</code>). Not production credentials.
+          Local sandbox accounts use the configured identity demo password. See the sandbox
+          credentials guide.
         </p>
-        <ul>
-          <li>customer@example.test / demo-password</li>
-          <li>merchant@example.test / demo-password</li>
-          <li>operator@example.test / demo-password</li>
-          <li>supervisor@example.test / demo-password</li>
-          <li>risk@example.test / demo-password</li>
-          <li>admin@example.test / demo-password</li>
-        </ul>
       </details>
     </div>
   );

@@ -2,6 +2,36 @@
 
 ## Unreleased
 
+### Fixed — identity login validation errors (#166)
+
+- Identity login rejections with HTTP 422 or `INVALID_INPUT` now return the same
+  generic invalid-credentials result as a wrong password, instead of appearing
+  as an unavailable identity peer. Unrelated 500/503 outages and malformed 422
+  responses remain peer errors.
+- Reconcile the earlier login/signup WIP with the reviewed implementation on
+  main, preserving its client-IP validation, privileged-field checks and
+  authenticated workspace selection.
+
+### Fixed — supervisor decision page refresh (#144 follow-up 5)
+
+- `/supervisor/approvals/[actionId]`: after a successful Approve/Reject the
+  workspace did a full reload through the `WAITING_APPROVAL` queue, which
+  remounted the approval slot with active buttons (or failed once the case left
+  the queue), so no confirmation was visible. The workspace now shows a
+  `role="status"` "Decision recorded" panel with the server-returned approval,
+  hides the decide controls, and refetches `getCase` + `getAction` by id to show
+  current case/action status. Refetch failure is shown as an alert. Decide
+  errors stay in the slot with buttons re-enabled. No optimistic financial state.
+
+### Added — email login and public signup (#154)
+
+- Login asks for email and password; fresh identity workspaces determine a single portal redirect or an authenticated chooser showing only the account's assignments. The initially active workspace remains selectable so the chooser always has a way forward.
+- `/signup` offers accessible Customer | Merchant tabs with arrow/Home/End keyboard navigation, email prefill and merchant business name. Both use their corresponding identity registration endpoint; `/customer/register` redirects to `/signup?type=customer`. Staff roles remain invitation-only.
+- Owner-approved account enumeration: `ACCOUNT_NOT_FOUND` redirects to signup with encoded email; wrong passwords remain generic. README documents identity limits, URL logging exposure and the deployment boundary.
+- Optional server-only authenticated ingress token plus validated literal client IP forwards login client identity. Untrusted forwarded headers are ignored; missing or invalid trust omits the header. Identity proxy trust must be configured separately; no deployment changes included.
+- Fixture identity adds merchant registration, generated merchant scope, duplicate handling and the unknown-email signal. Regression coverage includes login routing/failure cleanup, cookie secrecy, account-specific chooser, keyboard tabs, both signup wire endpoints, privileged input rejection and trusted/untrusted client-IP forwarding.
+- Verification: `make -C apps/web check` passed (TypeScript + 55 files / 326 tests), `npm --prefix apps/web run build` passed, and root `make check` passed (metadata + 21 tests). Synthetic fixture and HTTP fetch doubles only, including unscoped multi-workspace sessions; deployed proxy/identity assembly remains unverified. Contract baseline: `0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb`.
+
 ### Fixed — deployed-sandbox E2E (15 November 2026)
 
 - Operator Escalate sent `owner_queue: "supervisor"`; case-api accepts only

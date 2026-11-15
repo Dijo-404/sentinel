@@ -89,7 +89,9 @@ class WorkflowService:
                 created=created,
             )
 
-        if created and run_now:
+        # Redelivery re-runs only a failed job; atomic failed->running claim prevents double runs.
+        retry = not created and run_now and self.jobs.claim_failed_job(job_id)
+        if (created or retry) and run_now:
             self.execute(
                 request=request,
                 principal=principal,
@@ -107,7 +109,10 @@ class WorkflowService:
         principal_id: str,
         created: bool,
     ) -> None:
-        """Persist resume approval only for newly created jobs; else require identical."""
+        """Persist resume approval only for newly created jobs; else require identical.
+
+        A failed-job retry hits the non-created branch, so the same approval passes.
+        """
         if created:
             self.decisions.put_decision(thread_id, approval, principal_id)
             return
@@ -133,12 +138,12 @@ class WorkflowService:
                 CONFIG_KEY: self.deps,
             }
         }
-        # DECISION resume trusts ledger approval only (never HTTP-forged payloads).
-        decision = resume_approval
-        if decision is None and request.event == "DECISION":
-            decision = self._approval_from_ledger(thread_id)
-
         try:
+            # DECISION resume trusts ledger approval only (never HTTP-forged payloads).
+            # Inside try: a ledger outage marks the job failed so redelivery can retry it.
+            decision = resume_approval
+            if decision is None and request.event == "DECISION":
+                decision = self._approval_from_ledger(thread_id)
             if request.event in {"DECISION", "RECHECK", "INPUT"} and self._has_checkpoint(
                 thread_id
             ):

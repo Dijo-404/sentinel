@@ -12,12 +12,25 @@ Contract: `sentinel.task-contracts.v1`, SHA-256
 
 - Customer self-register (customer role only; privileged fields ignored/rejected;
   password length ≥ 8)
+- Merchant self-register `POST /v1/auth/merchant/register` (owner ruling, #154):
+  `display_name`, `email`, `password`, `business_name`, optional
+  `preferred_language`. Creates a `staff` user plus one active `merchant`
+  assignment in `tenant-demo` with a server-generated `merchant_ref`
+  (`merchant-<12 hex>`, scope `tenant:tenant-demo|merchant:<ref>`). Same
+  validation, password floor, email-verify flow and 409 `CONFLICT` duplicate
+  handling as customer register. Privileged keys (`role`, `roles`, `role_id`,
+  `tenant_id`, `subject`, `subject_refs`, `merchant_ref`, `account_type`,
+  `permissions`, …) → 422. Identity has no merchant-org table: `business_name`
+  is returned and kept in the `merchant.registered` audit event; a merchant-teams
+  org record (if needed) is a separate peer step. Operator, supervisor, risk
+  officer and platform admin stay invite-only.
 - Login / logout / me / `PATCH /v1/auth/me` profile (`display_name`,
   `preferred_language`; privilege fields rejected) / notifications inbox
   (`GET /v1/auth/notifications`, `POST .../{id}/read`) / sandbox verify-email,
   MFA challenge (numeric loopback code), forgot/reset password /
-  workspaces select with hashed session tokens (multi-role login requires
-  `requested_role` or returns 409)
+  workspaces select with hashed session tokens (multi-role login without
+  `requested_role` returns `active_assignment: null` and an unscoped session with
+  no permissions until `POST /v1/auth/workspaces/select`)
 - Platform Admin invite / grant / revoke / suspend / reactivate / list / audit
 - Accept invitation (single-use; deny expired/revoked/mismatched; new password ≥ 8)
 - Sandbox invite delivery: durable outbox + `GET /v1/sandbox/inbox` acceptance links
@@ -47,6 +60,55 @@ for Platform Admin staff directory only.
 **Non-goals:** ledger approvals, provider writes, Case API ownership, portal UI
 (M2 admin UI / M1.3 web auth live in `apps/web`). Service principals never get
 interactive logins.
+
+## Login signals and account enumeration (#154)
+
+`POST /v1/auth/login` outcomes:
+
+| Condition                                                                           | HTTP | `code`                   |
+| ----------------------------------------------------------------------------------- | ---- | ------------------------ |
+| Missing email/password or email without `@`                                         | 422  | `INVALID_INPUT`          |
+| ≥ 5 failures for this (email, client IP), ≥ 20 for known client IP, or limiter full | 429  | `RATE_LIMITED`           |
+| No account for this email                                                           | 404  | `ACCOUNT_NOT_FOUND`      |
+| Wrong password for an existing account                                              | 401  | `UNAUTHORIZED` (generic) |
+| Account not active / no workspace                                                   | 403  | `FORBIDDEN`              |
+
+**Trade-off (owner decision):** `ACCOUNT_NOT_FOUND` lets the web send unknown
+emails to sign-up, and it also tells anyone whether an email is registered.
+Mitigations: wrong passwords stay generic; unknown-email and wrong-password
+attempts both count toward **5 failures per (email, client IP)** and **20 per
+known client IP** in 15 minutes; a successful login clears only its own account/client
+bucket, never the IP bucket or another client's limits. An attacker on another IP
+cannot block a correct login solely by targeting that email. Missing/invalid client
+IP uses a per-email fallback for failed responses; correct credentials are verified
+and accepted regardless of that fallback count. This fallback does not bound password
+hashing work; configure verified client propagation and ingress abuse controls before
+exposing the service. Returns 429 when limited.
+
+Limits are thread-safe, bounded process memory (`LoginRateLimiter`, ≤ 10 000 keys).
+Expired keys are pruned before admission; a full store rejects new keys without
+evicting active limits. They are not shared across replicas. **Use one identity
+process only** until counters are moved to a shared store.
+
+Deployment client-IP trust is explicit: `IDENTITY_TRUSTED_PROXIES` is a comma-separated
+list of exact direct BFF/proxy socket addresses, **empty by default**, including
+loopback only when explicitly configured. Only those peers may supply
+`X-Forwarded-For`; the rightmost address must parse as an IP literal. Trusted BFFs
+without a valid forwarded address have unknown client IP, never a shared BFF IP
+bucket. Direct untrusted clients use the socket IP and their forwarded headers are
+ignored. The CLI disables Uvicorn proxy-header rewriting so this check sees the
+original socket peer. Alternate ASGI launch commands must likewise disable proxy
+headers (`--no-proxy-headers`).
+
+The web BFF must verify its ingress before forwarding a single actual client IP.
+The matching web change uses server-only `WEB_TRUSTED_INGRESS_TOKEN` (≥32 characters),
+`x-sentinel-ingress-token` and a single literal `x-sentinel-client-ip`. Configure
+the ingress to strip/overwrite incoming copies, inject the private token and derive
+the address from its transport; never expose/log that token or use `NEXT_PUBLIC_*`.
+Restrict identity access to that BFF plus explicitly intended direct peers. This
+module does not modify deployment ingress configuration. Without this configuration,
+a BFF cannot provide per-client IP abuse protection; the fallback behavior above
+keeps unrelated accounts usable.
 
 ## Standalone setup
 

@@ -1,16 +1,17 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import type { PortalRole } from "../../../tests/stubs/identity";
 import { PeerError } from "@/domain/types";
 import { getIdentityClient } from "./identity-client";
 import {
   acceptInvitationAccount,
   loginWithCredentials,
   logoutCurrentSession,
-  portalPath,
   readSessionId,
   registerCustomerAccount,
+  registerMerchantAccount,
+  trustedLoginClientIp,
   safePortalRedirect,
   switchActiveAssignment,
 } from "./auth";
@@ -71,69 +72,73 @@ export async function loginAction(
 ): Promise<ActionResult> {
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
-  const role = String(formData.get("role") ?? "") as PortalRole;
   const next = String(formData.get("next") ?? "");
-
-  const allowed: PortalRole[] = ["customer", "merchant", "operator", "supervisor", "risk", "admin"];
-  if (!allowed.includes(role)) {
-    return { ok: false, message: "Unknown portal." };
-  }
-
-  const result = await loginWithCredentials(email, password, role);
+  const result = await loginWithCredentials(email, password, trustedLoginClientIp(await headers()));
   if (!result.ok) {
+    if (result.code === "ACCOUNT_NOT_FOUND")
+      redirect(`/signup?email=${encodeURIComponent(email.trim())}`);
     return { ok: false, message: result.message };
   }
-
-  if (!result.role_match) {
-    const workspaces = result.session.workspaces.map((w) => ({
-      label: w.label,
-      href: portalPath(w.role),
-    }));
-    return {
-      ok: false,
-      message: `This account does not have the ${role} workspace.`,
-      workspaces,
-    };
-  }
-
-  redirect(safePortalRedirect(next || null, role));
+  redirect(
+    result.redirectTo === "/auth/workspaces"
+      ? result.redirectTo
+      : safePortalRedirect(next || null, result.session.assignment.role),
+  );
 }
 
 export async function registerCustomerAction(
   _prev: ActionResult | null,
   formData: FormData,
 ): Promise<ActionResult> {
-  const payload: {
-    email: string;
-    display_name: string;
-    password: string;
-    language?: string;
-    roles?: unknown;
-    tenant_id?: unknown;
-    subject_refs?: unknown;
-  } = {
+  return registerAction(formData, "customer");
+}
+
+export async function registerMerchantAction(
+  _prev: ActionResult | null,
+  formData: FormData,
+): Promise<ActionResult> {
+  return registerAction(formData, "merchant");
+}
+
+async function registerAction(
+  formData: FormData,
+  type: "customer" | "merchant",
+): Promise<ActionResult> {
+  const payload = {
     email: String(formData.get("email") ?? ""),
     display_name: String(formData.get("display_name") ?? ""),
     password: String(formData.get("password") ?? ""),
     language: String(formData.get("language") ?? "en") || "en",
+    business_name: String(formData.get("business_name") ?? ""),
   };
-
-  // Surface smuggled privileged fields so the stub can reject them.
-  if (formData.has("roles")) {
-    payload.roles = formData.get("roles");
+  const forbidden = [
+    "roles",
+    "role",
+    "role_id",
+    "tenant_id",
+    "subject_refs",
+    "subject_ref",
+    "merchant_ref",
+    "account_type",
+    "assignments",
+    "scope",
+  ];
+  if (forbidden.some((key) => formData.has(key))) {
+    return { ok: false, message: "Registration rejected privileged fields" };
   }
-  if (formData.has("tenant_id")) {
-    payload.tenant_id = formData.get("tenant_id");
+  try {
+    const result =
+      type === "merchant"
+        ? await registerMerchantAccount(payload)
+        : await registerCustomerAccount(payload);
+    if (!result.ok) return { ok: false, message: result.message };
+    // Keep redirect outside catch: Next redirects are control-flow exceptions.
+    redirect(result.redirectTo);
+  } catch (err) {
+    if (err instanceof PeerError)
+      return { ok: false, message: "Registration is unavailable. Try again later." };
+    throw err;
   }
-  if (formData.has("subject_refs")) {
-    payload.subject_refs = formData.get("subject_refs");
-  }
-
-  const result = await registerCustomerAccount(payload);
-  if (!result.ok) {
-    return { ok: false, message: result.message };
-  }
-  redirect(result.redirectTo);
 }
 
 export async function logoutAction(): Promise<void> {

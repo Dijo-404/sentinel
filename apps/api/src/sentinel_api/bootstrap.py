@@ -110,6 +110,9 @@ def build_app(settings: Settings | None = None, *, engine=None, tokens: TokenMap
         ledger=ledger,  # type: ignore[arg-type]
         verifier=verifier,  # type: ignore[arg-type]
         service_authorization=f"Bearer {settings.service_token}",
+        workflow_retry_max_attempts=settings.workflow_retry_max_attempts,
+        workflow_retry_base_seconds=settings.workflow_retry_base_seconds,
+        workflow_retry_max_seconds=settings.workflow_retry_max_seconds,
     )
 
     def readiness() -> dict:

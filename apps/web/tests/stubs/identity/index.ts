@@ -76,8 +76,13 @@ export type LoginResult =
     }
   | {
       ok: false;
-      /** ACCOUNT_NOT_FOUND: unknown email (identity #154); RATE_LIMITED: identity 429. */
-      code: "INVALID_CREDENTIALS" | "SUSPENDED" | "PENDING" | "ACCOUNT_NOT_FOUND" | "RATE_LIMITED";
+      code:
+        | "INVALID_CREDENTIALS"
+        | "SUSPENDED"
+        | "PENDING"
+        | "ACCOUNT_NOT_FOUND"
+        | "RATE_LIMITED"
+        | "INVALID_INPUT";
     };
 
 export type RegisterResult =
@@ -107,18 +112,9 @@ export type StubIdentity = {
     tenant_id?: unknown;
     subject_refs?: unknown;
   }): RegisterResult;
-  /** Merchant self-signup: server derives merchant role, tenant and merchant ref. */
-  registerMerchant(input: {
-    email: string;
-    display_name: string;
-    password: string;
-    business_name: string;
-    language?: string;
-    roles?: unknown;
-    tenant_id?: unknown;
-    subject_refs?: unknown;
-    merchant_ref?: unknown;
-  }): RegisterResult;
+  registerMerchant(
+    input: Parameters<StubIdentity["registerCustomer"]>[0] & { business_name: string },
+  ): RegisterResult;
   resolveSession(sessionId: string): {
     session: SessionRecord;
     user: IdentityUser;
@@ -398,14 +394,11 @@ export function createIdentityStub(): StubIdentity {
     return user;
   }
 
-  function issueSession(
-    user: IdentityUser,
-    assignment: WorkspaceAssignment | null,
-  ): SessionRecord {
+  function issueSession(user: IdentityUser, assignment: WorkspaceAssignment): SessionRecord {
     const session: SessionRecord = {
       session_id: newId("sess"),
       user_id: user.user_id,
-      active_assignment_id: assignment?.assignment_id ?? "",
+      active_assignment_id: assignment.assignment_id,
       issued_at: new Date().toISOString(),
       expires_at: isoPlusHours(8),
       revoked: false,
@@ -427,9 +420,10 @@ export function createIdentityStub(): StubIdentity {
     return { session, user, assignment };
   }
 
-  function selfRegister(
+  function registerAccount(
     input: Parameters<StubIdentity["registerCustomer"]>[0],
-    role: "customer" | "merchant",
+    type: "customer" | "merchant",
+    businessName?: string,
   ): RegisterResult {
     if (
       input.roles !== undefined ||
@@ -441,27 +435,24 @@ export function createIdentityStub(): StubIdentity {
     const email = input.email?.trim().toLowerCase() ?? "";
     const display_name = input.display_name?.trim() ?? "";
     const password = input.password ?? "";
-    if (!email || !display_name || password.length < 8) {
+    if (
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
+      !display_name ||
+      password.length < 8 ||
+      (type === "merchant" && !businessName?.trim())
+    ) {
       return { ok: false, code: "INVALID_INPUT" };
     }
     if (users.some((u) => u.email === email)) {
       return { ok: false, code: "ALREADY_EXISTS" };
     }
-    const assignment: WorkspaceAssignment =
-      role === "merchant"
-        ? {
-            assignment_id: newId("asg"),
-            role,
-            tenant_id: "tenant-demo",
-            label: "Merchant workspace",
-            scope: { merchant_id: newId("merchant") },
-          }
-        : {
-            assignment_id: newId("asg"),
-            role,
-            tenant_id: "tenant-demo",
-            label: "Customer workspace",
-          };
+    const assignment: WorkspaceAssignment = {
+      assignment_id: newId("asg"),
+      role: type,
+      tenant_id: "tenant-demo",
+      label: type === "merchant" ? businessName!.trim() : "Customer workspace",
+      ...(type === "merchant" ? { scope: { merchant_ref: newId("merchant") } } : {}),
+    };
     const user: IdentityUser = {
       user_id: newId("user"),
       email,
@@ -470,7 +461,7 @@ export function createIdentityStub(): StubIdentity {
       email_verified_at: null,
       password,
       account_status: "ACTIVE",
-      account_class: role === "merchant" ? "staff" : "customer",
+      account_class: type === "merchant" ? "staff" : "customer",
       assignments: [assignment],
     };
     users = [...users, user];
@@ -482,9 +473,9 @@ export function createIdentityStub(): StubIdentity {
     login(email, password) {
       const normalized = email.trim().toLowerCase();
       const user = users.find((u) => u.email === normalized);
-      if (!user) {
-        return { ok: false, code: "ACCOUNT_NOT_FOUND" };
-      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized) || !password)
+        return { ok: false, code: "INVALID_INPUT" };
+      if (!user) return { ok: false, code: "ACCOUNT_NOT_FOUND" };
       if (user.password !== password) {
         return { ok: false, code: "INVALID_CREDENTIALS" };
       }
@@ -498,8 +489,7 @@ export function createIdentityStub(): StubIdentity {
       if (!assignment) {
         return { ok: false, code: "INVALID_CREDENTIALS" };
       }
-      // Like identity: several workspaces → unscoped session until workspaces/select.
-      const session = issueSession(user, user.assignments.length === 1 ? assignment : null);
+      const session = issueSession(user, assignment);
       return {
         ok: true,
         session,
@@ -509,17 +499,10 @@ export function createIdentityStub(): StubIdentity {
     },
 
     registerCustomer(input) {
-      return selfRegister(input, "customer");
+      return registerAccount(input, "customer");
     },
-
     registerMerchant(input) {
-      if (input.merchant_ref !== undefined) {
-        return { ok: false, code: "PRIVILEGED_FIELDS_REJECTED" };
-      }
-      if (!input.business_name?.trim()) {
-        return { ok: false, code: "INVALID_INPUT" };
-      }
-      return selfRegister(input, "merchant");
+      return registerAccount(input, "merchant", input.business_name);
     },
 
     resolveSession(sessionId) {
@@ -796,15 +779,11 @@ export function createIdentityStub(): StubIdentity {
     },
 
     listWorkspaces(sessionId) {
-      // Unscoped (post-login chooser) sessions may list their own workspaces.
-      const session = sessions.get(sessionId);
-      if (!session || session.revoked || Date.parse(session.expires_at) < Date.now()) return null;
-      const user = users.find((u) => u.user_id === session.user_id);
-      if (!user || user.account_status !== "ACTIVE") return null;
+      const resolved = requireResolved(sessionId);
+      if (!resolved) return null;
       return {
-        workspaces: user.assignments,
-        active_assignment:
-          user.assignments.find((a) => a.assignment_id === session.active_assignment_id) ?? null,
+        workspaces: resolved.user.assignments,
+        active_assignment: resolved.assignment,
       };
     },
 

@@ -10,7 +10,7 @@
 
 ## Outcome
 
-Mercury marketing landing at `/`, shared `/login` with workspace select, and six role portal trees (customer, merchant, operator, supervisor, risk, admin) behind a night sidebar shell (`AppSidebar` + `ProtectedShell`). Merchant, operator, and supervisor dashboards ship rich fixture viz (stat blocks, trend pills, chart cards). Customer self-registration and admin users/invite stay wired to the local identity stub. Role-specific `/<role>/login` routes redirect to `/login?portal=<role>`. Legacy `/intake` and `/ops` routes remain. Financial authority stays on the server; the UI masks PII and payment identifiers.
+Mercury marketing landing at `/`, shared email/password-only `/login`, and six role portal trees (customer, merchant, operator, supervisor, risk, admin) behind a night sidebar shell (`AppSidebar` + `ProtectedShell`). Merchant, operator, and supervisor dashboards ship rich fixture viz (stat blocks, trend pills, chart cards). Customer and merchant self-registration use `/signup`; fixture mode uses local identity doubles and real-peers uses identity HTTP. Role-specific `/<role>/login` routes redirect to `/login?portal=<role>`. Legacy `/intake` and `/ops` routes remain. Financial authority stays on the server; the UI masks PII and payment identifiers.
 
 ## Standalone setup
 
@@ -29,7 +29,7 @@ make -C apps/web preview
 # or: npm run dev
 ```
 
-Open `http://localhost:3012/` for the Mercury landing. Use **Get started** / **Log in** → `http://localhost:3012/login` (workspace select + fixture demo credentials).
+Open `http://localhost:3012/` for the Mercury landing. Use **Get started** / **Log in** → `http://localhost:3012/login` (email + password). One assigned workspace opens its portal; several open `/auth/workspaces`, listing only that account’s assignments.
 
 ## Configuration
 
@@ -94,14 +94,14 @@ server env + `IDENTITY_SANDBOX_TOKEN`:
 | Route                                                                                                                            | Role                                                                                                     |
 | -------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
 | `/`                                                                                                                              | Mercury landing (night marketing)                                                                        |
-| `/login`                                                                                                                         | Shared login + workspace select (`?portal=` preselect; `?next=` safe redirect)                           |
+| `/login`                                                                                                                         | Email + password login; identity assignments choose portal (`?next=` role-scoped)                        |
 | `/customer/login` → `/login?portal=customer`                                                                                     | Customer (redirect)                                                                                      |
 | `/merchant/login` → `/login?portal=merchant`                                                                                     | Merchant (redirect)                                                                                      |
 | `/operator/login` → `/login?portal=operator`                                                                                     | Support Operator (redirect)                                                                              |
 | `/supervisor/login` → `/login?portal=supervisor`                                                                                 | Supervisor (redirect)                                                                                    |
 | `/risk/login` → `/login?portal=risk`                                                                                             | Risk Officer (redirect)                                                                                  |
 | `/admin/login` → `/login?portal=admin`                                                                                           | Platform Admin (redirect)                                                                                |
-| `/customer/register` · `/customer/dashboard`                                                                                     | Customer register + protected shell                                                                      |
+| `/customer/register` · `/customer/dashboard`                                                                                     | Legacy registration redirects to `/signup?type=customer`; protected dashboard                            |
 | `/merchant/dashboard`                                                                                                            | Merchant overview (rich viz)                                                                             |
 | `/operator/dashboard` · `/operator/queue`                                                                                        | Operator overview (rich viz) + queue                                                                     |
 | `/supervisor/dashboard`                                                                                                          | Supervisor overview (rich viz)                                                                           |
@@ -120,7 +120,19 @@ server env + `IDENTITY_SANDBOX_TOKEN`:
 | `/ops/cases/[caseId]/evidence`                                                                                                   | Evidence only (no approve controls; operator-safe)                                                       |
 | `/v1/capabilities`                                                                                                               | Assembly probe                                                                                           |
 
-Staff portals have **no** public sign-up. Customer registration rejects privileged fields (`roles`, `tenant_id`, `subject_refs`). Admin invite rejects `role_id=customer`. Protected portals use the night sidebar shell; financial authority remains server-side.
+Public `/signup` offers Customer | Merchant tabs (arrow keys, Home/End) and prefills `?email=`; `?type=merchant` selects merchant. Customer and merchant submit to `/v1/auth/customer/register` and `/v1/auth/merchant/register`, respectively. Business name is required for merchant signup. Staff roles (operator, supervisor, risk officer, platform admin) have **no** public sign-up. Registration rejects privileged fields (roles, tenant, subject and merchant references); identity assigns scope server-side. Admin invite rejects `role_id=customer`. Protected portals use the night sidebar shell; financial authority remains server-side.
+
+## Login enumeration and trusted ingress
+
+Owner-approved trade-off (#154): identity returns `ACCOUNT_NOT_FOUND` for an unknown email and the web redirects to `/signup?email=<encoded-email>`. This deliberately reveals whether an account exists. Existing-account wrong passwords remain generic. Identity applies login limits per client IP and email/IP pair; when trustworthy client IP is absent, it uses per-email failed-response throttling. The email appears in the signup URL; redact authentication query strings from access logs and analytics.
+
+Identity login validation rejections (HTTP 422 or `INVALID_INPUT`) use the same
+generic invalid-credentials result as wrong passwords. Rate limiting retains its
+distinct result, and unrelated identity outages remain availability errors.
+
+The Next server action does not expose its transport peer address. Arbitrary incoming `X-Forwarded-For` is **never** trusted or copied. Forwarding is disabled unless the web has a server-only `WEB_TRUSTED_INGRESS_TOKEN` (at least 32 random characters), and an explicitly configured ingress authenticates each request with `X-Sentinel-Ingress-Token` plus a single literal `X-Sentinel-Client-IP` (IPv4 or IPv6). The web compares the token in constant time and only then forwards that IP as `X-Forwarded-For` to identity login. Missing, malformed or unauthenticated context omits the forwarded header. The ingress token is never forwarded to identity or sent to the browser.
+
+Deployment must configure the ingress to **strip and overwrite both Sentinel headers**, derive the address from its own verified transport/proxy trust configuration, keep its token server-side, redact the token from logs and use private/TLS transport to the BFF. Limit direct access to the web origin. Configure identity's server-only `IDENTITY_TRUSTED_PROXIES` with the exact BFF socket addresses (empty by default); identity trusts the forwarded IP only from those peers. For a configured BFF without a valid client address, identity uses the unknown-client/email fallback and avoids a shared BFF-IP bucket. This PR changes no ingress, compose or deployment configuration. Per-client-IP limits across the assembled proxy chain require that separate deployment setup and verification; fixture doubles do not prove rate limiting.
 
 ## Assembly probe
 

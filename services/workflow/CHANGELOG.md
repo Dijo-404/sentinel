@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Fixed — 15 November 2026 (Refs #144)
+
+- Ledger/policy/verifier/risk `PeerError` escalations keep the peer code:
+  `reason_code` is `<PEER>_<CODE>` (e.g. `LEDGER_APPROVAL_EXPIRED`) when the code
+  matches `[A-Z][A-Z0-9_]{1,63}`, else the previous `*_PEER_FAILURE` /
+  `RISK_PEER_UNAVAILABLE`. Code, status and message are logged at warning level.
+- Redelivering a `job_key` whose job `failed` (same payload digest) re-executes it
+  via an atomic `failed`→`running` UPDATE; completed/running jobs stay idempotent.
+  DECISION ledger-approval lookup now runs inside the failure handler, so a ledger
+  outage marks the job `failed` instead of leaving it `accepted` forever.
+
 ### Added
 
 - Authenticated `POST /v1/workflow/risk-resume` for risk clearance events; starts

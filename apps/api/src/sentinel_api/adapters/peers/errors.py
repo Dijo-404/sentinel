@@ -19,3 +19,8 @@ def malformed(peer: str) -> PeerError:
 
 def unauthorized(peer: str) -> PeerError:
     return PeerError("PEER_UNAUTHORIZED", f"Peer rejected authorization/scope: {peer}", 403)
+
+
+def rejected(peer: str, status: int) -> PeerError:
+    """Peer refused the request for now (409/422/429); caller may retry later."""
+    return PeerError(f"PEER_REJECTED_{status}", f"Peer rejected request ({status}): {peer}", status)
