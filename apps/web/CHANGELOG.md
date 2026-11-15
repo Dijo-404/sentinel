@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Added — 15 November 2026 (admin peer BFF proxies)
+
+- BFF session proxies: `/api/bff/evals` → `EVALS_BASE_URL` (:8031),
+  `/api/bff/observability` → `OBSERVABILITY_BASE_URL` (:8033),
+  `/api/bff/platform-ai` → `PLATFORM_AI_BASE_URL` (:8036),
+  `/api/bff/policy` → `POLICY_BASE_URL` (:8005). Mirror `_session-proxy`.
+- Confirmed existing identity + merchant-teams BFFs path-passthrough admin
+  routes (`/v1/admin/*`, `/v1/admin/merchants`). No page wiring yet.
+- Tests: `tests/bff-admin-peer-routes.test.ts` (401 without session).
+
 ### Fixed — 15 November 2026 (evidence ApprovalSlot real-peers mode)
 
 - Supervisor case evidence passes `config.mode` + `reviewerId` into
