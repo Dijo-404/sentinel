@@ -34,21 +34,21 @@ uv run python capture.py manifest
 uv run pytest -q
 ```
 
-| Path | Contents |
-|---|---|
-| `.raw/` | Ignored original provider bytes |
-| `fixtures/` | Redacted observations (safe to commit) |
-| `normalized/` | Manifest + payment/refund lists |
+| Path          | Contents                               |
+| ------------- | -------------------------------------- |
+| `.raw/`       | Ignored original provider bytes        |
+| `fixtures/`   | Redacted observations (safe to commit) |
+| `normalized/` | Manifest + payment/refund lists        |
 
 ## Observed capability (shared test MID)
 
 Against `wkyQgn37386655602538` on 2026-11-15:
 
-| API | Result |
-|---|---|
-| Transaction status | Works (signed responses; missing orders → `334`) |
-| Initiate transaction | `239` System Error — no `txnToken` |
-| Refund apply | `335` Invalid merchant Id |
+| API                  | Result                                           |
+| -------------------- | ------------------------------------------------ |
+| Transaction status   | Works (signed responses; missing orders → `334`) |
+| Initiate transaction | `239` System Error — no `txnToken`               |
+| Refund apply         | `335` Invalid merchant Id                        |
 
 This MID yields **actual staging status observations**, not new successful payments or
 refunds. Use a dashboard-generated test MID (or mentor merchant) for `TXN_SUCCESS` /
@@ -76,8 +76,8 @@ refId store is added. Fail closed on scope/signature problems.
 
 ## Sentinel wiring
 
-| Piece | How |
-|---|---|
+| Piece              | How                                                                                                 |
+| ------------------ | --------------------------------------------------------------------------------------------------- |
 | Evidence live read | `real-peers` → this bridge ([services/evidence/.env.example](../../services/evidence/.env.example)) |
-| Simulator replay | `POST /v1/admin/seeds/paytm_staging` (opt-in pack; not default seed) |
-| FinBench groups | `paytm_dup_010`, `paytm_mismatch_011`, `paytm_unauthorized_012` |
+| Simulator replay   | `POST /v1/admin/seeds/paytm_staging` (opt-in pack; not default seed)                                |
+| FinBench groups    | `paytm_dup_010`, `paytm_mismatch_011`, `paytm_unauthorized_012`                                     |

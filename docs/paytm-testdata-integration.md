@@ -2,16 +2,16 @@
 
 **Technical integration guide | Hackathon sprint | 15 November 2026**
 
-| Field | Value |
-|---|---|
-| Project | Sentinel — policy-governed autonomous financial operations teammate |
-| Repository | [Dijo-404/sentinel](https://github.com/Dijo-404/sentinel) |
-| Track | Paytm Build for India AI Hackathon — Autonomous AI Teammates |
-| Time budget | 120 minutes, conditional on access to test credentials and working local tooling |
-| Environment | Paytm Payment Gateway staging + Sentinel local simulator |
-| Goal | Obtain genuine staging payment/refund observations and demonstrate their use in Sentinel |
-| Non-goals | Production payments, unrestricted customer datasets, internal Paytm systems, full production certification |
-| Status | Staging MID authenticated for **status** reads; initiate=`239`, refund=`335` on shared test MID. Capture tooling + provider bridge + simulator/FinBench packs landed 2026-11-15. |
+| Field       | Value                                                                                                                                                                            |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Project     | Sentinel — policy-governed autonomous financial operations teammate                                                                                                              |
+| Repository  | [Dijo-404/sentinel](https://github.com/Dijo-404/sentinel)                                                                                                                        |
+| Track       | Paytm Build for India AI Hackathon — Autonomous AI Teammates                                                                                                                     |
+| Time budget | 120 minutes, conditional on access to test credentials and working local tooling                                                                                                 |
+| Environment | Paytm Payment Gateway staging + Sentinel local simulator                                                                                                                         |
+| Goal        | Obtain genuine staging payment/refund observations and demonstrate their use in Sentinel                                                                                         |
+| Non-goals   | Production payments, unrestricted customer datasets, internal Paytm systems, full production certification                                                                       |
+| Status      | Staging MID authenticated for **status** reads; initiate=`239`, refund=`335` on shared test MID. Capture tooling + provider bridge + simulator/FinBench packs landed 2026-11-15. |
 
 > **Core principle:** Use real Paytm API formats and authorized staging observations for investigation; use Sentinel's isolated simulator for deliberate fault injection and final-credit scenarios that staging cannot establish. Never mix the two as though they were one authoritative financial ledger.
 
@@ -40,20 +40,20 @@ The objective is to get a small, credible dataset in two hours, not to obtain Pa
 
 ### 1.1 Data accessibility
 
-| Data source | Access requirement | Two-hour feasibility | Sentinel use |
-|---|---|---|---|
-| Public API documentation | None | Immediate | Request/response contracts, signature semantics |
-| Official example API payloads | None | Immediate | Contract fixtures; label as documentation examples |
-| Response/error codes | None | Immediate | State mappings, failure classification |
-| Test MID and Merchant Key | Merchant dashboard test access | Conditional; try immediately | Authenticated staging requests |
-| Staging payment transactions | Test credentials + completed test checkout | High if credentials work | Payment investigation and evidence |
-| Staging refund records | Eligible captured test payment + refund-enabled test merchant | Conditional | Refund lifecycle, reconciliation |
-| Refund history | Authorized merchant test credentials | Conditional | Existing refund checks |
-| Dashboard reports | Authorized merchant account; report availability varies | Conditional, not essential | Merchant analytics/reconciliation |
-| Production transactions | Activated merchant account and explicit authorization | Not a reliable two-hour option | Future authorized integration |
-| Internal support tickets | Paytm approval and approved de-identified samples | Not self-service | Future complaint benchmark |
-| Proprietary fraud signals | Paytm internal authorization | Not self-service | Future risk integration |
-| Customer bank-account credit data | Appropriate bank/acquirer or Paytm authorization | Not a realistic self-service target | Final-credit verification |
+| Data source                       | Access requirement                                            | Two-hour feasibility                | Sentinel use                                       |
+| --------------------------------- | ------------------------------------------------------------- | ----------------------------------- | -------------------------------------------------- |
+| Public API documentation          | None                                                          | Immediate                           | Request/response contracts, signature semantics    |
+| Official example API payloads     | None                                                          | Immediate                           | Contract fixtures; label as documentation examples |
+| Response/error codes              | None                                                          | Immediate                           | State mappings, failure classification             |
+| Test MID and Merchant Key         | Merchant dashboard test access                                | Conditional; try immediately        | Authenticated staging requests                     |
+| Staging payment transactions      | Test credentials + completed test checkout                    | High if credentials work            | Payment investigation and evidence                 |
+| Staging refund records            | Eligible captured test payment + refund-enabled test merchant | Conditional                         | Refund lifecycle, reconciliation                   |
+| Refund history                    | Authorized merchant test credentials                          | Conditional                         | Existing refund checks                             |
+| Dashboard reports                 | Authorized merchant account; report availability varies       | Conditional, not essential          | Merchant analytics/reconciliation                  |
+| Production transactions           | Activated merchant account and explicit authorization         | Not a reliable two-hour option      | Future authorized integration                      |
+| Internal support tickets          | Paytm approval and approved de-identified samples             | Not self-service                    | Future complaint benchmark                         |
+| Proprietary fraud signals         | Paytm internal authorization                                  | Not self-service                    | Future risk integration                            |
+| Customer bank-account credit data | Appropriate bank/acquirer or Paytm authorization              | Not a realistic self-service target | Final-credit verification                          |
 
 No public customer-level Paytm dataset is assumed. Public examples, staging observations, synthetic cases and authorized production records are distinct categories.
 
@@ -70,25 +70,25 @@ No public customer-level Paytm dataset is assumed. Public examples, staging obse
 
 ### 1.3 Data provenance taxonomy
 
-| Label | Meaning | May authorize a real/staging financial write? |
-|---|---|---|
-| `official-doc-example` | Example from public documentation | No |
-| `paytm-staging-live` | Fresh authorized observation from staging API | Only within validated staging scope and existing financial controls |
-| `paytm-staging-replay` | Redacted/normalized saved observation | No; replay only |
-| `synthetic-simulator` | Locally generated financial test state | Simulator only |
-| `synthetic-complaint` | Generated multilingual customer utterance | No; claim only |
+| Label                  | Meaning                                       | May authorize a real/staging financial write?                       |
+| ---------------------- | --------------------------------------------- | ------------------------------------------------------------------- |
+| `official-doc-example` | Example from public documentation             | No                                                                  |
+| `paytm-staging-live`   | Fresh authorized observation from staging API | Only within validated staging scope and existing financial controls |
+| `paytm-staging-replay` | Redacted/normalized saved observation         | No; replay only                                                     |
+| `synthetic-simulator`  | Locally generated financial test state        | Simulator only                                                      |
+| `synthetic-complaint`  | Generated multilingual customer utterance     | No; claim only                                                      |
 
 ## 2. Two-hour execution plan
 
-| Time | Task | Completion condition |
-|---|---|---|
-| 00–15 min | Account and credentials | Test MID and key available, or mentor asked |
-| 15–30 min | API Playground | Valid authenticated initiation/status query |
-| 30–50 min | Generate test payments | At least one completed success; failure if possible |
-| 50–65 min | Capture payment evidence | Signed response verified and normalized fixture saved |
-| 65–85 min | Test refund lifecycle | Eligible test refund/status observation, or read-only fallback |
-| 85–105 min | Sentinel integration | Fixture import or read-only adapter + evidence display |
-| 105–120 min | Validation and demo | Provenance visible, known limitations documented |
+| Time        | Task                     | Completion condition                                           |
+| ----------- | ------------------------ | -------------------------------------------------------------- |
+| 00–15 min   | Account and credentials  | Test MID and key available, or mentor asked                    |
+| 15–30 min   | API Playground           | Valid authenticated initiation/status query                    |
+| 30–50 min   | Generate test payments   | At least one completed success; failure if possible            |
+| 50–65 min   | Capture payment evidence | Signed response verified and normalized fixture saved          |
+| 65–85 min   | Test refund lifecycle    | Eligible test refund/status observation, or read-only fallback |
+| 85–105 min  | Sentinel integration     | Fixture import or read-only adapter + evidence display         |
+| 105–120 min | Validation and demo      | Provenance visible, known limitations documented               |
 
 These are planning timeboxes, not guarantees. Account verification, payment capabilities, staging outages or code integration may change the schedule.
 
@@ -120,25 +120,25 @@ Paytm distinguishes test credentials from production credentials. Production act
 
 ### 3.2 Authorized staging test merchant (this sprint)
 
-| Field | Value |
-|---|---|
-| Test Merchant ID (MID) | `wkyQgn37386655602538` |
-| Test Merchant Key | **local `.env` only** — never commit, never paste into this doc |
-| Website | `WEBSTAGING` |
-| Industry Type | `Retail` |
-| Channel ID (Website) | `WEB` |
-| Channel ID (Mobile Apps) | `WAP` |
+| Field                    | Value                                                           |
+| ------------------------ | --------------------------------------------------------------- |
+| Test Merchant ID (MID)   | `wkyQgn37386655602538`                                          |
+| Test Merchant Key        | **local `.env` only** — never commit, never paste into this doc |
+| Website                  | `WEBSTAGING`                                                    |
+| Industry Type            | `Retail`                                                        |
+| Channel ID (Website)     | `WEB`                                                           |
+| Channel ID (Mobile Apps) | `WAP`                                                           |
 
 ### 3.3 Credential configuration
 
-| Credential | Purpose | Sprint value |
-|---|---|---|
-| `PAYTM_MID` | Merchant-scoped staging identity | `wkyQgn37386655602538` |
-| `PAYTM_MERCHANT_KEY` | Request checksum and response verification | Local secret only |
-| `PAYTM_WEBSITE_NAME` | Account-specific checkout website | `WEBSTAGING` |
-| `PAYTM_INDUSTRY_TYPE` | Merchant industry type | `Retail` |
-| `PAYTM_CHANNEL_ID` | Checkout channel (`WEB` or `WAP`) | `WEB` for website utility |
-| `PAYTM_CALLBACK_URL` | Approved callback URL for the test integration | `http://localhost:8025/callback` |
+| Credential            | Purpose                                        | Sprint value                     |
+| --------------------- | ---------------------------------------------- | -------------------------------- |
+| `PAYTM_MID`           | Merchant-scoped staging identity               | `wkyQgn37386655602538`           |
+| `PAYTM_MERCHANT_KEY`  | Request checksum and response verification     | Local secret only                |
+| `PAYTM_WEBSITE_NAME`  | Account-specific checkout website              | `WEBSTAGING`                     |
+| `PAYTM_INDUSTRY_TYPE` | Merchant industry type                         | `Retail`                         |
+| `PAYTM_CHANNEL_ID`    | Checkout channel (`WEB` or `WAP`)              | `WEB` for website utility        |
+| `PAYTM_CALLBACK_URL`  | Approved callback URL for the test integration | `http://localhost:8025/callback` |
 
 Proposed `.env.example` (placeholders only; copy to ignored `.env` and fill the key locally):
 
@@ -176,14 +176,14 @@ Open [Paytm API Playground](https://www.paytmpayments.com/docs/api-playground). 
 
 Enter the authorized staging credentials into the official interface. Select **Initiate Transaction** and use:
 
-| Parameter | Example |
-|---|---|
-| Request type | `Payment` |
+| Parameter    | Example                                  |
+| ------------ | ---------------------------------------- |
+| Request type | `Payment`                                |
 | Website name | `WEBSTAGING` (or account-specific value) |
-| Order ID | `SENTINEL-DEMO-001` |
-| Amount | `10.00` |
-| Currency | `INR` |
-| Customer ID | `SENTINEL-CUST-001` |
+| Order ID     | `SENTINEL-DEMO-001`                      |
+| Amount       | `10.00`                                  |
+| Currency     | `INR`                                    |
+| Customer ID  | `SENTINEL-CUST-001`                      |
 
 Use a new order ID for a new payment. A successful initiation returns a `txnToken`. **Initiation is not payment success.** Complete checkout using a supported test instrument, then query transaction status.
 
@@ -345,13 +345,13 @@ The sample creates ₹10 payments. To generate other amounts, change the test am
 
 ### 5.3 Proposed payment records
 
-| Order | Amount | Intended outcome | Purpose |
-|---|---:|---|---|
-| A | ₹10 | Successful | Base evidence |
-| B | ₹10 | Successful | Second payment for synthetic duplicate scenario |
-| C | ₹20 | Failed | Failure classification |
-| D | ₹50 | Successful | Partial refund candidate |
-| E | ₹100 | Successful | Full refund candidate |
+| Order | Amount | Intended outcome | Purpose                                         |
+| ----- | -----: | ---------------- | ----------------------------------------------- |
+| A     |    ₹10 | Successful       | Base evidence                                   |
+| B     |    ₹10 | Successful       | Second payment for synthetic duplicate scenario |
+| C     |    ₹20 | Failed           | Failure classification                          |
+| D     |    ₹50 | Successful       | Partial refund candidate                        |
+| E     |   ₹100 | Successful       | Full refund candidate                           |
 
 For a duplicate-payment demo, explicitly associate two distinct Paytm test order IDs with **one synthetic logical merchant obligation** in Sentinel. Equal payment amounts alone do not prove a duplicate. The merchant fulfillment facts are generated locally, not obtained from Paytm's transaction API.
 
@@ -379,25 +379,25 @@ If using the local utility, open `http://localhost:8025/status/YOUR_ORDER_ID`.
 
 ### 6.2 Field mapping
 
-| Paytm field | Sentinel meaning |
-|---|---|
-| `mid` | Configured merchant identifier; validate tenant-to-MID mapping |
-| `orderId` | Provider-side merchant order reference |
-| `txnId` | Provider transaction reference |
-| `txnAmount` | Monetary amount; convert exactly to integer paise |
-| `resultInfo.resultStatus` | Raw provider status |
-| `resultInfo.resultCode` | Exact provider response code |
-| `paymentMode` | Payment method metadata |
-| `bankTxnId` | Bank reference when available, not proof of refund credit |
+| Paytm field               | Sentinel meaning                                               |
+| ------------------------- | -------------------------------------------------------------- |
+| `mid`                     | Configured merchant identifier; validate tenant-to-MID mapping |
+| `orderId`                 | Provider-side merchant order reference                         |
+| `txnId`                   | Provider transaction reference                                 |
+| `txnAmount`               | Monetary amount; convert exactly to integer paise              |
+| `resultInfo.resultStatus` | Raw provider status                                            |
+| `resultInfo.resultCode`   | Exact provider response code                                   |
+| `paymentMode`             | Payment method metadata                                        |
+| `bankTxnId`               | Bank reference when available, not proof of refund credit      |
 
 Illustrative mapping (not an observed record):
 
-| Status/code | Interpretation |
-|---|---|
+| Status/code          | Interpretation                                                                               |
+| -------------------- | -------------------------------------------------------------------------------------------- |
 | `TXN_SUCCESS` / `01` | Successful provider payment; validate identities and eligibility before treating as captured |
-| `PENDING` / `400` | Pending confirmation; wait/recheck |
-| `331` | No record found in the query; do not infer definitive nonexecution after an ambiguous write |
-| Other codes | Preserve raw code; use documented version-specific mapping or mark unknown |
+| `PENDING` / `400`    | Pending confirmation; wait/recheck                                                           |
+| `331`                | No record found in the query; do not infer definitive nonexecution after an ambiguous write  |
+| Other codes          | Preserve raw code; use documented version-specific mapping or mark unknown                   |
 
 Validate response signature according to Paytm's exact API-version signing rules. If the sample serialization does not match the provider's requirements, use the official SDK or documented canonical serialization. Do not disable verification to make a demo work. A verified signature proves authenticity under the merchant key, not entitlement to a refund, order fulfillment, or final bank credit.
 
@@ -409,12 +409,12 @@ Suggested test: ₹5 partial refund against a ₹10 test payment. If unsupported
 
 ### 7.1 Staging endpoints
 
-| Operation | Endpoint |
-|---|---|
+| Operation          | Endpoint                                                                 |
+| ------------------ | ------------------------------------------------------------------------ |
 | Payment initiation | `https://securestage.paytmpayments.com/theia/api/v1/initiateTransaction` |
-| Transaction status | `https://securestage.paytmpayments.com/v3/order/status` |
-| Refund initiation | `https://securegw-stage.paytmpayments.in/refund/apply` |
-| Refund status | `https://securegw-stage.paytmpayments.in/v2/refund/status` |
+| Transaction status | `https://securestage.paytmpayments.com/v3/order/status`                  |
+| Refund initiation  | `https://securegw-stage.paytmpayments.in/refund/apply`                   |
+| Refund status      | `https://securegw-stage.paytmpayments.in/v2/refund/status`               |
 
 Check the official documentation for the selected API version and merchant configuration; payment and refund hosts differ.
 
@@ -510,17 +510,17 @@ class PaytmStagingProvider:
 
 ### 7.4 Refund evidence fields
 
-| Field | Meaning |
-|---|---|
-| `refundId` | Paytm-generated refund ID |
-| `refId` | Stable merchant-generated refund reference |
-| `txnId` | Original payment transaction |
-| `refundAmount` | Refund amount |
-| `totalRefundAmount` | Cumulative refund information when available |
-| `acceptRefundStatus` | Provider acceptance status |
-| `userCreditInitiateStatus` | Acquirer-side refund initiation status |
-| `rrn` | Refund tracking reference where returned |
-| `userCreditExpectedDate` | Expected customer credit date where returned |
+| Field                      | Meaning                                      |
+| -------------------------- | -------------------------------------------- |
+| `refundId`                 | Paytm-generated refund ID                    |
+| `refId`                    | Stable merchant-generated refund reference   |
+| `txnId`                    | Original payment transaction                 |
+| `refundAmount`             | Refund amount                                |
+| `totalRefundAmount`        | Cumulative refund information when available |
+| `acceptRefundStatus`       | Provider acceptance status                   |
+| `userCreditInitiateStatus` | Acquirer-side refund initiation status       |
+| `rrn`                      | Refund tracking reference where returned     |
+| `userCreditExpectedDate`   | Expected customer credit date where returned |
 
 Use the official [Refund API](https://www.paytmpayments.com/docs/api/refund-api/) and [Refund Status API](https://www.paytmpayments.com/docs/api/refund-status-api/) to validate exact schema and available fields.
 
@@ -648,14 +648,14 @@ flowchart LR
 
 Introduce a narrow provider adapter with the following methods (proposed names):
 
-| Method | Responsibility |
-|---|---|
-| `get_transaction_status(order_id)` | Retrieve fresh scoped payment observation |
-| `get_refund_status(order_id, ref_id)` | Retrieve an existing refund status |
-| `normalize_transaction(response)` | Map payment into existing canonical provider types |
-| `normalize_refund(response)` | Map refund evidence into existing types |
-| `verify_response_signature(response)` | Authenticate provider observation |
-| `get_capabilities()` | Report supported and unsupported provider functions |
+| Method                                | Responsibility                                      |
+| ------------------------------------- | --------------------------------------------------- |
+| `get_transaction_status(order_id)`    | Retrieve fresh scoped payment observation           |
+| `get_refund_status(order_id, ref_id)` | Retrieve an existing refund status                  |
+| `normalize_transaction(response)`     | Map payment into existing canonical provider types  |
+| `normalize_refund(response)`          | Map refund evidence into existing types             |
+| `verify_response_signature(response)` | Authenticate provider observation                   |
+| `get_capabilities()`                  | Report supported and unsupported provider functions |
 
 An authenticated server-side mapping must associate the Sentinel tenant and merchant with an authorized Paytm MID. Customer-entered references are lookup hints, not authority. Validate ownership and case scope before calling Paytm.
 
@@ -700,18 +700,18 @@ Do not create a second write path in the web application, MCP tool, workflow nod
 
 ### 9.4 Existing module integration map
 
-| Existing module | Required change for this sprint |
-|---|---|
-| `services/simulator` | Import a dedicated Paytm-format replay seed pack; keep fixture mode explicit |
-| `services/evidence` | Optional read-only Paytm adapter and provenance display |
-| `services/workflow` | Consume canonical evidence; no new payment-write tool |
-| `services/policy` | Preserve verified eligibility and approval requirements |
-| `services/action-ledger` | Preserve reservations, stable operation/provider references and audit |
-| `services/dispatcher` | Optional staging provider adapter; translate stable `provider_ref` into Paytm `refId` |
-| `services/verifier` | Provider-specific status mapping; no fabricated final credit |
-| `apps/web` | Evidence source labels, raw provider state and normalized state; mask identifiers |
-| `packages/telemetry` | Provider operation latency, errors and retry suppression without sensitive data |
-| `benchmarks/finbench_indic` | Import grouped, redacted replay scenarios |
+| Existing module             | Required change for this sprint                                                       |
+| --------------------------- | ------------------------------------------------------------------------------------- |
+| `services/simulator`        | Import a dedicated Paytm-format replay seed pack; keep fixture mode explicit          |
+| `services/evidence`         | Optional read-only Paytm adapter and provenance display                               |
+| `services/workflow`         | Consume canonical evidence; no new payment-write tool                                 |
+| `services/policy`           | Preserve verified eligibility and approval requirements                               |
+| `services/action-ledger`    | Preserve reservations, stable operation/provider references and audit                 |
+| `services/dispatcher`       | Optional staging provider adapter; translate stable `provider_ref` into Paytm `refId` |
+| `services/verifier`         | Provider-specific status mapping; no fabricated final credit                          |
+| `apps/web`                  | Evidence source labels, raw provider state and normalized state; mask identifiers     |
+| `packages/telemetry`        | Provider operation latency, errors and retry suppression without sensitive data       |
+| `benchmarks/finbench_indic` | Import grouped, redacted replay scenarios                                             |
 
 Read [Sentinel architecture](https://github.com/Dijo-404/sentinel/blob/main/docs/architecture.md) and [independent task contracts](https://github.com/Dijo-404/sentinel/blob/main/docs/independent-task-contracts.md) before altering service boundaries. Do not introduce breaking cross-module contracts during the sprint unless required and reviewed.
 
@@ -729,15 +729,15 @@ Read [Sentinel architecture](https://github.com/Dijo-404/sentinel/blob/main/docs
 
 ### 10.2 Provider status is not customer credit
 
-| Observation | Sentinel treatment |
-|---|---|
-| Refund request registered | Pending |
-| Provider acceptance | Provider acceptance recorded; not final credit |
-| Acquirer initiation / bank acceptance | Provider-confirmed stage only if documented semantics support it |
-| RRN available | Tracking evidence, not automatic proof of credit |
-| Expected credit date | Continue waiting for sufficient evidence |
-| Independently authorized customer-credit confirmation | `CREDIT_CONFIRMED` if case-specific conditions hold |
-| Contradictory or insufficient data | Wait/reconcile/escalate; no verified closure |
+| Observation                                           | Sentinel treatment                                               |
+| ----------------------------------------------------- | ---------------------------------------------------------------- |
+| Refund request registered                             | Pending                                                          |
+| Provider acceptance                                   | Provider acceptance recorded; not final credit                   |
+| Acquirer initiation / bank acceptance                 | Provider-confirmed stage only if documented semantics support it |
+| RRN available                                         | Tracking evidence, not automatic proof of credit                 |
+| Expected credit date                                  | Continue waiting for sufficient evidence                         |
+| Independently authorized customer-credit confirmation | `CREDIT_CONFIRMED` if case-specific conditions hold              |
+| Contradictory or insufficient data                    | Wait/reconcile/escalate; no verified closure                     |
 
 Paytm's public refund interface may not expose sufficient evidence of final customer bank credit. Even a staging success cannot prove that a real customer's account received money. Keep the live staging case pending if evidence is incomplete, and use the local simulator to demonstrate synthetic credit and verified closure separately.
 
@@ -759,17 +759,17 @@ Correlate request, case and action IDs in restricted traces; do not put identifi
 
 ### 11.1 Dataset target
 
-| Scenario | Source | Target |
-|---|---|---:|
-| Successful payment | Paytm staging | 3–5 |
-| Failed payment | Paytm staging | 2–3 |
-| Refund request and status | Paytm staging | 1–2 of each, if supported |
-| Duplicate payment | Two staging payments + synthetic order relation | 1 |
-| Merchant order mismatch | Staging payment + synthetic merchant state | 1 |
-| Network timeout after submission | Simulator fault injection | 1–2 |
-| Credit pending | Simulator | 1–2 |
-| Unauthorized refund | Sentinel safety tests | 2–3 |
-| Tamil/Hindi/English/code-mixed utterances | Synthetic complaints | 15–30 |
+| Scenario                                  | Source                                          |                    Target |
+| ----------------------------------------- | ----------------------------------------------- | ------------------------: |
+| Successful payment                        | Paytm staging                                   |                       3–5 |
+| Failed payment                            | Paytm staging                                   |                       2–3 |
+| Refund request and status                 | Paytm staging                                   | 1–2 of each, if supported |
+| Duplicate payment                         | Two staging payments + synthetic order relation |                         1 |
+| Merchant order mismatch                   | Staging payment + synthetic merchant state      |                         1 |
+| Network timeout after submission          | Simulator fault injection                       |                       1–2 |
+| Credit pending                            | Simulator                                       |                       1–2 |
+| Unauthorized refund                       | Sentinel safety tests                           |                       2–3 |
+| Tamil/Hindi/English/code-mixed utterances | Synthetic complaints                            |                     15–30 |
 
 All targets are optional beyond the minimum viable result. Record actual counts and failure reasons rather than reporting targets as completed.
 
@@ -800,20 +800,20 @@ The fixture's expected outcome is a synthetic test oracle. It is not an actual P
 
 ### 12.1 Test checklist
 
-| Test | Expected result |
-|---|---|
-| Authorized staging status lookup | Correct merchant/order/transaction evidence or explicit failure |
-| Invalid checksum | Evidence rejected; no financial authorization |
-| Wrong merchant or order | Scope mismatch; fail closed |
-| Failed payment | No refund proposal for a payment not captured |
-| Unknown status or no record | Remain uncertain; do not infer safe refund eligibility |
-| Partial refund | Exact minor-unit amount and stable refId |
-| Repeated refund reference | Reconcile original operation; no new financial identity |
-| Timeout after acceptance (simulator) | `OUTCOME_UNKNOWN`, reservation retained, reconciliation succeeds |
-| Missing customer credit | No `CREDIT_CONFIRMED` or verified refund closure |
-| Operator attempts supervisor decision | Denied; ledger unchanged |
-| Replay fixture in live execution path | Rejected as stale/replay-only evidence |
-| Provider unavailable | Explicit error; no silent simulated substitution |
+| Test                                  | Expected result                                                  |
+| ------------------------------------- | ---------------------------------------------------------------- |
+| Authorized staging status lookup      | Correct merchant/order/transaction evidence or explicit failure  |
+| Invalid checksum                      | Evidence rejected; no financial authorization                    |
+| Wrong merchant or order               | Scope mismatch; fail closed                                      |
+| Failed payment                        | No refund proposal for a payment not captured                    |
+| Unknown status or no record           | Remain uncertain; do not infer safe refund eligibility           |
+| Partial refund                        | Exact minor-unit amount and stable refId                         |
+| Repeated refund reference             | Reconcile original operation; no new financial identity          |
+| Timeout after acceptance (simulator)  | `OUTCOME_UNKNOWN`, reservation retained, reconciliation succeeds |
+| Missing customer credit               | No `CREDIT_CONFIRMED` or verified refund closure                 |
+| Operator attempts supervisor decision | Denied; ledger unchanged                                         |
+| Replay fixture in live execution path | Rejected as stale/replay-only evidence                           |
+| Provider unavailable                  | Explicit error; no silent simulated substitution                 |
 
 Existing Sentinel checks to use after making compatible changes:
 
@@ -857,18 +857,18 @@ Only use the statement supported by your actual results. Do not claim real payme
 
 ## 13. Troubleshooting and mentor request
 
-| Blocker | Immediate action |
-|---|---|
-| Test MID/key not visible | Ask mentor for an authorized test merchant; avoid production onboarding time sink |
-| Checksum failure | Confirm exact signing body and SDK serialization, matching key and environment |
-| Invalid MID/website | Check test credentials and account-provided website name |
-| Checkout opens but payment does not complete | Use supported official test instruments or request an existing test order |
-| Local callback cannot be reached | Use official Playground or approved HTTPS test callback; query signed status for evidence |
-| Refund unavailable or merchant not eligible | Finish payment investigation integration; don't attempt a real refund |
-| Refund remains pending | Show actual pending status; do not fabricate credit evidence |
-| Refund duplicate-reference rejection | Query original refId, retain reservation until outcome reconciled |
-| Missing fields or unexpected response schema | Preserve raw status and fail closed; update version-specific mapping after checking docs |
-| Sentinel integration not ready | Capture and normalize staging responses for isolated replay |
+| Blocker                                      | Immediate action                                                                          |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Test MID/key not visible                     | Ask mentor for an authorized test merchant; avoid production onboarding time sink         |
+| Checksum failure                             | Confirm exact signing body and SDK serialization, matching key and environment            |
+| Invalid MID/website                          | Check test credentials and account-provided website name                                  |
+| Checkout opens but payment does not complete | Use supported official test instruments or request an existing test order                 |
+| Local callback cannot be reached             | Use official Playground or approved HTTPS test callback; query signed status for evidence |
+| Refund unavailable or merchant not eligible  | Finish payment investigation integration; don't attempt a real refund                     |
+| Refund remains pending                       | Show actual pending status; do not fabricate credit evidence                              |
+| Refund duplicate-reference rejection         | Query original refId, retain reservation until outcome reconciled                         |
+| Missing fields or unexpected response schema | Preserve raw status and fail closed; update version-specific mapping after checking docs  |
+| Sentinel integration not ready               | Capture and normalize staging responses for isolated replay                               |
 
 ### Message to Paytm mentors
 

@@ -41,7 +41,7 @@ class Settings:
         if "#" in key and len(key) < 16:
             raise PaytmStagingError(
                 "Merchant key looks truncated; quote PAYTM_MERCHANT_KEY in .env "
-                '(keys may contain #)'
+                "(keys may contain #)"
             )
         return cls(
             mid=mid,

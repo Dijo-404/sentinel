@@ -162,11 +162,7 @@ def capture_status(order_id: str, *, label: str | None = None) -> dict[str, Any]
     RAW_DIR.mkdir(parents=True, exist_ok=True)
     (RAW_DIR / f"{fixture_id}.json").write_bytes(raw)
     info = body.get("resultInfo") or {}
-    mode = (
-        "paytm-staging-live"
-        if body.get("_signature_verified")
-        else "paytm-staging-unverified"
-    )
+    mode = "paytm-staging-live" if body.get("_signature_verified") else "paytm-staging-unverified"
     # Successful captures are replay fixtures once saved.
     if str(info.get("resultStatus") or "").upper() == "TXN_SUCCESS":
         mode = "paytm-staging-replay"
