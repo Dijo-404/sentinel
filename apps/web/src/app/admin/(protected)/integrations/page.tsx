@@ -1,13 +1,5 @@
+import { AdminPeerPanel } from "@/components/admin/admin-peer-panel";
+
 export default function AdminIntegrationsPage() {
-  return (
-    <div className="panel stack" data-testid="admin-integrations">
-      <h1>Integrations</h1>
-      <p className="muted">
-        This view is not connected to its service yet. Nothing here is live data.
-      </p>
-      <p className="fixture-banner" role="status">
-        Not available yet
-      </p>
-    </div>
-  );
+  return <AdminPeerPanel view="integrations" />;
 }

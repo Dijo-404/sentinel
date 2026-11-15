@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Added — 15 November 2026 (admin remainder pages from peers)
+
+- Shared `AdminPeerPanel` wires roles, tenants, teams, policies, security,
+  integrations, merchants, AI, evaluations, observability, audit via BFF.
+- Keep `data-testid="admin-*"`; peer/BFF failure → `peer-error`; never
+  “Not available yet”.
+- Browser tests: ≥1 page per peer family + peer-error
+  (`tests/browser/admin-peer-pages.test.tsx`).
+
 ### Added — 15 November 2026 (admin peer BFF proxies)
 
 - BFF session proxies: `/api/bff/evals` → `EVALS_BASE_URL` (:8031),
