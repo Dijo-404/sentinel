@@ -65,13 +65,13 @@ interactive logins.
 
 `POST /v1/auth/login` outcomes:
 
-| Condition | HTTP | `code` |
-| --- | --- | --- |
-| Missing email/password or email without `@` | 422 | `INVALID_INPUT` |
-| ≥ 5 failures for this (email, client IP), ≥ 20 for known client IP, or limiter full | 429 | `RATE_LIMITED` |
-| No account for this email | 404 | `ACCOUNT_NOT_FOUND` |
-| Wrong password for an existing account | 401 | `UNAUTHORIZED` (generic) |
-| Account not active / no workspace | 403 | `FORBIDDEN` |
+| Condition                                                                           | HTTP | `code`                   |
+| ----------------------------------------------------------------------------------- | ---- | ------------------------ |
+| Missing email/password or email without `@`                                         | 422  | `INVALID_INPUT`          |
+| ≥ 5 failures for this (email, client IP), ≥ 20 for known client IP, or limiter full | 429  | `RATE_LIMITED`           |
+| No account for this email                                                           | 404  | `ACCOUNT_NOT_FOUND`      |
+| Wrong password for an existing account                                              | 401  | `UNAUTHORIZED` (generic) |
+| Account not active / no workspace                                                   | 403  | `FORBIDDEN`              |
 
 **Trade-off (owner decision):** `ACCOUNT_NOT_FOUND` lets the web send unknown
 emails to sign-up, and it also tells anyone whether an email is registered.

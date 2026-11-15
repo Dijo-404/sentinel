@@ -55,10 +55,10 @@ def create_app(services: AppServices) -> FastAPI:
             allowed = {"email", "password", "display_name", "preferred_language"}
             extra = {k: v for k, v in body.items() if k not in allowed}
             result = services.identity.register_customer(
-                email=str(body.get("email", "")),
-                password=str(body.get("password", "")),
-                display_name=str(body.get("display_name", "")),
-                preferred_language=str(body.get("preferred_language", "")),
+                email=_string_field(body, "email"),
+                password=_string_field(body, "password"),
+                display_name=_string_field(body, "display_name"),
+                preferred_language=_string_field(body, "preferred_language"),
                 extra=extra,
                 request_id=request_id,
             )
@@ -80,11 +80,11 @@ def create_app(services: AppServices) -> FastAPI:
             }
             extra = {k: v for k, v in body.items() if k not in allowed}
             result = services.identity.register_merchant(
-                email=str(body.get("email", "")),
-                password=str(body.get("password", "")),
-                display_name=str(body.get("display_name", "")),
-                business_name=str(body.get("business_name", "")),
-                preferred_language=str(body.get("preferred_language", "")),
+                email=_string_field(body, "email"),
+                password=_string_field(body, "password"),
+                display_name=_string_field(body, "display_name"),
+                business_name=_string_field(body, "business_name"),
+                preferred_language=_string_field(body, "preferred_language"),
                 extra=extra,
                 request_id=request_id,
             )
@@ -98,8 +98,8 @@ def create_app(services: AppServices) -> FastAPI:
         try:
             body = await _json_object(request)
             result = services.identity.login(
-                email=str(body.get("email", "")),
-                password=str(body.get("password", "")),
+                email=_string_field(body, "email"),
+                password=_string_field(body, "password"),
                 requested_role=body.get("requested_role"),
                 client_ip=_client_ip(request, services.trusted_proxies),
                 request_id=request_id,
@@ -586,6 +586,13 @@ async def _json_object(request: Request) -> dict[str, Any]:
     if not isinstance(body, dict):
         raise ValidationError("Request body must be JSON object")
     return body
+
+
+def _string_field(body: dict[str, Any], name: str) -> str:
+    value = body.get(name, "")
+    if not isinstance(value, str):
+        raise ValidationError(f"{name} must be a string")
+    return value
 
 
 def _client_ip(request: Request, trusted_proxies: frozenset[str]) -> str:

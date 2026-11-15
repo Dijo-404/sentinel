@@ -286,3 +286,20 @@ def test_cli_preserves_socket_peer_for_application_proxy_validation(monkeypatch)
     monkeypatch.setattr(cli.uvicorn, "run", lambda *args, **kwargs: calls.append(kwargs))
     assert cli.main(["serve"]) == 0
     assert calls[0].get("proxy_headers") is False
+
+
+@pytest.mark.parametrize("role", ["customer", "merchant"])
+def test_registration_rejects_email_that_cannot_be_used_for_login(client, store, role) -> None:
+    response = client.post(f"/v1/auth/{role}/register", json={**MERCHANT, "email": "bad-email"})
+    assert response.status_code == 422
+    assert store.get_user_by_email("bad-email") is None
+
+
+@pytest.mark.parametrize("value", [None, 12345678, ["password-value"], {"password": "value"}])
+@pytest.mark.parametrize("route", ["login", "customer/register", "merchant/register"])
+def test_auth_rejects_nonstring_password_before_lookup_or_registration(
+    client, route, value
+) -> None:
+    response = client.post(f"/v1/auth/{route}", json={**MERCHANT, "password": value})
+    assert response.status_code == 422
+    assert response.json()["code"] == "INVALID_INPUT"

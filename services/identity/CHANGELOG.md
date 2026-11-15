@@ -23,6 +23,8 @@
   email fallback limits failed responses only. Successful login clears its own pair.
 - Atomic failure admission under a lock; prune expired keys, reject capacity
   overflow without evicting active limits. Counters remain single-process only.
+- Signup/login now consistently reject malformed email; JSON auth fields must be
+  strings instead of implicitly converting null, numbers or objects to credentials.
 - Regressions cover proxy absence/spoofing/malformed IP, account-targeted attacks,
   capacity recovery/retention and concurrent failure admission.
 

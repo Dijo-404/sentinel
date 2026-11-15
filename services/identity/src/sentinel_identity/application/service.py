@@ -170,7 +170,7 @@ class IdentityService:
         if PRIVILEGED_BODY_FIELDS & set(body):
             raise ValidationError("Privileged registration fields are not permitted")
         email_n = normalize_email(email)
-        if not email_n or not password or not display_name.strip():
+        if not email_n or "@" not in email_n or not password or not display_name.strip():
             raise ValidationError("email, password and display_name are required")
         try:
             assert_password_acceptable(password)
