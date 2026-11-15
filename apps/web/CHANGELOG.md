@@ -16,6 +16,7 @@
   secure contexts (plain-HTTP sandbox host): customer dashboard showed
   "crypto.randomUUID is not a function". New `newRequestId()` falls back to
   `crypto.getRandomValues`.
+
 ### Changed — Night Ledger 2.0 redesign (branch `feat/web-redesign-night-ledger`, in progress)
 
 - `tokens.css`: dark-first tokens with `[data-theme="light"]` Paper mode. Legacy
