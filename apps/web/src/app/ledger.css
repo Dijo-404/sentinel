@@ -1961,3 +1961,29 @@
 .cc__stream { overflow: hidden; }
 .cc__stream-head { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; border-bottom: 1px solid var(--line); }
 .cc__stream .table th, .cc__stream .table td { padding-inline: 1.25rem; }
+
+/* ---------- Operator workbench ---------- */
+.wb__head { display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem; flex-wrap: wrap; }
+.wb__head h1 { margin: 0.25rem 0; font-size: clamp(1.9rem, 3vw, 2.6rem); letter-spacing: -0.035em; font-weight: 600; }
+.wb__head p.muted { margin: 0; }
+.wb__dist { display: flex; height: 6px; border-radius: 3px; overflow: hidden; gap: 2px; background: var(--line); }
+.wb__dist i { display: block; transition: flex-grow 0.6s var(--ease-ledger); }
+.wb__split { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-start; }
+.wb__list { flex: 1.3 1 520px; min-width: 0; overflow: hidden; }
+.wb__row { cursor: pointer; transition: background var(--t-ui); }
+.wb__row:hover { background: color-mix(in srgb, var(--signal) 5%, transparent); }
+.wb__row[aria-selected="true"] { background: var(--lavender); box-shadow: inset 3px 0 0 var(--signal); }
+.wb__track { display: inline-flex; gap: 4px; }
+.wb__track i { width: 8px; height: 8px; border-radius: 50%; background: var(--line-strong); transition: background 0.3s; }
+.wb__track i[data-on] { background: var(--signal); }
+.wb__track[data-tone="verified"] i[data-on] { background: var(--verified); }
+.wb__track[data-tone="risk"] i { background: color-mix(in srgb, var(--ember) 40%, transparent); }
+.wb__keys { margin: 0; padding: 0.6rem 1rem; border-top: 1px solid var(--line); font-size: 0.75rem; color: var(--fog); }
+.wb__preview { flex: 1 1 380px; min-width: 0; padding: 1.25rem; display: grid; gap: 0.8rem; position: sticky; top: 1rem; animation: ledger-rise 0.3s var(--ease-ledger) both; }
+.wb__preview h2 { margin: 0; font-size: 1.4rem; }
+.wb__preview .replay { padding: 0; border: 0; background: none; box-shadow: none; }
+.wb__facts { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
+.wb__facts div { padding: 0.6rem 0.75rem; border-radius: 12px; background: var(--canvas); border: 1px solid var(--line); }
+.wb__facts dt { font-size: 0.7rem; color: var(--fog); }
+.wb__facts dd { margin: 0.15rem 0 0; font-size: 0.85rem; }
+.wb__skeleton { display: grid; gap: 0.5rem; }
