@@ -56,7 +56,7 @@ MODEL_REQUEST: dict[str, Any] = {
         "case_revision": 1,
         "original_text": "I was charged twice for order DEMO-ORDER-42",
         "language": "en-IN",
-        "order_reference": "DEMO-ORDER-42",
+        "order_reference": "subject-demo/DEMO-ORDER-42",
         "messages": [
             {
                 "message_id": "m1",

@@ -12,23 +12,21 @@ from typing import Any
 from .types import Evidence, ModelRequest, ModelResult, ProposalDraft
 
 
-def provider_order_id(authorized_reference: str) -> str | None:
-    """Provider order key for a case order_reference (evidence.v1 rule).
+def split_order_reference(authorized_reference: str) -> tuple[str, str] | None:
+    """Split a case order_reference ``{subject_ref}/{order_id}`` (or ``:``).
 
-    Canonical case form is ``{subject_ref}/{order_id}`` (``:`` also binds); provider
-    payments carry the bare ``order_id``. Bare refs pass through. Malformed -> None.
+    Exactly one separator and two non-empty parts; anything else -> None.
+    Provider payments carry the bare ``order_id`` plus their own ``subject_ref``.
     """
     ref = authorized_reference
     if not isinstance(ref, str) or not ref or ref != ref.strip():
         return None
-    hits = [i for i in (ref.find("/"), ref.find(":")) if i >= 0]
-    if not hits:
-        return ref
-    idx = min(hits)
-    prefix, suffix = ref[:idx], ref[idx + 1 :]
-    if not prefix or not suffix or suffix[0] in "/:":
+    if ref.count("/") + ref.count(":") != 1:
         return None
-    return suffix
+    subject, _, order = ref.partition("/") if "/" in ref else ref.partition(":")
+    if not subject or not order:
+        return None
+    return subject, order
 
 
 def _facts(item: Evidence, kind: str) -> dict[str, Any] | None:
@@ -105,9 +103,19 @@ def ground(request: ModelRequest, draft: ProposalDraft) -> ModelResult:
     payment_evidence, payment = payments[0]
     if not payment.get("order_reference"):
         return escalate(request, "ORDER_REFERENCE_MISSING")
-    provider_order = provider_order_id(request.input.order_reference)
-    if provider_order is None:
+    case_ref = request.input.order_reference
+    if isinstance(case_ref, str) and "/" not in case_ref and ":" not in case_ref:
+        return escalate(request, "ORDER_REFERENCE_UNBOUND")
+    bound = split_order_reference(case_ref)
+    if bound is None:
         return escalate(request, "ORDER_REFERENCE_INVALID")
+    subject_ref, provider_order = bound
+    # Ownership: the payment must belong to the case's subject, not just share an order id.
+    if (
+        payment_evidence.subject_ref != subject_ref
+        or payment.get("subject_ref", subject_ref) != subject_ref
+    ):
+        return escalate(request, "SUBJECT_MISMATCH")
     if payment["order_reference"] != provider_order:
         return escalate(request, "ORDER_REFERENCE_MISMATCH")
     if payment.get("status") != "CAPTURED" or payment.get("currency") != "INR":

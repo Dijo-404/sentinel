@@ -217,19 +217,43 @@ def test_invalid_model_request_is_422(client, sarvam):
 def test_subject_bound_case_order_matches_bare_provider_order(client, sarvam):
     # Real case-api stores "{subject}/{order}"; provider evidence carries the bare order id.
     request = model_request()
-    request["input"]["order_reference"] = "subject-demo-42/DEMO-ORDER-42"
+    assert request["input"]["order_reference"] == "subject-demo/DEMO-ORDER-42"
     sarvam.queue.append(draft())
     assert _post(client, request).json()["outcome"] == "PROPOSAL"
 
 
 def test_subject_bound_case_other_order_escalates(client, sarvam):
     request = model_request()
-    request["input"]["order_reference"] = "subject-demo-42/OTHER-ORDER"
+    request["input"]["order_reference"] = "subject-demo/OTHER-ORDER"
     sarvam.queue.append(draft())
     assert _post(client, request).json()["reason_codes"] == ["ORDER_REFERENCE_MISMATCH"]
 
 
-@pytest.mark.parametrize("ref", ["/DEMO-ORDER-42", "subject-demo-42/", "subject-demo-42//X"])
+def test_payment_of_other_subject_with_same_order_id_escalates(client, sarvam):
+    request = model_request()
+    request["input"]["order_reference"] = "subject-other/DEMO-ORDER-42"
+    sarvam.queue.append(draft())
+    assert _post(client, request).json()["reason_codes"] == ["SUBJECT_MISMATCH"]
+
+
+def test_payment_facts_subject_mismatch_escalates(client, sarvam):
+    request = model_request()
+    request["evidence"][1]["facts"]["payment"]["subject_ref"] = "subject-other"
+    sarvam.queue.append(draft())
+    assert _post(client, request).json()["reason_codes"] == ["SUBJECT_MISMATCH"]
+
+
+def test_bare_case_order_reference_escalates(client, sarvam):
+    request = model_request()
+    request["input"]["order_reference"] = "DEMO-ORDER-42"
+    sarvam.queue.append(draft())
+    assert _post(client, request).json()["reason_codes"] == ["ORDER_REFERENCE_UNBOUND"]
+
+
+@pytest.mark.parametrize(
+    "ref",
+    ["/DEMO-ORDER-42", "subject-demo/", "subject-demo//X", "a/b/c", "a:b/c", " subject-demo/X"],
+)
 def test_malformed_case_order_reference_escalates(client, sarvam, ref):
     request = model_request()
     request["input"]["order_reference"] = ref

@@ -31,6 +31,7 @@ class CaseInput(_Tolerant):
 class Evidence(_Tolerant):
     evidence_id: str
     source: str = ""
+    subject_ref: str = ""
     verification_status: str
     facts: dict[str, Any]
 
