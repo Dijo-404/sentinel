@@ -11,11 +11,11 @@ import { DEMO_CURRENCY } from "./hero";
 import { ATTACKS, FAULTS, LAYERS, STAGES, advance, checkStates, inject, isResolved, limitCheck, type Fault, type SimState } from "./model";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
-const money = (major: number) => formatMoney(Math.round(major * 100), DEMO_CURRENCY);
+const money = (major: number) => formatMoney(Math.round(major * 100), DEMO_CURRENCY).replace(/\.00$/, "");
 
 export function Ticker() {
   const items = [
-    ["rfnd_••7Q2K  $129.00", ""],
+    ["rfnd_••7Q2K  ₹12,900", ""],
     ["✓ credited", "var(--ok)"],
     ["case_••91A  investigate", ""],
     ["disp_••0F3  approved", "var(--periwinkle)"],
@@ -135,7 +135,7 @@ export function Simulator() {
               </div>
               <div className={`lp-sim__out ${fault ? "shake" : ""}`} data-tone={fault ? "risk" : done ? "verified" : undefined} aria-live="polite" key={`${s.fault}-${done}`}>
                 <span className="eyebrow">{fault ? fault.tag : done ? "RESOLVED" : `STAGE ${Math.min(s.step + 1, 5)} OF 5`}</span>
-                <strong>{fault ? fault.outcome : done ? "$42.50 back on card ••••4417" : STAGES[Math.min(s.step, 4)].title}</strong>
+                <strong>{fault ? fault.outcome : done ? "₹4,250 back on card ••••4417" : STAGES[Math.min(s.step, 4)].title}</strong>
                 <p>
                   {fault
                     ? fault.body
@@ -200,12 +200,12 @@ const DATASETS = [
 
 export function Analytics() {
   const [d, setD] = useState(0);
-  const [amount, setAmount] = useState(240);
+  const [amount, setAmount] = useState(24000);
   const ds = DATASETS[d];
   const vals = Array.from({ length: 30 }, (_, i) => Math.round(ds.base + ds.amp * Math.sin(i / 4 + ds.ph) + i * 0.9 + ((i * 7) % 5)));
   const ver = vals.map((v, i) => Math.round(v * (0.78 + 0.12 * Math.cos(i / 5))));
   const labels = vals.map((_, i) => `Nov ${i + 1}`);
-  const lim = limitCheck(amount, 1280, 2000);
+  const lim = limitCheck(amount, 128000, 200000);
   const heat = Array.from({ length: 7 }, (_, di) =>
     Array.from({ length: 24 }, (_, h) => Math.max(0, Math.sin(((h - 7 + ds.ph) / 24) * Math.PI) * (di < 5 ? 1 : 0.5) + ((di * 5 + h * 11 + d * 3) % 9) / 28)),
   );
@@ -271,12 +271,12 @@ export function Analytics() {
             <label htmlFor="lp-limit">
               New refund <code>{money(amount)}</code>
             </label>
-            <input id="lp-limit" type="range" min={0} max={900} step={10} value={amount} onChange={(e) => setAmount(Number(e.target.value))} />
+            <input id="lp-limit" type="range" min={0} max={90000} step={1000} value={amount} onChange={(e) => setAmount(Number(e.target.value))} />
             <div className="lp-limit__bar" aria-hidden="true">
               <i style={{ width: "44%", background: "var(--ok)" }} />
               <i style={{ width: "12%", background: "var(--provider)" }} />
               <i style={{ width: "8%", background: "var(--signal)" }} />
-              <i style={{ width: `${Math.min(36, (amount / 2000) * 100)}%`, background: lim.allowed ? "var(--ok)" : "var(--escalation)", opacity: 0.7 }} />
+              <i style={{ width: `${Math.min(36, (amount / 200000) * 100)}%`, background: lim.allowed ? "var(--ok)" : "var(--escalation)", opacity: 0.7 }} />
             </div>
             <p className="lp-limit__msg" data-ok={lim.allowed}>
               {lim.allowed ? `Allowed · ${money(lim.after)} headroom after reservation` : `Blocked · over the daily limit by ${money(lim.over)} (completed + pending + reserved)`}

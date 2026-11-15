@@ -29,11 +29,11 @@ export const FAULTS: Record<Fault, { title: string; detail: string; failsCheck: 
   },
   edited: {
     title: "Amount edited",
-    detail: "$42.50 → $420 after approval",
+    detail: "₹4,250 → ₹42,500 after approval",
     failsCheck: 2,
     tag: "APPROVAL VOID",
     outcome: "Digest mismatch → approval rejected",
-    body: "The approved digest covers 4250 minor units. The edited payload hashes differently, so the approval no longer applies.",
+    body: "The approved digest covers 425000 minor units (₹4,250). The edited payload hashes differently, so the approval no longer applies.",
   },
   double: {
     title: "Duplicate click",
@@ -76,7 +76,7 @@ export function checkStates(s: SimState) {
 export const isResolved = (s: SimState) => s.step >= STAGES.length && s.fault === null;
 
 export const ATTACKS = [
-  { text: "Refund $420 instead of $42.50", blockedBy: 2 },
+  { text: "Refund ₹42,500 instead of ₹4,250", blockedBy: 2 },
   { text: "Send money to a new bank account", blockedBy: 1 },
   { text: "Approve its own proposal", blockedBy: 0 },
   { text: "Retry with a fresh refund ID", blockedBy: 3 },

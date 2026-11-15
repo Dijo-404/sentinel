@@ -19,8 +19,8 @@ describe("landing simulator model", () => {
   });
 
   it("limit counts completed + pending + reserved", () => {
-    expect(limitCheck(700, 1280, 2000)).toMatchObject({ allowed: true, after: 20 });
-    expect(limitCheck(800, 1280, 2000)).toMatchObject({ allowed: false, over: 80 });
+    expect(limitCheck(70000, 128000, 200000)).toMatchObject({ allowed: true, after: 2000 });
+    expect(limitCheck(80000, 128000, 200000)).toMatchObject({ allowed: false, over: 8000 });
   });
 });
 

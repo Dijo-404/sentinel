@@ -501,3 +501,27 @@
 [data-density="compact"] .portal-main { gap: 0.6rem; }
 [data-density="compact"] .table th, [data-density="compact"] .table td { padding: 0.35rem 0.4rem; font-size: 0.85rem; }
 [data-density="compact"] .panel, [data-density="compact"] .chart-card, [data-density="compact"] .stat-block { padding: 0.8rem 1rem; }
+
+/* ---------- Case replay ---------- */
+.replay { padding: 1.25rem; display: grid; gap: 0.9rem; }
+.replay__head { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+.replay__head h2 { margin: 0; font-size: 1.25rem; }
+.replay__pos { font: 0.75rem var(--mono); color: var(--fog); }
+.replay__controls { margin-left: auto; display: flex; gap: 0.4rem; align-items: center; }
+.replay__scrub { width: 100%; accent-color: var(--signal); min-height: 28px; padding: 0; border: 0; background: transparent; }
+.replay__body { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; }
+.replay__map { flex: 1.4 1 420px; min-width: 0; }
+.replay__event { flex: 1 1 260px; display: grid; gap: 0.4rem; justify-items: start; animation: ledger-rise 0.3s var(--ease-ledger) both; }
+.replay__event strong { font-family: var(--font-display); font-size: 1.3rem; }
+
+/* ---------- Decision workspace ---------- */
+.decision-amount { font-family: var(--font-display); font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 600; letter-spacing: -0.04em; }
+.freshness { padding: 1.25rem; display: grid; gap: 0.75rem; }
+.freshness h2 { margin: 0; font-size: 1.15rem; }
+.freshness ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.6rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.freshness li { display: grid; gap: 0.45rem; padding: 0.85rem; border-radius: 14px; background: var(--canvas); border: 1px solid var(--line); }
+.freshness li[data-state="expired"] { border-color: color-mix(in srgb, var(--escalation) 45%, transparent); }
+.freshness__row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.freshness__left { margin-left: auto; font: 0.72rem var(--mono); }
+.freshness__bar { height: 5px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.freshness__bar i { display: block; height: 100%; transition: width 0.6s var(--ease-ledger); }

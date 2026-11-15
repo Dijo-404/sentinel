@@ -15,7 +15,8 @@ import { useTicker } from "@/components/ledger/use-ticker";
 
 const LedgerVault = dynamic(() => import("@/components/three/ledger-vault"), { ssr: false });
 
-export const DEMO_CURRENCY = "USD";
+/** The product settles in INR (domain Payment/Refund currency). */
+export const DEMO_CURRENCY = "INR";
 
 const FEED = [
   ["rfnd_••7Q2K", "credit verified", "verified"],
@@ -91,7 +92,7 @@ export function Hero({ dashboardHref }: { dashboardHref?: string | null }) {
           <dl className="lp-hero__facts">
             <div>
               <dt>verified credit today (sim)</dt>
-              <dd><NumberRoll value={formatMoney(18492000 + t * 13700, DEMO_CURRENCY, { compact: false }).replace(/\.\d+$/, "")} /></dd>
+              <dd><NumberRoll value={formatMoney(1849200000 + t * 1370000, DEMO_CURRENCY).replace(/\.\d+$/, "")} /></dd>
             </div>
             <div>
               <dt>duplicate refund IDs on retry</dt>
