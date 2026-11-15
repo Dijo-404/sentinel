@@ -28,7 +28,7 @@ export const metadata: Metadata = {
 };
 
 // Runs before paint so a saved Paper theme never flashes dark first.
-const THEME_BOOT = `try{var t=localStorage.getItem("sentinel-theme");if(t==="light")document.documentElement.dataset.theme="light"}catch(e){}`;
+const THEME_BOOT = `try{var t=localStorage.getItem("sentinel-theme");if(t==="light")document.documentElement.dataset.theme="light";if(localStorage.getItem("sentinel-density")==="compact")document.documentElement.dataset.density="compact"}catch(e){}`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
