@@ -307,9 +307,7 @@ def transaction_status(order_id: str):
     result = response.json()
     data = result.get("body", {})
     signature = result.get("head", {}).get("signature")
-    verified = bool(signature and PaytmChecksum.verifySignature(
-        json.dumps(data), KEY, signature
-    ))
+    verified = bool(signature and PaytmChecksum.verifySignature(json.dumps(data), KEY, signature))
     if not verified:
         raise HTTPException(502, "UNVERIFIED_PROVIDER_RESPONSE")
     if data.get("mid") != MID or data.get("orderId") != order_id:
@@ -469,14 +467,13 @@ class PaytmStagingProvider:
         result = response.json()
         data = result.get("body", {})
         checksum = result.get("head", {}).get("signature")
-        if not checksum or not PaytmChecksum.verifySignature(
-            json.dumps(data), self.key, checksum
-        ):
+        if not checksum or not PaytmChecksum.verifySignature(json.dumps(data), self.key, checksum):
             raise ValueError("Unverified Paytm response")
         return data
 
-    def submit_approved_refund(self, *, order_id: str, transaction_id: str,
-                               provider_ref: str, amount_minor: int) -> dict:
+    def submit_approved_refund(
+        self, *, order_id: str, transaction_id: str, provider_ref: str, amount_minor: int
+    ) -> dict:
         # Only the authenticated dispatcher may call this method,
         # with an already reserved, ledger-issued financial command.
         if type(amount_minor) is not int or amount_minor <= 0:
@@ -499,11 +496,14 @@ class PaytmStagingProvider:
             raise UnknownFinancialOutcome(provider_ref) from exc
 
     def get_refund_status(self, *, order_id: str, provider_ref: str) -> dict:
-        return self._post("/v2/refund/status", {
-            "mid": self.mid,
-            "orderId": order_id,
-            "refId": provider_ref,
-        })
+        return self._post(
+            "/v2/refund/status",
+            {
+                "mid": self.mid,
+                "orderId": order_id,
+                "refId": provider_ref,
+            },
+        )
 ```
 
 **Additional required integration work:** validate returned merchant, transaction, order, reference, currency and amount against the immutable command and relevant API semantics; map documented rejection vs. acceptance vs. unknown states; enforce authenticated service scope and existing ledger reservations. The raw returned dictionary is not automatically an approved or verified outcome. A malformed or mismatched write response is ambiguous until reconciled.
