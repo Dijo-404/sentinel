@@ -233,6 +233,21 @@
     },
     {
       "method": "GET",
+      "path": "/v1/admin/tenants",
+      "auth": "platform_admin session"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/admin/teams",
+      "auth": "platform_admin session"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/admin/security",
+      "auth": "platform_admin session"
+    },
+    {
+      "method": "GET",
       "path": "/v1/admin/audit-events",
       "auth": "platform_admin session",
       "permission": "identity.audit.read"

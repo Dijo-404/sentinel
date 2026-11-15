@@ -460,6 +460,34 @@ def create_app(services: AppServices) -> FastAPI:
         except IdentityError as exc:
             return _error(exc, request_id)
 
+    @app.get("/v1/admin/tenants")
+    def admin_tenants(request: Request) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            return JSONResponse(
+                services.identity.admin_list_tenants(session_token=_bearer(request))
+            )
+        except IdentityError as exc:
+            return _error(exc, request_id)
+
+    @app.get("/v1/admin/teams")
+    def admin_teams(request: Request) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            return JSONResponse(services.identity.admin_list_teams(session_token=_bearer(request)))
+        except IdentityError as exc:
+            return _error(exc, request_id)
+
+    @app.get("/v1/admin/security")
+    def admin_security(request: Request) -> JSONResponse:
+        request_id = _request_id(request)
+        try:
+            return JSONResponse(
+                services.identity.admin_security_summary(session_token=_bearer(request))
+            )
+        except IdentityError as exc:
+            return _error(exc, request_id)
+
     @app.get("/v1/admin/audit-events")
     def admin_audit(request: Request) -> JSONResponse:
         request_id = _request_id(request)

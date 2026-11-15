@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Added — admin tenants / teams / security projections
+
+- `GET /v1/admin/tenants` → `{ tenants: [{ tenant_id, display_name, status }] }`
+  from active assignments + user home tenants (always includes `tenant-demo`).
+- `GET /v1/admin/teams` → `{ teams: [{ team_id, name, member_count }] }` from
+  assignment `team_id` aggregates (seed `payments-support`); synthetic
+  `sandbox-ops` when none present.
+- `GET /v1/admin/security` → counts only:
+  `mfa_verified_sessions`, `active_sessions`, `suspended_users`, `updated_at`.
+- Contract tests cover roles, audit-events, and the three new projections.
+
 ### Fixed — sandbox latest-code inbox for auth challenges
 
 - When `IDENTITY_SANDBOX` or `SENTINEL_V1_SANDBOX` is truthy, persist challenge

@@ -1175,6 +1175,62 @@ class IdentityService:
             "service_roles": sorted(SERVICE_ROLES),
         }
 
+    def admin_list_tenants(self, *, session_token: str) -> dict[str, Any]:
+        self._require_admin(session_token)
+        tenant_ids: set[str] = set()
+        for assignment in self._store.list_all_assignments():
+            if assignment.status == "active" and assignment.tenant_id:
+                tenant_ids.add(assignment.tenant_id)
+        for user in self._store.list_users():
+            if user.tenant_id:
+                tenant_ids.add(user.tenant_id)
+        # Seed always surfaces demo tenant even if store empty mid-bootstrap.
+        tenant_ids.add("tenant-demo")
+        tenants = [
+            {
+                "tenant_id": tid,
+                "display_name": _tenant_display_name(tid),
+                "status": "active",
+            }
+            for tid in sorted(tenant_ids)
+        ]
+        return {"tenants": tenants}
+
+    def admin_list_teams(self, *, session_token: str) -> dict[str, Any]:
+        self._require_admin(session_token)
+        members: dict[str, set[str]] = {}
+        for assignment in self._store.list_all_assignments():
+            if assignment.status != "active" or not assignment.team_id:
+                continue
+            members.setdefault(assignment.team_id, set()).add(assignment.user_id)
+        if not members:
+            # Synthetic sandbox row when no assignment carries team_id.
+            members["sandbox-ops"] = set()
+        teams = [
+            {
+                "team_id": team_id,
+                "name": _team_display_name(team_id),
+                "member_count": len(user_ids),
+            }
+            for team_id, user_ids in sorted(members.items())
+        ]
+        return {"teams": teams}
+
+    def admin_security_summary(self, *, session_token: str) -> dict[str, Any]:
+        self._require_admin(session_token)
+        now = self._clock.now()
+        active = [
+            s for s in self._store.list_sessions() if s.revoked_at is None and s.expires_at > now
+        ]
+        mfa_verified = sum(1 for s in active if s.mfa_verified_at is not None)
+        suspended = sum(1 for u in self._store.list_users() if u.status == "suspended")
+        return {
+            "mfa_verified_sessions": mfa_verified,
+            "active_sessions": len(active),
+            "suspended_users": suspended,
+            "updated_at": now.isoformat(),
+        }
+
     def admin_list_audit(self, *, session_token: str, limit: int = 100) -> dict[str, Any]:
         self._require_admin(session_token)
         return {"events": [e.to_public() for e in self._store.list_audit(limit=limit)]}
@@ -1373,3 +1429,22 @@ def _subroles_for_merchant_assignment(assignment: RoleAssignment) -> list[str]:
     if assignment.role_id == "merchant":
         return ["admin"]
     return []
+
+
+_TENANT_DISPLAY_NAMES = {
+    "tenant-demo": "Demo Tenant",
+    "tenant-other": "Other Tenant",
+}
+
+_TEAM_DISPLAY_NAMES = {
+    "payments-support": "Payments Support",
+    "sandbox-ops": "Sandbox Ops",
+}
+
+
+def _tenant_display_name(tenant_id: str) -> str:
+    return _TENANT_DISPLAY_NAMES.get(tenant_id, tenant_id)
+
+
+def _team_display_name(team_id: str) -> str:
+    return _TEAM_DISPLAY_NAMES.get(team_id, team_id)

@@ -103,6 +103,10 @@ class MemoryIdentityStore:
         ]
         return tuple(sorted(rows, key=lambda a: a.granted_at.isoformat()))
 
+    def list_all_assignments(self) -> tuple[RoleAssignment, ...]:
+        rows = list(self.assignments.values())
+        return tuple(sorted(rows, key=lambda a: a.granted_at.isoformat()))
+
     def create_session(self, session: SessionRecord) -> SessionRecord:
         with self._lock:
             self.sessions[session.session_id] = session
@@ -118,6 +122,10 @@ class MemoryIdentityStore:
             self.sessions[session.session_id] = session
             self.sessions_by_hash[session.token_hash] = session.session_id
             return session
+
+    def list_sessions(self) -> tuple[SessionRecord, ...]:
+        rows = list(self.sessions.values())
+        return tuple(sorted(rows, key=lambda s: s.issued_at.isoformat()))
 
     def revoke_sessions_for_user(self, user_id: str, *, at: datetime) -> int:
         with self._lock:
