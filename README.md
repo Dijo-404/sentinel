@@ -29,13 +29,13 @@ A payment operations workspace for customers, merchants and support teams, with 
 
 ## Watch
 
-|                                                                           Sentinel in 90 seconds                                                                           |                                                                               How Sentinel works                                                                               |
-| :------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| [![Sentinel in 90 seconds (1:29)](media/readme/poster-pitch.png)](https://github.com/Dijo-404/sentinel/releases/download/readme-media-2026-11-15/sentinel-pitch-small.mp4) | [![How Sentinel works (3:49)](media/readme/poster-explainer.png)](https://github.com/Dijo-404/sentinel/releases/download/readme-media-2026-11-15/sentinel-explainer-small.mp4) |
+|                                     Sentinel in 90 seconds                                      |                                       How Sentinel works                                        |
+| :---------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------: |
+| [![Sentinel in 90 seconds (1:29)](media/readme/poster-pitch.png)](https://youtu.be/U6B0VEkRMnc) | [![How Sentinel works (3:49)](media/readme/poster-explainer.png)](https://youtu.be/5mBIK9xCPPI) |
 
 > Sandbox only. Every screen is the app running locally in fixture mode with synthetic data; payments go to a mock simulator. These recordings were captured against commit `1a64a55` on 15 November 2026. Follow the current setup instructions below for current behavior.
 
-The posters link to MP4 videos hosted with the [sandbox demo media](https://github.com/Dijo-404/sentinel/releases/tag/readme-media-2026-11-15). The [README kit](media/README-kit.md) lists the assets and capture provenance.
+The posters open the videos on YouTube. Downloadable MP4 copies are hosted with the [sandbox demo media](https://github.com/Dijo-404/sentinel/releases/tag/readme-media-2026-11-15). The [README kit](media/README-kit.md) lists the assets and capture provenance.
 
 ## What Sentinel does
 

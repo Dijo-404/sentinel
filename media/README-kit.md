@@ -2,7 +2,7 @@
 
 Implemented in the root [README](../README.md). Paths in the copyable snippet below are relative to the repository root.
 
-Both compressed videos are hosted in the [sandbox media prerelease](https://github.com/Dijo-404/sentinel/releases/tag/readme-media-2026-11-15), which is documentation media rather than a software release. YouTube uploads can replace the two poster destinations in the root README and this snippet.
+Both compressed videos are hosted in the [sandbox media prerelease](https://github.com/Dijo-404/sentinel/releases/tag/readme-media-2026-11-15), which is documentation media rather than a software release. Both posters in the root README and the snippet below open the uploaded YouTube videos.
 
 All ten images/GIFs under `media/readme/` are committed. The videos and proof images describe the capture at `1a64a55` on 15 November 2026. See the [original fixture-check transcript](video/proof/core-check-1a64a55.txt) and [capture claims manifest](video/CLAIMS.md). Current setup and verification instructions remain in the root README.
 
@@ -11,9 +11,9 @@ All ten images/GIFs under `media/readme/` are committed. The videos and proof im
 
 ## Watch
 
-|                                                                           Sentinel in 90 seconds                                                                           |                                                                               How Sentinel works                                                                               |
-| :------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| [![Sentinel in 90 seconds (1:29)](media/readme/poster-pitch.png)](https://github.com/Dijo-404/sentinel/releases/download/readme-media-2026-11-15/sentinel-pitch-small.mp4) | [![How Sentinel works (3:49)](media/readme/poster-explainer.png)](https://github.com/Dijo-404/sentinel/releases/download/readme-media-2026-11-15/sentinel-explainer-small.mp4) |
+|                                     Sentinel in 90 seconds                                      |                                       How Sentinel works                                        |
+| :---------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------: |
+| [![Sentinel in 90 seconds (1:29)](media/readme/poster-pitch.png)](https://youtu.be/U6B0VEkRMnc) | [![How Sentinel works (3:49)](media/readme/poster-explainer.png)](https://youtu.be/5mBIK9xCPPI) |
 
 > Sandbox only. Every screen is the app running locally in fixture mode with synthetic data; payments go to a mock simulator.
 
@@ -36,7 +36,7 @@ All ten images/GIFs under `media/readme/` are committed. The videos and proof im
 ![Paytm staging observations, captured and redacted](media/readme/proof-paytm-staging.png)
 ```
 
-Both posters currently open the uploaded MP4s. For an inline GitHub player, upload a downloaded video as a GitHub user attachment and use its generated URL. For YouTube, use the final watch URL.
+Both posters open YouTube: [pitch (1:29)](https://youtu.be/U6B0VEkRMnc) and [explainer (3:49)](https://youtu.be/5mBIK9xCPPI). Downloadable MP4 backups remain available in the sandbox media prerelease.
 
 ## Files
 
