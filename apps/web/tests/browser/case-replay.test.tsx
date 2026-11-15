@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { CaseReplay, phaseFor } from "@/components/ledger/case-replay";
+import { CaseReplay, phaseFor, utc } from "@/components/ledger/case-replay";
 import { freshness } from "@/components/ledger/evidence-freshness";
 import type { CaseEvent, CaseState } from "@/domain/types";
 
@@ -32,6 +32,13 @@ describe("CaseReplay", () => {
     fireEvent.change(screen.getByRole("slider", { name: "Replay position" }), { target: { value: "0" } });
     expect(screen.getByText("step 1 / 3")).toBeInTheDocument();
     expect(screen.getByRole("img", { name: /Money with merchant/ })).toBeInTheDocument();
+  });
+});
+
+describe("utc", () => {
+  it("formats timestamps identically everywhere", () => {
+    expect(utc("2026-11-15T13:05:09Z")).toBe("2026-11-15 13:05 UTC");
+    expect(utc("not-a-date")).toBe("not-a-date");
   });
 });
 

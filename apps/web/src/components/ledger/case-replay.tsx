@@ -38,6 +38,12 @@ export function phaseFor(status: CaseState): Phase {
   }
 }
 
+/** Same text on server and client (no locale/timezone drift → no hydration mismatch). */
+export function utc(iso: string): string {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? iso : `${d.toISOString().slice(0, 16).replace("T", " ")} UTC`;
+}
+
 const X: Record<MoneyAt, number> = { merchant: 0, "in-flight": 235, customer: 470, none: 0 };
 const TOKEN: Record<Phase["tone"], string> = {
   neutral: "var(--fog)",
@@ -150,7 +156,7 @@ export function CaseReplay({ events }: { events: CaseEvent[] }) {
             {labelCaseStatus(ev.payload.status).text}
           </span>
           <time className="muted" dateTime={ev.occurred_at}>
-            {new Date(ev.occurred_at).toLocaleString()}
+            {utc(ev.occurred_at)}
           </time>
           <code className="muted">reason={ev.payload.reason_code}</code>
         </div>

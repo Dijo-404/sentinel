@@ -525,3 +525,12 @@
 .freshness__left { margin-left: auto; font: 0.72rem var(--mono); }
 .freshness__bar { height: 5px; border-radius: 3px; background: var(--line); overflow: hidden; }
 .freshness__bar i { display: block; height: 100%; transition: width 0.6s var(--ease-ledger); }
+
+/* ---------- Design gallery ---------- */
+.gallery { width: min(1320px, 100%); margin: 0 auto; padding: 2rem 16px 5rem; display: grid; gap: 1.25rem; }
+.gallery__head { display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem; flex-wrap: wrap; }
+.gallery__head h1 { margin: 0.4rem 0; font-size: clamp(2.5rem, 5vw, 4.5rem); letter-spacing: -0.05em; font-weight: 600; }
+.gallery__grid { display: flex; flex-wrap: wrap; gap: 1rem; }
+.gallery__grid > * { flex: 1 1 320px; min-width: 0; display: grid; gap: 0.75rem; align-content: start; }
+.gallery__grid > .gallery__wide { flex: 2 1 600px; }
+.gallery h2.eyebrow { margin: 0; }
