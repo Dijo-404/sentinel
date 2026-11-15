@@ -134,6 +134,9 @@ def _default_peers(settings: Settings) -> dict[str, Any]:
     }
 
 
+_OPEN_CHECKPOINTER_CONTEXTS: list[Any] = []
+
+
 def _postgres_checkpointer(database_url: str) -> Any:
     # langgraph-checkpoint-postgres expects a psycopg connection string.
     from langgraph.checkpoint.postgres import PostgresSaver
@@ -144,9 +147,12 @@ def _postgres_checkpointer(database_url: str) -> Any:
     saver = PostgresSaver.from_conn_string(dsn)
     # from_conn_string returns a context manager in some versions; normalize.
     if hasattr(saver, "__enter__"):
-        # Keep the context open for process lifetime.
+        # Keep the context open for process lifetime. Hold a strong reference: a
+        # @contextmanager generator that is garbage-collected runs its exit and
+        # closes the connection ("the connection is closed" on the next run).
         cm = saver
         saver = cm.__enter__()
+        _OPEN_CHECKPOINTER_CONTEXTS.append(cm)
         saver.setup()
         return saver
     saver.setup()
