@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Fixed — 15 November 2026 (audit R2)
+
+- Approval screens pass authenticated `session.user.user_id` as `reviewerId`
+  (not `fixture-${role}`). Real-peers ApprovalSlot refuses shell fixture fallback.
+- Admin evaluations/observability show gated FinHarness/FinBench status via
+  `/api/bff/admin-fin-gates` (`FINHARNESS_ADMIN_ENABLED` / `FINBENCH_ADMIN_ENABLED`).
+
 ### Changed — 15 November 2026
 
 - Applied the repository Prettier baseline to TypeScript, TSX, CSS, and documentation without changing portal behavior.

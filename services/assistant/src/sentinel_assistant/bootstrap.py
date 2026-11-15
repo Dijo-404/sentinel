@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from .adapters.auth import TokenAuthenticator, parse_token_map
 from .adapters.clock import SystemClock
 from .adapters.http_api import AppServices, create_app
+from .adapters.http_reply import HttpModelReply
+from .adapters.sandbox_reply import SandboxEchoReply
 from .adapters.storage_memory import MemoryAssistantStore
 from .application.errors import ConfigurationError, PeerUnavailableError
 from .application.service import AssistantService
@@ -38,6 +40,7 @@ class Settings:
     tokens: str
     database_url: str
     contract_version: str
+    model_url: str
 
     @classmethod
     def from_environ(cls, env: dict[str, str] | None = None) -> Settings:
@@ -50,7 +53,16 @@ class Settings:
             tokens=source.get("ASSISTANT_TOKENS", ""),
             database_url=source.get("ASSISTANT_DATABASE_URL", ""),
             contract_version=source.get("ASSISTANT_CONTRACT_VERSION", CONTRACT_VERSION),
+            model_url=source.get("ASSISTANT_MODEL_URL", "").strip(),
         )
+
+
+def _resolve_replies(settings: Settings, replies):
+    if replies is not None:
+        return replies
+    if settings.model_url:
+        return HttpModelReply(settings.model_url)
+    return SandboxEchoReply()
 
 
 def build_app(
@@ -58,6 +70,7 @@ def build_app(
     *,
     store=None,
     clock=None,
+    replies=None,
 ):
     settings = settings or Settings.from_environ()
     if settings.contract_version != CONTRACT_VERSION:
@@ -69,6 +82,7 @@ def build_app(
         assistant=AssistantService(
             store=_resolve_store(settings.mode, store, settings.database_url),
             clock=clock or SystemClock(),
+            replies=_resolve_replies(settings, replies),
         ),
         mode=settings.mode,
     )

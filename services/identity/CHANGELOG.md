@@ -2,13 +2,18 @@
 
 ## Unreleased
 
+### Fixed — admin tenants / teams invent no fallback rows
+
+- `admin_list_tenants` / `admin_list_teams` return only store-derived rows.
+  Empty catalogs stay empty; seed still supplies `tenant-demo` /
+  `payments-support` via fixtures, not API invention.
+
 ### Added — admin tenants / teams / security projections
 
 - `GET /v1/admin/tenants` → `{ tenants: [{ tenant_id, display_name, status }] }`
-  from active assignments + user home tenants (always includes `tenant-demo`).
+  from active assignments + user home tenants.
 - `GET /v1/admin/teams` → `{ teams: [{ team_id, name, member_count }] }` from
-  assignment `team_id` aggregates (seed `payments-support`); synthetic
-  `sandbox-ops` when none present.
+  assignment `team_id` aggregates (seed `payments-support`).
 - `GET /v1/admin/security` → counts only:
   `mfa_verified_sessions`, `active_sessions`, `suspended_users`, `updated_at`.
 - Contract tests cover roles, audit-events, and the three new projections.

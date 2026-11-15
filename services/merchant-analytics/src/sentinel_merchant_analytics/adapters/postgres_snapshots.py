@@ -96,6 +96,33 @@ class PostgresMetricsSnapshotStore:
             return None
         return _row_to_metrics(dict(row))
 
+    def latest(
+        self,
+        *,
+        tenant_id: str,
+        merchant_ref: str,
+    ) -> MerchantMetrics | None:
+        try:
+            with self._engine.begin() as connection:
+                row = (
+                    connection.execute(
+                        select(self._table)
+                        .where(
+                            self._table.c.tenant_id == tenant_id,
+                            self._table.c.merchant_ref == merchant_ref,
+                        )
+                        .order_by(self._table.c.window_end.desc())
+                        .limit(1)
+                    )
+                    .mappings()
+                    .first()
+                )
+        except SQLAlchemyError as exc:
+            raise PeerUnavailableError("metrics snapshot database unavailable") from exc
+        if row is None:
+            return None
+        return _row_to_metrics(dict(row))
+
     def put(self, metrics: MerchantMetrics) -> None:
         values = _metrics_to_row(metrics)
         try:

@@ -35,6 +35,7 @@ class Payment:
     status: PaymentStatus
     amount_minor: int
     currency: Literal["INR"]
+    merchant_ref: str
 
 
 @dataclass(frozen=True, slots=True)

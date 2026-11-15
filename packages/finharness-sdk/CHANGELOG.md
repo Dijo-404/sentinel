@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Fixed — notification honesty
+
+- `notify()` requires an injected `NotificationPort` when notifications are
+  enabled; refuses inventing `status=queued` without enqueue. Sample workflow
+  uses in-process `MemoryNotificationQueue`.
+
 ### Added — 13 November 2026
 
 - `finharness-sdk.v1` Python package: injectable evidence/policy/ledger/verifier/indic-context ports, version-pinned `CaseManifest`, `RuntimeConfig` with disabled-by-default routing/writes/notifications, and `FinHarnessClient` composition facade.

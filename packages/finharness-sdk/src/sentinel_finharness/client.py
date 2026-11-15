@@ -27,6 +27,7 @@ from .ports import (
     ActionLedgerPort,
     EvidencePort,
     IndicContextPort,
+    NotificationPort,
     PolicyPort,
     VerifierPort,
 )
@@ -46,6 +47,7 @@ class FinHarnessClient:
         verifier: VerifierPort,
         indic_context: IndicContextPort,
         tenant_id: str,
+        notifications: NotificationPort | None = None,
     ) -> None:
         if not tenant_id:
             raise ConfigurationError("tenant_id is required")
@@ -56,6 +58,7 @@ class FinHarnessClient:
         self._ledger = ledger
         self._verifier = verifier
         self._indic_context = indic_context
+        self._notifications = notifications
         self.tenant_id = tenant_id
         self._ensure_scope()
 
@@ -170,7 +173,19 @@ class FinHarnessClient:
         self._require_notifications()
         if not channel or not message_code:
             raise ConfigurationError("channel and message_code are required")
-        return {"status": "queued", "channel": channel, "message_code": message_code}
+        if self._notifications is None:
+            raise ConfigurationError(
+                "notifications enabled but no NotificationPort injected; refusing fake queued"
+            )
+        raw = self._notifications.enqueue(channel=channel, message_code=message_code)
+        status = str(raw.get("status", ""))
+        if status not in {"queued", "delivered", "accepted"}:
+            raise PeerError("finharness-sdk.v1", "MALFORMED", "notification status missing")
+        return {
+            "status": status,
+            "channel": str(raw.get("channel", channel)),
+            "message_code": str(raw.get("message_code", message_code)),
+        }
 
     def bypass_reserve_without_approval(self, request: Mapping[str, Any]) -> dict[str, Any]:
         """Deliberately unsafe helper surface: always rejected. No ledger call."""

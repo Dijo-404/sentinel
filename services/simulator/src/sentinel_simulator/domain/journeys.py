@@ -6,6 +6,7 @@ from sentinel_simulator.domain.models import Order, Payment, Refund
 
 SANDBOX_TENANT_ID = "tenant-demo"
 SUBJECT_REF = "subject-demo-42"
+MERCHANT_REF = "merchant-demo-1"
 AMOUNT_MINOR = 150_000
 
 JOURNEY_PACKS = (
@@ -62,6 +63,7 @@ def _pending_pack() -> SeedSnapshot:
         status="PENDING",
         amount_minor=AMOUNT_MINOR,
         currency="INR",
+        merchant_ref=MERCHANT_REF,
     )
     return SeedSnapshot(
         orders={order.order_reference: order},
@@ -85,6 +87,7 @@ def _merchant_mismatch_pack() -> SeedSnapshot:
         status="CAPTURED",
         amount_minor=AMOUNT_MINOR,
         currency="INR",
+        merchant_ref=MERCHANT_REF,
     )
     return SeedSnapshot(
         orders={order.order_reference: order},
@@ -109,6 +112,7 @@ def _duplicate_payment_pack() -> SeedSnapshot:
             status="CAPTURED",
             amount_minor=AMOUNT_MINOR,
             currency="INR",
+            merchant_ref=MERCHANT_REF,
         ),
         Payment(
             transaction_ref="TXN-B",
@@ -117,6 +121,7 @@ def _duplicate_payment_pack() -> SeedSnapshot:
             status="CAPTURED",
             amount_minor=AMOUNT_MINOR,
             currency="INR",
+            merchant_ref=MERCHANT_REF,
         ),
     )
     return SeedSnapshot(
@@ -141,6 +146,7 @@ def _refund_pending_pack() -> SeedSnapshot:
         status="CAPTURED",
         amount_minor=AMOUNT_MINOR,
         currency="INR",
+        merchant_ref=MERCHANT_REF,
     )
     refund = Refund(
         action_id="action-refund-pending-1",

@@ -59,7 +59,10 @@ function wrapCaseApiDecide(decide: ApprovalSlotProps["decide"]): DecideClient {
 export function ApprovalSlot(input: Props) {
   const shell = useContext(ShellContext);
   const mode = input.mode ?? shell?.config.mode ?? "fixture";
-  const reviewerId = input.reviewerId ?? shell?.config.principal.principal_id ?? "";
+  // Real-peers must receive the authenticated reviewer; never invent fixture-${role}.
+  const reviewerId =
+    input.reviewerId ??
+    (mode === "fixture" ? (shell?.config.principal.principal_id ?? "") : "");
 
   if (input.state === "error") {
     return (

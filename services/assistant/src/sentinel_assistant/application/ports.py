@@ -11,6 +11,13 @@ class Clock(Protocol):
     def now_iso(self) -> str: ...
 
 
+class ReplyGenerator(Protocol):
+    """Produces assistant reply text + evidence_mode. Never invents money authority."""
+
+    def generate(self, *, text: str) -> tuple[str, str]:
+        """Return (reply_text, evidence_mode)."""
+
+
 class AssistantStore(Protocol):
     def create_thread(self, thread: Thread) -> Thread: ...
 

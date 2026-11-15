@@ -42,7 +42,7 @@ Stable seed ids: `thr-seed-tenant-demo`, `msg-seed-tenant-demo-user`, `msg-seed-
 | GET    | `/v1/threads?role=customer\|operator` | bearer | tenant-scoped list                                                       |
 | POST   | `/v1/threads`                         | bearer | optional `{ title }`                                                     |
 | GET    | `/v1/threads/{id}/messages`           | bearer | tenant-scoped                                                            |
-| POST   | `/v1/threads/{id}/messages`           | bearer | `{ text }` → user message `evidence_mode=sandbox` + stub assistant reply |
+| POST   | `/v1/threads/{id}/messages`           | bearer | `{ text }` → user message + assistant reply (sandbox echo or `ASSISTANT_MODEL_URL`) |
 
 ## Auth
 

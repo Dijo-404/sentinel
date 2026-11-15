@@ -43,14 +43,36 @@ def cmd_run(args: argparse.Namespace) -> int:
         return 2
 
     candidate_name = _MODE_TO_CANDIDATE[args.mode]
+    context = optional_context_peer(getattr(args, "context_peer", None))
+    runtime = optional_runtime_peer(getattr(args, "runtime_peer", None))
     try:
-        candidate = select_candidate(candidate_name, live_enabled=args.live_model)
-        report = evaluate_split(manifest, args.split, candidate, evidence_mode="fixture")
+        candidate = select_candidate(
+            candidate_name,
+            live_enabled=args.live_model or args.mode == "live-model",
+            context=context,
+        )
+        evidence_mode = "live-provider" if candidate_name == "live" else "fixture"
+        report = evaluate_split(manifest, args.split, candidate, evidence_mode=evidence_mode)
     except PeerError as exc:
         print(json.dumps(exc.as_error()), file=sys.stderr)
         return 3
 
     payload = report.to_dict()
+    peers: dict[str, Any] = {}
+    if runtime is not None:
+        try:
+            peers["finharness-runtime.v1"] = dict(
+                runtime.run(
+                    {
+                        "contract_version": CONTRACT_VERSION,
+                        "run_id": f"finbench-{report.split}",
+                    }
+                )
+            )
+        except PeerError as exc:
+            peers["finharness-runtime.v1"] = exc.as_error()
+    if context is not None:
+        peers["indic-context.v1"] = {"configured": True}
     payload["disclosure"] = {
         "dataset_version": report.dataset_version,
         "dataset_sha256": report.dataset_sha256,
@@ -62,6 +84,7 @@ def cmd_run(args: argparse.Namespace) -> int:
         "variance": {s.label: s.variance for s in (*report.model_scores, *report.system_scores)},
         "model_labels": sorted({s.model_label for s in report.model_scores}),
         "system_labels": sorted({s.model_label for s in report.system_scores}),
+        "peers": peers,
     }
     print(json.dumps(payload, indent=2, sort_keys=True))
     return 0 if report.overall_status == "PASS" else 1
@@ -207,7 +230,17 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument(
         "--live-model",
         action="store_true",
-        help="Explicitly enable live-model candidate (still synthetic in this kit)",
+        help="Explicitly enable live-model candidate (requires --context-peer)",
+    )
+    run.add_argument(
+        "--context-peer",
+        default=None,
+        help="indic-context.v1 endpoint or file stub (required for live-model)",
+    )
+    run.add_argument(
+        "--runtime-peer",
+        default=None,
+        help="Optional finharness-runtime.v1 endpoint; disclosed in report peers",
     )
     run.set_defaults(func=cmd_run)
 

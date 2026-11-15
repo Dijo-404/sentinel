@@ -10,6 +10,8 @@
 
 ### Fixed
 
+- Seed uses portal-aligned rolling 14-day window (not fixed contract example dates).
+  Lookup falls back to latest merchant snapshot when exact endpoints miss.
 - `case_http` aligns to case-api.v1 Case fields; missing analytics-required
   `opened_at`/`intent`/`evidence_ids` fail closed (no invented UNKNOWN/timestamps).
 

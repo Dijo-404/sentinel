@@ -14,9 +14,22 @@ from .ports import (
     ActionLedgerPort,
     EvidencePort,
     IndicContextPort,
+    NotificationPort,
     PolicyPort,
     VerifierPort,
 )
+
+
+class MemoryNotificationQueue:
+    """In-process queue for fixture samples — records enqueues instead of inventing success."""
+
+    def __init__(self) -> None:
+        self.items: list[dict[str, str]] = []
+
+    def enqueue(self, *, channel: str, message_code: str) -> dict[str, str]:
+        item = {"status": "queued", "channel": channel, "message_code": message_code}
+        self.items.append(item)
+        return dict(item)
 
 
 @dataclass(frozen=True)
@@ -88,6 +101,7 @@ def run_sample_workflow(
     case_revision: int = 1,
     order_reference: str = "DEMO-ORDER-42",
     approval_id: str | None = None,
+    notifications: NotificationPort | None = None,
 ) -> SampleReport:
     """
     Exercise read/shadow or explicit harness write path via the SDK.
@@ -96,6 +110,9 @@ def run_sample_workflow(
     for any peer traffic. Financial writes still require financial_writes=True,
     harness mode, and a real approval_id for reservation.
     """
+    notify_port = notifications
+    if config.notifications and notify_port is None:
+        notify_port = MemoryNotificationQueue()
     client = FinHarnessClient(
         config=config,
         manifest=manifest,
@@ -105,6 +122,7 @@ def run_sample_workflow(
         verifier=verifier,
         indic_context=indic_context,
         tenant_id=tenant_id,
+        notifications=notify_port,
     )
     steps: list[str] = []
     policy_outcome: str | None = None

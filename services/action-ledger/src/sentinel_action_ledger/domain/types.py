@@ -109,3 +109,6 @@ class EligibilitySnapshot:
     external_refunded_minor: int
     external_pending_minor: int
     version: int
+    # Payment-scope merchant identity from verified payment evidence.
+    # Not persisted on eligibility_snapshots; used for payment_reservations only.
+    merchant_ref: str = ""

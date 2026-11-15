@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Fixed — live candidate honesty
+
+- `LiveModelCandidate` requires an injected context peer when enabled; refuses
+  gold-copy of expected fields labeled `live`. CLI `--live-model` needs
+  `--context-peer`; optional `--runtime-peer` disclosed under report peers.
+
 ### Added — 13 November 2026
 
 - Independent module ownership, architecture/interface guide, scoped agent rules and acceptance checklist.

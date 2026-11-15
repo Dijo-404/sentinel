@@ -1184,8 +1184,6 @@ class IdentityService:
         for user in self._store.list_users():
             if user.tenant_id:
                 tenant_ids.add(user.tenant_id)
-        # Seed always surfaces demo tenant even if store empty mid-bootstrap.
-        tenant_ids.add("tenant-demo")
         tenants = [
             {
                 "tenant_id": tid,
@@ -1203,9 +1201,6 @@ class IdentityService:
             if assignment.status != "active" or not assignment.team_id:
                 continue
             members.setdefault(assignment.team_id, set()).add(assignment.user_id)
-        if not members:
-            # Synthetic sandbox row when no assignment carries team_id.
-            members["sandbox-ops"] = set()
         teams = [
             {
                 "team_id": team_id,

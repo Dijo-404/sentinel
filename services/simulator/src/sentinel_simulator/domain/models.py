@@ -26,6 +26,7 @@ class Payment:
     status: PaymentStatus
     amount_minor: int
     currency: Currency
+    merchant_ref: str = "merchant-demo-1"
 
     def to_dict(self) -> dict:
         return {
@@ -35,6 +36,7 @@ class Payment:
             "status": self.status,
             "amount_minor": self.amount_minor,
             "currency": self.currency,
+            "merchant_ref": self.merchant_ref,
         }
 
 

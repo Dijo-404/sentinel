@@ -83,13 +83,13 @@ const VIEW_COPY: Record<AdminPeerView, ViewCopy> = {
   },
   evaluations: {
     title: "Evaluations",
-    muted: "Eval run reports via BFF. evaluation.v1 authority.",
-    paths: ["/api/bff/evals/v1/reports"],
+    muted: "Eval reports + gated FinHarness/FinBench status. evaluation.v1 authority.",
+    paths: ["/api/bff/evals/v1/reports", "/api/bff/admin-fin-gates"],
   },
   observability: {
     title: "Observability",
-    muted: "Telemetry signals. Never financial audit.",
-    paths: ["/api/bff/observability/v1/signals"],
+    muted: "Telemetry signals + gated FinHarness/FinBench. Never financial audit.",
+    paths: ["/api/bff/observability/v1/signals", "/api/bff/admin-fin-gates"],
   },
 };
 
@@ -143,6 +143,17 @@ export function AdminPeerPanel({ view, fetchImpl }: Props) {
           const [config, runs] = await Promise.all(copy.paths.map((p) => fetchJson(p, doFetch)));
           if (cancelled) return;
           setLoad({ status: "ready", payload: { config, runs } });
+          return;
+        }
+        if (view === "evaluations" || view === "observability") {
+          const [primary, gates] = await Promise.all(
+            copy.paths.map((p) => fetchJson(p, doFetch)),
+          );
+          if (cancelled) return;
+          setLoad({
+            status: "ready",
+            payload: view === "evaluations" ? { reports: primary, gates } : { signals: primary, gates },
+          });
           return;
         }
         const payload = await fetchJson(copy.paths[0], doFetch);
@@ -271,32 +282,69 @@ function AdminPayload({ view, payload }: { view: AdminPeerView; payload: unknown
     case "ai":
       return <AiBody data={asRecord(payload)} />;
     case "evaluations":
-      return (
-        <SimpleTable
-          rows={asArray(asRecord(payload).reports)}
-          empty="No reports"
-          columns={[
-            { key: "run_id", label: "Run" },
-            { key: "status", label: "Status" },
-            { key: "mode", label: "Mode" },
-            { key: "contract_version", label: "Contract" },
-          ]}
-        />
-      );
+      return <EvaluationsBody data={asRecord(payload)} />;
     case "observability":
-      return (
-        <SimpleTable
-          rows={asArray(asRecord(payload).signals)}
-          empty="No signals"
-          columns={[
-            { key: "signal_id", label: "Signal" },
-            { key: "kind", label: "Kind" },
-            { key: "name", label: "Name" },
-            { key: "recorded_at", label: "Recorded" },
-          ]}
-        />
-      );
+      return <ObservabilityBody data={asRecord(payload)} />;
   }
+}
+
+function FinGatesBlock({ gates }: { gates: Record<string, unknown> }) {
+  return (
+    <div className="stack" data-testid="admin-fin-gates">
+      <h2>FinHarness / FinBench</h2>
+      <p className="muted">Independently gated (M5/M8). live_stats always null.</p>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(9.5rem, 1fr))",
+          gap: "0.85rem",
+        }}
+      >
+        <StatBlock label="FinHarness" value={String(gates.finharness ?? "—")} caption="gate" />
+        <StatBlock label="FinBench" value={String(gates.finbench ?? "—")} caption="gate" />
+      </div>
+    </div>
+  );
+}
+
+function EvaluationsBody({ data }: { data: Record<string, unknown> }) {
+  const reportsPayload = asRecord(data.reports);
+  const rows = asArray(reportsPayload.reports ?? data.reports);
+  return (
+    <div className="stack">
+      <FinGatesBlock gates={asRecord(data.gates)} />
+      <SimpleTable
+        rows={rows}
+        empty="No reports"
+        columns={[
+          { key: "run_id", label: "Run" },
+          { key: "status", label: "Status" },
+          { key: "mode", label: "Mode" },
+          { key: "contract_version", label: "Contract" },
+        ]}
+      />
+    </div>
+  );
+}
+
+function ObservabilityBody({ data }: { data: Record<string, unknown> }) {
+  const signalsPayload = asRecord(data.signals);
+  const rows = asArray(signalsPayload.signals ?? data.signals);
+  return (
+    <div className="stack">
+      <FinGatesBlock gates={asRecord(data.gates)} />
+      <SimpleTable
+        rows={rows}
+        empty="No signals"
+        columns={[
+          { key: "signal_id", label: "Signal" },
+          { key: "kind", label: "Kind" },
+          { key: "name", label: "Name" },
+          { key: "recorded_at", label: "Recorded" },
+        ]}
+      />
+    </div>
+  );
 }
 
 function RolesBody({ data }: { data: Record<string, unknown> }) {

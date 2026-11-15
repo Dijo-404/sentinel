@@ -52,7 +52,7 @@ class PaymentSimulator:
         *,
         sandbox: bool = False,
         webhook_hmac_key: str | None = None,
-        merchant_ref: str = "merchant-demo",
+        merchant_ref: str = "merchant-demo-1",
     ) -> None:
         self._store = store
         self._sandbox = sandbox

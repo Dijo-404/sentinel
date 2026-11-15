@@ -40,5 +40,13 @@ class MetricsSnapshotStore(Protocol):
     ) -> MerchantMetrics | None:
         """Return a persisted metrics snapshot or None when absent."""
 
+    def latest(
+        self,
+        *,
+        tenant_id: str,
+        merchant_ref: str,
+    ) -> MerchantMetrics | None:
+        """Return the newest snapshot for merchant, or None when absent."""
+
     def put(self, metrics: MerchantMetrics) -> None:
         """Upsert a metrics snapshot row."""

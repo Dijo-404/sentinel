@@ -121,9 +121,19 @@ function jsonResponse(body: unknown, status = 200) {
   });
 }
 
+const FIN_GATES = {
+  finharness: "gated_disabled",
+  finbench: "gated_disabled",
+  live_stats: null,
+  notes: ["test"],
+};
+
 function fetchOkFor(entry: (typeof PEER_FAMILY_PAGES)[number]): typeof fetch {
   return vi.fn(async (input: RequestInfo | URL) => {
     const url = String(input);
+    if (url.includes("/api/bff/admin-fin-gates") || url.includes("admin-fin-gates")) {
+      return jsonResponse(FIN_GATES);
+    }
     if (entry.okBodies) {
       for (const [path, body] of Object.entries(entry.okBodies)) {
         if (url.includes(path) || url.endsWith(path.replace(/^https?:\/\/[^/]+/, ""))) {

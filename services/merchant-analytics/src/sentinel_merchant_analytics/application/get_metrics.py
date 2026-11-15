@@ -44,6 +44,14 @@ class GetMerchantMetrics:
             )
             if row is not None:
                 return row
+            # Sandbox seed uses rolling window at seed time; if the request drifts
+            # by a day boundary, serve the latest stored snapshot for the merchant.
+            latest = self._snapshots.latest(
+                tenant_id=principal.tenant_id,
+                merchant_ref=merchant_ref,
+            )
+            if latest is not None:
+                return latest
             if self._require_snapshot:
                 raise NotFoundError(
                     "No metrics snapshot for merchant/window; seed MERCHANT_ANALYTICS_DATABASE_URL"
