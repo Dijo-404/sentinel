@@ -1,4 +1,5 @@
 import { PeerError, isApiError } from "@/domain/types";
+import { newRequestId } from "@/lib/request-id";
 
 export type PeerJsonOptions = {
   baseUrl: string;
@@ -40,7 +41,7 @@ export function createPeerJsonFetcher(options: PeerJsonOptions) {
     validate: (json: unknown, requestId: string) => T,
     body?: unknown,
   ): Promise<T> {
-    const requestId = `web-${crypto.randomUUID()}`;
+    const requestId = `web-${newRequestId()}`;
     let response: Response;
     try {
       const headers: Record<string, string> = {

@@ -84,6 +84,11 @@ export const SANDBOX_TRANSACTIONS: SandboxTransaction[] = [
   },
 ];
 
+/** Subject-bound order refs in case-api canonical form `{subject_ref}/{order_reference}`. */
+export const SANDBOX_ORDER_REFS: string[] = [
+  ...new Set(SANDBOX_TRANSACTIONS.map((t) => `${t.subject_ref}/${t.order_reference}`)),
+];
+
 /** Mirrors simulator paytm_staging + refund_pending pack. */
 export const SANDBOX_REFUNDS: SandboxRefund[] = [
   {

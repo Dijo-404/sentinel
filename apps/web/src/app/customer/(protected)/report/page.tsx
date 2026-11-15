@@ -1,6 +1,7 @@
 "use client";
 
 import { useShell } from "@/adapters/shell-context";
+import { SANDBOX_ORDER_REFS } from "@/adapters/sandbox-paytm-catalog";
 import { IntakeForm } from "@/components/intake-form";
 
 export default function CustomerReportPage() {
@@ -12,6 +13,7 @@ export default function CustomerReportPage() {
         caseClient={caseClient}
         voiceEnabled={config.voiceEnabled}
         voiceClient={voiceClient}
+        orderSuggestions={SANDBOX_ORDER_REFS}
       />
     </div>
   );

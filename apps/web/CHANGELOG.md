@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+### Fixed — deployed-sandbox E2E (15 November 2026)
+
+- Operator Escalate sent `owner_queue: "supervisor"`; case-api accepts only
+  `PAYMENTS|FRAUD|SUPERVISOR` and returned `INVALID_INPUT`. Now sends
+  `SUPERVISOR`; `CaseClient.escalate` types `owner_queue` as that union and the
+  case-api stub rejects other values.
+- Customer Report pre-filled bare `DEMO-ORDER-42`, which case-api rejects as
+  `FORBIDDEN: order_reference not bound to principal`. The field now starts
+  empty with a `subject-ref/ORDER-ID` placeholder and offers subject-bound
+  suggestions (`SANDBOX_ORDER_REFS`) via a datalist.
+- Browser request ids used `crypto.randomUUID`, which is undefined outside
+  secure contexts (plain-HTTP sandbox host): customer dashboard showed
+  "crypto.randomUUID is not a function". New `newRequestId()` falls back to
+  `crypto.getRandomValues`.
+
 ### Changed — sandbox login credential copy
 
 - Login seed-account details note local + labeled sandbox/dev-deploy use of

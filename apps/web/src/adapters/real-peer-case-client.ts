@@ -1,4 +1,5 @@
 import type { CaseClient, OpsAuditEvent, OpsMessage } from "@/application/ports";
+import { newRequestId } from "@/lib/request-id";
 import {
   PeerError,
   isApiError,
@@ -76,7 +77,7 @@ export function createRealPeerCaseClient(options: RealPeerOptions): CaseClient {
       validate: (json: unknown, requestId: string) => T;
     },
   ): Promise<T> {
-    const requestId = `web-${crypto.randomUUID()}`;
+    const requestId = `web-${newRequestId()}`;
     let response: Response;
     try {
       response = await fetchImpl(`${root}${path}`, {

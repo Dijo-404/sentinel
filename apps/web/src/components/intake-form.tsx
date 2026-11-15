@@ -6,12 +6,15 @@ import { UiState } from "./ui-states";
 import { LocalVoiceSubstitute } from "@/slots/local-voice-substitute";
 import type { VoiceClient } from "@/application/ports";
 import { PeerError } from "@/domain/types";
+import { newRequestId } from "@/lib/request-id";
 
 type Props = {
   title?: string;
   caseClient: CaseClient;
   voiceEnabled: boolean;
   voiceClient: VoiceClient | null;
+  /** Subject-bound order refs (`{subject_ref}/{order_id}`) offered as suggestions. */
+  orderSuggestions?: string[];
 };
 
 export function IntakeForm({
@@ -19,11 +22,13 @@ export function IntakeForm({
   caseClient,
   voiceEnabled,
   voiceClient,
+  orderSuggestions = [],
 }: Props) {
   const formId = useId();
   const [message, setMessage] = useState("");
   const [language, setLanguage] = useState("en-IN");
-  const [orderReference, setOrderReference] = useState("DEMO-ORDER-42");
+  // No prefill: case-api rejects bare provider ids that are not bound to the principal.
+  const [orderReference, setOrderReference] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [permission, setPermission] = useState<string | null>(null);
@@ -43,7 +48,7 @@ export function IntakeForm({
           order_reference: orderReference.trim(),
           channel: "web",
         },
-        crypto.randomUUID(),
+        newRequestId(),
       );
       setCreatedId(created.case_id);
       // Cleared so a second click cannot file a duplicate complaint.
@@ -96,7 +101,16 @@ export function IntakeForm({
               onChange={(e) => setOrderReference(e.target.value)}
               required
               aria-label="Order reference"
+              placeholder="subject-ref/ORDER-ID"
+              list={orderSuggestions.length ? `${formId}-orders` : undefined}
             />
+            {orderSuggestions.length > 0 && (
+              <datalist id={`${formId}-orders`}>
+                {orderSuggestions.map((ref) => (
+                  <option key={ref} value={ref} />
+                ))}
+              </datalist>
+            )}
           </label>
         </div>
         <label>
