@@ -25,12 +25,16 @@ class PolicyStub:
         policy_version: str = "demo-policy-v1",
         outcome: str = "ALLOW",
         action_digest_override: str | None = None,
+        require_approval: bool = False,
     ) -> None:
         self.case = case
         self.guard = guard
         self.policy_version = policy_version
         self.outcome = outcome
         self.action_digest_override = action_digest_override
+        # Mirrors real policy.v1: a refund without an APPROVE approval -> REQUIRE_APPROVAL.
+        self.require_approval = require_approval
+        self.last_approval: Approval | None = None
         self.calls = 0
 
     def evaluate(
@@ -44,6 +48,7 @@ class PolicyStub:
         if self.guard is not None:
             self.guard.note_network()
         self.calls += 1
+        self.last_approval = approval
         if self.case == "unavailable":
             raise PeerUnavailableError("policy.v1 unavailable")
         if self.case == "malformed":
@@ -55,9 +60,12 @@ class PolicyStub:
             if self.action_digest_override is not None
             else action_digest(payload)
         )
+        outcome = self.outcome
+        if self.require_approval and (approval is None or approval.decision != "APPROVE"):
+            outcome = "REQUIRE_APPROVAL"
         return {
-            "outcome": self.outcome,
-            "reason_codes": [] if self.outcome == "ALLOW" else ["POLICY_BLOCK"],
+            "outcome": outcome,
+            "reason_codes": [] if outcome == "ALLOW" else ["POLICY_BLOCK"],
             "policy_version": self.policy_version,
             "action_digest": digest,
             "required_evidence": [],
