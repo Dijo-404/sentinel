@@ -32,6 +32,7 @@ class InMemoryStore:
         self._events: list[ProviderEvent] = []
         self._faults = FaultSchedule()
         self._clock = clock or SimulatorClock()
+        self._clock_instant = self._clock.instant
 
     def get_order(self, order_reference: str) -> Order | None:
         return self._orders.get(order_reference)
@@ -102,4 +103,5 @@ class InMemoryStore:
         self._stats = {}
         self._events = []
         self._faults.reset()
-        self._clock = SimulatorClock()
+        # Demo reset keeps the configured clock mode (fixed instant or real time).
+        self._clock = SimulatorClock(instant=self._clock_instant)

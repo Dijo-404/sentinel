@@ -14,6 +14,7 @@ from sentinel_simulator.adapters.memory import InMemoryStore
 from sentinel_simulator.adapters.seed import default_seed
 from sentinel_simulator.adapters.webhooks import resolve_webhook_hmac_key
 from sentinel_simulator.application.service import PaymentSimulator
+from sentinel_simulator.domain.models import SimulatorClock
 
 ALLOWED_MODES = frozenset({"fixture", "real-peers"})
 PAYMENT_PROVIDER = "simulator"
@@ -25,6 +26,14 @@ def resolve_mode(mode: str | None = None) -> str:
         # Never claim live / external provider; fall back to fixture labeling.
         return "fixture"
     return raw
+
+
+def clock_from_env() -> SimulatorClock:
+    """SIMULATOR_CLOCK=system uses real UTC time; default fixed demo instant."""
+    raw = os.environ.get("SIMULATOR_CLOCK", "fixed").strip().lower()
+    if raw not in {"fixed", "system"}:
+        raise ValueError("SIMULATOR_CLOCK must be fixed or system")
+    return SimulatorClock(instant=None) if raw == "system" else SimulatorClock()
 
 
 def sandbox_enabled() -> bool:
@@ -48,6 +57,7 @@ def create_app(
         orders=seed.orders,
         payments=seed.payments,
         refunds=seed.refunds,
+        clock=clock_from_env(),
     )
     is_sandbox = sandbox_enabled() if sandbox is None else sandbox
     bind_host = os.environ.get("SIMULATOR_HOST", "127.0.0.1")
