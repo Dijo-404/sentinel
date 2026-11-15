@@ -172,7 +172,58 @@ describe("supervisor approvals", () => {
         expires_at: "2026-11-14T12:00:00Z",
       });
     });
-    expect(await screen.findByTestId("decision-result")).toHaveTextContent("Recorded APPROVE");
+    expect(await screen.findByTestId("decision-success")).toHaveTextContent(
+      "Decision recorded: APPROVE",
+    );
+    expect(screen.queryByTestId("approve")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("reject")).not.toBeInTheDocument();
+  });
+
+  it("successful decision shows confirmation, hides decide buttons and refetches case + action", async () => {
+    const user = userEvent.setup();
+    const client = createCaseApiStub("valid", { reviewerRole: "supervisor" });
+    const getCase = vi.fn(client.getCase.bind(client));
+    const getAction = vi.fn(client.getAction.bind(client));
+    const listOpsCases = vi.fn(client.listOpsCases.bind(client));
+    client.getCase = getCase;
+    client.getAction = getAction;
+    client.listOpsCases = listOpsCases;
+    render(
+      <SupervisorDecisionWorkspace actionId="action-demo-1" caseClient={client} mode="fixture" />,
+    );
+    await user.click(await screen.findByTestId("approval-approve"));
+
+    const success = await screen.findByTestId("decision-success");
+    expect(success).toHaveAttribute("role", "status");
+    expect(success).toHaveTextContent("Decision recorded: APPROVE");
+    expect(screen.queryByTestId("approval-approve")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("approval-reject")).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(getCase).toHaveBeenCalledTimes(2);
+      expect(getAction).toHaveBeenCalledTimes(2);
+    });
+    expect(getCase).toHaveBeenLastCalledWith("case-demo-42");
+    expect(getAction).toHaveBeenLastCalledWith("action-demo-1");
+    // No full reload through the WAITING_APPROVAL queue (case may have left it).
+    expect(listOpsCases).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId("state-loading")).not.toBeInTheDocument();
+  });
+
+  it("failed decision keeps error visible and re-enables decide buttons", async () => {
+    const user = userEvent.setup();
+    const client = createCaseApiStub("valid", { reviewerRole: "supervisor" });
+    client.decide = vi.fn(async () => {
+      throw new PeerError("PEER_UNAVAILABLE", "Ledger down", "req-decide-down", 503);
+    });
+    render(
+      <SupervisorDecisionWorkspace actionId="action-demo-1" caseClient={client} mode="fixture" />,
+    );
+    await user.click(await screen.findByTestId("approval-approve"));
+
+    expect(await screen.findByTestId("approval-slot-error")).toHaveTextContent("PEER_UNAVAILABLE");
+    expect(screen.getByTestId("approval-approve")).toBeEnabled();
+    expect(screen.getByTestId("approval-reject")).toBeEnabled();
+    expect(screen.queryByTestId("decision-success")).not.toBeInTheDocument();
   });
 
   it("operator view withholds decide controls", async () => {

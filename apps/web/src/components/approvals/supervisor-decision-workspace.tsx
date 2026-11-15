@@ -1,15 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { CaseClient } from "@/application/ports";
 import type { ApprovalSlotProps } from "@/application/ports";
-import type { ActionRecord, Case, Evidence } from "@/domain/types";
+import type { ActionRecord, Approval, Case, Evidence } from "@/domain/types";
 import { PeerError } from "@/domain/types";
 import { ApprovalSlot } from "@/slots/approval-slot";
 import { UiState } from "@/components/ui-states";
 import { StatusChip } from "@/components/status-chip";
-import { labelCaseStatus } from "@/domain/status-labels";
+import { labelActionStatus, labelCaseStatus } from "@/domain/status-labels";
 import { formatAmountMinor, maskTransactionRef } from "@/domain/mask";
 import { MaskedRef } from "@/components/masked-ref";
 import { EvidenceFreshness } from "@/components/ledger/evidence-freshness";
@@ -67,6 +67,34 @@ export function SupervisorDecisionWorkspace({
   const [permission, setPermission] = useState<string | null>(null);
   const [conflict, setConflict] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [decided, setDecided] = useState<Approval | null>(null);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
+  // Sync guard: the slot fires onRefresh right after decide resolves, before re-render.
+  const decidedRef = useRef(false);
+
+  // After a decision the case may leave WAITING_APPROVAL, so refetch by id instead of load().
+  const refreshAfterDecision = useCallback(
+    async (caseId: string) => {
+      try {
+        const [c, a] = await Promise.all([
+          caseClient.getCase(caseId),
+          caseClient.getAction(actionId),
+        ]);
+        setCaseRecord(c);
+        setAction(a);
+        setRefreshError(null);
+      } catch (err) {
+        setRefreshError(
+          err instanceof PeerError
+            ? `${err.code}: ${err.message}`
+            : err instanceof Error
+              ? err.message
+              : "Refresh failed",
+        );
+      }
+    },
+    [actionId, caseClient],
+  );
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -150,8 +178,17 @@ export function SupervisorDecisionWorkspace({
         action,
         evidence,
         decisionExpiresAt,
-        decide: (id, request) => caseClient.decide(id, request),
-        onRefresh: () => setReloadKey((k) => k + 1),
+        decide: async (id, request) => {
+          // Failures propagate to the slot, which shows the error and re-enables its buttons.
+          const approval = await caseClient.decide(id, request);
+          decidedRef.current = true;
+          setDecided(approval);
+          void refreshAfterDecision(caseRecord.case_id);
+          return approval;
+        },
+        onRefresh: () => {
+          if (!decidedRef.current) setReloadKey((k) => k + 1);
+        },
         onConflict: (msg) => setConflict(msg),
       },
     } satisfies { state: "ready"; props: ApprovalSlotProps });
@@ -196,7 +233,25 @@ export function SupervisorDecisionWorkspace({
         ) : null}
       </div>
       <EvidenceFreshness evidence={evidence} now={now?.()} />
-      {canDecide ? (
+      {decided ? (
+        <section className="panel stack" role="status" data-testid="decision-success">
+          <h2>Decision recorded: {decided.decision}</h2>
+          <p>
+            Approval <code className="mono">{decided.approval_id}</code> by {decided.reviewer_id}.
+            Execution and verification continue server-side; status below is as last returned by
+            case-api and the ledger.
+          </p>
+          <div className="row">
+            <StatusChip label={labelCaseStatus(caseRecord.status)} />
+            <StatusChip label={labelActionStatus(action.status)} />
+          </div>
+          {refreshError ? (
+            <p role="alert" data-testid="decision-refresh-error">
+              Refresh failed — {refreshError}
+            </p>
+          ) : null}
+        </section>
+      ) : canDecide ? (
         <ApprovalSlot {...slot} mode={mode} reviewerId={reviewerId} now={now} />
       ) : (
         <UiState

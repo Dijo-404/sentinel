@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Fixed — supervisor decision page refresh (#144 follow-up 5)
+
+- `/supervisor/approvals/[actionId]`: after a successful Approve/Reject the
+  workspace did a full reload through the `WAITING_APPROVAL` queue, which
+  remounted the approval slot with active buttons (or failed once the case left
+  the queue), so no confirmation was visible. The workspace now shows a
+  `role="status"` "Decision recorded" panel with the server-returned approval,
+  hides the decide controls, and refetches `getCase` + `getAction` by id to show
+  current case/action status. Refetch failure is shown as an alert. Decide
+  errors stay in the slot with buttons re-enabled. No optimistic financial state.
+
 ### Fixed — deployed-sandbox E2E (15 November 2026)
 
 - Operator Escalate sent `owner_queue: "supervisor"`; case-api accepts only
