@@ -13,7 +13,8 @@ from ..domain.models import Notification, RoleAssignment, User
 
 DEFAULT_SEED = Path(__file__).resolve().parents[3] / "fixtures" / "seed_users.json"
 
-# Low-entropy local-only default. Override with IDENTITY_DEMO_PASSWORD; never commit real secrets.
+# Low-entropy sandbox default. Portal + deploy/dev use demo-password via env.
+# Unset falls back to x for legacy module checks. Never commit real secrets.
 DEMO_PASSWORD = os.environ.get("IDENTITY_DEMO_PASSWORD", "x")
 
 

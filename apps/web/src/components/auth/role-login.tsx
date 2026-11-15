@@ -29,9 +29,6 @@ export function RoleLogin({ role = "customer", next }: Props) {
         <p className="brand auth-brand">Sentinel</p>
         <h1>Sign in</h1>
         <p className="muted">{meta.description}</p>
-        <p className="fixture-banner" role="status">
-          Demo authentication — fixture identity stub
-        </p>
       </div>
 
       <form action={formAction} className="stack">
@@ -124,14 +121,18 @@ export function RoleLogin({ role = "customer", next }: Props) {
       )}
 
       <details className="demo-users" data-testid="demo-users">
-        <summary>Demo users</summary>
+        <summary>Sandbox seed accounts</summary>
+        <p className="muted">
+          Identity seed for local and labeled sandbox/dev deploy
+          (<code>IDENTITY_DEMO_PASSWORD</code>). Not production credentials.
+        </p>
         <ul>
-          <li>customer@example.test / demo-customer</li>
-          <li>merchant@example.test / demo-merchant</li>
-          <li>operator@example.test / demo-operator</li>
-          <li>supervisor@example.test / demo-supervisor</li>
-          <li>risk@example.test / demo-risk</li>
-          <li>admin@example.test / demo-admin</li>
+          <li>customer@example.test / demo-password</li>
+          <li>merchant@example.test / demo-password</li>
+          <li>operator@example.test / demo-password</li>
+          <li>supervisor@example.test / demo-password</li>
+          <li>risk@example.test / demo-password</li>
+          <li>admin@example.test / demo-password</li>
         </ul>
       </details>
     </div>

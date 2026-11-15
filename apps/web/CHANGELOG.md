@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Changed — sandbox login credential copy
+
+- Login seed-account details note local + labeled sandbox/dev-deploy use of
+  `IDENTITY_DEMO_PASSWORD=demo-password` (see `deploy/dev/CREDENTIALS.md`).
+
+### Added — sandbox Paytm catalog on transaction/refund pages
+
+- Customer/merchant Transactions and merchant Refunds render labeled
+  Paytm/simulator seed catalog (`sandbox-paytm-catalog.ts`). Caption states
+  not live bank credit. Settlements still use merchant-settlement peer.
+
 ### Fixed — 15 November 2026 (audit R2)
 
 - Approval screens pass authenticated `session.user.user_id` as `reviewerId`

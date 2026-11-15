@@ -1,17 +1,31 @@
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { SESSION_COOKIE } from "@/lib/server/auth";
+import { identityRoleToPortal } from "@/lib/server/identity-roles";
+import type { PortalRole } from "../../../../tests/stubs/identity";
 
 export type SessionProxyConfig = {
   /** Server-only env var holding the upstream base URL. */
   envKey: string;
   peerLabel: string;
   requestIdPrefix: string;
+  /**
+   * Optional server-only env var for the upstream bearer (e.g. voice peer principal).
+   * Session cookie is still required to call the BFF; never put this in NEXT_PUBLIC_*.
+   */
+  upstreamTokenEnvKey?: string;
+  /**
+   * Optional prefix for role-scoped upstream tokens, e.g. "ASSISTANT_TOKEN_".
+   * When set, BFF resolves active portal role via identity /me and uses
+   * process.env[`${prefix}${portalRole}`] when present, else upstreamTokenEnvKey.
+   */
+  upstreamTokenRolePrefix?: string;
 };
 
 /**
  * Portal BFF: forward to a peer with the caller's sentinel_session.
- * Never falls back to a service token. Failures stay visible.
+ * Optional upstreamTokenEnvKey / role prefix swaps only the upstream Authorization
+ * (session still required). Failures stay visible — no silent fixture fallback.
  */
 export function createSessionPeerProxy(config: SessionProxyConfig) {
   async function proxy(
@@ -20,8 +34,8 @@ export function createSessionPeerProxy(config: SessionProxyConfig) {
   ): Promise<NextResponse> {
     const { path } = await ctx.params;
     const jar = await cookies();
-    const bearer = jar.get(SESSION_COOKIE)?.value;
-    if (!bearer) {
+    const sessionBearer = jar.get(SESSION_COOKIE)?.value;
+    if (!sessionBearer) {
       return NextResponse.json(
         {
           code: "UNAUTHORIZED",
@@ -43,6 +57,8 @@ export function createSessionPeerProxy(config: SessionProxyConfig) {
         { status: 503 },
       );
     }
+
+    const bearer = await resolveUpstreamBearer(config, sessionBearer);
 
     const suffix = path.map(encodeURIComponent).join("/");
     const target = `${base}/${suffix}${req.nextUrl.search}`;
@@ -99,4 +115,46 @@ export function createSessionPeerProxy(config: SessionProxyConfig) {
     PATCH: proxy,
     DELETE: proxy,
   };
+}
+
+async function resolveUpstreamBearer(
+  config: SessionProxyConfig,
+  sessionBearer: string,
+): Promise<string> {
+  const fallback = config.upstreamTokenEnvKey
+    ? (process.env[config.upstreamTokenEnvKey] ?? "").trim()
+    : "";
+
+  if (config.upstreamTokenRolePrefix) {
+    const role = await resolvePortalRole(sessionBearer);
+    if (role) {
+      const keyed = (process.env[`${config.upstreamTokenRolePrefix}${role}`] ?? "").trim();
+      if (keyed) return keyed;
+    }
+  }
+
+  return fallback || sessionBearer;
+}
+
+async function resolvePortalRole(sessionBearer: string): Promise<PortalRole | null> {
+  const identityBase = (process.env.IDENTITY_BASE_URL ?? "").replace(/\/$/, "");
+  if (!identityBase) return null;
+  try {
+    const res = await fetch(`${identityBase}/v1/auth/me`, {
+      headers: {
+        Authorization: `Bearer ${sessionBearer}`,
+        Accept: "application/json",
+      },
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const body = (await res.json()) as {
+      active_assignment?: { role_id?: string } | null;
+    };
+    const roleId = body.active_assignment?.role_id;
+    if (typeof roleId !== "string" || !roleId) return null;
+    return identityRoleToPortal(roleId);
+  } catch {
+    return null;
+  }
 }

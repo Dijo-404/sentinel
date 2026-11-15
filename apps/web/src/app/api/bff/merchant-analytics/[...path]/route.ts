@@ -6,6 +6,8 @@ const handlers = createSessionPeerProxy({
   envKey: "MERCHANT_ANALYTICS_BASE_URL",
   peerLabel: "merchant-analytics",
   requestIdPrefix: "web-bff-merchant-analytics",
+  // Peer authenticates opaque demo token; portal session stays the BFF gate.
+  upstreamTokenEnvKey: "MERCHANT_ANALYTICS_SERVICE_TOKEN",
 });
 
 export const GET = handlers.GET;

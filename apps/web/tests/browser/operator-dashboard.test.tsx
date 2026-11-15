@@ -42,9 +42,7 @@ describe("operator dashboard overview", () => {
 
     expect(await screen.findByTestId("operator-dashboard")).toBeInTheDocument();
     expect(await screen.findByTestId("operator-kpi-row")).toBeInTheDocument();
-    expect(screen.getByTestId("fixture-banner")).toHaveTextContent(
-      "Simulator / fixture — not live production metrics",
-    );
+    expect(screen.queryByTestId("fixture-banner")).not.toBeInTheDocument();
     expect(screen.getByText("Open")).toBeInTheDocument();
     expect(screen.getByText("Waiting")).toBeInTheDocument();
     expect(screen.getByText("Assigned")).toBeInTheDocument();

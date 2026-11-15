@@ -58,26 +58,27 @@ def build_app(settings: Settings | None = None, *, engine=None, tokens: TokenMap
 
     module_root = Path(__file__).resolve().parents[2]
     token_map = tokens or TokenMap.from_path(settings.token_path(module_root))
-    # Fixture: local session catalog. real-peers: optional identity HTTP /me projection.
+    # Prefer live identity /me projection when IDENTITY_BASE_URL is set (portal sessions).
+    # Fixture mode keeps in-process peers + optional local session catalog fallback.
     session_keys: list[str] = []
     identity_sessions = False
-    if settings.mode == "fixture":
+    identity_url = _identity_base_url(settings)
+    identity: IdentityPrincipalPort | None = None
+    if identity_url:
+        identity = HttpIdentityPrincipalAdapter(identity_url)
+        identity_sessions = True
+    if settings.mode == "fixture" and identity is None:
         fixture_identity = FixtureIdentityPrincipalAdapter.from_path(
             settings.identity_path(module_root)
         )
         session_keys = list(fixture_identity.session_credentials())
+        identity = fixture_identity
+    if identity is not None:
         resolver: TokenMap | CompositePrincipalResolver = CompositePrincipalResolver(
-            identity=fixture_identity, tokens=token_map
+            identity=identity, tokens=token_map
         )
     else:
-        identity_url = _identity_base_url(settings)
-        identity: IdentityPrincipalPort | None = None
-        if identity_url:
-            identity = HttpIdentityPrincipalAdapter(identity_url)
-            identity_sessions = True
-            resolver = CompositePrincipalResolver(identity=identity, tokens=token_map)
-        else:
-            resolver = token_map
+        resolver = token_map
     demo_credentials = [*token_map.tokens.keys(), *session_keys, settings.service_token]
     assert_loopback_or_non_demo(
         settings.host, demo_credentials, identity_sessions=identity_sessions

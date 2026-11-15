@@ -34,5 +34,12 @@ def test_loopback_allows_identity_session_projection() -> None:
     assert_loopback_or_non_demo("127.0.0.1", {"prod-service-token"}, identity_sessions=True)
 
 
+def test_sandbox_public_bind_allows_identity_sessions(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("SENTINEL_SANDBOX_PUBLIC_BIND", "1")
+    assert_loopback_or_non_demo("0.0.0.0", {"tok-case-api"}, identity_sessions=True)
+
+
 def test_settings_default_host_is_loopback() -> None:
     assert Settings().host == "127.0.0.1"

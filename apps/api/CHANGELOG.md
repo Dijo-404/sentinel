@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added — labeled sandbox public bind opt-in
+
+- `SENTINEL_SANDBOX_PUBLIC_BIND=1` allows non-loopback listen with identity
+  session projection / demo tokens for sandbox/dev-deploy only
+  (`deploy/dev/CREDENTIALS.md`). Default remains refuse.
+
 ### Added — 15 November 2026 (ops surface sandbox seed)
 
 - `make seed` / `sentinel-api seed`: sandbox-only rows for `tenant-demo` —

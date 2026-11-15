@@ -110,7 +110,8 @@ make preview
 
 See `fixtures/seed_users.json` and `contracts/principals.json`. Seed JSON has
 no plaintext passwords; hashes are derived at load time from
-`IDENTITY_DEMO_PASSWORD` (default `x`).
+`IDENTITY_DEMO_PASSWORD` (portal/dev-deploy: `demo-password`; unset default `x`).
+See [deploy/dev/CREDENTIALS.md](../../deploy/dev/CREDENTIALS.md).
 
 | Email                       | Role           | Tenant       |
 | --------------------------- | -------------- | ------------ |

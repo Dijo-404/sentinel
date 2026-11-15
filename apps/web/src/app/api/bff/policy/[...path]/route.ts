@@ -6,6 +6,8 @@ const handlers = createSessionPeerProxy({
   envKey: "POLICY_BASE_URL",
   peerLabel: "policy",
   requestIdPrefix: "web-bff-policy",
+  // Peer authenticates opaque demo token; portal session stays the BFF gate.
+  upstreamTokenEnvKey: "POLICY_SERVICE_TOKEN",
 });
 
 export const GET = handlers.GET;

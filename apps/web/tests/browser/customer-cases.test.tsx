@@ -20,7 +20,7 @@ describe("customer cases / transactions wiring", () => {
     expect(screen.getByTestId("customer-cases")).toBeInTheDocument();
     expect(await screen.findByText("case-demo-42")).toBeInTheDocument();
     expect(screen.getByText("Waiting approval")).toBeInTheDocument();
-    expect(screen.getByTestId("fixture-banner")).toBeInTheDocument();
+    expect(screen.queryByTestId("fixture-banner")).not.toBeInTheDocument();
   });
 
   it("real-peers case list failure stays visible", async () => {
@@ -39,15 +39,16 @@ describe("customer cases / transactions wiring", () => {
     expect(await screen.findByTestId("state-error")).toHaveTextContent("Cases unavailable");
   });
 
-  it("customer transactions fail closed — no hardcoded product rows", () => {
+  it("customer transactions show labeled Paytm/simulator sandbox catalog", () => {
     render(
       <ShellProvider config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}>
         <CustomerTransactionsPage />
       </ShellProvider>,
     );
 
-    expect(screen.getByTestId("state-error")).toHaveTextContent("Transactions unavailable");
-    expect(screen.queryByText("txn-…1001")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("fixture-banner")).not.toBeInTheDocument();
+    expect(screen.getByTestId("customer-transactions")).toBeInTheDocument();
+    expect(screen.getByTestId("sandbox-evidence-label")).toHaveTextContent("Paytm staging");
+    expect(screen.getByText("PAYTM-TXN-A1")).toBeInTheDocument();
+    expect(screen.queryByTestId("state-error")).not.toBeInTheDocument();
   });
 });

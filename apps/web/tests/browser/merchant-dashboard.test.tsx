@@ -47,9 +47,7 @@ describe("merchant dashboard viz", () => {
 
     expect(screen.getByTestId("merchant-dashboard")).toBeInTheDocument();
     expect(await screen.findByTestId("merchant-kpi-row")).toBeInTheDocument();
-    expect(screen.getByTestId("fixture-banner")).toHaveTextContent(
-      "Simulator / fixture — not live production metrics",
-    );
+    expect(screen.queryByTestId("fixture-banner")).not.toBeInTheDocument();
     expect(screen.getByText("Unresolved")).toBeInTheDocument();
     expect(screen.getByText("INR 1000.00")).toBeInTheDocument();
     expect(screen.queryByText("$128,400")).not.toBeInTheDocument();

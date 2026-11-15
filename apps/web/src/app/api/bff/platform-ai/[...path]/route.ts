@@ -6,6 +6,8 @@ const handlers = createSessionPeerProxy({
   envKey: "PLATFORM_AI_BASE_URL",
   peerLabel: "platform-ai",
   requestIdPrefix: "web-bff-platform-ai",
+  // Peer authenticates opaque demo token; portal session stays the BFF gate.
+  upstreamTokenEnvKey: "PLATFORM_AI_SERVICE_TOKEN",
 });
 
 export const GET = handlers.GET;

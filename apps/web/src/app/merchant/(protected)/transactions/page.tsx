@@ -1,20 +1,44 @@
 "use client";
 
-import { UiState } from "@/components/ui-states";
+import {
+  SANDBOX_EVIDENCE_LABEL,
+  SANDBOX_TRANSACTIONS,
+} from "@/adapters/sandbox-paytm-catalog";
+import { formatAmountMinor } from "@/domain/mask";
 
 /**
- * No merchant transaction list peer in repo.
- * Never invent rows — seed/DB path requires a real list API first.
+ * Sandbox catalog from Paytm/simulator seed pack.
+ * No merchant transaction list peer — rows are labeled sandbox evidence only.
  */
 export default function MerchantTransactionsPage() {
   return (
     <div className="panel stack" data-testid="merchant-transactions">
       <h1>Transactions</h1>
-      <UiState
-        tone="error"
-        title="Transactions unavailable"
-        detail="No merchant transaction list HTTP route is wired. Live or seeded rows are withheld — not synthetic stand-ins."
-      />
+      <p className="muted" data-testid="sandbox-evidence-label">
+        {SANDBOX_EVIDENCE_LABEL}
+      </p>
+      <table className="table" aria-label="Sandbox merchant transactions">
+        <thead>
+          <tr>
+            <th>Transaction</th>
+            <th>Order</th>
+            <th>Merchant</th>
+            <th>Status</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          {SANDBOX_TRANSACTIONS.map((row) => (
+            <tr key={row.transaction_ref}>
+              <td>{row.transaction_ref}</td>
+              <td>{row.order_reference}</td>
+              <td>{row.merchant_ref}</td>
+              <td>{row.status}</td>
+              <td className="tnum">{formatAmountMinor(row.amount_minor, row.currency)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
