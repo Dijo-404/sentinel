@@ -180,16 +180,55 @@ export function createRealPeerIdentityClient(options: RealPeerIdentityOptions): 
     }
   }
 
+  async function selfRegister(
+    path: string,
+    body: Record<string, string>,
+  ): Promise<RegisterResult> {
+    try {
+      const { json, requestId } = await request("POST", path, { body, okStatuses: [201] });
+      return mapRegisterSuccess(json, requestId);
+    } catch (err) {
+      if (err instanceof PeerError) {
+        if (err.code === "CONFLICT" || err.httpStatus === 409) {
+          return { ok: false, code: "ALREADY_EXISTS" };
+        }
+        if (err.code === "INVALID_INPUT" || err.httpStatus === 422) {
+          const msg = err.message.toLowerCase();
+          if (
+            msg.includes("role") ||
+            msg.includes("privileged") ||
+            msg.includes("tenant") ||
+            msg.includes("account_type")
+          ) {
+            return { ok: false, code: "PRIVILEGED_FIELDS_REJECTED" };
+          }
+          return { ok: false, code: "INVALID_INPUT" };
+        }
+      }
+      throw err;
+    }
+  }
+
   return {
-    async login(email, password): Promise<LoginResult> {
+    async login(email, password, clientIp): Promise<LoginResult> {
       try {
         const { json, requestId } = await request("POST", "/v1/auth/login", {
           body: { email, password },
+          headers: clientIp ? { "X-Forwarded-For": clientIp } : undefined,
           okStatuses: [200],
         });
         return mapLoginSuccess(json, requestId);
       } catch (err) {
         if (err instanceof PeerError) {
+          if (err.code === "ACCOUNT_NOT_FOUND") {
+            return { ok: false, code: "ACCOUNT_NOT_FOUND" };
+          }
+          if (err.httpStatus === 429 || err.code === "RATE_LIMITED") {
+            return { ok: false, code: "RATE_LIMITED" };
+          }
+          if (err.httpStatus === 422 || err.code === "INVALID_INPUT") {
+            return { ok: false, code: "INVALID_CREDENTIALS" };
+          }
           if (err.httpStatus === 401 || err.code === "UNAUTHORIZED") {
             return { ok: false, code: "INVALID_CREDENTIALS" };
           }
@@ -212,37 +251,22 @@ export function createRealPeerIdentityClient(options: RealPeerIdentityOptions): 
       ) {
         return { ok: false, code: "PRIVILEGED_FIELDS_REJECTED" };
       }
-      try {
-        const { json, requestId } = await request("POST", "/v1/auth/customer/register", {
-          body: {
-            email: input.email,
-            password: input.password,
-            display_name: input.display_name,
-            ...(input.language ? { preferred_language: input.language } : {}),
-          },
-          okStatuses: [201],
-        });
-        return mapRegisterSuccess(json, requestId);
-      } catch (err) {
-        if (err instanceof PeerError) {
-          if (err.code === "CONFLICT" || err.httpStatus === 409) {
-            return { ok: false, code: "ALREADY_EXISTS" };
-          }
-          if (err.code === "INVALID_INPUT" || err.httpStatus === 422) {
-            const msg = err.message.toLowerCase();
-            if (
-              msg.includes("role") ||
-              msg.includes("privileged") ||
-              msg.includes("tenant") ||
-              msg.includes("account_type")
-            ) {
-              return { ok: false, code: "PRIVILEGED_FIELDS_REJECTED" };
-            }
-            return { ok: false, code: "INVALID_INPUT" };
-          }
-        }
-        throw err;
-      }
+      return selfRegister("/v1/auth/customer/register", {
+        email: input.email,
+        password: input.password,
+        display_name: input.display_name,
+        ...(input.language ? { preferred_language: input.language } : {}),
+      });
+    },
+
+    async registerMerchant(input): Promise<RegisterResult> {
+      return selfRegister("/v1/auth/merchant/register", {
+        email: input.email,
+        password: input.password,
+        display_name: input.display_name,
+        business_name: input.business_name,
+        ...(input.language ? { preferred_language: input.language } : {}),
+      });
     },
 
     async resolveSession(sessionToken) {

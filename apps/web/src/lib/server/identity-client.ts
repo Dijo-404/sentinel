@@ -38,7 +38,8 @@ export type MeResult = {
  * Fixture wraps the local stub; real-peers calls identity.v1 over HTTP.
  */
 export type IdentityClient = {
-  login(email: string, password: string): Promise<LoginResult>;
+  /** clientIp: end-user address for identity's per-IP login limiter (X-Forwarded-For). */
+  login(email: string, password: string, clientIp?: string): Promise<LoginResult>;
   registerCustomer(input: {
     email: string;
     display_name: string;
@@ -47,6 +48,14 @@ export type IdentityClient = {
     roles?: unknown;
     tenant_id?: unknown;
     subject_refs?: unknown;
+  }): Promise<RegisterResult>;
+  /** POST /v1/auth/merchant/register — server assigns merchant role + merchant_ref. */
+  registerMerchant(input: {
+    email: string;
+    display_name: string;
+    password: string;
+    business_name: string;
+    language?: string;
   }): Promise<RegisterResult>;
   resolveSession(sessionCredential: string): Promise<MeResult | null>;
   /** GET /v1/auth/me — same session binding as resolveSession. */
@@ -131,6 +140,7 @@ function wrapFixtureStub(stub: StubIdentity): IdentityClient {
   return {
     login: async (email, password) => stub.login(email, password),
     registerCustomer: async (input) => stub.registerCustomer(input),
+    registerMerchant: async (input) => stub.registerMerchant(input),
     resolveSession: async (sessionId) => stub.resolveSession(sessionId),
     getMe: async (sessionId) => stub.getMe(sessionId),
     patchProfile: async (sessionId, input) => {
