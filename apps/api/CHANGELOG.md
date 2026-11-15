@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Fixed — customer isolation in deployed role journeys (#168)
+
+- Remove the implicit `subject-demo-42` grant for every customer session.
+  Identity-provided subject references remain authoritative. Optional server-side
+  `SENTINEL_API_IDENTITY_CUSTOMER_SUBJECT_BINDINGS` maps exact tenant/user pairs
+  to legacy subjects; no configured grant means no customer case access.
+- New-customer, cross-tenant and explicit-binding regression tests pass. Module
+  `make check`: 90 tests, including disposable PostgreSQL integration checks.
+
 ### Fixed — workflow outbox transient retry (#144 follow-up 4)
 
 - `flush-workflow` no longer marks every workflow 4xx as permanent `FAILED`.

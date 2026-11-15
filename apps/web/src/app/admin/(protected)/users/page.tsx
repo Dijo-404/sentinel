@@ -23,26 +23,28 @@ export default async function AdminUsersPage() {
         <Link href="/admin/users/invite">Invite staff</Link>
       </div>
       <div className="panel table-scroll">
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Roles</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {staff.map((u) => (
-              <tr key={u.user_id}>
-                <td>{u.display_name}</td>
-                <td className="mono">{u.email}</td>
-                <td>{u.assignments.map((a) => a.role).join(", ")}</td>
-                <td>{u.account_status}</td>
+        <div className="table-scroll" role="region" aria-label="Scrollable data table" tabIndex={0}>
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Roles</th>
+                <th>Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {staff.map((u) => (
+                <tr key={u.user_id}>
+                  <td>{u.display_name}</td>
+                  <td className="mono">{u.email}</td>
+                  <td>{u.assignments.map((a) => a.role).join(", ")}</td>
+                  <td>{u.account_status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
       <div className="panel stack">
         <h2>Pending invitations</h2>

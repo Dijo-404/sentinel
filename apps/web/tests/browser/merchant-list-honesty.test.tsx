@@ -14,6 +14,7 @@ describe("transaction / refund list honesty — labeled sandbox catalog", () => 
       </ShellProvider>,
     );
 
+    expect(screen.getByRole("region")).toHaveAttribute("tabindex", "0");
     expect(screen.getByTestId("sandbox-evidence-label")).toHaveTextContent("not live bank credit");
     expect(screen.getByText("PAYTM-TXN-A1")).toBeInTheDocument();
     expect(screen.queryByText("txn-…2001")).not.toBeInTheDocument();
@@ -27,6 +28,7 @@ describe("transaction / refund list honesty — labeled sandbox catalog", () => 
       </ShellProvider>,
     );
 
+    expect(screen.getByRole("region")).toHaveAttribute("tabindex", "0");
     expect(screen.getByTestId("sandbox-evidence-label")).toHaveTextContent("not live bank credit");
     expect(screen.getByText("SNT-REF-PAYTM-001")).toBeInTheDocument();
     expect(screen.queryByText("refund-req-demo-1")).not.toBeInTheDocument();
@@ -40,6 +42,7 @@ describe("transaction / refund list honesty — labeled sandbox catalog", () => 
       </ShellProvider>,
     );
 
+    expect(screen.getByRole("region")).toHaveAttribute("tabindex", "0");
     expect(screen.getByTestId("sandbox-evidence-label")).toHaveTextContent("not live bank credit");
     expect(screen.getByText("PAYTM-TXN-A1")).toBeInTheDocument();
     expect(screen.queryByText("txn-…1001")).not.toBeInTheDocument();

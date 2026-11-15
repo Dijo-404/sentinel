@@ -26,6 +26,7 @@ type Props = {
 };
 
 type PartialLoad<T> =
+  | { status: "hidden" }
   | { status: "ready"; data: T; source: "live" | "fixture" }
   | { status: "unavailable"; detail: string }
   | { status: "permission"; detail: string };
@@ -165,8 +166,12 @@ export function OpsCombinedOverview({
         return;
       }
       const [operator, supervisor] = await Promise.all([
-        loadOperator(caseClient, mode),
-        loadSupervisor(caseClient, mode),
+        session.assignment.role === "operator"
+          ? loadOperator(caseClient, mode)
+          : Promise.resolve({ status: "hidden" } as const),
+        session.assignment.role === "supervisor"
+          ? loadSupervisor(caseClient, mode)
+          : Promise.resolve({ status: "hidden" } as const),
       ]);
       if (cancelled) return;
       setLoad({ status: "ready", operator, supervisor });
@@ -175,7 +180,7 @@ export function OpsCombinedOverview({
     return () => {
       cancelled = true;
     };
-  }, [caseClient, mode]);
+  }, [caseClient, mode, session.assignment.role]);
 
   const supervisorBars = useMemo(() => {
     if (load.status !== "ready" || load.supervisor.status !== "ready") {
@@ -207,7 +212,7 @@ export function OpsCombinedOverview({
     <div className="stack" data-testid="ops-combined-dashboard">
       <div className="panel stack">
         <h1>Operations dashboard</h1>
-        <p className="muted">Combined operator queue and supervisor approval projections.</p>
+        <p className="muted">Workload and approval projections for your active role.</p>
         <p className="muted">
           Signed in as {session.user.email} · {session.assignment.label}
         </p>
@@ -225,134 +230,144 @@ export function OpsCombinedOverview({
 
       {load.status === "ready" ? (
         <>
-          <section className="stack" data-testid="ops-operator-section">
-            <h2>Operator workload</h2>
-            {load.operator.status === "permission" ? (
-              <UiState
-                tone="permission"
-                title="Operator metrics denied"
-                detail={load.operator.detail}
-              />
-            ) : null}
-            {load.operator.status === "unavailable" ? (
-              <UiState
-                tone="empty"
-                title="Operator metrics unavailable"
-                detail={load.operator.detail}
-              />
-            ) : null}
-            {load.operator.status === "ready" ? (
-              <>
-                <div
-                  className="stack"
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(9.5rem, 1fr))",
-                    gap: "0.85rem",
-                  }}
-                  data-testid="operator-kpi-row"
-                >
-                  <StatBlock
-                    label="Open"
-                    value={String(load.operator.data.open_total)}
-                    caption={load.operator.source === "live" ? "Scoped projection" : "Fixture peer"}
-                  />
-                  <StatBlock
-                    label="Waiting"
-                    value={String(load.operator.data.waiting_approval)}
-                    caption="Cases in WAITING_APPROVAL"
-                  />
-                  <StatBlock
-                    label="Assigned"
-                    value={String(load.operator.data.assigned_to_me)}
-                    caption={load.operator.source === "live" ? "Scoped projection" : "Fixture peer"}
-                  />
-                  <StatBlock
-                    label="Interventions"
-                    value={String(load.operator.data.escalated)}
-                    caption={load.operator.source === "live" ? "Scoped projection" : "Fixture peer"}
-                  />
-                </div>
-                <ChartCard title="Case status (operator projection)">
-                  <div style={{ width: "100%", height: 220 }} data-testid="operator-status-chart">
-                    {chartReady ? (
-                      <CountBars
-                        data={projectionStatusSlices(load.operator.data).map((slice) => ({
-                          label: slice.name,
-                          count: slice.value,
-                        }))}
-                      />
-                    ) : null}
-                  </div>
-                </ChartCard>
-              </>
-            ) : null}
-          </section>
-
-          <section className="stack" data-testid="ops-supervisor-section">
-            <h2>Supervisor approvals</h2>
-            {load.supervisor.status === "permission" ? (
-              <UiState
-                tone="permission"
-                title="Supervisor metrics denied"
-                detail={load.supervisor.detail}
-              />
-            ) : null}
-            {load.supervisor.status === "unavailable" ? (
-              <UiState
-                tone="empty"
-                title="Supervisor metrics unavailable"
-                detail={load.supervisor.detail}
-              />
-            ) : null}
-            {load.supervisor.status === "ready" ? (
-              <>
-                <div className="kpi-row" data-testid="supervisor-kpi-row">
-                  <StatBlock
-                    label="Waiting approval"
-                    value={String(load.supervisor.data.waiting_approval_cases)}
-                    caption="Cases in WAITING_APPROVAL"
-                  />
-                  <StatBlock
-                    label="Escalated"
-                    value={String(load.supervisor.data.escalated_cases)}
-                    caption={
-                      load.supervisor.source === "live" ? "Scoped projection" : "Fixture peer"
-                    }
-                  />
-                  <StatBlock
-                    label="Pending approvals"
-                    value={String(load.supervisor.data.pending_approvals)}
-                    caption="Ledger pending proposals (0 until ledger count wired)"
-                  />
-                </div>
-                <div className="row">
-                  <TrendPill
-                    value={
-                      load.supervisor.data.waiting_approval_cases > 0
-                        ? "Queue active"
-                        : "Queue clear"
-                    }
-                    direction={load.supervisor.data.waiting_approval_cases > 0 ? "up" : "flat"}
-                  />
-                  <p className="muted" data-testid="supervisor-projection-label">
-                    {load.supervisor.data.label}
-                  </p>
-                  <Link href="/supervisor/approvals" data-testid="supervisor-open-approvals">
-                    Open approvals
-                  </Link>
-                </div>
-                <ChartCard title="Approval projection">
+          {session.assignment.role === "operator" ? (
+            <section className="stack" data-testid="ops-operator-section">
+              <h2>Operator workload</h2>
+              {load.operator.status === "permission" ? (
+                <UiState
+                  tone="permission"
+                  title="Operator metrics denied"
+                  detail={load.operator.detail}
+                />
+              ) : null}
+              {load.operator.status === "unavailable" ? (
+                <UiState
+                  tone="empty"
+                  title="Operator metrics unavailable"
+                  detail={load.operator.detail}
+                />
+              ) : null}
+              {load.operator.status === "ready" ? (
+                <>
                   <div
-                    style={{ width: "100%", height: 220 }}
-                    data-testid="supervisor-projection-chart"
+                    className="stack"
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fit, minmax(9.5rem, 1fr))",
+                      gap: "0.85rem",
+                    }}
+                    data-testid="operator-kpi-row"
                   >
-                    {chartReady ? <CountBars data={supervisorBars} /> : null}
+                    <StatBlock
+                      label="Open"
+                      value={String(load.operator.data.open_total)}
+                      caption={
+                        load.operator.source === "live" ? "Scoped projection" : "Fixture peer"
+                      }
+                    />
+                    <StatBlock
+                      label="Waiting"
+                      value={String(load.operator.data.waiting_approval)}
+                      caption="Cases in WAITING_APPROVAL"
+                    />
+                    <StatBlock
+                      label="Assigned"
+                      value={String(load.operator.data.assigned_to_me)}
+                      caption={
+                        load.operator.source === "live" ? "Scoped projection" : "Fixture peer"
+                      }
+                    />
+                    <StatBlock
+                      label="Interventions"
+                      value={String(load.operator.data.escalated)}
+                      caption={
+                        load.operator.source === "live" ? "Scoped projection" : "Fixture peer"
+                      }
+                    />
                   </div>
-                </ChartCard>
-              </>
-            ) : null}
-          </section>
+                  <ChartCard title="Case status (operator projection)">
+                    <div style={{ width: "100%", height: 220 }} data-testid="operator-status-chart">
+                      {chartReady ? (
+                        <CountBars
+                          data={projectionStatusSlices(load.operator.data).map((slice) => ({
+                            label: slice.name,
+                            count: slice.value,
+                          }))}
+                        />
+                      ) : null}
+                    </div>
+                  </ChartCard>
+                </>
+              ) : null}
+            </section>
+          ) : null}
+
+          {session.assignment.role === "supervisor" ? (
+            <section className="stack" data-testid="ops-supervisor-section">
+              <h2>Supervisor approvals</h2>
+              {load.supervisor.status === "permission" ? (
+                <UiState
+                  tone="permission"
+                  title="Supervisor metrics denied"
+                  detail={load.supervisor.detail}
+                />
+              ) : null}
+              {load.supervisor.status === "unavailable" ? (
+                <UiState
+                  tone="empty"
+                  title="Supervisor metrics unavailable"
+                  detail={load.supervisor.detail}
+                />
+              ) : null}
+              {load.supervisor.status === "ready" ? (
+                <>
+                  <div className="kpi-row" data-testid="supervisor-kpi-row">
+                    <StatBlock
+                      label="Waiting approval"
+                      value={String(load.supervisor.data.waiting_approval_cases)}
+                      caption="Cases in WAITING_APPROVAL"
+                    />
+                    <StatBlock
+                      label="Escalated"
+                      value={String(load.supervisor.data.escalated_cases)}
+                      caption={
+                        load.supervisor.source === "live" ? "Scoped projection" : "Fixture peer"
+                      }
+                    />
+                    <StatBlock
+                      label="Pending approvals"
+                      value={String(load.supervisor.data.pending_approvals)}
+                      caption="Ledger pending proposals (0 until ledger count wired)"
+                    />
+                  </div>
+                  <div className="row">
+                    <TrendPill
+                      value={
+                        load.supervisor.data.waiting_approval_cases > 0
+                          ? "Queue active"
+                          : "Queue clear"
+                      }
+                      direction={load.supervisor.data.waiting_approval_cases > 0 ? "up" : "flat"}
+                    />
+                    <p className="muted" data-testid="supervisor-projection-label">
+                      {load.supervisor.data.label}
+                    </p>
+                    <Link href="/supervisor/approvals" data-testid="supervisor-open-approvals">
+                      Open approvals
+                    </Link>
+                  </div>
+                  <ChartCard title="Approval projection">
+                    <div
+                      style={{ width: "100%", height: 220 }}
+                      data-testid="supervisor-projection-chart"
+                    >
+                      {chartReady ? <CountBars data={supervisorBars} /> : null}
+                    </div>
+                  </ChartCard>
+                </>
+              ) : null}
+            </section>
+          ) : null}
         </>
       ) : null}
     </div>

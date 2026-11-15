@@ -18,6 +18,9 @@ export function CustomerRegisterForm({
   accountType?: "customer" | "merchant";
 }) {
   const [type, setType] = useState(accountType);
+  const [name, setName] = useState("");
+  const [address, setAddress] = useState(email);
+  const [businessName, setBusinessName] = useState("");
   const [customerState, customerAction, customerPending] = useActionState(
     registerCustomerAction,
     initial,
@@ -72,13 +75,21 @@ export function CustomerRegisterForm({
         <form action={formAction} className="stack">
           <label>
             Full name
-            <input name="display_name" required autoComplete="name" data-testid="register-name" />
+            <input
+              name="display_name"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              required
+              autoComplete="name"
+              data-testid="register-name"
+            />
           </label>
           <label>
             Email
             <input
               name="email"
-              defaultValue={email}
+              value={address}
+              onChange={(event) => setAddress(event.target.value)}
               type="email"
               required
               autoComplete="email"
@@ -99,7 +110,13 @@ export function CustomerRegisterForm({
           {type === "merchant" ? (
             <label>
               Business name
-              <input name="business_name" required autoComplete="organization" />
+              <input
+                name="business_name"
+                value={businessName}
+                onChange={(event) => setBusinessName(event.target.value)}
+                required
+                autoComplete="organization"
+              />
             </label>
           ) : null}
           <label>

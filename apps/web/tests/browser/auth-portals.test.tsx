@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { LandingPage } from "@/components/marketing/landing-page";
 import { RoleLogin } from "@/components/auth/role-login";
 import { InviteStaffForm } from "@/components/identity/invite-staff-form";
+import { WorkspaceSwitcher } from "@/components/identity/workspace-switcher";
 import { ProtectedShell } from "@/components/layout/protected-shell";
 import type { AuthSession } from "@/lib/server/auth";
 
@@ -86,6 +87,7 @@ describe("portal auth UI", () => {
     await user.type(screen.getByTestId("login-password"), "demo-customer");
     await user.click(screen.getByTestId("login-submit"));
     expect(await screen.findByRole("alert")).toBeInTheDocument();
+    expect(screen.getByTestId("login-email")).toHaveValue("customer@example.test");
   });
 
   it("invite form has no customer role option (customer cannot staff-register)", () => {
@@ -96,6 +98,30 @@ describe("portal auth UI", () => {
     );
     expect(values).not.toContain("customer");
     expect(values).toEqual(["merchant", "operator", "supervisor", "risk", "admin"]);
+  });
+
+  it("keeps invitation fields after server validation rejects the submission", async () => {
+    const user = userEvent.setup();
+    render(<InviteStaffForm />);
+    await user.type(screen.getByTestId("invite-name"), "Synthetic Operator");
+    await user.type(screen.getByTestId("invite-email"), "qa@example.test");
+    await user.type(screen.getByTestId("invite-reason"), "QA review");
+    await user.click(screen.getByTestId("invite-submit"));
+    await screen.findByRole("alert");
+    expect(screen.getByTestId("invite-name")).toHaveValue("Synthetic Operator");
+    expect(screen.getByTestId("invite-email")).toHaveValue("qa@example.test");
+    expect(screen.getByTestId("invite-tenant")).toHaveValue("tenant-demo");
+    expect(screen.getByTestId("invite-reason")).toHaveValue("QA review");
+  });
+
+  it("offers the current workspace as an escape from a denied page", () => {
+    render(
+      <WorkspaceSwitcher
+        activeAssignmentId="a1"
+        workspaces={[{ assignment_id: "a1", role: "operator", label: "Support desk" }]}
+      />,
+    );
+    expect(screen.getByRole("button", { name: "Support desk" })).toBeEnabled();
   });
 
   it("protected shell renders night sidebar with logout and data-portal", () => {

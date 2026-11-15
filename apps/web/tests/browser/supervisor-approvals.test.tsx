@@ -205,8 +205,33 @@ describe("supervisor approvals", () => {
     expect(getCase).toHaveBeenLastCalledWith("case-demo-42");
     expect(getAction).toHaveBeenLastCalledWith("action-demo-1");
     // No full reload through the WAITING_APPROVAL queue (case may have left it).
-    expect(listOpsCases).toHaveBeenCalledTimes(1);
+    expect(listOpsCases).not.toHaveBeenCalled();
     expect(screen.queryByTestId("state-loading")).not.toBeInTheDocument();
+  });
+
+  it("reopens a recorded decision after its case leaves the pending queue", async () => {
+    const client = createCaseApiStub("valid");
+    const original = await client.getAction("action-demo-1");
+    client.listOpsCases = async () => ({ cases: [] });
+    client.getAction = async () => ({
+      ...original,
+      approval: {
+        approval_id: "approval-recorded",
+        decision: "REJECT",
+        reviewer_id: "supervisor-1",
+        action_digest: original.action_digest,
+        case_revision: original.payload.case_revision,
+        policy_version: original.payload.policy_version,
+        expires_at: "2026-11-14T12:00:00Z",
+      },
+    });
+    render(
+      <SupervisorDecisionWorkspace actionId="action-demo-1" caseClient={client} mode="fixture" />,
+    );
+    expect(await screen.findByTestId("decision-success")).toHaveTextContent(
+      "Decision recorded: REJECT",
+    );
+    expect(screen.queryByTestId("approval-approve")).not.toBeInTheDocument();
   });
 
   it("failed decision keeps error visible and re-enables decide buttons", async () => {

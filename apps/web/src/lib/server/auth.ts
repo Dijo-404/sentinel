@@ -115,7 +115,10 @@ export async function setSessionCookie(
     httpOnly: true,
     sameSite: "lax",
     path: "/",
-    secure: process.env.NODE_ENV === "production",
+    // Public HTTP demos require both explicit sandbox flags; normal production stays secure.
+    secure:
+      process.env.NODE_ENV === "production" &&
+      !(process.env.SENTINEL_V1_SANDBOX === "1" && process.env.WEB_ALLOW_HTTP_SANDBOX === "1"),
     maxAge: cookieMaxAgeSeconds(expiresAt),
   });
 }

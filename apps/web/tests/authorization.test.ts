@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const ingressHeaders = new Headers();
 
@@ -35,6 +35,7 @@ import { resetSharedIdentityStub } from "./stubs/identity";
 import { resetIdentityClientCache } from "@/lib/server/identity-client";
 import {
   loginWithCredentials,
+  setSessionCookie,
   registerCustomerAccount,
   safePortalRedirect,
   isSafeInternalPath,
@@ -56,6 +57,28 @@ describe("login session cookie policy", () => {
     cookieStore.delete.mockClear();
     redirectMock.mockClear();
   });
+
+  afterEach(() => vi.unstubAllEnvs());
+
+  it.each([
+    [undefined, undefined, true],
+    ["1", undefined, true],
+    [undefined, "1", true],
+    ["1", "1", false],
+  ])(
+    "keeps production cookies secure unless both HTTP sandbox flags are enabled (%s, %s)",
+    async (sandbox, http, secure) => {
+      vi.stubEnv("NODE_ENV", "production");
+      vi.stubEnv("SENTINEL_V1_SANDBOX", sandbox);
+      vi.stubEnv("WEB_ALLOW_HTTP_SANDBOX", http);
+      await setSessionCookie("synthetic-session");
+      expect(cookieStore.set).toHaveBeenCalledWith(
+        "sentinel_session",
+        "synthetic-session",
+        expect.objectContaining({ secure, httpOnly: true, sameSite: "lax", path: "/" }),
+      );
+    },
+  );
 
   it("sets cookie after selecting the account workspace", async () => {
     const result = await loginWithCredentials("operator@example.test", "demo-operator");

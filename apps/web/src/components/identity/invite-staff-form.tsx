@@ -20,6 +20,10 @@ const initial: ActionResult | null = null;
 
 export function InviteStaffForm() {
   const [state, formAction, pending] = useActionState(inviteStaffAction, initial);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [tenant, setTenant] = useState("tenant-demo");
+  const [reason, setReason] = useState("");
   const [role, setRole] = useState<Exclude<PortalRole, "customer">>("operator");
 
   return (
@@ -30,15 +34,34 @@ export function InviteStaffForm() {
 
         <label>
           Full name
-          <input name="display_name" required data-testid="invite-name" />
+          <input
+            name="display_name"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            data-testid="invite-name"
+          />
         </label>
         <label>
           Work email
-          <input name="work_email" type="email" required data-testid="invite-email" />
+          <input
+            name="work_email"
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            data-testid="invite-email"
+          />
         </label>
         <label>
           Tenant
-          <input name="tenant_id" defaultValue="tenant-demo" required data-testid="invite-tenant" />
+          <input
+            name="tenant_id"
+            value={tenant}
+            onChange={(e) => setTenant(e.target.value)}
+            required
+            data-testid="invite-tenant"
+          />
         </label>
         <label>
           Role
@@ -57,7 +80,13 @@ export function InviteStaffForm() {
         </label>
         <label>
           Reason
-          <textarea name="reason" rows={3} data-testid="invite-reason" />
+          <textarea
+            name="reason"
+            rows={3}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            data-testid="invite-reason"
+          />
         </label>
         <input type="hidden" name="idempotency_key" value={`invite-${Date.now()}`} />
 

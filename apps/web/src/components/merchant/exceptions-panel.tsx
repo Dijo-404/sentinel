@@ -135,32 +135,34 @@ export function ExceptionsPanel({ session, inboxClient }: Props) {
         />
       ) : null}
       {load.status === "ready" ? (
-        <table
-          className="table"
-          aria-label="Merchant exceptions"
-          data-testid="merchant-exceptions-list"
-        >
-          <thead>
-            <tr>
-              <th>Item</th>
-              <th>Kind</th>
-              <th>Amount</th>
-              <th>Status</th>
-              <th>Transaction</th>
-            </tr>
-          </thead>
-          <tbody>
-            {load.items.map((row) => (
-              <tr key={row.item_id}>
-                <td>{row.item_id}</td>
-                <td>{row.kind}</td>
-                <td className="tnum">{formatAmountMinor(row.amount_minor, row.currency)}</td>
-                <td>{row.status}</td>
-                <td>{row.transaction_ref ? maskTransactionRef(row.transaction_ref) : "—"}</td>
+        <div className="table-scroll" role="region" aria-label="Scrollable data table" tabIndex={0}>
+          <table
+            className="table"
+            aria-label="Merchant exceptions"
+            data-testid="merchant-exceptions-list"
+          >
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Kind</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Transaction</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {load.items.map((row) => (
+                <tr key={row.item_id}>
+                  <td>{row.item_id}</td>
+                  <td>{row.kind}</td>
+                  <td className="tnum">{formatAmountMinor(row.amount_minor, row.currency)}</td>
+                  <td>{row.status}</td>
+                  <td>{row.transaction_ref ? maskTransactionRef(row.transaction_ref) : "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : null}
     </div>
   );

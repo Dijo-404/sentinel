@@ -130,32 +130,34 @@ export function TeamPanel({ session, teamsClient }: Props) {
         <UiState tone="empty" title="No team members" detail="No staff in merchant scope." />
       ) : null}
       {load.status === "ready" ? (
-        <table className="table" aria-label="Merchant team" data-testid="merchant-team-list">
-          <thead>
-            <tr>
-              <th>Staff</th>
-              <th>Name</th>
-              <th>Roles</th>
-              <th>Status</th>
-              <th>Advisory limit</th>
-            </tr>
-          </thead>
-          <tbody>
-            {load.staff.map((row) => (
-              <tr key={row.staff_id}>
-                <td>{row.staff_id}</td>
-                <td>{row.display_name}</td>
-                <td>{row.roles.join(", ") || "—"}</td>
-                <td>{row.active ? "Active" : "Inactive"}</td>
-                <td className="tnum">
-                  {row.approval_limit_minor != null
-                    ? formatAmountMinor(row.approval_limit_minor, row.currency ?? "INR")
-                    : "—"}
-                </td>
+        <div className="table-scroll" role="region" aria-label="Scrollable data table" tabIndex={0}>
+          <table className="table" aria-label="Merchant team" data-testid="merchant-team-list">
+            <thead>
+              <tr>
+                <th>Staff</th>
+                <th>Name</th>
+                <th>Roles</th>
+                <th>Status</th>
+                <th>Advisory limit</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {load.staff.map((row) => (
+                <tr key={row.staff_id}>
+                  <td>{row.staff_id}</td>
+                  <td>{row.display_name}</td>
+                  <td>{row.roles.join(", ") || "—"}</td>
+                  <td>{row.active ? "Active" : "Inactive"}</td>
+                  <td className="tnum">
+                    {row.approval_limit_minor != null
+                      ? formatAmountMinor(row.approval_limit_minor, row.currency ?? "INR")
+                      : "—"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : null}
     </div>
   );

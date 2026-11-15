@@ -10,6 +10,7 @@ import type { RiskClient, RiskDashboard } from "@/application/ports";
 import { PeerError } from "@/domain/types";
 import { FixtureBanner } from "@/components/viz/fixture-banner";
 import { StatBlock } from "@/components/viz/stat-block";
+import { AdminPeerPanel } from "@/components/admin/admin-peer-panel";
 import { UiState } from "@/components/ui-states";
 
 type Props = {
@@ -163,7 +164,8 @@ export function PortalDashboard({ role, session, highlights, riskClient: riskCli
       </div>
 
       {load.status === "loading" ? <UiState tone="loading" title="Loading metrics…" /> : null}
-      {load.status === "unavailable" ? (
+      {role === "admin" ? <AdminPeerPanel view="security" /> : null}
+      {load.status === "unavailable" && role !== "admin" ? (
         <UiState tone="empty" title="Metrics unavailable" detail={load.detail} />
       ) : null}
       {load.status === "ready" && load.kind === "customer" ? (

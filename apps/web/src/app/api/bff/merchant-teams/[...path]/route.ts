@@ -7,7 +7,10 @@ const handlers = createSessionPeerProxy({
   peerLabel: "merchant-teams",
   requestIdPrefix: "web-bff-merchant-teams",
   // Peer authenticates opaque demo token; portal session stays the BFF gate.
+  upstreamTokenRoles: ["merchant", "admin"],
   upstreamTokenEnvKey: "MERCHANT_TEAMS_SERVICE_TOKEN",
+  upstreamTokenRolePrefix: "MERCHANT_TEAMS_TOKEN_",
+  upstreamTokenFallbackRole: "merchant",
 });
 
 export const GET = handlers.GET;

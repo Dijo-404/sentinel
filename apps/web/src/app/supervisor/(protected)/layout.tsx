@@ -8,8 +8,9 @@ export default async function SupervisorProtectedLayout({
   children: React.ReactNode;
 }) {
   const session = await requireAnyRole(["operator", "supervisor"], "supervisor");
+  const portal = session.assignment.role === "supervisor" ? "supervisor" : "operator";
   return (
-    <ProtectedShell role="supervisor" session={session} nav={opsPortalNav("supervisor")}>
+    <ProtectedShell role={portal} session={session} nav={opsPortalNav(portal)}>
       {children}
     </ProtectedShell>
   );

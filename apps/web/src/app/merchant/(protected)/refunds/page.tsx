@@ -14,28 +14,35 @@ export default function MerchantRefundsPage() {
       <p className="muted" data-testid="sandbox-evidence-label">
         {SANDBOX_EVIDENCE_LABEL}. Requests are not ledger credit proof.
       </p>
-      <table className="table" aria-label="Sandbox merchant refund requests">
-        <thead>
-          <tr>
-            <th>Request</th>
-            <th>Provider ref</th>
-            <th>Transaction</th>
-            <th>Status</th>
-            <th>Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          {SANDBOX_REFUNDS.map((row) => (
-            <tr key={row.request_id}>
-              <td>{row.request_id}</td>
-              <td>{row.provider_ref}</td>
-              <td>{row.transaction_ref}</td>
-              <td>{row.status}</td>
-              <td className="tnum">{formatAmountMinor(row.amount_minor, row.currency)}</td>
+      <div
+        className="table-scroll"
+        role="region"
+        aria-label="Scrollable refund requests"
+        tabIndex={0}
+      >
+        <table className="table" aria-label="Sandbox merchant refund requests">
+          <thead>
+            <tr>
+              <th>Request</th>
+              <th>Provider ref</th>
+              <th>Transaction</th>
+              <th>Status</th>
+              <th>Amount</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {SANDBOX_REFUNDS.map((row) => (
+              <tr key={row.request_id}>
+                <td>{row.request_id}</td>
+                <td>{row.provider_ref}</td>
+                <td>{row.transaction_ref}</td>
+                <td>{row.status}</td>
+                <td className="tnum">{formatAmountMinor(row.amount_minor, row.currency)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

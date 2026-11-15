@@ -7,6 +7,7 @@ const handlers = createSessionPeerProxy({
   peerLabel: "evals",
   requestIdPrefix: "web-bff-evals",
   // Peer authenticates opaque demo token; portal session stays the BFF gate.
+  upstreamTokenRoles: ["admin"],
   upstreamTokenEnvKey: "EVALS_SERVICE_TOKEN",
 });
 

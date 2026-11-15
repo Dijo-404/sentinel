@@ -17,9 +17,14 @@ export type SessionProxyConfig = {
   /**
    * Optional prefix for role-scoped upstream tokens, e.g. "ASSISTANT_TOKEN_".
    * When set, BFF resolves active portal role via identity /me and uses
-   * process.env[`${prefix}${portalRole}`] when present, else upstreamTokenEnvKey.
+   * process.env[`${prefix}${portalRole}`] when present. A missing role key cannot
+   * borrow the shared credential unless upstreamTokenFallbackRole explicitly matches.
    */
   upstreamTokenRolePrefix?: string;
+  /** Roles permitted to use this peer's explicitly bound sandbox credential. */
+  upstreamTokenRoles?: PortalRole[];
+  /** The single role allowed to use the shared credential when its role key is absent. */
+  upstreamTokenFallbackRole?: PortalRole;
 };
 
 /**
@@ -125,36 +130,45 @@ async function resolveUpstreamBearer(
     ? (process.env[config.upstreamTokenEnvKey] ?? "").trim()
     : "";
 
-  if (config.upstreamTokenRolePrefix) {
-    const role = await resolvePortalRole(sessionBearer);
-    if (role) {
-      const keyed = (process.env[`${config.upstreamTokenRolePrefix}${role}`] ?? "").trim();
-      if (keyed) return keyed;
-    }
-  }
-
-  return fallback || sessionBearer;
-}
-
-async function resolvePortalRole(sessionBearer: string): Promise<PortalRole | null> {
+  const hasRoleToken =
+    config.upstreamTokenRolePrefix &&
+    Object.keys(process.env).some(
+      (key) => key.startsWith(config.upstreamTokenRolePrefix!) && process.env[key],
+    );
+  if (!fallback && !hasRoleToken) return sessionBearer;
+  // A shared demo token must never elevate an arbitrary logged-in account.
+  if (process.env.SENTINEL_V1_SANDBOX !== "1") return sessionBearer;
   const identityBase = (process.env.IDENTITY_BASE_URL ?? "").replace(/\/$/, "");
-  if (!identityBase) return null;
+  if (!identityBase) return sessionBearer;
   try {
     const res = await fetch(`${identityBase}/v1/auth/me`, {
-      headers: {
-        Authorization: `Bearer ${sessionBearer}`,
-        Accept: "application/json",
-      },
+      headers: { Authorization: `Bearer ${sessionBearer}`, Accept: "application/json" },
       cache: "no-store",
     });
-    if (!res.ok) return null;
-    const body = (await res.json()) as {
-      active_assignment?: { role_id?: string } | null;
-    };
-    const roleId = body.active_assignment?.role_id;
-    if (typeof roleId !== "string" || !roleId) return null;
-    return identityRoleToPortal(roleId);
+    if (!res.ok) return sessionBearer;
+    const body = await res.json();
+    const active = body.active_assignment;
+    const role = typeof active?.role_id === "string" ? identityRoleToPortal(active.role_id) : null;
+    if (!role || !config.upstreamTokenRoles?.includes(role)) return sessionBearer;
+    const bindings = JSON.parse(process.env.WEB_SANDBOX_PEER_BINDINGS ?? "{}");
+    const binding =
+      typeof body.user?.user_id === "string" && Object.hasOwn(bindings, body.user.user_id)
+        ? bindings[body.user.user_id]
+        : null;
+    if (
+      !binding ||
+      binding.tenant_id !== active.tenant_id ||
+      binding.role_id !== active.role_id ||
+      (binding.merchant_ref ?? null) !== (active.merchant_ref ?? null)
+    )
+      return sessionBearer;
+    const keyed = config.upstreamTokenRolePrefix
+      ? (process.env[`${config.upstreamTokenRolePrefix}${role}`] ?? "").trim()
+      : "";
+    const shared =
+      !config.upstreamTokenRolePrefix || config.upstreamTokenFallbackRole === role ? fallback : "";
+    return keyed || shared || sessionBearer;
   } catch {
-    return null;
+    return sessionBearer;
   }
 }

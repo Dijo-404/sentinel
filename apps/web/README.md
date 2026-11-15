@@ -166,3 +166,39 @@ Root `make check` validates repository metadata only.
 | Money-path assembly     | **Not claimed**                                                  |
 
 Assembled live identity + case-api integration remains **unverified** until owner assembly.
+
+## Deployed role journey checks
+
+The optional Playwright runner exercises all six seeded sandbox accounts,
+implemented portal routes, desktop/mobile rendering, role isolation, persisted
+login, logout, keyboard palette, theme persistence and mobile navigation.
+
+```sh
+uv run --with playwright playwright install chromium
+uv run --with playwright python apps/web/scripts/role-journeys.py \
+  --base-url http://65.2.68.199 --output-dir /tmp/sentinel-role-journeys
+```
+
+Use only a synthetic sandbox containing the documented seed identities. The
+runner stores screenshots and redacted request metadata, never session cookies.
+`--browser-executable /path/to/chromium` selects an existing browser if needed.
+See [the audit](docs/role-user-journeys.md) for evidence and limits.
+
+HTTP-only synthetic demos require both `SENTINEL_V1_SANDBOX=1` and
+`WEB_ALLOW_HTTP_SANDBOX=1` to issue a non-Secure session cookie. Leave the HTTP
+flag disabled for HTTPS and non-sandbox deployments. These flags do not grant
+roles or payment authority.
+
+Optional opaque peer credentials also require `SENTINEL_V1_SANDBOX=1` plus
+`WEB_SANDBOX_PEER_BINDINGS`, keyed by identity user ID with exact `tenant_id`,
+`role_id`, and optional `merchant_ref`. Each proxy restricts the permitted roles.
+An unmatched user, tenant, merchant, role or unavailable identity retains the
+original caller session, so configured demo credentials cannot elevate it.
+`MERCHANT_TEAMS_TOKEN_admin` supplies the separate admin bridge credential.
+Keep all such values server-side. Fresh merchant accounts need their own peer
+provisioning; they never inherit the demo merchant's records.
+
+For peers using role-specific credentials, every role requires its own key.
+A missing Assistant role key preserves the caller's session instead of borrowing
+`ASSISTANT_SERVICE_TOKEN`. Merchant Teams permits its shared credential only for
+`merchant`; `admin` requires `MERCHANT_TEAMS_TOKEN_admin`.

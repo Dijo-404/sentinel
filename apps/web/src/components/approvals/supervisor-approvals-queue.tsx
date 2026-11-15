@@ -89,48 +89,57 @@ export function SupervisorApprovalsQueue({ caseClient, mode }: Props) {
         />
       ) : (
         <div className="panel" style={{ overflowX: "auto" }}>
-          <table className="table" aria-label="Pending approvals">
-            <thead>
-              <tr>
-                <th scope="col">Case</th>
-                <th scope="col">Status</th>
-                <th scope="col">Intent</th>
-                <th scope="col">Revision</th>
-                <th scope="col">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {cases.map((c) => {
-                const actionId = c.action_id;
-                return (
-                  <tr key={c.case_id} data-testid={`approval-row-${c.case_id}`}>
-                    <td>
-                      <MaskedRef label="case_id" masked={maskReference(c.case_id, "case-…")} />
-                    </td>
-                    <td>
-                      <StatusChip label={labelCaseStatus(c.status)} />
-                    </td>
-                    <td>{c.intent}</td>
-                    <td className="mono">{c.revision}</td>
-                    <td>
-                      {actionId ? (
-                        <Link
-                          href={`/supervisor/approvals/${encodeURIComponent(actionId)}`}
-                          data-testid={`open-approval-${actionId}`}
-                        >
-                          Open decision
+          <div
+            className="table-scroll"
+            role="region"
+            aria-label="Scrollable data table"
+            tabIndex={0}
+          >
+            <table className="table" aria-label="Pending approvals">
+              <thead>
+                <tr>
+                  <th scope="col">Case</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Intent</th>
+                  <th scope="col">Revision</th>
+                  <th scope="col">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {cases.map((c) => {
+                  const actionId = c.action_id;
+                  return (
+                    <tr key={c.case_id} data-testid={`approval-row-${c.case_id}`}>
+                      <td>
+                        <MaskedRef label="case_id" masked={maskReference(c.case_id, "case-…")} />
+                      </td>
+                      <td>
+                        <StatusChip label={labelCaseStatus(c.status)} />
+                      </td>
+                      <td>{c.intent}</td>
+                      <td className="mono">{c.revision}</td>
+                      <td>
+                        {actionId ? (
+                          <Link
+                            href={`/supervisor/approvals/${encodeURIComponent(actionId)}`}
+                            data-testid={`open-approval-${actionId}`}
+                          >
+                            Open decision
+                          </Link>
+                        ) : (
+                          <span className="muted">No action</span>
+                        )}
+                        {" · "}
+                        <Link href={`/supervisor/cases/${encodeURIComponent(c.case_id)}`}>
+                          Case
                         </Link>
-                      ) : (
-                        <span className="muted">No action</span>
-                      )}
-                      {" · "}
-                      <Link href={`/supervisor/cases/${encodeURIComponent(c.case_id)}`}>Case</Link>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

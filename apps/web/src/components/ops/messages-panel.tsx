@@ -90,24 +90,31 @@ export function MessagesPanel({ caseClient: caseClientProp }: Props) {
       ) : null}
       {load.status === "ready" ? (
         <div className="panel" style={{ overflowX: "auto" }} data-testid="operator-messages-list">
-          <table className="table" aria-label="Ops messages">
-            <thead>
-              <tr>
-                <th scope="col">Case</th>
-                <th scope="col">Message</th>
-                <th scope="col">Occurred</th>
-              </tr>
-            </thead>
-            <tbody>
-              {load.messages.map((m) => (
-                <tr key={m.message_id}>
-                  <td className="mono">{m.case_id}</td>
-                  <td>{m.text}</td>
-                  <td className="mono">{m.occurred_at}</td>
+          <div
+            className="table-scroll"
+            role="region"
+            aria-label="Scrollable data table"
+            tabIndex={0}
+          >
+            <table className="table" aria-label="Ops messages">
+              <thead>
+                <tr>
+                  <th scope="col">Case</th>
+                  <th scope="col">Message</th>
+                  <th scope="col">Occurred</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {load.messages.map((m) => (
+                  <tr key={m.message_id}>
+                    <td className="mono">{m.case_id}</td>
+                    <td>{m.text}</td>
+                    <td className="mono">{m.occurred_at}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : null}
     </div>

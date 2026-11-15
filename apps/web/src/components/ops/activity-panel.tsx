@@ -103,34 +103,36 @@ export function ActivityPanel({ activityClient }: Props) {
         <UiState tone="empty" title="No activity" detail="No feed rows in tenant scope." />
       ) : null}
       {load.status === "ready" ? (
-        <table className="table" aria-label="Ops activity" data-testid="operator-activity-list">
-          <thead>
-            <tr>
-              <th>Id</th>
-              <th>Kind</th>
-              <th>Summary</th>
-              <th>When</th>
-              <th>Case</th>
-            </tr>
-          </thead>
-          <tbody>
-            {load.items.map((row) => (
-              <tr key={row.activity_id}>
-                <td className="mono">{row.activity_id}</td>
-                <td>{row.kind}</td>
-                <td>{row.summary}</td>
-                <td className="mono">{row.occurred_at}</td>
-                <td>
-                  {row.case_id ? (
-                    <Link href={`/operator/cases/${row.case_id}`}>{row.case_id}</Link>
-                  ) : (
-                    "—"
-                  )}
-                </td>
+        <div className="table-scroll" role="region" aria-label="Scrollable data table" tabIndex={0}>
+          <table className="table" aria-label="Ops activity" data-testid="operator-activity-list">
+            <thead>
+              <tr>
+                <th>Id</th>
+                <th>Kind</th>
+                <th>Summary</th>
+                <th>When</th>
+                <th>Case</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {load.items.map((row) => (
+                <tr key={row.activity_id}>
+                  <td className="mono">{row.activity_id}</td>
+                  <td>{row.kind}</td>
+                  <td>{row.summary}</td>
+                  <td className="mono">{row.occurred_at}</td>
+                  <td>
+                    {row.case_id ? (
+                      <Link href={`/operator/cases/${row.case_id}`}>{row.case_id}</Link>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : null}
     </div>
   );

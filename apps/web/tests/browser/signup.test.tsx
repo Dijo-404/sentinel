@@ -50,6 +50,10 @@ describe("public signup", () => {
       expect(await screen.findByRole("alert")).toHaveTextContent(
         type === "merchant" ? "Merchant response" : "Customer response",
       );
+      expect(screen.getByLabelText("Full name")).toHaveValue("New User");
+      expect(screen.getByLabelText("Email")).toHaveValue("new@example.test");
+      if (type === "merchant")
+        expect(screen.getByLabelText("Business name")).toHaveValue("Sandbox Shop");
     },
   );
 });

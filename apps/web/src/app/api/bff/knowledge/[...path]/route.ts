@@ -7,6 +7,7 @@ const handlers = createSessionPeerProxy({
   peerLabel: "knowledge",
   requestIdPrefix: "web-bff-knowledge",
   // Peer authenticates opaque demo token; portal session stays the BFF gate.
+  upstreamTokenRoles: ["operator", "supervisor"],
   upstreamTokenEnvKey: "KNOWLEDGE_SERVICE_TOKEN",
 });
 
