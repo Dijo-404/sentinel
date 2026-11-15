@@ -231,3 +231,36 @@ def test_capabilities_and_health(app_client):
     assert caps["component"] == "action-ledger"
     assert caps["contract_version"] == "sentinel.task-contracts.v1"
     assert caps["mode"] == "fixture"
+
+
+def test_get_action_exposes_approval_before_reservation(app_client, tokens):
+    # Workflow DECISION resume reads the approval from GET /v1/actions/{id} while the
+    # action is still PROPOSED (reservation happens after resume).
+    proposed, approval = propose_and_approve(app_client, tokens, operation_key="get-approval-1")
+    got = app_client.get(
+        f"/v1/actions/{proposed['action_id']}",
+        headers=auth_header(tokens["workflow"]),
+    )
+    assert got.status_code == 200, got.text
+    body = got.json()
+    assert body["status"] == "PROPOSED"
+    assert body["approval"]["approval_id"] == approval["approval_id"]
+    assert body["approval"]["decision"] == "APPROVE"
+
+
+def test_get_action_without_decision_has_no_approval(app_client, tokens):
+    proposed = app_client.post(
+        "/v1/actions/proposals",
+        headers=auth_header(tokens["workflow"]),
+        json={
+            "operation_key": "get-approval-2",
+            "payload": DEMO_PAYLOAD,
+            "action_digest": DEMO_DIGEST,
+        },
+    )
+    assert proposed.status_code == 201, proposed.text
+    got = app_client.get(
+        f"/v1/actions/{proposed.json()['action_id']}",
+        headers=auth_header(tokens["workflow"]),
+    )
+    assert "approval" not in got.json()
