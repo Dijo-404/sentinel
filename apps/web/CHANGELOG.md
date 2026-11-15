@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Fixed — identity login validation errors (#166)
+
+- Identity login rejections with HTTP 422 or `INVALID_INPUT` now return the same
+  generic invalid-credentials result as a wrong password, instead of appearing
+  as an unavailable identity peer. Unrelated 500/503 outages and malformed 422
+  responses remain peer errors.
+- Reconcile the earlier login/signup WIP with the reviewed implementation on
+  main, preserving its client-IP validation, privileged-field checks and
+  authenticated workspace selection.
+
 ### Fixed — supervisor decision page refresh (#144 follow-up 5)
 
 - `/supervisor/approvals/[actionId]`: after a successful Approve/Reject the

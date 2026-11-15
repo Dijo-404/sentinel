@@ -82,6 +82,48 @@ describe("public registration wire contract", () => {
       expect(await client.login(body.email, body.password)).toEqual({ ok: false, code: expected });
     }
   });
+  it.each([
+    ["INVALID_INPUT", 422],
+    ["VALIDATION_ERROR", 422],
+    ["INVALID_INPUT", 400],
+  ] as const)(
+    "maps login validation rejection %s/%s to invalid credentials",
+    async (code, status) => {
+      const client = createRealPeerIdentityClient({
+        baseUrl: "http://identity.test",
+        fetchImpl: async () =>
+          Response.json({ code, message: "Invalid login input", request_id: "test" }, { status }),
+      });
+      expect(await client.login(body.email, body.password)).toEqual({
+        ok: false,
+        code: "INVALID_CREDENTIALS",
+      });
+    },
+  );
+  it.each([500, 503])("keeps identity login outages visible for HTTP %s", async (status) => {
+    const client = createRealPeerIdentityClient({
+      baseUrl: "http://identity.test",
+      fetchImpl: async () =>
+        Response.json(
+          { code: "PEER_UNAVAILABLE", message: "Identity unavailable", request_id: "test" },
+          { status },
+        ),
+    });
+    await expect(client.login(body.email, body.password)).rejects.toMatchObject({
+      code: "PEER_UNAVAILABLE",
+      httpStatus: status,
+    });
+  });
+  it("keeps a malformed 422 login response visible as a peer error", async () => {
+    const client = createRealPeerIdentityClient({
+      baseUrl: "http://identity.test",
+      fetchImpl: async () => new Response("invalid JSON", { status: 422 }),
+    });
+    await expect(client.login(body.email, body.password)).rejects.toMatchObject({
+      code: "MALFORMED_PEER_RESPONSE",
+      httpStatus: 422,
+    });
+  });
   it("fixture merchant registration assigns only merchant with generated scope and duplicate rejection", () => {
     const stub = createIdentityStub();
     const result = stub.registerMerchant({ ...body, business_name: "Shop" });

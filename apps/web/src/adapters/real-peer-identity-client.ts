@@ -245,7 +245,12 @@ export function createRealPeerIdentityClient(options: RealPeerIdentityOptions): 
           if (err.code === "ACCOUNT_NOT_FOUND") return { ok: false, code: "ACCOUNT_NOT_FOUND" };
           if (err.code === "RATE_LIMITED" || err.httpStatus === 429)
             return { ok: false, code: "RATE_LIMITED" };
-          if (err.httpStatus === 401 || err.code === "UNAUTHORIZED") {
+          if (
+            err.httpStatus === 401 ||
+            err.code === "UNAUTHORIZED" ||
+            (err.httpStatus === 422 && err.code !== "MALFORMED_PEER_RESPONSE") ||
+            err.code === "INVALID_INPUT"
+          ) {
             return { ok: false, code: "INVALID_CREDENTIALS" };
           }
           if (err.httpStatus === 403 || err.code === "FORBIDDEN") {
