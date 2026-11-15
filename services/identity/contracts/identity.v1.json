@@ -51,7 +51,7 @@
         "requested_role?": "string"
       },
       "response": "{ user, workspaces, active_assignment?, session_token, expires_at }",
-      "notes": "422 INVALID_INPUT for missing/malformed email or password; 404 ACCOUNT_NOT_FOUND for unknown email (deliberate enumeration, #154); 401 UNAUTHORIZED generic for wrong password; 429 RATE_LIMITED after 5 failures per email or 20 per client IP in 15 min. Several workspaces without requested_role: active_assignment null, unscoped session with no permissions until POST /v1/auth/workspaces/select"
+      "notes": "422 INVALID_INPUT for missing/malformed email or password; 404 ACCOUNT_NOT_FOUND for unknown email (deliberate enumeration, #154); 401 UNAUTHORIZED generic for wrong password; 429 RATE_LIMITED after 5 failures per (email, client IP), 20 per known client IP in 15 min, or capacity exhaustion. Missing client IP falls back to per-email failed-response limiting without blocking correct credentials; only explicitly configured direct proxies may forward client IP. Several workspaces without requested_role: active_assignment null, unscoped session with no permissions until POST /v1/auth/workspaces/select"
     },
     {
       "method": "POST",

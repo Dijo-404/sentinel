@@ -29,7 +29,7 @@ class Settings:
     expose_sandbox_codes: bool = False
     sandbox: bool = False
     sandbox_token: str = ""
-    trusted_proxies: frozenset[str] = frozenset({"127.0.0.1", "::1"})
+    trusted_proxies: frozenset[str] = frozenset()
 
     @classmethod
     def from_environ(cls, env: dict[str, str] | None = None) -> Settings:
@@ -56,7 +56,7 @@ class Settings:
             sandbox_token=source.get("IDENTITY_SANDBOX_TOKEN", ""),
             trusted_proxies=frozenset(
                 ip.strip()
-                for ip in source.get("IDENTITY_TRUSTED_PROXIES", "127.0.0.1,::1").split(",")
+                for ip in source.get("IDENTITY_TRUSTED_PROXIES", "").split(",")
                 if ip.strip()
             ),
         )

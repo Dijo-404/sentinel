@@ -1,9 +1,10 @@
-"""Bounded in-memory login failure limiter (per client IP and per email)."""
+"""Bounded, thread-safe login failure limits per account/client and client IP."""
 
 from __future__ import annotations
 
 from collections import deque
 from datetime import datetime, timedelta
+from threading import Lock
 
 from .ports import Clock
 
@@ -14,7 +15,7 @@ MAX_TRACKED_KEYS = 10_000
 
 
 class LoginRateLimiter:
-    """Sliding-window count of failed logins (unknown email or wrong password).
+    """Sliding-window failures; capacity exhaustion never evicts active limits.
 
     shortcut: per-process memory, not shared across identity replicas; move to
     Postgres/Redis before running more than one identity process.
@@ -33,35 +34,45 @@ class LoginRateLimiter:
         self._window = window
         self._limits = {"email": max_per_email, "ip": max_per_ip}
         self._max_keys = max_keys
-        self._hits: dict[tuple[str, str], deque[datetime]] = {}
+        self._hits: dict[tuple[str, ...], deque[datetime]] = {}
+        self._lock = Lock()
 
     def is_limited(self, *, email: str, ip: str) -> bool:
-        return any(self._count(key) >= self._limits[key[0]] for key in _keys(email, ip))
+        with self._lock:
+            self._prune(self._clock.now())
+            return self._limited(_keys(email, ip))
 
-    def record_failure(self, *, email: str, ip: str) -> None:
-        now = self._clock.now()
-        for key in _keys(email, ip):
-            self._count(key)  # prune expired hits first
-            self._hits.setdefault(key, deque()).append(now)
-        while len(self._hits) > self._max_keys:
-            # Evict the oldest-inserted key: bounded memory beats perfect recall.
-            self._hits.pop(next(iter(self._hits)))
+    def record_failure(self, *, email: str, ip: str) -> bool:
+        """Atomically admit one failure, or deny without changing active buckets."""
+        with self._lock:
+            now = self._clock.now()
+            self._prune(now)
+            keys = _keys(email, ip)
+            if self._limited(keys):
+                return False
+            for key in keys:
+                self._hits.setdefault(key, deque()).append(now)
+            return True
 
-    def reset_email(self, email: str) -> None:
-        self._hits.pop(("email", email), None)
+    def reset_email(self, email: str, *, ip: str = "") -> None:
+        # A successful login cannot erase another client's failures or the IP limit.
+        with self._lock:
+            self._hits.pop(("email", email, ip), None)
 
-    def _count(self, key: tuple[str, str]) -> int:
-        hits = self._hits.get(key)
-        if hits is None:
-            return 0
-        cutoff = self._clock.now() - self._window
-        while hits and hits[0] <= cutoff:
-            hits.popleft()
-        if not hits:
-            del self._hits[key]
-            return 0
-        return len(hits)
+    def _limited(self, keys: list[tuple[str, ...]]) -> bool:
+        missing = sum(key not in self._hits for key in keys)
+        return len(self._hits) + missing > self._max_keys or any(
+            len(self._hits.get(key, ())) >= self._limits[key[0]] for key in keys
+        )
+
+    def _prune(self, now: datetime) -> None:
+        cutoff = now - self._window
+        for key, hits in list(self._hits.items()):
+            while hits and hits[0] <= cutoff:
+                hits.popleft()
+            if not hits:
+                del self._hits[key]
 
 
-def _keys(email: str, ip: str) -> list[tuple[str, str]]:
-    return [("email", email), ("ip", ip)] if ip else [("email", email)]
+def _keys(email: str, ip: str) -> list[tuple[str, ...]]:
+    return [("email", email, ip), ("ip", ip)] if ip else [("email", email, "")]

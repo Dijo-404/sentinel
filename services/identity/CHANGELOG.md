@@ -9,11 +9,22 @@
   `merchant_ref`, `subject`) rejected; duplicate email 409 like customer.
 - `POST /v1/auth/login`: input validation first (422), then distinct
   `ACCOUNT_NOT_FOUND` (404) for unknown email; wrong password stays generic 401.
-- Bounded in-memory login failure limiter: 5/email and 20/client IP per 15 min
+- Bounded in-memory login failure limiter: 5/(email, client IP) and 20/known client IP per 15 min
   → 429 `RATE_LIMITED`. `IDENTITY_TRUSTED_PROXIES` gates `X-Forwarded-For`.
 - Multi-workspace login without `requested_role` now returns 200 with
   `active_assignment: null` and an unscoped session (no permissions) instead of
   409, so clients can use `GET /v1/auth/workspaces` + `POST .../select`.
+
+### Fixed — login limiter trust, denial-of-service and capacity (#154)
+
+- Explicit proxy allowlist (empty default), validated forwarded IPs, and original
+  socket preservation in the CLI. Missing proxy client IP never shares a BFF bucket.
+- Another client's email failures cannot block correct credentials; unknown-client
+  email fallback limits failed responses only. Successful login clears its own pair.
+- Atomic failure admission under a lock; prune expired keys, reject capacity
+  overflow without evicting active limits. Counters remain single-process only.
+- Regressions cover proxy absence/spoofing/malformed IP, account-targeted attacks,
+  capacity recovery/retention and concurrent failure admission.
 
 ### Added — labeled sandbox/dev-deploy credentials
 

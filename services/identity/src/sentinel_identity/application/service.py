@@ -245,17 +245,21 @@ class IdentityService:
         email_n = normalize_email(email)
         if not email_n or "@" not in email_n or not password:
             raise ValidationError("email and password are required")
-        if self._login_limiter.is_limited(email=email_n, ip=client_ip):
+        if client_ip and self._login_limiter.is_limited(email=email_n, ip=client_ip):
             raise RateLimitedError("Too many failed sign-in attempts; try again later")
+        # Without a verified client IP, check only failed credentials: a global
+        # email bucket must never let another client block a correct password.
         user = self._store.get_user_by_email(email_n)
         if user is None:
-            self._login_limiter.record_failure(email=email_n, ip=client_ip)
+            if not self._login_limiter.record_failure(email=email_n, ip=client_ip):
+                raise RateLimitedError("Too many failed sign-in attempts; try again later")
             # Distinct code by owner ruling (#154); rate limited above.
             raise AccountNotFoundError("No account for this email")
         if not verify_password(password, user.password_hash):
-            self._login_limiter.record_failure(email=email_n, ip=client_ip)
+            if not self._login_limiter.record_failure(email=email_n, ip=client_ip):
+                raise RateLimitedError("Too many failed sign-in attempts; try again later")
             raise UnauthorizedError("Invalid credentials")
-        self._login_limiter.reset_email(email_n)
+        self._login_limiter.reset_email(email_n, ip=client_ip)
         if user.status != "active":
             raise ForbiddenError("Account is not active")
         assignments = [

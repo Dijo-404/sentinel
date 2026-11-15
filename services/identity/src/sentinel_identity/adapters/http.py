@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass
+from ipaddress import ip_address
 from typing import Any
 
 from fastapi import FastAPI, Request
@@ -20,7 +21,7 @@ class AppServices:
     mode: str
     component: str = "identity"
     # Direct peers whose X-Forwarded-For is trusted for the login rate-limit key.
-    trusted_proxies: frozenset[str] = frozenset({"127.0.0.1", "::1"})
+    trusted_proxies: frozenset[str] = frozenset()
 
 
 def create_app(services: AppServices) -> FastAPI:
@@ -590,9 +591,13 @@ async def _json_object(request: Request) -> dict[str, Any]:
 def _client_ip(request: Request, trusted_proxies: frozenset[str]) -> str:
     peer = request.client.host if request.client else ""
     forwarded = request.headers.get("x-forwarded-for") or ""
-    if peer in trusted_proxies and forwarded.strip():
-        # Rightmost hop is the one the trusted proxy (web BFF) appended.
-        return forwarded.split(",")[-1].strip()
+    if peer in trusted_proxies:
+        # A trusted BFF without a verified client address is not a shared client.
+        candidate = forwarded.split(",")[-1].strip()
+        try:
+            return str(ip_address(candidate))
+        except ValueError:
+            return ""
     return peer
 
 

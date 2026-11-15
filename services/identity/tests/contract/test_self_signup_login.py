@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime, timedelta
 
 import pytest
@@ -176,48 +177,112 @@ class _Clock:
 def test_rate_limiter_window_reset_and_bound() -> None:
     clock = _Clock()
     limiter = LoginRateLimiter(clock, max_per_email=2, max_per_ip=3, max_keys=4)
-    limiter.record_failure(email="a@x.test", ip="1.1.1.1")
-    limiter.record_failure(email="a@x.test", ip="1.1.1.1")
-    assert limiter.is_limited(email="a@x.test", ip="9.9.9.9")
-    limiter.reset_email("a@x.test")
+    assert limiter.record_failure(email="a@x.test", ip="1.1.1.1")
+    assert limiter.record_failure(email="a@x.test", ip="1.1.1.1")
+    assert limiter.is_limited(email="a@x.test", ip="1.1.1.1")
     assert not limiter.is_limited(email="a@x.test", ip="9.9.9.9")
-    limiter.record_failure(email="b@x.test", ip="1.1.1.1")
-    assert limiter.is_limited(email="c@x.test", ip="1.1.1.1")  # ip limit 3
+    limiter.reset_email("a@x.test", ip="1.1.1.1")
+    assert not limiter.is_limited(email="a@x.test", ip="1.1.1.1")
+    assert limiter.record_failure(email="b@x.test", ip="1.1.1.1")
+    assert limiter.is_limited(email="c@x.test", ip="1.1.1.1")
     clock.at += timedelta(minutes=16)
     assert not limiter.is_limited(email="c@x.test", ip="1.1.1.1")
-    for i in range(10):
-        limiter.record_failure(email=f"{i}@x.test", ip="")
-    assert len(limiter._hits) <= 4
+
+
+def make_proxy_client(store, trusted=frozenset({"127.0.0.1"})) -> TestClient:
+    return TestClient(
+        build_app(
+            Settings(
+                mode="fixture",
+                contract_version=CONTRACT_VERSION,
+                database_url="",
+                seed=False,
+                accept_link_base="http://127.0.0.1:3000",
+                trusted_proxies=trusted,
+            ),
+            store=store,
+        ),
+        client=("127.0.0.1", 50000),
+    )
+
+
+def probe(c: TestClient, email: str, ip: str | None = None, password="wrong-pass"):
+    headers = {"X-Forwarded-For": ip} if ip is not None else {}
+    return c.post("/v1/auth/login", json={"email": email, "password": password}, headers=headers)
 
 
 def test_forwarded_ip_trusted_only_from_configured_proxy(store) -> None:
-    def make(trusted: frozenset[str]) -> TestClient:
-        return TestClient(
-            build_app(
-                Settings(
-                    mode="fixture",
-                    contract_version=CONTRACT_VERSION,
-                    database_url="",
-                    seed=False,
-                    accept_link_base="http://127.0.0.1:3000",
-                    trusted_proxies=trusted,
-                ),
-                store=store,
+    trusted = make_proxy_client(store)
+    for i in range(20):
+        assert probe(trusted, f"p{i}@example.test", "198.51.100.1, 192.0.2.1").status_code == 404
+    assert probe(trusted, "new@example.test", "192.0.2.1").status_code == 429
+    assert probe(trusted, "new@example.test", "192.0.2.2").status_code == 404
+    untrusted = make_proxy_client(store, trusted=frozenset())
+    for i in range(20):
+        assert probe(untrusted, f"p{i}@example.test", f"192.0.2.{i}").status_code == 404
+    assert probe(untrusted, "new@example.test", "192.0.2.99").status_code == 429
+
+
+@pytest.mark.parametrize("forwarded", [None, "garbage", "203.0.113.2, malformed"])
+def test_proxy_without_valid_client_ip_does_not_lock_out_other_accounts(store, forwarded) -> None:
+    client = make_proxy_client(store)
+    for i in range(21):
+        assert probe(client, f"p{i}@example.test", forwarded).status_code == 404
+
+
+def test_email_attack_from_another_ip_cannot_lock_out_correct_password(
+    store, demo_password
+) -> None:
+    client = make_proxy_client(store)
+    for _ in range(5):
+        assert probe(client, "customer@example.test", "192.0.2.1").status_code == 401
+    assert probe(client, "customer@example.test", "192.0.2.1").status_code == 429
+    assert probe(client, "customer@example.test", "192.0.2.2", demo_password).status_code == 200
+
+
+def test_unknown_client_email_limit_still_allows_correct_password(store, demo_password) -> None:
+    client = make_proxy_client(store)
+    for _ in range(5):
+        assert probe(client, "customer@example.test").status_code == 401
+    assert probe(client, "customer@example.test").status_code == 429
+    assert probe(client, "customer@example.test", password=demo_password).status_code == 200
+
+
+def test_key_capacity_never_evicts_active_limits_and_prunes_expired() -> None:
+    clock = _Clock()
+    limiter = LoginRateLimiter(clock, max_per_email=2, max_keys=2)
+    assert limiter.record_failure(email="victim@x.test", ip="192.0.2.1")
+    assert limiter.record_failure(email="victim@x.test", ip="192.0.2.1")
+    assert limiter.is_limited(email="new@x.test", ip="192.0.2.2")
+    assert not limiter.record_failure(email="new@x.test", ip="192.0.2.2")
+    assert limiter.is_limited(email="victim@x.test", ip="192.0.2.1")
+    clock.at += timedelta(minutes=16)
+    assert limiter.record_failure(email="new@x.test", ip="192.0.2.2")
+    assert len(limiter._hits) == 2
+
+
+def test_concurrent_failures_are_admitted_atomically() -> None:
+    limiter = LoginRateLimiter(_Clock(), max_per_email=5)
+    with ThreadPoolExecutor(max_workers=20) as workers:
+        admitted = list(
+            workers.map(
+                lambda _: limiter.record_failure(email="a@x.test", ip="192.0.2.1"),
+                range(100),
             )
         )
+    assert sum(admitted) == 5
+    assert limiter.is_limited(email="a@x.test", ip="192.0.2.1")
 
-    def probe(c: TestClient, ip: str, i: int) -> int:
-        return c.post(
-            "/v1/auth/login",
-            json={"email": f"p{ip}-{i}@example.test", "password": "whatever-1"},
-            headers={"X-Forwarded-For": f"198.51.100.1, {ip}"},
-        ).status_code
 
-    trusted = make(frozenset({"testclient"}))
-    assert all(probe(trusted, "192.0.2.1", i) == 404 for i in range(20))
-    assert probe(trusted, "192.0.2.1", 99) == 429
-    assert probe(trusted, "192.0.2.2", 0) == 404  # separate client bucket
+def test_trusted_proxy_defaults_require_explicit_configuration() -> None:
+    assert not Settings.from_environ({}).trusted_proxies
 
-    untrusted = make(frozenset())
-    assert all(probe(untrusted, f"192.0.2.{i + 10}", i) == 404 for i in range(20))
-    assert probe(untrusted, "192.0.2.99", 0) == 429  # spoofed XFF ignored
+
+def test_cli_preserves_socket_peer_for_application_proxy_validation(monkeypatch) -> None:
+    from sentinel_identity import cli
+
+    calls = []
+    monkeypatch.setattr(cli, "build_app", lambda settings: object())
+    monkeypatch.setattr(cli.uvicorn, "run", lambda *args, **kwargs: calls.append(kwargs))
+    assert cli.main(["serve"]) == 0
+    assert calls[0].get("proxy_headers") is False

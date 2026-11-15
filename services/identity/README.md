@@ -63,12 +63,12 @@ interactive logins.
 
 ## Login signals and account enumeration (#154)
 
-`POST /v1/auth/login` outcomes, in order:
+`POST /v1/auth/login` outcomes:
 
 | Condition | HTTP | `code` |
 | --- | --- | --- |
 | Missing email/password or email without `@` | 422 | `INVALID_INPUT` |
-| ≥ 5 failures for this email or ≥ 20 for this client IP in 15 min | 429 | `RATE_LIMITED` |
+| ≥ 5 failures for this (email, client IP), ≥ 20 for known client IP, or limiter full | 429 | `RATE_LIMITED` |
 | No account for this email | 404 | `ACCOUNT_NOT_FOUND` |
 | Wrong password for an existing account | 401 | `UNAUTHORIZED` (generic) |
 | Account not active / no workspace | 403 | `FORBIDDEN` |
@@ -76,14 +76,39 @@ interactive logins.
 **Trade-off (owner decision):** `ACCOUNT_NOT_FOUND` lets the web send unknown
 emails to sign-up, and it also tells anyone whether an email is registered.
 Mitigations: wrong passwords stay generic; unknown-email and wrong-password
-attempts both count toward the per-email and per-IP limits; a successful login
-clears only that email's counter. Limits live in process memory
-(`LoginRateLimiter`, ≤ 10 000 keys) and are not shared across replicas.
+attempts both count toward **5 failures per (email, client IP)** and **20 per
+known client IP** in 15 minutes; a successful login clears only its own account/client
+bucket, never the IP bucket or another client's limits. An attacker on another IP
+cannot block a correct login solely by targeting that email. Missing/invalid client
+IP uses a per-email fallback for failed responses; correct credentials are verified
+and accepted regardless of that fallback count. This fallback does not bound password
+hashing work; configure verified client propagation and ingress abuse controls before
+exposing the service. Returns 429 when limited.
 
-Client IP is the direct peer address. `X-Forwarded-For` (rightmost hop) is used
-only when the direct peer is in `IDENTITY_TRUSTED_PROXIES` (comma list, default
-`127.0.0.1,::1`). Set it to the web BFF address when identity is not on the same
-host, or every portal user shares one per-IP bucket.
+Limits are thread-safe, bounded process memory (`LoginRateLimiter`, ≤ 10 000 keys).
+Expired keys are pruned before admission; a full store rejects new keys without
+evicting active limits. They are not shared across replicas. **Use one identity
+process only** until counters are moved to a shared store.
+
+Deployment client-IP trust is explicit: `IDENTITY_TRUSTED_PROXIES` is a comma-separated
+list of exact direct BFF/proxy socket addresses, **empty by default**, including
+loopback only when explicitly configured. Only those peers may supply
+`X-Forwarded-For`; the rightmost address must parse as an IP literal. Trusted BFFs
+without a valid forwarded address have unknown client IP, never a shared BFF IP
+bucket. Direct untrusted clients use the socket IP and their forwarded headers are
+ignored. The CLI disables Uvicorn proxy-header rewriting so this check sees the
+original socket peer. Alternate ASGI launch commands must likewise disable proxy
+headers (`--no-proxy-headers`).
+
+The web BFF must verify its ingress before forwarding a single actual client IP.
+The matching web change uses server-only `WEB_TRUSTED_INGRESS_TOKEN` (≥32 characters),
+`x-sentinel-ingress-token` and a single literal `x-sentinel-client-ip`. Configure
+the ingress to strip/overwrite incoming copies, inject the private token and derive
+the address from its transport; never expose/log that token or use `NEXT_PUBLIC_*`.
+Restrict identity access to that BFF plus explicitly intended direct peers. This
+module does not modify deployment ingress configuration. Without this configuration,
+a BFF cannot provide per-client IP abuse protection; the fallback behavior above
+keeps unrelated accounts usable.
 
 ## Standalone setup
 
