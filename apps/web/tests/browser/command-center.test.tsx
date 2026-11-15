@@ -4,7 +4,8 @@ import { ShellProvider } from "@/adapters/shell-context";
 import { loadShellConfig } from "@/adapters/composition";
 import { createCaseApiStub } from "@/adapters/fixture-case-client";
 import { CommandCenter } from "@/components/ops/command-center";
-import { buildCommandModel, hourlyBuckets } from "@/components/ops/command-model";
+import { buildCommandModel, hourlyBuckets, incidentReason } from "@/components/ops/command-model";
+import { crossesIntoPortal } from "@/app/template";
 import { CONTRACT_VERSION, type Case, type CaseState } from "@/domain/types";
 
 const c = (id: string, status: CaseState, revision = 1): Case => ({
@@ -37,8 +38,22 @@ describe("buildCommandModel", () => {
 
   it("buckets audit events per hour and ignores bad timestamps", () => {
     const now = new Date("2026-11-15T12:30:00Z");
-    const ev = (t: string) => ({ case_id: "x", sequence: 1, type: "t", occurred_at: t, payload: {} });
-    const b = hourlyBuckets([ev("2026-11-15T12:10:00Z"), ev("2026-11-15T10:40:00Z"), ev("nope"), ev("2026-11-13T00:00:00Z")], now);
+    const ev = (t: string) => ({
+      case_id: "x",
+      sequence: 1,
+      type: "t",
+      occurred_at: t,
+      payload: {},
+    });
+    const b = hourlyBuckets(
+      [
+        ev("2026-11-15T12:10:00Z"),
+        ev("2026-11-15T10:40:00Z"),
+        ev("nope"),
+        ev("2026-11-13T00:00:00Z"),
+      ],
+      now,
+    );
     expect(b).toHaveLength(24);
     expect(b[23]).toBe(1);
     expect(b[22]).toBe(1);
@@ -49,7 +64,10 @@ describe("buildCommandModel", () => {
 describe("CommandCenter", () => {
   it("renders live sections from the case client", async () => {
     render(
-      <ShellProvider config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })} caseClient={createCaseApiStub("valid")}>
+      <ShellProvider
+        config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}
+        caseClient={createCaseApiStub("valid")}
+      >
         <CommandCenter />
       </ShellProvider>,
     );
@@ -61,7 +79,10 @@ describe("CommandCenter", () => {
   it("keeps peer failure visible with no fixture fallback", async () => {
     render(
       <ShellProvider
-        config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "real-peers", CASE_API_BASE_URL: "http://127.0.0.1:9" })}
+        config={loadShellConfig({
+          NEXT_PUBLIC_SHELL_MODE: "real-peers",
+          CASE_API_BASE_URL: "http://127.0.0.1:9",
+        })}
         caseClient={createCaseApiStub("unavailable")}
       >
         <CommandCenter />
@@ -69,5 +90,32 @@ describe("CommandCenter", () => {
     );
     expect(await screen.findByText("Command center unavailable")).toBeInTheDocument();
     expect(screen.queryByTestId("command-center")).not.toBeInTheDocument();
+  });
+});
+
+describe("incident mode + curtain", () => {
+  it("trips only on refresh failure or a high escalation share", () => {
+    const base = buildCommandModel([
+      c("a", "INVESTIGATING"),
+      c("b", "EXECUTING"),
+      c("d", "VERIFIED_RESOLVED"),
+      c("e", "RECEIVED"),
+    ]);
+    expect(incidentReason(base, false)).toBeNull();
+    expect(incidentReason(base, true)).toMatch(/stale/);
+    const hot = buildCommandModel([
+      c("a", "ESCALATED"),
+      c("b", "EXECUTING"),
+      c("d", "VERIFIED_RESOLVED"),
+      c("e", "RECEIVED"),
+    ]);
+    expect(incidentReason(hot, false)).toMatch(/25%/);
+  });
+  it("curtain only when entering a portal from landing or login", () => {
+    expect(crossesIntoPortal("/login", "/operator/dashboard")).toBe(true);
+    expect(crossesIntoPortal("/", "/customer/cases")).toBe(true);
+    expect(crossesIntoPortal("/operator/queue", "/operator/dashboard")).toBe(false);
+    expect(crossesIntoPortal(null, "/operator/dashboard")).toBe(false);
+    expect(crossesIntoPortal("/login", "/operatorx")).toBe(false);
   });
 });

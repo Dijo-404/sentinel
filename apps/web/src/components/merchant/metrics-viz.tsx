@@ -45,8 +45,12 @@ export function MerchantMetricsViz({ m }: { m: MerchantMetrics }) {
       <div className="mviz__grid">
         <section className="pnl pnl--pad mviz__hero" aria-label="Unresolved value">
           <span className="lk-chart__meta">Unresolved value</span>
-          <strong className="display mviz__big tnum">{formatMoney(m.unresolved_minor, m.currency)}</strong>
-          <span className="lk-chart__meta">Median handling {humanDuration(m.median_handling_seconds)}</span>
+          <strong className="display mviz__big tnum">
+            {formatMoney(m.unresolved_minor, m.currency)}
+          </strong>
+          <span className="lk-chart__meta">
+            Median handling {humanDuration(m.median_handling_seconds)}
+          </span>
         </section>
 
         <section className="pnl pnl--pad mviz__gauge" aria-label="Exception rate">
@@ -62,7 +66,9 @@ export function MerchantMetricsViz({ m }: { m: MerchantMetrics }) {
                   cy="60"
                   r="50"
                   fill="none"
-                  stroke={rate > 0.25 ? "var(--escalation)" : rate > 0.1 ? "var(--warn)" : "var(--ok)"}
+                  stroke={
+                    rate > 0.25 ? "var(--escalation)" : rate > 0.1 ? "var(--warn)" : "var(--ok)"
+                  }
                   strokeWidth="10"
                   strokeLinecap="round"
                   initial={{ strokeDasharray: `0 ${circ}` }}
@@ -91,7 +97,12 @@ export function MerchantMetricsViz({ m }: { m: MerchantMetrics }) {
                       initial={{ height: 0 }}
                       animate={{ height: `${(v / maxBucket) * 100}%` }}
                       transition={{ duration: 0.7, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
-                      style={{ background: i >= buckets.length - 1 ? "var(--escalation)" : `color-mix(in srgb, var(--signal) ${90 - i * 15}%, var(--ember))` }}
+                      style={{
+                        background:
+                          i >= buckets.length - 1
+                            ? "var(--escalation)"
+                            : `color-mix(in srgb, var(--signal) ${90 - i * 15}%, var(--ember))`,
+                      }}
                     />
                   </span>
                   <strong className="tnum">{v}</strong>

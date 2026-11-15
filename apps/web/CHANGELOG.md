@@ -29,6 +29,20 @@
   not proof". Timestamps render in UTC so SSR and client match. Decision
   workspace adds evidence freshness from `observed_at` → `expires_at`.
 - `/design`: component gallery on labelled sample data.
+- `/supervisor/command` (new nav item "Command center"): live command center over
+  real ops reads (open + history cases, audit feed) with KPI tiles, case-flow
+  Sankey, 24h audit throughput, stage distribution and event stream. Incident
+  mode trips only on a failed refresh or escalations ≥ 25% of cases in view.
+  Peer failure stays visible; no fixture fallback.
+- Operator queue becomes a workbench: phase filter tabs, distribution bar,
+  per-row progress track, J/K selection with Enter/E, and a preview pane that
+  replays the selected case's real events.
+- Customer cases render as refund trackers; "money back" only for
+  `VERIFIED_RESOLVED`.
+- Merchant analytics adds a visual layer drawn only from `MerchantMetrics`
+  fields (aging buckets, exception-rate gauge, ranked causes, median handling).
+- `app/template.tsx`: fade-rise page transition everywhere, curtain wipe when
+  entering a portal from landing or login (reduced motion respected).
 - Not changed: approval mechanics. Hold-to-approve belongs in approval-ui (SN-013);
   it is proposed there, not patched from this module.
 

@@ -18,7 +18,14 @@ const STAGE: Record<CaseState, number> = {
   CLOSED_NO_ACTION: -2,
 };
 
-export const STAGE_NAMES = ["Intake", "Investigate", "Approve", "Dispatch", "Verify", "Verified"] as const;
+export const STAGE_NAMES = [
+  "Intake",
+  "Investigate",
+  "Approve",
+  "Dispatch",
+  "Verify",
+  "Verified",
+] as const;
 
 export type CommandModel = {
   total: number;
@@ -74,4 +81,13 @@ export function hourlyBuckets(events: OpsAuditEvent[], now: Date, hours = 24): n
     if (ago >= 0 && ago < hours) out[hours - 1 - ago]++;
   }
   return out;
+}
+
+/** Incident mode trips on real conditions only: a failed refresh, or escalations ≥ 25% of cases in view. */
+export function incidentReason(m: CommandModel, refreshFailed: boolean): string | null {
+  if (refreshFailed) return "Live data stale — latest refresh failed";
+  if (m.total >= 4 && m.escalated / m.total >= 0.25) {
+    return `Escalations at ${Math.round((m.escalated / m.total) * 100)}% of cases in view`;
+  }
+  return null;
 }

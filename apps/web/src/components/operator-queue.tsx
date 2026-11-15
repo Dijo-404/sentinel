@@ -33,7 +33,10 @@ function isTyping(el: EventTarget | null) {
   const t = el as HTMLElement | null;
   return (
     !!t &&
-    (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable)
+    (t.tagName === "INPUT" ||
+      t.tagName === "TEXTAREA" ||
+      t.tagName === "SELECT" ||
+      t.isContentEditable)
   );
 }
 
@@ -259,7 +262,10 @@ export function OperatorQueue({ caseClient }: Props) {
                       <td>
                         <span className="wb__track" title={p.phase} data-tone={p.tone}>
                           {TRACK.map((t, k) => (
-                            <i key={t} data-on={verified || (step >= 0 && k <= step) || undefined} />
+                            <i
+                              key={t}
+                              data-on={verified || (step >= 0 && k <= step) || undefined}
+                            />
                           ))}
                           <span className="sr-only">{p.phase}</span>
                         </span>
@@ -285,8 +291,8 @@ export function OperatorQueue({ caseClient }: Props) {
             <UiState tone="empty" title="Nothing in this filter" detail="Try another tab." />
           )}
           <p className="wb__keys">
-            <kbd className="kbd">J</kbd>/<kbd className="kbd">K</kbd> move · <kbd className="kbd">↵</kbd>{" "}
-            timeline · <kbd className="kbd">E</kbd> evidence
+            <kbd className="kbd">J</kbd>/<kbd className="kbd">K</kbd> move ·{" "}
+            <kbd className="kbd">↵</kbd> timeline · <kbd className="kbd">E</kbd> evidence
           </p>
         </div>
 
@@ -324,7 +330,10 @@ export function OperatorQueue({ caseClient }: Props) {
               <CaseReplay events={preview.events} />
             )}
             <div className="row">
-              <Link className="btn btn-primary" href={`/operator/cases/${encodeURIComponent(sel.case_id)}`}>
+              <Link
+                className="btn btn-primary"
+                href={`/operator/cases/${encodeURIComponent(sel.case_id)}`}
+              >
                 Open case
               </Link>
               <Link

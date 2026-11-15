@@ -12,7 +12,11 @@ const STEPS = ["Received", "Checking", "Approved", "Sent to bank", "Money back"]
  * Customer-language progress. "Money back" only when the provider credit is verified;
  * a refund sent to the bank is still "on its way".
  */
-export function customerCopy(status: CaseState): { step: number; headline: string; tone: "pending" | "verified" | "risk" | "neutral" } {
+export function customerCopy(status: CaseState): {
+  step: number;
+  headline: string;
+  tone: "pending" | "verified" | "risk" | "neutral";
+} {
   switch (phaseFor(status).phase) {
     case "Intake":
       return status === "NEEDS_INPUT"
@@ -21,9 +25,17 @@ export function customerCopy(status: CaseState): { step: number; headline: strin
     case "Investigate":
       return { step: 1, headline: "We're checking your order and payment.", tone: "neutral" };
     case "Approve":
-      return { step: 1, headline: "Everything checks out. Waiting for final approval.", tone: "pending" };
+      return {
+        step: 1,
+        headline: "Everything checks out. Waiting for final approval.",
+        tone: "pending",
+      };
     case "Dispatch":
-      return { step: 3, headline: "On its way. Your bank is processing the refund.", tone: "pending" };
+      return {
+        step: 3,
+        headline: "On its way. Your bank is processing the refund.",
+        tone: "pending",
+      };
     case "Verify":
       return { step: 3, headline: "Your bank is confirming the refund.", tone: "pending" };
     case "Verified":
@@ -35,7 +47,12 @@ export function customerCopy(status: CaseState): { step: number; headline: strin
   }
 }
 
-const RING = { pending: "var(--signal)", verified: "var(--ok)", risk: "var(--escalation)", neutral: "var(--signal)" } as const;
+const RING = {
+  pending: "var(--signal)",
+  verified: "var(--ok)",
+  risk: "var(--escalation)",
+  neutral: "var(--signal)",
+} as const;
 
 export function RefundTracker({ row }: { row: CustomerCaseSummary }) {
   const c = customerCopy(row.status);
@@ -43,7 +60,11 @@ export function RefundTracker({ row }: { row: CustomerCaseSummary }) {
   const pct = c.tone === "verified" ? 1 : (c.step + 0.5) / STEPS.length;
   const circ = 2 * Math.PI * 52;
   return (
-    <article className="pnl tracker" data-tone={c.tone} aria-label={`Case ${row.case_id}: ${label.text}`}>
+    <article
+      className="pnl tracker"
+      data-tone={c.tone}
+      aria-label={`Case ${row.case_id}: ${label.text}`}
+    >
       <div className="tracker__ring">
         <svg viewBox="0 0 120 120" aria-hidden="true">
           <circle cx="60" cy="60" r="52" fill="none" stroke="var(--line)" strokeWidth="8" />
@@ -70,7 +91,12 @@ export function RefundTracker({ row }: { row: CustomerCaseSummary }) {
         <p className="tracker__headline">{c.headline}</p>
         <ol className="tracker__steps">
           {STEPS.map((s, i) => {
-            const state = i < c.step || (c.tone === "verified" && i === c.step) ? "done" : i === c.step ? "now" : "todo";
+            const state =
+              i < c.step || (c.tone === "verified" && i === c.step)
+                ? "done"
+                : i === c.step
+                  ? "now"
+                  : "todo";
             return (
               <li key={s} data-state={state} aria-current={state === "now" ? "step" : undefined}>
                 <i aria-hidden="true" />

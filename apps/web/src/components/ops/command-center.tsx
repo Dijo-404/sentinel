@@ -12,13 +12,20 @@ import { Sparkline } from "@/components/ledger/charts";
 import { NumberRoll } from "@/components/ledger/number-roll";
 import { utc } from "@/components/ledger/case-replay";
 import { UiState } from "@/components/ui-states";
-import { STAGE_NAMES, buildCommandModel, hourlyBuckets } from "./command-model";
+import { STAGE_NAMES, buildCommandModel, hourlyBuckets, incidentReason } from "./command-model";
 
 const POLL_MS = 10_000;
 
 type Snapshot = { cases: Case[]; events: OpsAuditEvent[]; at: Date };
 
-const STAGE_COLORS = ["var(--fog)", "var(--signal)", "var(--periwinkle)", "var(--tide)", "var(--tide)", "var(--verified)"];
+const STAGE_COLORS = [
+  "var(--fog)",
+  "var(--signal)",
+  "var(--periwinkle)",
+  "var(--tide)",
+  "var(--tide)",
+  "var(--verified)",
+];
 
 /**
  * Live command center over real ops reads (open + history cases, audit feed).
@@ -46,7 +53,13 @@ export function CommandCenter({ caseClient: override }: { caseClient?: CaseClien
       setSnap({ cases: [...open.cases, ...history.cases], events: audit.events, at: new Date() });
       setError(null);
     } catch (err) {
-      setError(err instanceof PeerError ? `${err.code}: ${err.message}` : err instanceof Error ? err.message : "Load failed");
+      setError(
+        err instanceof PeerError
+          ? `${err.code}: ${err.message}`
+          : err instanceof Error
+            ? err.message
+            : "Load failed",
+      );
     }
   }, [caseClient]);
 
@@ -57,39 +70,87 @@ export function CommandCenter({ caseClient: override }: { caseClient?: CaseClien
     return () => window.clearInterval(id);
   }, [load, paused]);
 
-  if (!snap && error) return <UiState tone="error" title="Command center unavailable" detail={error} />;
+  if (!snap && error)
+    return <UiState tone="error" title="Command center unavailable" detail={error} />;
   if (!snap) return <UiState tone="loading" title="Loading command center…" />;
 
   const m = buildCommandModel(snap.cases);
+  const incident = incidentReason(m, Boolean(error));
   const hourly = hourlyBuckets(snap.events, snap.at);
-  const events = [...snap.events].sort((a, b) => b.occurred_at.localeCompare(a.occurred_at)).slice(0, 12);
-  const fresh = new Set(events.map((e) => `${e.case_id}:${e.sequence}`).filter((k) => !seen.current.has(k)));
+  const events = [...snap.events]
+    .sort((a, b) => b.occurred_at.localeCompare(a.occurred_at))
+    .slice(0, 12);
+  const fresh = new Set(
+    events.map((e) => `${e.case_id}:${e.sequence}`).filter((k) => !seen.current.has(k)),
+  );
   events.forEach((e) => seen.current.add(`${e.case_id}:${e.sequence}`));
 
-  const nodes: SankeyNode[] = STAGE_NAMES.map((name, i) => ({ id: name, label: name, column: Math.min(i, 5), color: STAGE_COLORS[i] }));
-  nodes.push({ id: "Escalated", label: "Escalated", column: 2, color: "var(--ember)" }, { id: "Closed", label: "No action", column: 2, color: "var(--fog)" });
+  const nodes: SankeyNode[] = STAGE_NAMES.map((name, i) => ({
+    id: name,
+    label: name,
+    column: Math.min(i, 5),
+    color: STAGE_COLORS[i],
+  }));
+  nodes.push(
+    { id: "Escalated", label: "Escalated", column: 2, color: "var(--ember)" },
+    { id: "Closed", label: "No action", column: 2, color: "var(--fog)" },
+  );
   const links: SankeyLink[] = [];
   for (let i = 0; i < STAGE_NAMES.length - 1; i++) {
-    if (m.reached[i + 1] > 0) links.push({ source: STAGE_NAMES[i], target: STAGE_NAMES[i + 1], value: m.reached[i + 1], color: STAGE_COLORS[i + 1] });
+    if (m.reached[i + 1] > 0)
+      links.push({
+        source: STAGE_NAMES[i],
+        target: STAGE_NAMES[i + 1],
+        value: m.reached[i + 1],
+        color: STAGE_COLORS[i + 1],
+      });
   }
-  if (m.escalated) links.push({ source: "Investigate", target: "Escalated", value: m.escalated, color: "var(--ember)" });
-  if (m.closedNoAction) links.push({ source: "Investigate", target: "Closed", value: m.closedNoAction, color: "var(--fog)" });
+  if (m.escalated)
+    links.push({
+      source: "Investigate",
+      target: "Escalated",
+      value: m.escalated,
+      color: "var(--ember)",
+    });
+  if (m.closedNoAction)
+    links.push({
+      source: "Investigate",
+      target: "Closed",
+      value: m.closedNoAction,
+      color: "var(--fog)",
+    });
   // Escalated / closed cases passed intake → investigate too.
   const offPath = m.escalated + m.closedNoAction;
   const intakeOut = links.find((l) => l.source === "Intake");
   if (intakeOut) intakeOut.value += offPath;
-  else if (offPath) links.unshift({ source: "Intake", target: "Investigate", value: offPath, color: STAGE_COLORS[1] });
+  else if (offPath)
+    links.unshift({
+      source: "Intake",
+      target: "Investigate",
+      value: offPath,
+      color: STAGE_COLORS[1],
+    });
 
   const kpis = [
     { label: "Cases in view", value: m.total, tone: "var(--ink)" },
-    { label: "Awaiting approval", value: m.waitingApproval, tone: "var(--periwinkle)", href: "/supervisor/approvals" },
+    {
+      label: "Awaiting approval",
+      value: m.waitingApproval,
+      tone: "var(--periwinkle)",
+      href: "/supervisor/approvals",
+    },
     { label: "Dispatched · not yet verified", value: m.inFlight, tone: "var(--provider)" },
     { label: "Credit verified", value: m.verified, tone: "var(--ok)" },
-    { label: "Escalated", value: m.escalated, tone: "var(--escalation)", href: "/operator/escalations" },
+    {
+      label: "Escalated",
+      value: m.escalated,
+      tone: "var(--escalation)",
+      href: "/operator/escalations",
+    },
   ];
 
   return (
-    <div className="cc" data-testid="command-center">
+    <div className="cc" data-testid="command-center" data-incident={incident ? "" : undefined}>
       <header className="cc__head">
         <div>
           <p className="eyebrow">Supervisor · live</p>
@@ -100,19 +161,32 @@ export function CommandCenter({ caseClient: override }: { caseClient?: CaseClien
             <span className="live-dot" aria-hidden="true" style={{ opacity: paused ? 0.3 : 1 }} />
             {paused ? "paused" : `updated ${utc(snap.at.toISOString()).slice(11)}`}
           </span>
-          <button type="button" className="btn btn-glass" onClick={() => setPaused((p) => !p)} aria-pressed={paused}>
+          <button
+            type="button"
+            className="btn btn-glass"
+            onClick={() => setPaused((p) => !p)}
+            aria-pressed={paused}
+          >
             {paused ? "Resume" : "Pause"}
           </button>
         </div>
       </header>
 
+      {incident && (
+        <div className="cc__incident" role="alert" data-testid="incident-banner">
+          <span className="live-dot" aria-hidden="true" />
+          Incident mode · {incident}
+        </div>
+      )}
       {error && (
         <p className="state-banner" data-tone="error" role="alert">
           Latest refresh failed — showing data from {utc(snap.at.toISOString())}. {error}
         </p>
       )}
       <p className="fixture-banner" role="status">
-        {config.mode === "fixture" ? "Fixture mode — case-api stub" : "Real peers — case-api /v1/ops/cases + /v1/ops/audit-events"}
+        {config.mode === "fixture"
+          ? "Fixture mode — case-api stub"
+          : "Real peers — case-api /v1/ops/cases + /v1/ops/audit-events"}
       </p>
 
       <section className="cc__kpis" aria-label="Key numbers">
@@ -144,9 +218,19 @@ export function CommandCenter({ caseClient: override }: { caseClient?: CaseClien
             <span className="lk-chart__meta">cases at or past each stage</span>
           </div>
           {m.total === 0 ? (
-            <UiState tone="empty" title="No cases yet" detail="The flow fills in as cases arrive." />
+            <UiState
+              tone="empty"
+              title="No cases yet"
+              detail="The flow fills in as cases arrive."
+            />
           ) : (
-            <Sankey nodes={nodes.filter((n) => links.some((l) => l.source === n.id || l.target === n.id))} links={links} label="Cases flowing through the money path" width={860} height={300} />
+            <Sankey
+              nodes={nodes.filter((n) => links.some((l) => l.source === n.id || l.target === n.id))}
+              links={links}
+              label="Cases flowing through the money path"
+              width={860}
+              height={300}
+            />
           )}
         </section>
         <section className="pnl pnl--pad cc__side" aria-label="Activity">
@@ -162,7 +246,12 @@ export function CommandCenter({ caseClient: override }: { caseClient?: CaseClien
             {STAGE_NAMES.map((n, i) => (
               <li key={n}>
                 <span>{n}</span>
-                <i style={{ width: `${m.total ? (m.at[i] / m.total) * 100 : 0}%`, background: STAGE_COLORS[i] }} />
+                <i
+                  style={{
+                    width: `${m.total ? (m.at[i] / m.total) * 100 : 0}%`,
+                    background: STAGE_COLORS[i],
+                  }}
+                />
                 <code className="tnum">{m.at[i]}</code>
               </li>
             ))}
@@ -190,7 +279,10 @@ export function CommandCenter({ caseClient: override }: { caseClient?: CaseClien
               </thead>
               <tbody aria-live="polite">
                 {events.map((e) => (
-                  <tr key={`${e.case_id}:${e.sequence}`} className={fresh.has(`${e.case_id}:${e.sequence}`) ? "feed-in" : undefined}>
+                  <tr
+                    key={`${e.case_id}:${e.sequence}`}
+                    className={fresh.has(`${e.case_id}:${e.sequence}`) ? "feed-in" : undefined}
+                  >
                     <td className="mono">{utc(e.occurred_at).slice(5, 16)}</td>
                     <td className="mono">{maskReference(e.case_id, "case-…")}</td>
                     <td>{e.type}</td>

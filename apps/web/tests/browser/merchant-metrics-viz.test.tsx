@@ -23,6 +23,8 @@ describe("MerchantMetricsViz", () => {
     expect(screen.getByText("₹1,000.00")).toBeInTheDocument();
     expect(screen.getByText("40.0%")).toBeInTheDocument();
     expect(screen.getByText("3 open")).toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "Top causes" })).toHaveTextContent("duplicate payment");
+    expect(screen.getByRole("region", { name: "Top causes" })).toHaveTextContent(
+      "duplicate payment",
+    );
   });
 });

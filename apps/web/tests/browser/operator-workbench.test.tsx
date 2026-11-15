@@ -30,7 +30,15 @@ describe("operator workbench", () => {
   });
 
   it("filters by tab and moves selection with J/K", async () => {
-    render(<OperatorQueue caseClient={client([c("case-a", "INVESTIGATING"), c("case-b", "ESCALATED"), c("case-c", "WAITING_APPROVAL")])} />);
+    render(
+      <OperatorQueue
+        caseClient={client([
+          c("case-a", "INVESTIGATING"),
+          c("case-b", "ESCALATED"),
+          c("case-c", "WAITING_APPROVAL"),
+        ])}
+      />,
+    );
     const table = await screen.findByRole("table", { name: "Operator cases" });
     expect(within(table).getAllByRole("row")).toHaveLength(4);
 
@@ -40,6 +48,8 @@ describe("operator workbench", () => {
     fireEvent.click(screen.getByRole("tab", { name: /Escalated/ }));
     expect(within(table).getAllByRole("row")).toHaveLength(2);
     expect(screen.getByTestId("timeline-link-case-b")).toBeInTheDocument();
-    expect(screen.getByRole("complementary", { name: "Selected case preview" })).toHaveTextContent("Escalated");
+    expect(screen.getByRole("complementary", { name: "Selected case preview" })).toHaveTextContent(
+      "Escalated",
+    );
   });
 });
