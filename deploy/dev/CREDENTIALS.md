@@ -6,14 +6,14 @@ Not production. Never use these passwords on a live payment or customer system.
 Set `IDENTITY_DEMO_PASSWORD=demo-password` before `sentinel-identity seed` / serve so
 hashes match this table. Web login UI lists the same accounts.
 
-| Email | Password | Portal role |
-| --- | --- | --- |
-| customer@example.test | demo-password | Customer |
-| merchant@example.test | demo-password | Merchant |
-| operator@example.test | demo-password | Support Operator |
-| supervisor@example.test | demo-password | Supervisor |
-| risk@example.test | demo-password | Risk Officer |
-| admin@example.test | demo-password | Platform Admin |
+| Email                   | Password      | Portal role      |
+| ----------------------- | ------------- | ---------------- |
+| customer@example.test   | demo-password | Customer         |
+| merchant@example.test   | demo-password | Merchant         |
+| operator@example.test   | demo-password | Support Operator |
+| supervisor@example.test | demo-password | Supervisor       |
+| risk@example.test       | demo-password | Risk Officer     |
+| admin@example.test      | demo-password | Platform Admin   |
 
 ## Non-loopback bind
 

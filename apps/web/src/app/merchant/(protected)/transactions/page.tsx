@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  SANDBOX_EVIDENCE_LABEL,
-  SANDBOX_TRANSACTIONS,
-} from "@/adapters/sandbox-paytm-catalog";
+import { SANDBOX_EVIDENCE_LABEL, SANDBOX_TRANSACTIONS } from "@/adapters/sandbox-paytm-catalog";
 import { formatAmountMinor } from "@/domain/mask";
 
 /**

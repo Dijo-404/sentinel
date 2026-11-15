@@ -123,8 +123,8 @@ export function RoleLogin({ role = "customer", next }: Props) {
       <details className="demo-users" data-testid="demo-users">
         <summary>Sandbox seed accounts</summary>
         <p className="muted">
-          Identity seed for local and labeled sandbox/dev deploy
-          (<code>IDENTITY_DEMO_PASSWORD</code>). Not production credentials.
+          Identity seed for local and labeled sandbox/dev deploy (
+          <code>IDENTITY_DEMO_PASSWORD</code>). Not production credentials.
         </p>
         <ul>
           <li>customer@example.test / demo-password</li>
