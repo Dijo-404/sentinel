@@ -40,7 +40,8 @@ def main(argv: list[str] | None = None) -> int:
                 print(f'{{"code":"UNSAFE_BIND","message":"{exc}"}}', file=sys.stderr)
                 return 2
             app = build_app(settings)
-            uvicorn.run(app, host=args.host, port=args.port, log_level="info")
+            # Keep the socket peer intact for the application's explicit proxy trust.
+            uvicorn.run(app, host=args.host, port=args.port, log_level="info", proxy_headers=False)
             return 0
         if args.command == "seed":
             report = seed_demo_principals(settings.database_url)

@@ -29,6 +29,7 @@ class Settings:
     expose_sandbox_codes: bool = False
     sandbox: bool = False
     sandbox_token: str = ""
+    trusted_proxies: frozenset[str] = frozenset()
 
     @classmethod
     def from_environ(cls, env: dict[str, str] | None = None) -> Settings:
@@ -53,6 +54,11 @@ class Settings:
             expose_sandbox_codes=expose,
             sandbox=sandbox,
             sandbox_token=source.get("IDENTITY_SANDBOX_TOKEN", ""),
+            trusted_proxies=frozenset(
+                ip.strip()
+                for ip in source.get("IDENTITY_TRUSTED_PROXIES", "").split(",")
+                if ip.strip()
+            ),
         )
 
 
@@ -101,5 +107,6 @@ def build_app(settings: Settings | None = None, *, store=None):
             sandbox_token=settings.sandbox_token,
         ),
         mode=mode,
+        trusted_proxies=settings.trusted_proxies,
     )
     return create_app(services)
