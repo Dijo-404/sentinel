@@ -55,7 +55,6 @@ export function WorkspacePicker({ workspaces, activeAssignmentId, error }: Props
                   <button
                     type="submit"
                     className="btn"
-                    disabled={active}
                     data-testid={`select-workspace-${w.assignment_id}`}
                   >
                     {active ? `${w.label} (active)` : w.label}

@@ -19,6 +19,7 @@ vi.mock("@/lib/server/auth-actions", () => ({
   })),
   logoutAction: vi.fn(),
   registerCustomerAction: vi.fn(),
+  registerMerchantAction: vi.fn(),
   switchWorkspaceAction: vi.fn(),
 }));
 
@@ -69,43 +70,22 @@ describe("portal auth UI", () => {
     expect(screen.queryByRole("link", { name: "Get started" })).not.toBeInTheDocument();
   });
 
-  it("shared login has workspace select and role-login testid", () => {
-    render(<RoleLogin role="merchant" />);
-    expect(screen.getByTestId("role-login")).toBeInTheDocument();
-    const select = screen.getByTestId("login-workspace");
-    expect(select).toHaveAttribute("name", "role");
-    expect(select).toBeRequired();
-    const values = Array.from(select.querySelectorAll("option")).map(
-      (o) => (o as HTMLOptionElement).value,
-    );
-    expect(values).toEqual(["customer", "merchant", "operator", "supervisor", "risk", "admin"]);
-    expect(select).toHaveValue("merchant");
-    expect(screen.getByTestId("demo-users")).toBeInTheDocument();
+  it("shared login asks only for email and password", () => {
+    render(<RoleLogin />);
+    expect(screen.getByLabelText("Email")).toHaveAttribute("name", "email");
+    expect(screen.getByLabelText("Password")).toHaveAttribute("name", "password");
+    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+    expect(screen.queryByText("Choose a portal")).not.toBeInTheDocument();
+    expect(screen.getByTestId("register-link")).toHaveAttribute("href", "/signup");
   });
 
-  it("customer login shows register link; staff login does not", async () => {
+  it("sign-in failure remains visible", async () => {
     const user = userEvent.setup();
-    render(<RoleLogin role="customer" />);
-    expect(screen.getByTestId("register-link")).toBeInTheDocument();
-
-    await user.selectOptions(screen.getByTestId("login-workspace"), "operator");
-    expect(screen.queryByTestId("register-link")).not.toBeInTheDocument();
-    expect(screen.getByTestId("no-signup")).toHaveTextContent("invitation-only");
-  });
-
-  it("role mismatch surfaces only authorized workspaces", async () => {
-    const user = userEvent.setup();
-    render(<RoleLogin role="operator" />);
+    render(<RoleLogin />);
     await user.type(screen.getByTestId("login-email"), "customer@example.test");
     await user.type(screen.getByTestId("login-password"), "demo-customer");
     await user.click(screen.getByTestId("login-submit"));
-
-    expect(await screen.findByTestId("login-error")).toHaveTextContent(
-      "does not have the operator workspace",
-    );
-    const links = screen.getByTestId("authorized-workspaces");
-    expect(links).toHaveTextContent("Customer workspace");
-    expect(links).not.toHaveTextContent("admin");
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
   });
 
   it("invite form has no customer role option (customer cannot staff-register)", () => {

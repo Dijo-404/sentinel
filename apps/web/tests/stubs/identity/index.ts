@@ -74,7 +74,16 @@ export type LoginResult =
       user: IdentityUser;
       workspaces: WorkspaceAssignment[];
     }
-  | { ok: false; code: "INVALID_CREDENTIALS" | "SUSPENDED" | "PENDING" };
+  | {
+      ok: false;
+      code:
+        | "INVALID_CREDENTIALS"
+        | "SUSPENDED"
+        | "PENDING"
+        | "ACCOUNT_NOT_FOUND"
+        | "RATE_LIMITED"
+        | "INVALID_INPUT";
+    };
 
 export type RegisterResult =
   | { ok: true; session: SessionRecord; user: IdentityUser }
@@ -103,6 +112,9 @@ export type StubIdentity = {
     tenant_id?: unknown;
     subject_refs?: unknown;
   }): RegisterResult;
+  registerMerchant(
+    input: Parameters<StubIdentity["registerCustomer"]>[0] & { business_name: string },
+  ): RegisterResult;
   resolveSession(sessionId: string): {
     session: SessionRecord;
     user: IdentityUser;
@@ -408,11 +420,63 @@ export function createIdentityStub(): StubIdentity {
     return { session, user, assignment };
   }
 
+  function registerAccount(
+    input: Parameters<StubIdentity["registerCustomer"]>[0],
+    type: "customer" | "merchant",
+    businessName?: string,
+  ): RegisterResult {
+    if (
+      input.roles !== undefined ||
+      input.tenant_id !== undefined ||
+      input.subject_refs !== undefined
+    ) {
+      return { ok: false, code: "PRIVILEGED_FIELDS_REJECTED" };
+    }
+    const email = input.email?.trim().toLowerCase() ?? "";
+    const display_name = input.display_name?.trim() ?? "";
+    const password = input.password ?? "";
+    if (
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
+      !display_name ||
+      password.length < 8 ||
+      (type === "merchant" && !businessName?.trim())
+    ) {
+      return { ok: false, code: "INVALID_INPUT" };
+    }
+    if (users.some((u) => u.email === email)) {
+      return { ok: false, code: "ALREADY_EXISTS" };
+    }
+    const assignment: WorkspaceAssignment = {
+      assignment_id: newId("asg"),
+      role: type,
+      tenant_id: "tenant-demo",
+      label: type === "merchant" ? businessName!.trim() : "Customer workspace",
+      ...(type === "merchant" ? { scope: { merchant_ref: newId("merchant") } } : {}),
+    };
+    const user: IdentityUser = {
+      user_id: newId("user"),
+      email,
+      display_name,
+      preferred_language: input.language?.trim() || "en",
+      email_verified_at: null,
+      password,
+      account_status: "ACTIVE",
+      account_class: type === "merchant" ? "staff" : "customer",
+      assignments: [assignment],
+    };
+    users = [...users, user];
+    const session = issueSession(user, assignment);
+    return { ok: true, session, user };
+  }
+
   return {
     login(email, password) {
       const normalized = email.trim().toLowerCase();
       const user = users.find((u) => u.email === normalized);
-      if (!user || user.password !== password) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized) || !password)
+        return { ok: false, code: "INVALID_INPUT" };
+      if (!user) return { ok: false, code: "ACCOUNT_NOT_FOUND" };
+      if (user.password !== password) {
         return { ok: false, code: "INVALID_CREDENTIALS" };
       }
       if (user.account_status === "SUSPENDED") {
@@ -435,42 +499,10 @@ export function createIdentityStub(): StubIdentity {
     },
 
     registerCustomer(input) {
-      if (
-        input.roles !== undefined ||
-        input.tenant_id !== undefined ||
-        input.subject_refs !== undefined
-      ) {
-        return { ok: false, code: "PRIVILEGED_FIELDS_REJECTED" };
-      }
-      const email = input.email?.trim().toLowerCase() ?? "";
-      const display_name = input.display_name?.trim() ?? "";
-      const password = input.password ?? "";
-      if (!email || !display_name || password.length < 8) {
-        return { ok: false, code: "INVALID_INPUT" };
-      }
-      if (users.some((u) => u.email === email)) {
-        return { ok: false, code: "ALREADY_EXISTS" };
-      }
-      const assignment: WorkspaceAssignment = {
-        assignment_id: newId("asg"),
-        role: "customer",
-        tenant_id: "tenant-demo",
-        label: "Customer workspace",
-      };
-      const user: IdentityUser = {
-        user_id: newId("user"),
-        email,
-        display_name,
-        preferred_language: input.language?.trim() || "en",
-        email_verified_at: null,
-        password,
-        account_status: "ACTIVE",
-        account_class: "customer",
-        assignments: [assignment],
-      };
-      users = [...users, user];
-      const session = issueSession(user, assignment);
-      return { ok: true, session, user };
+      return registerAccount(input, "customer");
+    },
+    registerMerchant(input) {
+      return registerAccount(input, "merchant", input.business_name);
     },
 
     resolveSession(sessionId) {

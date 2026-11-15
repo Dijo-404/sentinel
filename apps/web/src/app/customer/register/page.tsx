@@ -1,9 +1,5 @@
-import { CustomerRegisterForm } from "@/components/auth/customer-register";
+import { redirect } from "next/navigation";
 
 export default function CustomerRegisterPage() {
-  return (
-    <div className="auth-page">
-      <CustomerRegisterForm />
-    </div>
-  );
+  redirect("/signup?type=customer");
 }

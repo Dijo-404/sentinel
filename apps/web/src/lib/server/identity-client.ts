@@ -38,7 +38,7 @@ export type MeResult = {
  * Fixture wraps the local stub; real-peers calls identity.v1 over HTTP.
  */
 export type IdentityClient = {
-  login(email: string, password: string): Promise<LoginResult>;
+  login(email: string, password: string, clientIp?: string): Promise<LoginResult>;
   registerCustomer(input: {
     email: string;
     display_name: string;
@@ -48,6 +48,7 @@ export type IdentityClient = {
     tenant_id?: unknown;
     subject_refs?: unknown;
   }): Promise<RegisterResult>;
+  registerMerchant(input: Parameters<StubIdentity["registerMerchant"]>[0]): Promise<RegisterResult>;
   resolveSession(sessionCredential: string): Promise<MeResult | null>;
   /** GET /v1/auth/me — same session binding as resolveSession. */
   getMe(sessionCredential: string): Promise<MeResult | null>;
@@ -131,6 +132,7 @@ function wrapFixtureStub(stub: StubIdentity): IdentityClient {
   return {
     login: async (email, password) => stub.login(email, password),
     registerCustomer: async (input) => stub.registerCustomer(input),
+    registerMerchant: async (input) => stub.registerMerchant(input),
     resolveSession: async (sessionId) => stub.resolveSession(sessionId),
     getMe: async (sessionId) => stub.getMe(sessionId),
     patchProfile: async (sessionId, input) => {

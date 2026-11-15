@@ -1,3 +1,5 @@
+import { timingSafeEqual } from "node:crypto";
+import { isIP } from "node:net";
 import { cookies } from "next/headers";
 import {
   ROLE_LABELS,
@@ -21,17 +23,23 @@ export type AuthSession = {
 };
 
 export type LoginAttempt =
-  | {
-      ok: true;
-      session: AuthSession;
-      role_match: boolean;
-      requested_role: PortalRole;
-    }
-  | {
-      ok: false;
-      code: "INVALID_CREDENTIALS" | "SUSPENDED" | "PENDING" | "INVALID_INPUT";
-      message: string;
-    };
+  | { ok: true; session: AuthSession; redirectTo: string }
+  | { ok: false; code: string; message: string };
+
+/** Next actions expose no transport address; authenticate an explicitly configured ingress. */
+export function trustedLoginClientIp(
+  incoming: Pick<Headers, "get">,
+  env: Record<string, string | undefined> = process.env,
+): string | undefined {
+  const expected = env.WEB_TRUSTED_INGRESS_TOKEN;
+  const supplied = incoming.get("x-sentinel-ingress-token");
+  if (!expected || expected.length < 32 || !supplied) return undefined;
+  const a = Buffer.from(expected);
+  const b = Buffer.from(supplied);
+  if (a.length !== b.length || !timingSafeEqual(a, b)) return undefined;
+  const ip = incoming.get("x-sentinel-client-ip");
+  return ip && isIP(ip) ? ip : undefined;
+}
 
 const REGISTER_FAILURE =
   "We couldn't create this account. Check your name, email and password (min 8 characters), or sign in if you already have an account.";
@@ -134,64 +142,52 @@ export async function getAuthSession(): Promise<AuthSession | null> {
 export async function loginWithCredentials(
   email: string,
   password: string,
-  requestedRole: PortalRole,
+  clientIp?: string,
 ): Promise<LoginAttempt> {
   if (!email?.trim() || !password) {
     return { ok: false, code: "INVALID_INPUT", message: GENERIC_AUTH_FAILURE };
   }
   const identity = getIdentityClient();
-  const result = await identity.login(email, password);
-  if (!result.ok) {
-    await clearSessionCookie();
-    return { ok: false, code: result.code, message: GENERIC_AUTH_FAILURE };
-  }
-
-  const matched = result.workspaces.find((w) => w.role === requestedRole);
-  if (!matched) {
-    await identity.logout(result.session.session_id);
-    await clearSessionCookie();
+  let provisional: string | undefined;
+  try {
+    const result = await identity.login(email, password, clientIp);
+    if (!result.ok) {
+      await clearSessionCookie();
+      return { ok: false, code: result.code, message: GENERIC_AUTH_FAILURE };
+    }
+    provisional = result.session.session_id;
+    const { workspaces } = await identity.listWorkspaces(provisional);
+    const assignment = workspaces[0];
+    if (!assignment) throw new Error("No authorized workspaces");
+    const session =
+      workspaces.length === 1
+        ? await identity.selectAssignment(provisional, assignment.assignment_id)
+        : result.session;
+    if (!session) throw new Error("Workspace selection failed");
+    await setSessionCookie(session.session_id, session.expires_at);
     return {
       ok: true,
-      session: {
-        session: result.session,
-        user: result.user,
-        assignment: result.user.assignments[0]!,
-        workspaces: result.workspaces,
-      },
-      role_match: false,
-      requested_role: requestedRole,
+      redirectTo: workspaces.length === 1 ? portalPath(assignment.role) : "/auth/workspaces",
+      session: { session, user: result.user, assignment, workspaces },
     };
-  }
-
-  const activated = await identity.selectAssignment(
-    result.session.session_id,
-    matched.assignment_id,
-  );
-  if (!activated) {
-    await identity.logout(result.session.session_id);
+  } catch {
+    if (provisional) {
+      try {
+        await identity.logout(provisional);
+      } catch {
+        /* Peer unavailable; never retain the cookie. */
+      }
+    }
     await clearSessionCookie();
     return {
       ok: false,
-      code: "INVALID_CREDENTIALS",
-      message: GENERIC_AUTH_FAILURE,
+      code: "PEER_UNAVAILABLE",
+      message: "Sign-in is unavailable. Try again later.",
     };
   }
-
-  await setSessionCookie(activated.session_id, activated.expires_at);
-  return {
-    ok: true,
-    session: {
-      session: activated,
-      user: result.user,
-      assignment: matched,
-      workspaces: result.workspaces,
-    },
-    role_match: true,
-    requested_role: requestedRole,
-  };
 }
 
-export async function registerCustomerAccount(input: {
+type RegistrationInput = {
   email: string;
   display_name: string;
   password: string;
@@ -199,12 +195,36 @@ export async function registerCustomerAccount(input: {
   roles?: unknown;
   tenant_id?: unknown;
   subject_refs?: unknown;
-}): Promise<{ ok: true; redirectTo: string } | { ok: false; code: string; message: string }> {
+  business_name?: string;
+  merchant_ref?: unknown;
+  subject_ref?: unknown;
+  role_id?: unknown;
+  account_type?: unknown;
+};
+
+export async function registerCustomerAccount(input: RegistrationInput) {
+  return registerAccount(input, "customer");
+}
+
+export async function registerMerchantAccount(
+  input: RegistrationInput & { business_name: string },
+) {
+  return registerAccount(input, "merchant");
+}
+
+async function registerAccount(
+  input: RegistrationInput,
+  type: "customer" | "merchant",
+): Promise<{ ok: true; redirectTo: string } | { ok: false; code: string; message: string }> {
   // Reject privileged client fields before any peer call.
   if (
     input.roles !== undefined ||
     input.tenant_id !== undefined ||
-    input.subject_refs !== undefined
+    input.subject_refs !== undefined ||
+    input.merchant_ref !== undefined ||
+    input.subject_ref !== undefined ||
+    input.role_id !== undefined ||
+    input.account_type !== undefined
   ) {
     return {
       ok: false,
@@ -221,7 +241,10 @@ export async function registerCustomerAccount(input: {
   };
 
   const identity = getIdentityClient();
-  const result = await identity.registerCustomer(safe);
+  const result =
+    type === "merchant"
+      ? await identity.registerMerchant({ ...safe, business_name: input.business_name ?? "" })
+      : await identity.registerCustomer(safe);
   if (!result.ok) {
     if (result.code === "PRIVILEGED_FIELDS_REJECTED") {
       return {
@@ -238,7 +261,7 @@ export async function registerCustomerAccount(input: {
     };
   }
   await setSessionCookie(result.session.session_id, result.session.expires_at);
-  return { ok: true, redirectTo: portalPath("customer") };
+  return { ok: true, redirectTo: portalPath(type) };
 }
 
 export async function acceptInvitationAccount(input: {
@@ -313,23 +336,14 @@ export async function switchActiveAssignment(
   if (!trimmed) {
     return { ok: false, message: "Workspace assignment is required." };
   }
-  const current = await getAuthSession();
-  if (!current) {
-    return { ok: false, message: "Sign in to switch workspace." };
-  }
-  const target = current.workspaces.find((w) => w.assignment_id === trimmed);
-  if (!target) {
-    return { ok: false, message: "That workspace is not available." };
-  }
-  if (current.assignment.assignment_id === trimmed) {
-    return {
-      ok: true,
-      role: target.role,
-      redirectTo: portalPath(target.role),
-    };
-  }
+  const sessionId = await readSessionId();
+  if (!sessionId) return { ok: false, message: "Sign in to switch workspace." };
   const identity = getIdentityClient();
-  const activated = await identity.selectAssignment(current.session.session_id, trimmed);
+  // An authenticated login may have no active assignment until this selection.
+  const listed = await identity.listWorkspaces(sessionId);
+  const target = listed.workspaces.find((w) => w.assignment_id === trimmed);
+  if (!target) return { ok: false, message: "That workspace is not available." };
+  const activated = await identity.selectAssignment(sessionId, trimmed);
   if (!activated) {
     return { ok: false, message: "Could not switch workspace." };
   }
