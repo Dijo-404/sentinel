@@ -1,0 +1,181 @@
+/*
+ * Night Ledger 2.0 design tokens.
+ * Dark is the default; [data-theme="light"] is "Paper" mode.
+ * Legacy names (--canvas, --ink, --fog…) are kept so every existing route restyles from here.
+ */
+:root {
+  color-scheme: dark;
+
+  /* Brand palette */
+  --abyss: #07070c;
+  --void: #0d0d15;
+  --vault: #11111b;
+  --raise: #1a1a28;
+  --mist: #ededf3;
+  --paper: #f4f3ee;
+  --signal: #8b95ff;
+  --signal-deep: #4250d8;
+  --verified: #c6f36b;
+  --tide: #5ce1e6;
+  --ember: #ff8a5c;
+  --orchid: #e3b3ff;
+
+  /* Semantic surfaces (legacy names) */
+  --night: #14141f;
+  --night-raised: #1e1e2e;
+  --canvas: var(--abyss);
+  --surface: var(--vault);
+  --surface-tint: #14141f;
+  --surface-raised: var(--raise);
+  --lavender: rgba(139, 149, 255, 0.14);
+  --primary: var(--signal);
+  --on-primary: #07070c;
+  --periwinkle: #a9b1ff;
+  --ink: var(--mist);
+  --ink-secondary: #b8b8c8;
+  --on-dark: var(--mist);
+  --fog: #9a9aae;
+  --slate: #9a9aae;
+  --line: rgba(237, 237, 243, 0.1);
+  --line-strong: rgba(237, 237, 243, 0.2);
+  --chip-bg: rgba(237, 237, 243, 0.06);
+  --panel: linear-gradient(180deg, #11111b, #0c0c14);
+  --panel-inset: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  /* Compat aliases used by existing chrome */
+  --bg: var(--canvas);
+  --graphite: var(--ink);
+  --muted: var(--ink-secondary);
+  --accent: var(--primary);
+  --accent-soft: var(--lavender);
+  --focus: var(--primary);
+
+  /* Data viz series */
+  --viz-1: var(--signal);
+  --viz-2: var(--tide);
+  --viz-3: var(--orchid);
+  --viz-4: #2a2e5c;
+  --viz-5: var(--periwinkle);
+  --viz-ok: var(--verified);
+  --viz-warn: #ffc86b;
+  --viz-risk: var(--ember);
+
+  /* Domain status (lime means verified, nothing else) */
+  --warn: #ffc86b;
+  --warn-soft: rgba(255, 200, 107, 0.12);
+  --danger: #ff8f7a;
+  --danger-soft: rgba(255, 138, 92, 0.12);
+  --ok: var(--verified);
+  --ok-soft: rgba(198, 243, 107, 0.12);
+  --info-soft: rgba(92, 225, 230, 0.12);
+  --pending: #ffc86b;
+  --provider: var(--tide);
+  --credit: var(--verified);
+  --escalation: var(--ember);
+
+  /* Elevation */
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px rgba(0, 0, 0, 0.35);
+  --shadow-pop: 0 40px 120px rgba(0, 0, 0, 0.6);
+  --glow-signal: 0 0 0 6px rgba(139, 149, 255, 0.14);
+
+  /* Type */
+  --font: var(--font-inter), "Inter", "Segoe UI", sans-serif;
+  --font-display: var(--font-grotesk), "Space Grotesk", var(--font);
+  --mono: var(--font-jetbrains), "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  /* Shape + rhythm */
+  --radius: 14px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+  --radius-primary-pill: 999px;
+  --space-section: clamp(5rem, 11vw, 10rem);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-ledger: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-curtain: cubic-bezier(0.76, 0, 0.24, 1);
+  --t-ui: 180ms;
+  --t-reveal: 700ms;
+  --t-hero: 900ms;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --canvas: var(--paper);
+  --surface: #ffffff;
+  --surface-tint: #fbfaf6;
+  --surface-raised: #ffffff;
+  --lavender: rgba(66, 80, 216, 0.1);
+  --primary: var(--signal-deep);
+  --on-primary: #ffffff;
+  --periwinkle: #5a67e0;
+  --ink: #0a0a10;
+  --ink-secondary: #3a3a4a;
+  --fog: #5e5e70;
+  --slate: #5e5e70;
+  --line: rgba(7, 7, 12, 0.1);
+  --line-strong: rgba(7, 7, 12, 0.2);
+  --chip-bg: rgba(7, 7, 12, 0.05);
+  --panel: #ffffff;
+  --panel-inset: none;
+  --viz-1: var(--signal-deep);
+  --viz-2: #0b8a90;
+  --viz-3: #9b4fd1;
+  --viz-4: #c9c6f5;
+  --viz-ok: #4d7c0f;
+  --viz-risk: #c2410c;
+  --warn: #8a5a00;
+  --pending: #8a5a00;
+  --danger: #b42318;
+  --ok: #3f6b00;
+  --provider: #0b7a80;
+  --credit: #3f6b00;
+  --escalation: #c2410c;
+  --shadow-soft: 0 1px 2px rgba(7, 7, 12, 0.05), 0 10px 28px rgba(7, 7, 12, 0.08);
+  --shadow-pop: 0 30px 80px rgba(7, 7, 12, 0.18);
+}
+
+html {
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+::selection {
+  background: rgba(139, 149, 255, 0.35);
+}
+
+h1,
+h2,
+h3,
+.display {
+  font-family: var(--font-display);
+  letter-spacing: -0.025em;
+}
+
+.mono,
+code,
+kbd {
+  font-family: var(--mono);
+}
+
+/* Lenis smooth scroll (marketing routes only) */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

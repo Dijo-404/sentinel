@@ -24,6 +24,7 @@ vi.mock("@/lib/server/auth-actions", () => ({
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/operator/dashboard",
+  useRouter: () => ({ push: () => {} }),
 }));
 
 const sessionStub = {

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useShell } from "@/adapters/shell-context";
 import type { CustomerCaseSummary } from "@/application/ports";
 import { PeerError } from "@/domain/types";
-import { labelCaseStatus } from "@/domain/status-labels";
+import { RefundTracker } from "@/components/customer/refund-tracker";
 import { FixtureBanner } from "@/components/viz/fixture-banner";
 import { UiState } from "@/components/ui-states";
 
@@ -60,8 +60,8 @@ export default function CustomerCasesPage() {
   }, [caseClient, config.mode]);
 
   return (
-    <div className="panel stack" data-testid="customer-cases">
-      <h1>My cases</h1>
+    <div className="stack" data-testid="customer-cases">
+      <h1>My refunds</h1>
       <p className="muted">
         Customer-scoped cases from case-api <code>GET /v1/customer/cases</code>.
       </p>
@@ -77,29 +77,11 @@ export default function CustomerCasesPage() {
         <UiState tone="empty" title="No cases" detail="No cases in your subject scope." />
       ) : null}
       {load.status === "ready" ? (
-        <table className="table" aria-label="Customer cases">
-          <thead>
-            <tr>
-              <th>Case</th>
-              <th>Status</th>
-              <th>Revision</th>
-              <th>Language</th>
-            </tr>
-          </thead>
-          <tbody>
-            {load.cases.map((row) => {
-              const label = labelCaseStatus(row.status);
-              return (
-                <tr key={row.case_id}>
-                  <td>{row.case_id}</td>
-                  <td>{label.text}</td>
-                  <td className="tnum">{row.revision}</td>
-                  <td>{row.language}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <div className="tracker-list" aria-label="Customer cases">
+          {load.cases.map((row) => (
+            <RefundTracker key={row.case_id} row={row} />
+          ))}
+        </div>
       ) : null}
     </div>
   );

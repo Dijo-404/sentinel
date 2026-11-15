@@ -41,6 +41,7 @@ describe("ops shared nav", () => {
     expect(op).toEqual(su);
     expect(op).toEqual([
       "Dashboard",
+      "Command center",
       "Queue",
       "Approvals",
       "Escalations",

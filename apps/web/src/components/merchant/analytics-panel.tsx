@@ -12,6 +12,7 @@ import { StatBlock } from "@/components/viz/stat-block";
 import { UiState } from "@/components/ui-states";
 import { FIXTURE_MERCHANT_METRICS } from "../../../tests/stubs/merchant-analytics";
 import { rollingMetricsWindow } from "@/domain/metrics-window";
+import { MerchantMetricsViz } from "./metrics-viz";
 
 type Props = {
   session: AuthSession;
@@ -107,7 +108,7 @@ export function AnalyticsPanel({ session, analyticsClient }: Props) {
       : "Fixture peer";
 
   return (
-    <div className="panel stack" data-testid="merchant-analytics">
+    <div className="stack" data-testid="merchant-analytics">
       <h1>Analytics</h1>
       <p className="muted">
         Merchant metrics from merchant-analytics via BFF. Not payment authority.
@@ -152,6 +153,7 @@ export function AnalyticsPanel({ session, analyticsClient }: Props) {
           />
         </div>
       ) : null}
+      {load.status === "ready" ? <MerchantMetricsViz m={load.metrics} /> : null}
     </div>
   );
 }
