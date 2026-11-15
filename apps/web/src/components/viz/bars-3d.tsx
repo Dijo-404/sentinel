@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useReducedMotion } from "framer-motion";
 import { useRef, useState } from "react";
 import { useWebGL } from "@/components/three/use-webgl";
+import { pct } from "@/components/ledger/css-values";
 
 const BarsScene = dynamic(() => import("@/components/three/bars-scene"), {
   ssr: false,
@@ -105,7 +106,7 @@ export function Bars3D({ bars, unit, format = String, tone = "light", height = 2
                 data-active={active === i || undefined}
               >
                 <span className="bars3d__flat-value tnum">{format(b.value)}</span>
-                <i style={{ height: `${(b.value / max) * 100}%` }} />
+                <i style={{ height: pct((b.value / max) * 100) }} />
               </div>
             ))}
           </div>

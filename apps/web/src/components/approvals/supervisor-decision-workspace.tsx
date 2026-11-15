@@ -12,6 +12,7 @@ import { StatusChip } from "@/components/status-chip";
 import { labelCaseStatus } from "@/domain/status-labels";
 import { formatAmountMinor, maskTransactionRef } from "@/domain/mask";
 import { MaskedRef } from "@/components/masked-ref";
+import { EvidenceFreshness } from "@/components/ledger/evidence-freshness";
 
 /** Earliest evidence expiry — authoritative freshness bound (both modes). */
 export function decisionExpiresFromEvidence(
@@ -176,7 +177,7 @@ export function SupervisorDecisionWorkspace({
           </p>
         )}
         <div className="row">
-          <span className="mono" data-testid="decision-amount">
+          <span className="mono decision-amount" data-testid="decision-amount">
             {formatAmountMinor(action.payload.amount_minor, action.payload.currency)}
           </span>
           <MaskedRef
@@ -194,6 +195,7 @@ export function SupervisorDecisionWorkspace({
           </p>
         ) : null}
       </div>
+      <EvidenceFreshness evidence={evidence} now={now?.()} />
       {canDecide ? (
         <ApprovalSlot {...slot} mode={mode} reviewerId={reviewerId} now={now} />
       ) : (

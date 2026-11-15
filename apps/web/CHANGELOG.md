@@ -2,6 +2,50 @@
 
 ## Unreleased
 
+### Changed — Night Ledger 2.0 redesign (branch `feat/web-redesign-night-ledger`, in progress)
+
+- `tokens.css`: dark-first tokens with `[data-theme="light"]` Paper mode. Legacy
+  variable names are kept, so every route restyles without per-page edits.
+  Pre-paint boot script restores saved theme and density.
+- Fonts: Space Grotesk (display) and JetBrains Mono (refs, amounts) via `next/font`.
+- New dependencies, pinned exactly: `lenis@1.1.20` (smooth scroll, marketing only)
+  and `cmdk@1.1.1` (command palette).
+- `components/ledger/*` kit: Sankey with flow particles, stacked bars with legend
+  toggles and a data-table fallback, waterfall, treemap, link graph with
+  keyboard-selectable nodes, stream area, ring stack, hover area, cohort grid,
+  number roll, hold-to-approve button, `formatMoney` (INR lakh grouping).
+- Landing rebuilt: live money-flow console, 3D ledger vault (CSS fallback without
+  WebGL), scroll-lit problem statement, case simulator with fault injection,
+  guardrail breaker, analytics with a daily-limit what-if, animated role previews.
+  Marketing sample money is INR, matching the domain contract; all figures are
+  labelled simulated.
+- Auth routes share a split layout with an animated network panel; login adds a
+  portal picker that drives the existing workspace select.
+- Portal shell: topbar with ⌘K palette (navigate, portal actions, jump to a case
+  reference), G-then-letter shortcuts, `?` shortcut sheet, compact density, theme
+  toggle. Mode chip shows `NEXT_PUBLIC_SHELL_MODE` verbatim (never implies live).
+- `CaseReplay` in every `CaseTimeline`: scrubs real `CaseEvent`s. Only
+  `VERIFIED_RESOLVED` reaches the customer; dispatch and verify stay "pending is
+  not proof". Timestamps render in UTC so SSR and client match. Decision
+  workspace adds evidence freshness from `observed_at` → `expires_at`.
+- `/design`: component gallery on labelled sample data.
+- `/supervisor/command` (new nav item "Command center"): live command center over
+  real ops reads (open + history cases, audit feed) with KPI tiles, case-flow
+  Sankey, 24h audit throughput, stage distribution and event stream. Incident
+  mode trips only on a failed refresh or escalations ≥ 25% of cases in view.
+  Peer failure stays visible; no fixture fallback.
+- Operator queue becomes a workbench: phase filter tabs, distribution bar,
+  per-row progress track, J/K selection with Enter/E, and a preview pane that
+  replays the selected case's real events.
+- Customer cases render as refund trackers; "money back" only for
+  `VERIFIED_RESOLVED`.
+- Merchant analytics adds a visual layer drawn only from `MerchantMetrics`
+  fields (aging buckets, exception-rate gauge, ranked causes, median handling).
+- `app/template.tsx`: fade-rise page transition everywhere, curtain wipe when
+  entering a portal from landing or login (reduced motion respected).
+- Not changed: approval mechanics. Hold-to-approve belongs in approval-ui (SN-013);
+  it is proposed there, not patched from this module.
+
 ### Changed — sandbox login credential copy
 
 - Login seed-account details note local + labeled sandbox/dev-deploy use of

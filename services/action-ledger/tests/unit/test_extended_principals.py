@@ -53,3 +53,33 @@ def test_catalog_marks_money_forbidden_roles() -> None:
     for role in ("merchant", "risk_officer", "platform_admin"):
         entry = next(p for p in payload["principals"].values() if role in p["roles"])
         assert "supervisor" not in entry["roles"]
+
+
+def test_principal_case_scope_from_env(monkeypatch) -> None:
+    from sentinel_action_ledger.adapters.auth_tokens import principals_from_environ
+
+    monkeypatch.setenv("LEDGER_PRINCIPAL_CASE_SCOPE", "*")
+    monkeypatch.setenv("LEDGER_PRINCIPAL_SUBJECT_SCOPE", "subject-demo-42, subject-b")
+    mapping = principals_from_environ()
+    workflow = mapping["tok-workflow"]
+    assert workflow.case_ids == ("*",)
+    assert workflow.subject_refs == ("subject-demo-42", "subject-b")
+    assert mapping["tok-supervisor"].case_ids == ("*",)
+
+
+def test_principal_case_scope_default_unchanged(monkeypatch) -> None:
+    from sentinel_action_ledger.adapters.auth_tokens import principals_from_environ
+
+    monkeypatch.delenv("LEDGER_PRINCIPAL_CASE_SCOPE", raising=False)
+    monkeypatch.delenv("LEDGER_PRINCIPAL_SUBJECT_SCOPE", raising=False)
+    assert principals_from_environ()["tok-workflow"].case_ids == ("case-demo-42",)
+
+
+def test_principal_case_scope_empty_rejected(monkeypatch) -> None:
+    import pytest
+
+    from sentinel_action_ledger.adapters.auth_tokens import principals_from_environ
+
+    monkeypatch.setenv("LEDGER_PRINCIPAL_CASE_SCOPE", " , ")
+    with pytest.raises(ValueError):
+        principals_from_environ()

@@ -13,6 +13,8 @@ dependencies = [
   "httpx>=0.28,<1",
   "sqlalchemy>=2.0,<3",
   "psycopg[binary]>=3.2,<4",
+  "fastembed>=0.7,<1",
+  "pgvector>=0.3,<1",
 ]
 
 [project.scripts]
@@ -42,7 +44,8 @@ pythonpath = ["src", "."]
 testpaths = ["tests"]
 addopts = "-q --strict-markers"
 markers = [
-  "postgres: real PostgreSQL article store proofs",
+  "postgres: real PostgreSQL + pgvector article store proofs",
+  "real_embedder: downloads and runs the real local ONNX embedding model",
 ]
 
 [tool.ruff]

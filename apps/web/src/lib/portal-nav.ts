@@ -9,6 +9,7 @@ import type { NavItem } from "@/components/layout/protected-shell";
 export function opsPortalNav(portal: "operator" | "supervisor"): NavItem[] {
   return [
     { href: `/${portal}/dashboard`, label: "Dashboard" },
+    { href: "/supervisor/command", label: "Command center" },
     { href: "/operator/queue", label: "Queue" },
     { href: "/supervisor/approvals", label: "Approvals" },
     { href: "/operator/escalations", label: "Escalations" },
