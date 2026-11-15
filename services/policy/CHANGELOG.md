@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added — policy artifact list
+
+- `GET /v1/policies` returns seeded versioned artifacts including `demo-policy-v1`
+  (`contracts/policies.json`). Auth: `platform_admin`, `workflow`, or `sandbox-admin`.
+- Fixture principal `tok-sandbox-admin`. No evaluate-rule mutation from this surface.
+
 ### Added — SN-040 peer principal catalog
 
 - Additive fixture principals for `merchant` / `risk_officer` / `platform_admin`

@@ -20,7 +20,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.exc import SQLAlchemyError
 
 from ..application.errors import ConfigurationError, PeerUnavailableError
-from ..domain.types import AiConfig, AiModel, AiRun
+from ..domain.types import AiConfig, AiIntegration, AiModel, AiRun
 
 SCHEMA = "platform_ai"
 
@@ -32,7 +32,7 @@ def build_engine(database_url: str) -> Engine:
     return engine
 
 
-def _tables(schema: str) -> tuple[Table, Table]:
+def _tables(schema: str) -> tuple[Table, Table, Table]:
     metadata = MetaData()
     configs = Table(
         "ai_configs",
@@ -53,7 +53,17 @@ def _tables(schema: str) -> tuple[Table, Table]:
         Column("started_at", String(64), nullable=False),
         schema=schema,
     )
-    return configs, runs
+    integrations = Table(
+        "ai_integrations",
+        metadata,
+        Column("integration_id", String(128), primary_key=True),
+        Column("tenant_id", String(256), nullable=False),
+        Column("name", String(256), nullable=False),
+        Column("status", String(64), nullable=False),
+        Column("updated_at", String(64), nullable=False),
+        schema=schema,
+    )
+    return configs, runs, integrations
 
 
 class PostgresPlatformAiStore:
@@ -62,7 +72,7 @@ class PostgresPlatformAiStore:
             raise ConfigurationError("A real PostgreSQL connection is required")
         self._engine = engine
         self._schema = schema
-        self._configs, self._runs = _tables(schema)
+        self._configs, self._runs, self._integrations = _tables(schema)
 
     def migrate(self) -> None:
         try:
@@ -70,6 +80,7 @@ class PostgresPlatformAiStore:
                 connection.execute(text(f'CREATE SCHEMA IF NOT EXISTS "{self._schema}"'))
                 self._configs.create(connection, checkfirst=True)
                 self._runs.create(connection, checkfirst=True)
+                self._integrations.create(connection, checkfirst=True)
         except SQLAlchemyError as exc:
             raise PeerUnavailableError("platform-ai database unavailable") from exc
 
@@ -142,6 +153,41 @@ class PostgresPlatformAiStore:
             raise PeerUnavailableError("platform-ai database unavailable") from exc
         return run
 
+    def list_integrations(self, tenant_id: str) -> tuple[AiIntegration, ...]:
+        try:
+            with self._engine.begin() as connection:
+                rows = (
+                    connection.execute(
+                        select(self._integrations)
+                        .where(self._integrations.c.tenant_id == tenant_id)
+                        .order_by(self._integrations.c.updated_at.desc())
+                    )
+                    .mappings()
+                    .all()
+                )
+        except SQLAlchemyError as exc:
+            raise PeerUnavailableError("platform-ai database unavailable") from exc
+        return tuple(_integration_from(dict(row)) for row in rows)
+
+    def put_integration(self, integration: AiIntegration) -> AiIntegration:
+        values = _integration_row(integration)
+        try:
+            with self._engine.begin() as connection:
+                stmt = pg_insert(self._integrations).values(**values)
+                stmt = stmt.on_conflict_do_update(
+                    index_elements=[self._integrations.c.integration_id],
+                    set_={
+                        "tenant_id": stmt.excluded.tenant_id,
+                        "name": stmt.excluded.name,
+                        "status": stmt.excluded.status,
+                        "updated_at": stmt.excluded.updated_at,
+                    },
+                )
+                connection.execute(stmt)
+        except SQLAlchemyError as exc:
+            raise PeerUnavailableError("platform-ai database unavailable") from exc
+        return integration
+
 
 def _config_row(config: AiConfig) -> dict[str, Any]:
     return {
@@ -187,4 +233,24 @@ def _run_from(row: dict[str, Any]) -> AiRun:
         model_id=str(row["model_id"]),
         status=str(row["status"]),
         started_at=str(row["started_at"]),
+    )
+
+
+def _integration_row(integration: AiIntegration) -> dict[str, Any]:
+    return {
+        "integration_id": integration.integration_id,
+        "tenant_id": integration.tenant_id,
+        "name": integration.name,
+        "status": integration.status,
+        "updated_at": integration.updated_at,
+    }
+
+
+def _integration_from(row: dict[str, Any]) -> AiIntegration:
+    return AiIntegration(
+        integration_id=str(row["integration_id"]),
+        tenant_id=str(row["tenant_id"]),
+        name=str(row["name"]),
+        status=str(row["status"]),
+        updated_at=str(row["updated_at"]),
     )

@@ -141,6 +141,17 @@ def create_app(services: AppServices) -> FastAPI:
         except TeamsError as exc:
             return _error(exc, request_id)
 
+    @app.get("/v1/admin/merchants")
+    def admin_merchants(request: Request) -> JSONResponse:
+        """Platform admin merchant catalog for the caller's tenant."""
+        request_id = _request_id(request)
+        try:
+            principal = services.authenticator.authenticate(request.headers.get("authorization"))
+            rows = services.staff.list_merchants(principal)
+            return JSONResponse({"merchants": [row.to_wire() for row in rows]})
+        except TeamsError as exc:
+            return _error(exc, request_id)
+
     @app.get("/v1/staff/{staff_id}")
     def get_staff(staff_id: str, request: Request) -> JSONResponse:
         request_id = _request_id(request)

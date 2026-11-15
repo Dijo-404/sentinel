@@ -54,5 +54,12 @@
     "roles": ["platform_admin"],
     "subject_refs": ["*"],
     "case_ids": ["*"]
+  },
+  "tok-sandbox-admin": {
+    "principal_id": "sandbox-admin-demo",
+    "tenant_id": "tenant-demo",
+    "roles": ["sandbox-admin"],
+    "subject_refs": ["*"],
+    "case_ids": ["*"]
   }
 }

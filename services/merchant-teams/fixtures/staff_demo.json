@@ -17,6 +17,12 @@
     "notify_disputes": true,
     "notify_settlements": true
   },
+  "merchant": {
+    "tenant_id": "tenant-demo",
+    "merchant_ref": "merchant-demo-1",
+    "display_name": "Demo Merchant",
+    "status": "active"
+  },
   "activity": [
     {
       "event_id": "event-demo-1",

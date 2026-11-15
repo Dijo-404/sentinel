@@ -201,6 +201,15 @@ class PostgresIdentityStore:
             )
         return tuple(_assignment_from_row(r) for r in rows)
 
+    def list_all_assignments(self) -> tuple[RoleAssignment, ...]:
+        with self._engine.connect() as conn:
+            rows = (
+                conn.execute(text("SELECT * FROM identity.role_assignments ORDER BY granted_at"))
+                .mappings()
+                .all()
+            )
+        return tuple(_assignment_from_row(r) for r in rows)
+
     def create_session(self, session: SessionRecord) -> SessionRecord:
         with self._engine.begin() as conn:
             conn.execute(
@@ -245,6 +254,15 @@ class PostgresIdentityStore:
                 session.__dict__,
             )
         return session
+
+    def list_sessions(self) -> tuple[SessionRecord, ...]:
+        with self._engine.connect() as conn:
+            rows = (
+                conn.execute(text("SELECT * FROM identity.sessions ORDER BY issued_at"))
+                .mappings()
+                .all()
+            )
+        return tuple(_session_from_row(r) for r in rows)
 
     def revoke_sessions_for_user(self, user_id: str, *, at: datetime) -> int:
         with self._engine.begin() as conn:

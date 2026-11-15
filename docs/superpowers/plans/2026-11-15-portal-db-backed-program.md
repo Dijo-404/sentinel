@@ -12,7 +12,7 @@
 | 2 Ops case surfaces | `docs/superpowers/plans/2026-11-15-portal-wave2-ops-case-surfaces.md` | done |
 | 3 Identity / auth / customer | `docs/superpowers/plans/2026-11-15-portal-wave3-identity-auth-customer.md` | done |
 | 4 Intel + voice + approval-ui | `docs/superpowers/plans/2026-11-15-portal-wave4-intel-voice-approval.md` | done |
-| 5 Admin remainder | TBD | pending |
+| 5 Admin remainder | `docs/superpowers/plans/2026-11-15-portal-wave5-admin-remainder.md` | done |
 | 6 Money-path E2E | TBD | pending |
 
 ## Global program constraints (all waves)

@@ -7,9 +7,13 @@ from fastapi.testclient import TestClient
 
 from sentinel_platform_ai.adapters.storage_memory import MemoryPlatformAiStore
 from sentinel_platform_ai.bootstrap import Settings, build_app
-from sentinel_platform_ai.domain.types import AiConfig, AiModel, AiRun
+from sentinel_platform_ai.domain.types import AiConfig, AiIntegration, AiModel, AiRun
 from sentinel_platform_ai.seed import (
     SEED_CONFIG_UPDATED_AT,
+    SEED_INTEGRATION_ID,
+    SEED_INTEGRATION_NAME,
+    SEED_INTEGRATION_STATUS,
+    SEED_INTEGRATION_UPDATED_AT,
     SEED_MODEL_ID,
     SEED_RUN_ID,
     SEED_RUN_STARTED_AT,
@@ -62,6 +66,15 @@ def seeded_store() -> MemoryPlatformAiStore:
             model_id=SEED_MODEL_ID,
             status="SUCCEEDED",
             started_at=SEED_RUN_STARTED_AT,
+        )
+    )
+    store.put_integration(
+        AiIntegration(
+            integration_id=SEED_INTEGRATION_ID,
+            tenant_id=SEED_TENANT_ID,
+            name=SEED_INTEGRATION_NAME,
+            status=SEED_INTEGRATION_STATUS,
+            updated_at=SEED_INTEGRATION_UPDATED_AT,
         )
     )
     return store

@@ -40,7 +40,10 @@ Synthetic tokens are in `contracts/principals.json`. Canonical workflow bearer: 
 | GET | `/healthz` | none | liveness |
 | GET | `/readyz` | none | labels `mode` |
 | GET | `/v1/capabilities` | none | `contract_version`, `component=policy`, `mode` |
+| GET | `/v1/policies` | `platform_admin`, `workflow`, or `sandbox-admin` bearer | `{ policies: [{ policy_id, version, status, updated_at }] }` seeded with `demo-policy-v1`; read-only catalog, no rule mutation |
 | POST | `/v1/evaluate` | workflow bearer (ledger may use workflow-scoped service principal) | `PolicyRequest` → `PolicyResult` |
+
+List auth tokens: `tok-platform-admin`, `tok-workflow` / `workflow-demo-token`, `tok-sandbox-admin`. Catalog seed: `contracts/policies.json` (`POLICY_CATALOG_PATH` override).
 
 ## Rules summary (`demo-policy-v1`)
 
@@ -60,11 +63,11 @@ Canonical action digest matches the baseline fixture in `contracts/digest-fixtur
 ```text
 services/policy/
   src/sentinel_policy/
-    domain/          # rules + reason codes
-    application/     # EvaluatePolicy + Clock port
-    adapters/        # FastAPI, bearer map, clocks
+    domain/          # rules + reason codes + PolicyArtifact
+    application/     # EvaluatePolicy, ListPolicies + ports
+    adapters/        # FastAPI, bearer map, catalog, clocks
     bootstrap.py
-  contracts/         # principals, request/result snapshots, digest fixture
+  contracts/         # principals, policies seed, request/result snapshots, digest fixture
   tests/unit|contract
 ```
 

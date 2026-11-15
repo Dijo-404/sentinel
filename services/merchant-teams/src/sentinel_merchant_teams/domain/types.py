@@ -108,6 +108,36 @@ class StaffActivity:
 
 
 @dataclass(frozen=True, slots=True)
+class Merchant:
+    """Tenant-scoped merchant business record (admin catalog)."""
+
+    tenant_id: str
+    merchant_ref: str
+    status: str
+    display_name: str | None = None
+
+    def to_wire(self) -> dict[str, Any]:
+        body: dict[str, Any] = {
+            "merchant_ref": self.merchant_ref,
+            "status": self.status,
+        }
+        if self.display_name is not None:
+            body["display_name"] = self.display_name
+        return body
+
+    @classmethod
+    def from_wire(cls, body: dict[str, Any]) -> Merchant:
+        return cls(
+            tenant_id=str(body["tenant_id"]),
+            merchant_ref=str(body["merchant_ref"]),
+            status=str(body["status"]),
+            display_name=(
+                str(body["display_name"]) if body.get("display_name") is not None else None
+            ),
+        )
+
+
+@dataclass(frozen=True, slots=True)
 class MerchantSettings:
     """Merchant-scoped business preferences (notification language + alerts)."""
 

@@ -288,6 +288,86 @@ curl -sS -H "Authorization: Bearer operator-token" \
 curl -sS http://127.0.0.1:8017/v1/capabilities
 ```
 
+### Wave 5 portal peers (admin remainder) — run order
+
+Admin surfaces need identity + merchant-teams + platform-ai + evals + observability
+seeded (policy catalog is file-backed). Tokens differ per peer — see matrix.
+
+1. Export sandbox flags + peer DSNs (synthetic only):
+
+```sh
+export SENTINEL_V1_SANDBOX=1 CORE_ASSEMBLY_TENANT_ID=tenant-demo
+export IDENTITY_DATABASE_URL=…
+export MERCHANT_TEAMS_DATABASE_URL=…
+export PLATFORM_AI_DATABASE_URL=…
+export EVALUATION_DATABASE_URL=…
+export OBSERVABILITY_DATABASE_URL=…
+```
+
+2. Seed:
+
+```sh
+make -C integration/core seed-sandbox
+# or per-module: make -C services/identity seed && \
+#   make -C services/merchant-teams seed && make -C services/platform-ai seed && \
+#   make -C evals/core seed && make -C services/observability seed
+```
+
+3. Serve peers (loopback defaults): identity `:8012`, policy `:8005`,
+   merchant-teams `:8034`, platform-ai `:8036`, evals `:8031`, observability `:8033`.
+   Merchant-teams must include `platform-admin-token=…|platform_admin|…` in
+   `MERCHANT_TEAMS_TOKENS` (see module tests / README).
+
+4. Verify (nonzero if peers down, HTTP ≠ 200, or seed rows missing):
+
+```sh
+make -C integration/core verify-wave5
+# or: ./scripts/verify_wave5.sh
+```
+
+Asserts HTTP 200 + seeded JSON for:
+
+| Check | Peer URL | Seed marker / token |
+| --- | --- | --- |
+| identity admin session | login `admin@example.test` | hashed session (not `tok-*`) |
+| identity roles | `GET /v1/admin/roles` | `platform_admin` in `human_roles` |
+| identity tenants | `GET /v1/admin/tenants` | `tenant-demo` |
+| policy policies | `GET /v1/policies` | `demo-policy-v1` / `tok-platform-admin` |
+| merchant-teams merchants | `GET /v1/admin/merchants` | `merchant-demo-1` / `platform-admin-token` |
+| platform-ai config | `GET /v1/config` | `model-sandbox-1` / `admin-token` |
+| platform-ai integrations | `GET /v1/integrations` | `integration-sandbox-1` / `admin-token` |
+| evals reports | `GET /v1/reports` | `eval-sandbox-1` / `admin-token` |
+| observability signals | `GET /v1/signals` | `sig-seed-request-handle` / `admin-token` |
+
+#### Curl checklist (wave 5)
+
+```sh
+TOKEN=$(curl -sS -X POST http://127.0.0.1:8012/v1/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"admin@example.test","password":"x","requested_role":"platform_admin"}' \
+  | jq -r .session_token)
+
+curl -sS -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8012/v1/admin/roles
+curl -sS -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8012/v1/admin/tenants
+
+curl -sS -H "Authorization: Bearer tok-platform-admin" \
+  http://127.0.0.1:8005/v1/policies
+
+curl -sS -H "Authorization: Bearer platform-admin-token" \
+  http://127.0.0.1:8034/v1/admin/merchants
+
+curl -sS -H "Authorization: Bearer admin-token" \
+  http://127.0.0.1:8036/v1/config
+curl -sS -H "Authorization: Bearer admin-token" \
+  http://127.0.0.1:8036/v1/integrations
+
+curl -sS -H "Authorization: Bearer admin-token" \
+  http://127.0.0.1:8031/v1/reports
+
+curl -sS -H "Authorization: Bearer admin-token" \
+  http://127.0.0.1:8033/v1/signals
+```
+
 #### Curl checklist (wave 3)
 
 ```sh
@@ -342,6 +422,7 @@ integration/core/
   scripts/verify_wave2.sh
   scripts/verify_wave3.sh
   scripts/verify_wave4.sh
+  scripts/verify_wave5.sh
   tests/stubs/
 ```
 

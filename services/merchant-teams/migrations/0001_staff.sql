@@ -30,3 +30,11 @@ CREATE INDEX IF NOT EXISTS ix_staff_activity_staff_id
     ON merchant_teams.staff_activity (staff_id);
 
 -- Append-only: no UPDATE/DELETE grants on staff_activity in deployed roles.
+
+CREATE TABLE IF NOT EXISTS merchant_teams.merchants (
+    tenant_id TEXT NOT NULL,
+    merchant_ref TEXT NOT NULL,
+    display_name TEXT NULL,
+    status TEXT NOT NULL,
+    PRIMARY KEY (tenant_id, merchant_ref)
+);

@@ -1,4 +1,4 @@
-"""HTTP API: config + run metadata only (no money fields)."""
+"""HTTP API: config + run + integration metadata only (no money fields)."""
 
 from __future__ import annotations
 
@@ -59,12 +59,31 @@ def test_get_runs_returns_metadata_only(client: TestClient, admin_headers: dict[
     _assert_no_money_fields(body)
 
 
+def test_get_integrations_returns_seeded_metadata(
+    client: TestClient, admin_headers: dict[str, str]
+):
+    response = client.get("/v1/integrations", headers=admin_headers)
+    assert response.status_code == 200
+    body = response.json()
+    assert "integrations" in body
+    assert len(body["integrations"]) >= 1
+    item = body["integrations"][0]
+    assert item["integration_id"] == "integration-sandbox-1"
+    assert item["name"] == "Sandbox webhook"
+    assert item["status"] == "ACTIVE"
+    assert item["updated_at"].endswith("Z")
+    assert set(item) == {"integration_id", "name", "status", "updated_at"}
+    _assert_no_money_fields(body)
+
+
 def test_config_and_runs_require_bearer(client: TestClient):
     assert client.get("/v1/config").status_code == 403
     assert client.get("/v1/runs").status_code == 403
+    assert client.get("/v1/integrations").status_code == 403
 
 
 def test_operator_denied_admin_surfaces(client: TestClient):
     headers = {"Authorization": "Bearer operator-token"}
     assert client.get("/v1/config", headers=headers).status_code == 403
     assert client.get("/v1/runs", headers=headers).status_code == 403
+    assert client.get("/v1/integrations", headers=headers).status_code == 403

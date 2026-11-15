@@ -10,6 +10,7 @@ from ..domain.advisory import check_advisory_limit, refuse_financial_authorizati
 from ..domain.roles import normalize_roles
 from ..domain.types import (
     AdvisoryLimitResult,
+    Merchant,
     MerchantSettings,
     MerchantStaff,
     Principal,
@@ -26,6 +27,7 @@ from .errors import (
 from .ports import CaseApiPort, Clock, IdentityMembershipPort, StaffStore
 
 _MANAGE_ROLES = frozenset({"operator", "supervisor", "sandbox-admin"})
+_ADMIN_MERCHANT_ROLES = frozenset({"platform_admin", "sandbox-admin"})
 _CASE_ACTIVITY_KINDS = frozenset({"CASE_VIEW", "CASE_NOTE", "CASE_ASSIGN"})
 _ACTIVE_MEMBERSHIP = frozenset({"active"})
 
@@ -33,6 +35,11 @@ _ACTIVE_MEMBERSHIP = frozenset({"active"})
 def _require_manager(principal: Principal) -> None:
     if not _MANAGE_ROLES.intersection(principal.roles):
         raise UnauthorizedError("Operator or supervisor role required")
+
+
+def _require_admin_merchant_reader(principal: Principal) -> None:
+    if not _ADMIN_MERCHANT_ROLES.intersection(principal.roles):
+        raise UnauthorizedError("platform_admin or sandbox-admin role required")
 
 
 def _require_merchant(principal: Principal, merchant_ref: str) -> None:
@@ -169,6 +176,11 @@ class StaffService:
         if row is None:
             raise NotFoundError("Merchant settings not found")
         return row
+
+    def list_merchants(self, principal: Principal) -> tuple[Merchant, ...]:
+        """Admin catalog of merchants for the caller's tenant."""
+        _require_admin_merchant_reader(principal)
+        return self._store.list_merchants(tenant_id=principal.tenant_id)
 
     def update(
         self,

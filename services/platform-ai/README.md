@@ -18,6 +18,7 @@ Typed snapshot: [contracts/platform-ai.v1.json](contracts/platform-ai.v1.json).
 | --- | --- | --- | --- |
 | `GET` | `/v1/config` | platform_admin, sandbox-admin | `{ models, kill_switch, updated_at }` |
 | `GET` | `/v1/runs` | platform_admin, sandbox-admin | `{ runs: [{ run_id, model_id, status, started_at }] }` |
+| `GET` | `/v1/integrations` | platform_admin, sandbox-admin | `{ integrations: [{ integration_id, name, status, updated_at }] }` |
 
 Also: `/healthz`, `/readyz`, `/v1/capabilities` (`mode: fixture|real-peers`,
 `money_authority: false`).
@@ -42,7 +43,7 @@ make -C services/platform-ai preview
 # listens on PLATFORM_AI_HOST/PLATFORM_AI_PORT (default 127.0.0.1:8036)
 
 make -C services/platform-ai seed
-# requires PLATFORM_AI_DATABASE_URL; writes tenant-demo config + run-demo-1
+# requires PLATFORM_AI_DATABASE_URL; writes tenant-demo config + run + integration
 ```
 
 Synthetic bearer: `admin-token` (platform_admin / tenant-demo).
@@ -52,14 +53,14 @@ Synthetic bearer: `admin-token` (platform_admin / tenant-demo).
 ```text
 services/platform-ai/
   src/sentinel_platform_ai/
-    domain/            # AiConfig, AiRun, Principal
+    domain/            # AiConfig, AiRun, AiIntegration, Principal
     application/       # service + ports
     adapters/          # FastAPI, auth, memory/postgres stores
     bootstrap.py
     seed.py
     cli.py
   contracts/           # platform-ai.v1.json
-  fixtures/            # config_demo.json, run_demo.json
+  fixtures/            # config_demo.json, run_demo.json, integration_demo.json
   migrations/          # 0001_platform_ai.sql
   tests/
 ```

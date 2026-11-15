@@ -1,4 +1,4 @@
--- platform-ai.v1: admin AI config + run metadata (no money columns).
+-- platform-ai.v1: admin AI config + run + integration metadata (no money columns).
 CREATE SCHEMA IF NOT EXISTS platform_ai;
 
 CREATE TABLE IF NOT EXISTS platform_ai.ai_configs (
@@ -18,3 +18,14 @@ CREATE TABLE IF NOT EXISTS platform_ai.ai_runs (
 
 CREATE INDEX IF NOT EXISTS ai_runs_tenant_started_idx
     ON platform_ai.ai_runs (tenant_id, started_at DESC);
+
+CREATE TABLE IF NOT EXISTS platform_ai.ai_integrations (
+    integration_id TEXT PRIMARY KEY,
+    tenant_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    status TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS ai_integrations_tenant_updated_idx
+    ON platform_ai.ai_integrations (tenant_id, updated_at DESC);

@@ -73,6 +73,14 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
             "ops-activity feed; voice /v1/capabilities; offline approval-ui package smoke"
         ),
     )
+    sub.add_parser(
+        "verify-wave5",
+        help=(
+            "HTTP 200 + seeded JSON from identity admin roles/tenants, policy policies, "
+            "merchant-teams admin merchants, platform-ai config/integrations, evals "
+            "reports, observability signals"
+        ),
+    )
     return parser.parse_args(argv)
 
 
@@ -144,6 +152,14 @@ def main(argv: list[str] | None = None) -> int:
         from sentinel_core_assembly.adapters.verify_wave4 import verify_wave4
 
         report = verify_wave4(dict(os.environ))
+        json.dump(report, sys.stdout, indent=2, sort_keys=True)
+        sys.stdout.write("\n")
+        return 0 if report.get("status") == "PASS" else 1
+
+    if args.command == "verify-wave5":
+        from sentinel_core_assembly.adapters.verify_wave5 import verify_wave5
+
+        report = verify_wave5(dict(os.environ))
         json.dump(report, sys.stdout, indent=2, sort_keys=True)
         sys.stdout.write("\n")
         return 0 if report.get("status") == "PASS" else 1

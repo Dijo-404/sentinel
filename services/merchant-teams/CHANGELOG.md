@@ -4,6 +4,9 @@
 
 ### Added
 
+- `GET /v1/admin/merchants` admin catalog (`platform_admin` / `sandbox-admin`):
+  `{ merchants: [{ merchant_ref, display_name?, status }] }` from
+  `merchant_teams.merchants`, seeded `merchant-demo-1` / Demo Merchant.
 - Thin merchant settings resource on this service (portal Task 7): table
   `merchant_teams.merchant_settings`, `GET /v1/merchant/settings?merchant_ref=…`,
   seeded with membership from `fixtures/staff_demo.json`. Missing row → 404.

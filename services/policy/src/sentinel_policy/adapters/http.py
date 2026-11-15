@@ -9,7 +9,9 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from sentinel_policy.adapters.auth import TokenMap
+from sentinel_policy.adapters.catalog import PolicyCatalog
 from sentinel_policy.application.evaluate import EvaluatePolicy
+from sentinel_policy.application.list_policies import ListPolicies
 from sentinel_policy.contracts import (
     COMPONENT,
     CONTRACT_VERSION,
@@ -23,11 +25,13 @@ def create_app(
     *,
     evaluate: EvaluatePolicy,
     tokens: TokenMap,
+    list_policies: ListPolicies | None = None,
     mode: str = "fixture",
 ) -> FastAPI:
     app = FastAPI(title="sentinel-policy", version="0.1.0")
     app.state.evaluate = evaluate
     app.state.tokens = tokens
+    app.state.list_policies = list_policies or ListPolicies(PolicyCatalog.default())
     app.state.mode = mode
 
     @app.get("/healthz")
@@ -46,6 +50,36 @@ def create_app(
             "mode": app.state.mode,
             "port": PORT,
         }
+
+    @app.get("/v1/policies")
+    def list_policies_route(request: Request) -> JSONResponse:
+        request_id = request.headers.get("x-request-id") or str(uuid.uuid4())
+        principal = app.state.tokens.resolve(request.headers.get("authorization"))
+        if principal is None:
+            return JSONResponse(
+                status_code=401,
+                content={
+                    "code": "UNAUTHORIZED",
+                    "message": "Valid bearer token required",
+                    "request_id": request_id,
+                },
+            )
+        try:
+            artifacts = app.state.list_policies(principal)
+        except PolicyInputError as exc:
+            status = 403 if exc.code == "FORBIDDEN" else 422
+            return JSONResponse(
+                status_code=status,
+                content={
+                    "code": exc.code,
+                    "message": exc.message,
+                    "request_id": request_id,
+                },
+            )
+        return JSONResponse(
+            status_code=200,
+            content={"policies": [a.as_dict() for a in artifacts]},
+        )
 
     @app.post("/v1/evaluate")
     async def evaluate_route(request: Request) -> JSONResponse:

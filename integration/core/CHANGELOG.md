@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+### Added — 15 November 2026 (portal wave 5 admin verify)
+
+- `verify_wave5` + `scripts/verify_wave5.sh` / `make verify-wave5` /
+  `sentinel-core-assembly verify-wave5`: HTTP 200 + seeded JSON for identity
+  admin roles/tenants (`platform_admin` / `tenant-demo`), policy catalog
+  (`demo-policy-v1`), merchant-teams admin merchants (`merchant-demo-1`),
+  platform-ai config/integrations (`model-sandbox-1` /
+  `integration-sandbox-1`), evals reports (`eval-sandbox-1`), observability
+  signals (`sig-seed-request-handle`, `financial_audit=false`).
+- Defaults: identity `:8012`, policy `:8005`, merchant-teams `:8034`,
+  platform-ai `:8036`, evals `:8031`, observability `:8033`.
+- Tokens (documented): identity admin session via login
+  (`admin@example.test` + `requested_role=platform_admin`); policy
+  `tok-platform-admin`; merchant-teams `platform-admin-token`; platform-ai /
+  evals / observability `admin-token`.
+- `seed_sandbox` invokes `make -C services/merchant-teams seed` when
+  `MERCHANT_TEAMS_DATABASE_URL` is set. Matrix + README Wave 5 run order.
+
 ### Changed — 15 November 2026 (port remap)
 
 - Knowledge verify default `:8035` (was `:8034`; merchant-teams owns 8034).

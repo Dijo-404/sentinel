@@ -1,8 +1,8 @@
-"""Use cases: read AI config and run metadata for a tenant."""
+"""Use cases: read AI config, run, and integration metadata for a tenant."""
 
 from __future__ import annotations
 
-from ..domain.types import AiConfig, AiRun, Principal
+from ..domain.types import AiConfig, AiIntegration, AiRun, Principal
 from .errors import NotFoundError, UnauthorizedError
 from .ports import PlatformAiStore
 
@@ -21,6 +21,10 @@ class PlatformAiService:
     def list_runs(self, principal: Principal) -> tuple[AiRun, ...]:
         _require_admin(principal)
         return self._store.list_runs(principal.tenant_id)
+
+    def list_integrations(self, principal: Principal) -> tuple[AiIntegration, ...]:
+        _require_admin(principal)
+        return self._store.list_integrations(principal.tenant_id)
 
 
 def _require_admin(principal: Principal) -> None:

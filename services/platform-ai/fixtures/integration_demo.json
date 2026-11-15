@@ -1,0 +1,7 @@
+{
+  "integration_id": "integration-sandbox-1",
+  "tenant_id": "tenant-demo",
+  "name": "Sandbox webhook",
+  "status": "ACTIVE",
+  "updated_at": "2026-11-15T00:02:00Z"
+}

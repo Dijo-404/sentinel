@@ -1,4 +1,4 @@
-"""Postgres seed: one config row + one run; APIs serve DB metadata."""
+"""Postgres seed: config + run + integration; APIs serve DB metadata."""
 
 from __future__ import annotations
 
@@ -17,6 +17,7 @@ from tests.conftest import MONEY_KEYS, TOKENS
 from sentinel_platform_ai.adapters.storage_postgres import PostgresPlatformAiStore, build_engine
 from sentinel_platform_ai.bootstrap import Settings, build_app
 from sentinel_platform_ai.seed import (
+    SEED_INTEGRATION_ID,
     SEED_MODEL_ID,
     SEED_RUN_ID,
     SEED_TENANT_ID,
@@ -115,7 +116,8 @@ def test_seed_config_and_run_served_from_postgres(postgres_url: str):
     assert report["tenant_id"] == SEED_TENANT_ID
     assert report["model_id"] == SEED_MODEL_ID
     assert report["run_id"] == SEED_RUN_ID
-    assert report["rows"] == 2
+    assert report["integration_id"] == SEED_INTEGRATION_ID
+    assert report["rows"] == 3
 
     store = PostgresPlatformAiStore(build_engine(postgres_url))
     config = store.get_config(SEED_TENANT_ID)
@@ -125,10 +127,15 @@ def test_seed_config_and_run_served_from_postgres(postgres_url: str):
     runs = store.list_runs(SEED_TENANT_ID)
     assert len(runs) == 1
     assert runs[0].run_id == SEED_RUN_ID
+    integrations = store.list_integrations(SEED_TENANT_ID)
+    assert len(integrations) == 1
+    assert integrations[0].integration_id == SEED_INTEGRATION_ID
 
     again = seed_demo_platform_ai(postgres_url)
     assert again["run_id"] == SEED_RUN_ID
+    assert again["integration_id"] == SEED_INTEGRATION_ID
     assert len(store.list_runs(SEED_TENANT_ID)) == 1
+    assert len(store.list_integrations(SEED_TENANT_ID)) == 1
 
     settings = Settings(
         mode="real-peers",
@@ -152,3 +159,15 @@ def test_seed_config_and_run_served_from_postgres(postgres_url: str):
     assert runs_body["runs"][0]["run_id"] == SEED_RUN_ID
     assert set(runs_body["runs"][0]) == {"run_id", "model_id", "status", "started_at"}
     _assert_no_money_fields(runs_body)
+
+    integrations_resp = client.get("/v1/integrations", headers=headers)
+    assert integrations_resp.status_code == 200
+    integrations_body = integrations_resp.json()
+    assert integrations_body["integrations"][0]["integration_id"] == SEED_INTEGRATION_ID
+    assert set(integrations_body["integrations"][0]) == {
+        "integration_id",
+        "name",
+        "status",
+        "updated_at",
+    }
+    _assert_no_money_fields(integrations_body)

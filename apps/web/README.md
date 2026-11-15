@@ -40,6 +40,10 @@ See `.env.example`.
 | `NEXT_PUBLIC_SHELL_MODE` | `fixture` (default) or `real-peers` |
 | `NEXT_PUBLIC_VOICE_ENABLED` | `true` in `.env.example` for product demo; off unless set |
 | `VOICE_BASE_URL` | Real-peers voice peer (default `http://127.0.0.1:8017`); BFF `/api/bff/voice` |
+| `EVALS_BASE_URL` | Evals HTTP serve (default `http://127.0.0.1:8031`); BFF `/api/bff/evals` |
+| `OBSERVABILITY_BASE_URL` | Observability peer (default `http://127.0.0.1:8033`); BFF `/api/bff/observability` |
+| `PLATFORM_AI_BASE_URL` | Platform-ai peer (default `http://127.0.0.1:8036`); BFF `/api/bff/platform-ai` |
+| `POLICY_BASE_URL` | Policy peer (default `http://127.0.0.1:8005`); BFF `/api/bff/policy` |
 | `CASE_API_BASE_URL` | Required in real-peers mode |
 | `CASE_API_BEARER_TOKEN` | Optional service-only fallback (server); portals use session cookie |
 | `IDENTITY_BASE_URL` | Required in real-peers mode (default `http://127.0.0.1:8012`) |
