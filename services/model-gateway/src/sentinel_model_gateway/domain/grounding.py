@@ -12,6 +12,25 @@ from typing import Any
 from .types import Evidence, ModelRequest, ModelResult, ProposalDraft
 
 
+def provider_order_id(authorized_reference: str) -> str | None:
+    """Provider order key for a case order_reference (evidence.v1 rule).
+
+    Canonical case form is ``{subject_ref}/{order_id}`` (``:`` also binds); provider
+    payments carry the bare ``order_id``. Bare refs pass through. Malformed -> None.
+    """
+    ref = authorized_reference
+    if not isinstance(ref, str) or not ref or ref != ref.strip():
+        return None
+    hits = [i for i in (ref.find("/"), ref.find(":")) if i >= 0]
+    if not hits:
+        return ref
+    idx = min(hits)
+    prefix, suffix = ref[:idx], ref[idx + 1 :]
+    if not prefix or not suffix or suffix[0] in "/:":
+        return None
+    return suffix
+
+
 def _facts(item: Evidence, kind: str) -> dict[str, Any] | None:
     if item.verification_status != "VERIFIED" or item.facts.get("kind") != kind:
         return None
@@ -86,7 +105,10 @@ def ground(request: ModelRequest, draft: ProposalDraft) -> ModelResult:
     payment_evidence, payment = payments[0]
     if not payment.get("order_reference"):
         return escalate(request, "ORDER_REFERENCE_MISSING")
-    if payment["order_reference"] != request.input.order_reference:
+    provider_order = provider_order_id(request.input.order_reference)
+    if provider_order is None:
+        return escalate(request, "ORDER_REFERENCE_INVALID")
+    if payment["order_reference"] != provider_order:
         return escalate(request, "ORDER_REFERENCE_MISMATCH")
     if payment.get("status") != "CAPTURED" or payment.get("currency") != "INR":
         return escalate(request, "PAYMENT_NOT_REFUNDABLE")

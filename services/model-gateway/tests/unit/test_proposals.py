@@ -212,3 +212,26 @@ def test_invalid_model_request_is_422(client, sarvam):
     response = client.post("/v1/proposals", json={"case": {}}, headers=AUTH)
     assert response.status_code == 422
     assert sarvam.requests == []
+
+
+def test_subject_bound_case_order_matches_bare_provider_order(client, sarvam):
+    # Real case-api stores "{subject}/{order}"; provider evidence carries the bare order id.
+    request = model_request()
+    request["input"]["order_reference"] = "subject-demo-42/DEMO-ORDER-42"
+    sarvam.queue.append(draft())
+    assert _post(client, request).json()["outcome"] == "PROPOSAL"
+
+
+def test_subject_bound_case_other_order_escalates(client, sarvam):
+    request = model_request()
+    request["input"]["order_reference"] = "subject-demo-42/OTHER-ORDER"
+    sarvam.queue.append(draft())
+    assert _post(client, request).json()["reason_codes"] == ["ORDER_REFERENCE_MISMATCH"]
+
+
+@pytest.mark.parametrize("ref", ["/DEMO-ORDER-42", "subject-demo-42/", "subject-demo-42//X"])
+def test_malformed_case_order_reference_escalates(client, sarvam, ref):
+    request = model_request()
+    request["input"]["order_reference"] = ref
+    sarvam.queue.append(draft())
+    assert _post(client, request).json()["reason_codes"] == ["ORDER_REFERENCE_INVALID"]
