@@ -1,0 +1,125 @@
+uv sync --frozen
+Audited 14 packages in 4ms
+uv run --frozen ruff check .
+All checks passed!
+uv run --frozen ruff format --check .
+55 files already formatted
+uv run --frozen pytest
+....................................s................................... [ 55%]
+..........................................................               [100%]
+129 passed, 1 skipped in 0.29s
+uv run --frozen sentinel-core-assembly check
+{
+  "assembled_mvp_claimed": false,
+  "checks": [
+    {
+      "name": "contract.version",
+      "reason_code": "CONTRACT_VERSION_OK",
+      "status": "PASS"
+    },
+    {
+      "name": "run.mode",
+      "reason_code": "MODE_OK",
+      "status": "PASS"
+    },
+    {
+      "name": "evidence.policy",
+      "reason_code": "FIXTURE_MODE_ALLOWS_LOCAL_PEERS",
+      "status": "PASS"
+    },
+    {
+      "name": "peer.case-api.v1",
+      "reason_code": "PEER_COMPATIBLE",
+      "status": "PASS"
+    },
+    {
+      "name": "peer.workflow.v1",
+      "reason_code": "PEER_COMPATIBLE",
+      "status": "PASS"
+    },
+    {
+      "name": "peer.action-ledger.v1",
+      "reason_code": "PEER_COMPATIBLE",
+      "status": "PASS"
+    },
+    {
+      "name": "peer.dispatcher.v1",
+      "reason_code": "PEER_COMPATIBLE",
+      "status": "PASS"
+    },
+    {
+      "name": "peer.verifier.v1",
+      "reason_code": "PEER_COMPATIBLE",
+      "status": "PASS"
+    },
+    {
+      "name": "peer.payment-provider.v1",
+      "reason_code": "PEER_COMPATIBLE",
+      "status": "PASS"
+    },
+    {
+      "name": "peer.web-shell.v1",
+      "reason_code": "PEER_COMPATIBLE",
+      "status": "PASS"
+    },
+    {
+      "name": "journey.pending",
+      "reason_code": "POSTCONDITIONS_MET",
+      "status": "PASS"
+    },
+    {
+      "name": "journey.merchant_mismatch",
+      "reason_code": "POSTCONDITIONS_MET",
+      "status": "PASS"
+    },
+    {
+      "name": "journey.duplicate_payment",
+      "reason_code": "POSTCONDITIONS_MET",
+      "status": "PASS"
+    },
+    {
+      "name": "journey.refund_pending",
+      "reason_code": "POSTCONDITIONS_MET",
+      "status": "PASS"
+    },
+    {
+      "name": "journey.browser_to_credit",
+      "reason_code": "POSTCONDITIONS_MET",
+      "status": "PASS"
+    },
+    {
+      "name": "journey.duplicate_approval_deny",
+      "reason_code": "POSTCONDITIONS_MET",
+      "status": "PASS"
+    },
+    {
+      "name": "assembly.path",
+      "reason_code": "FIXTURE_PATH_OK",
+      "status": "PASS"
+    },
+    {
+      "name": "assembly.mvp_claim",
+      "reason_code": "HARNESS_PASS_IS_NOT_MVP_RELEASE",
+      "status": "PASS"
+    }
+  ],
+  "contract_sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb",
+  "contract_version": "sentinel.task-contracts.v1",
+  "mode": "fixture",
+  "output_artifacts": [
+    {
+      "component_version": "0.1.0",
+      "evidence_mode": "fixture",
+      "kind": "core-assembly-report",
+      "sha256": "02427d2a611783c212193e9eaa34fe63d3fa6174641067246745ced16e9327a0",
+      "uri": "memory://core-assembly/run-2c17f21d8a78"
+    }
+  ],
+  "path": "browser-to-credit-fixture",
+  "payment_provider": "simulator",
+  "port": "core-assembly.v1",
+  "run_id": "run-2c17f21d8a78",
+  "sn009_authority_exercised": true,
+  "status": "PASS"
+}
+exit=0

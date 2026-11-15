@@ -1,5 +1,7 @@
 <a id="readme-top"></a>
 
+<p align="center"><img src="media/readme/banner.png" alt="Sentinel: every refund, from complaint to confirmed credit" width="100%"></p>
+
 <div align="center">
 
 <picture>
@@ -18,12 +20,22 @@ A payment operations workspace for customers, merchants and support teams, with 
 ![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=flat-square)
 ![Node.js](https://img.shields.io/badge/Node.js-20%2B-339933?style=flat-square)
 
-[Dev logins](#dev-logins) · [Quick start](#quick-start) · [How it works](#how-it-works) · [Verification](#verification) · [Documentation](#documentation)
+[Watch](#watch) · [See it](#see-it) · [Dev logins](#dev-logins) · [Quick start](#quick-start) · [How it works](#how-it-works) · [Verification](#verification) · [Documentation](#documentation)
 
 </div>
 
 > [!IMPORTANT]
 > Sentinel is a development sandbox using synthetic payment data and a mock payment provider. A successful demo proves the tested simulator behavior; it does not move real money or establish production or pilot readiness.
+
+## Watch
+
+|                                     Sentinel in 90 seconds                                      |                                       How Sentinel works                                        |
+| :---------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------: |
+| [![Sentinel in 90 seconds (1:29)](media/readme/poster-pitch.png)](https://youtu.be/U6B0VEkRMnc) | [![How Sentinel works (3:49)](media/readme/poster-explainer.png)](https://youtu.be/5mBIK9xCPPI) |
+
+> Sandbox only. Every screen is the app running locally in fixture mode with synthetic data; payments go to a mock simulator. These recordings were captured against commit `1a64a55` on 15 November 2026. Follow the current setup instructions below for current behavior.
+
+The posters open the videos on YouTube. Downloadable MP4 copies are hosted with the [sandbox demo media](https://github.com/Dijo-404/sentinel/releases/tag/readme-media-2026-11-15). The [README kit](media/README-kit.md) lists the assets and capture provenance.
 
 ## What Sentinel does
 
@@ -37,6 +49,14 @@ Sentinel helps investigate problems such as duplicate payments, captured payment
 - **Platform admins** manage staff access and role assignments.
 
 The model proposes an action. Authenticated identity, deterministic policy, supervisor approval and the action ledger decide whether it may execute. The verifier checks the outcome before the case can say the customer was credited.
+
+## See it
+
+|                     Case simulator                      |                                  Provider timeout                                  |                               Guardrails                                |
+| :-----------------------------------------------------: | :--------------------------------------------------------------------------------: | :---------------------------------------------------------------------: |
+| ![Case simulator](media/readme/demo-case-simulator.gif) | ![Provider timeout: reconcile, not resend](media/readme/demo-provider-timeout.gif) | ![Models propose, the server decides](media/readme/demo-guardrails.gif) |
+
+These animated previews show the local fixture UI and simulated case behavior, captured at `1a64a55`. They do not demonstrate provider writes or customer credit on live rails.
 
 ## Dev logins
 
@@ -134,6 +154,10 @@ The runbook lists the remaining peers and ports. Public deployments need appropr
 
 ## How it works
 
+### How a refund is authorized
+
+![Six steps to authorize a refund](media/readme/flow-six-steps.png)
+
 A duplicate-payment investigation follows this path:
 
 1. **Intake:** the Case API records the customer's issue and a subject-bound order reference.
@@ -142,6 +166,8 @@ A duplicate-payment investigation follows this path:
 4. **Reservation:** the ledger validates fresh evidence and approval, then atomically reserves money and records the command and financial audit.
 5. **Dispatch:** the dispatcher submits the refund using the ledger's stable `provider_ref`, including during retry or recovery.
 6. **Verification:** the verifier reconciles provider events and separate credit evidence. Only the required postconditions permit verified case closure.
+
+![The money path](media/readme/architecture.png)
 
 ```mermaid
 flowchart TD
@@ -177,6 +203,18 @@ Amounts use integer minor units with an explicit currency: `150000` INR minor un
 On timeout or crash, reconciliation keeps the original provider reference and reservation. An expired dispatch lease does not release reserved money. Escalation is a handoff, not financial resolution.
 
 See [architecture](docs/architecture.md) and the [contract baseline](docs/independent-task-contracts.md) for interfaces, state ownership and failure rules.
+
+## Proof
+
+The images below record capture-time results, rather than current release acceptance.
+
+![make -C integration/core check, fixture mode, 1a64a55](media/readme/proof-assembly-check.png)
+
+The [original check transcript](media/video/proof/core-check-1a64a55.txt), recorded on 15 November 2026 at `1a64a55`, reports **129 passed, 1 skipped** and **18 passing report checks**. It explicitly states `mode: fixture`, `payment_provider: simulator` and `assembled_mvp_claimed: false`. Its `sn009_authority_exercised: true` field describes the fixture path; it is not evidence of assembled SN-009 financial authority.
+
+![Paytm staging observations, captured and redacted](media/readme/proof-paytm-staging.png)
+
+The Paytm image summarizes **nine redacted staging observations**. These are separately [recorded Paytm staging fixtures](integration/paytm-sandbox/README.md), not live payment or refund success: the shared test merchant returned errors for initiate and refund apply. The [capture claims manifest](media/video/CLAIMS.md) records sources and evidence labels for the videos.
 
 ## Verification
 
