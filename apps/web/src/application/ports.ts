@@ -149,7 +149,7 @@ export interface CaseClient {
     body: {
       expected_revision: number;
       reason_code: string;
-      owner_queue: string;
+      owner_queue: "PAYMENTS" | "FRAUD" | "SUPERVISOR";
     },
   ): Promise<Case>;
   /** Customer-scoped list — GET /v1/customer/cases. */

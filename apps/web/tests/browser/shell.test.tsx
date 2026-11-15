@@ -15,8 +15,19 @@ describe("standalone browser checks", () => {
   it("intake covers loading and success against local fixture", async () => {
     const user = userEvent.setup();
     const client = createCaseApiStub("valid");
-    render(<IntakeForm caseClient={client} voiceEnabled={false} voiceClient={null} />);
+    const { container } = render(
+      <IntakeForm
+        caseClient={client}
+        voiceEnabled={false}
+        voiceClient={null}
+        orderSuggestions={["subject-demo-9/DEMO-ORDER-42"]}
+      />,
+    );
     expect(screen.getByTestId("voice-slot")).toHaveAttribute("data-slot", "voice.v1-disabled");
+    expect(
+      container.querySelector('datalist option[value="subject-demo-9/DEMO-ORDER-42"]'),
+    ).not.toBeNull();
+    await user.type(screen.getByLabelText("Order reference"), "subject-demo-9/DEMO-ORDER-42");
     await user.type(screen.getByLabelText("Complaint message"), "Paid twice");
     await user.click(screen.getByRole("button", { name: "Submit case" }));
     expect(await screen.findByTestId("state-empty")).toHaveTextContent("RECEIVED");
@@ -29,18 +40,20 @@ describe("standalone browser checks", () => {
     client.createCase = createCase;
     render(<IntakeForm caseClient={client} voiceEnabled={false} voiceClient={null} />);
     const submit = screen.getByRole("button", { name: "Submit case" });
+    // No unbound provider-id prefill (case-api rejects it as not bound to principal).
+    expect(screen.getByLabelText("Order reference")).toHaveValue("");
     await user.type(screen.getByLabelText("Complaint message"), "  Paid twice  ");
     await user.clear(screen.getByLabelText("Order reference"));
     await user.type(screen.getByLabelText("Order reference"), "   ");
     expect(submit).toBeDisabled();
     await user.clear(screen.getByLabelText("Order reference"));
-    await user.type(screen.getByLabelText("Order reference"), " DEMO-ORDER-42 ");
+    await user.type(screen.getByLabelText("Order reference"), " subject-demo-9/DEMO-ORDER-42 ");
     await user.click(submit);
     await screen.findByTestId("state-empty");
     expect(createCase).toHaveBeenCalledWith(
       expect.objectContaining({
         message: "Paid twice",
-        order_reference: "DEMO-ORDER-42",
+        order_reference: "subject-demo-9/DEMO-ORDER-42",
       }),
       expect.any(String),
     );
@@ -56,6 +69,7 @@ describe("standalone browser checks", () => {
         voiceClient={null}
       />,
     );
+    await user.type(screen.getByLabelText("Order reference"), "subject-demo-9/DEMO-ORDER-42");
     await user.type(screen.getByLabelText("Complaint message"), "hello");
     await user.click(screen.getByRole("button", { name: "Submit case" }));
     expect(await screen.findByTestId("state-permission")).toHaveTextContent("FORBIDDEN");
@@ -66,6 +80,10 @@ describe("standalone browser checks", () => {
         voiceEnabled={false}
         voiceClient={null}
       />,
+    );
+    await user.type(
+      screen.getAllByLabelText("Order reference")[1]!,
+      "subject-demo-9/DEMO-ORDER-42",
     );
     const forms = screen.getAllByLabelText("Complaint message");
     await user.type(forms[1]!, "hello");

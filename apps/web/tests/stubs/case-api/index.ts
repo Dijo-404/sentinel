@@ -293,6 +293,10 @@ function validClient(options?: CaseApiStubOptions): CaseClient {
     },
     async escalate(caseId, body) {
       const current = requireCase(caseId);
+      // Mirrors case-api rules.py OWNER_QUEUES (upper-case only).
+      if (!["PAYMENTS", "FRAUD", "SUPERVISOR"].includes(body.owner_queue)) {
+        fail("INVALID_INPUT", "owner_queue must be PAYMENTS|FRAUD|SUPERVISOR", "req-esc-422", 422);
+      }
       if (body.expected_revision !== current.revision) {
         fail("REVISION_CONFLICT", "Stale case revision", "req-esc-409", 409);
       }

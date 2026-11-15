@@ -105,10 +105,18 @@ describe("createCaseApiStub valid client", () => {
 
     const afterEsc = await client.escalate("case-demo-42", {
       reason_code: "STUCK",
-      owner_queue: "supervisor",
+      owner_queue: "SUPERVISOR",
       expected_revision: 3,
     });
     expect(afterEsc.status).toBe("ESCALATED");
+    await expect(
+      client.escalate("case-demo-42", {
+        reason_code: "STUCK",
+        // Lower-case queue is what case-api rejected in the deployed sandbox.
+        owner_queue: "supervisor" as never,
+        expected_revision: 4,
+      }),
+    ).rejects.toMatchObject({ code: "INVALID_INPUT" });
     expect(afterEsc.revision).toBe(4);
 
     const persisted = await client.getCase("case-demo-42");

@@ -130,7 +130,7 @@ export function CaseTimeline({ caseId, caseClient, enableInteractions = true }: 
       const updated = await caseClient.escalate(caseId, {
         expected_revision: caseRecord.revision,
         reason_code: "OPERATOR_ESCALATION",
-        owner_queue: "supervisor",
+        owner_queue: "SUPERVISOR",
       });
       setCaseRecord(updated);
       setActionOk("Escalated — handoff, not resolution");
