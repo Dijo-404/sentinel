@@ -61,8 +61,7 @@ export function ApprovalSlot(input: Props) {
   const mode = input.mode ?? shell?.config.mode ?? "fixture";
   // Real-peers must receive the authenticated reviewer; never invent fixture-${role}.
   const reviewerId =
-    input.reviewerId ??
-    (mode === "fixture" ? (shell?.config.principal.principal_id ?? "") : "");
+    input.reviewerId ?? (mode === "fixture" ? (shell?.config.principal.principal_id ?? "") : "");
 
   if (input.state === "error") {
     return (

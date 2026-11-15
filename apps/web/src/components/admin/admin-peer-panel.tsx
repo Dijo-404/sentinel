@@ -146,13 +146,12 @@ export function AdminPeerPanel({ view, fetchImpl }: Props) {
           return;
         }
         if (view === "evaluations" || view === "observability") {
-          const [primary, gates] = await Promise.all(
-            copy.paths.map((p) => fetchJson(p, doFetch)),
-          );
+          const [primary, gates] = await Promise.all(copy.paths.map((p) => fetchJson(p, doFetch)));
           if (cancelled) return;
           setLoad({
             status: "ready",
-            payload: view === "evaluations" ? { reports: primary, gates } : { signals: primary, gates },
+            payload:
+              view === "evaluations" ? { reports: primary, gates } : { signals: primary, gates },
           });
           return;
         }
