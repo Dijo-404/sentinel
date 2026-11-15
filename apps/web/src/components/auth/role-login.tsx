@@ -17,6 +17,15 @@ type Props = {
 
 const initial: ActionResult | null = null;
 
+const PICKER_HINTS: Record<PortalRole, string> = {
+  customer: "Cases & refunds",
+  merchant: "Exceptions, settlements",
+  operator: "Queue & evidence",
+  supervisor: "Approvals",
+  risk: "Holds & rings",
+  admin: "Tenants & policy",
+};
+
 export function RoleLogin({ role = "customer", next }: Props) {
   const [selectedRole, setSelectedRole] = useState<PortalRole>(role);
   const meta = PORTAL_META[selectedRole];
@@ -33,6 +42,16 @@ export function RoleLogin({ role = "customer", next }: Props) {
 
       <form action={formAction} className="stack">
         {next ? <input type="hidden" name="next" value={next} /> : null}
+
+        <fieldset className="portal-picker">
+          <legend className="eyebrow">Choose a portal</legend>
+          {PORTALS.map((r) => (
+            <button key={r} type="button" aria-pressed={r === selectedRole} onClick={() => setSelectedRole(r)}>
+              {ROLE_LABELS[r]}
+              <small>{PICKER_HINTS[r]}</small>
+            </button>
+          ))}
+        </fieldset>
 
         <label>
           Workspace
