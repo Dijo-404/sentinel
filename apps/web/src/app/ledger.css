@@ -2008,3 +2008,20 @@
 .tracker__steps li[data-state="now"] span { color: var(--ink); font-weight: 600; }
 .tracker__meta { margin: 0; font-size: 0.75rem; }
 @media (max-width: 520px) { .tracker__steps span { font-size: 0.6rem; } }
+
+/* ---------- Merchant metrics ---------- */
+.mviz { display: grid; gap: 0.75rem; }
+.mviz__grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); }
+.mviz__grid > section { display: grid; gap: 0.6rem; align-content: start; }
+.mviz__big { font-size: clamp(2rem, 3.4vw, 2.8rem); font-weight: 600; letter-spacing: -0.04em; }
+.mviz__ring { position: relative; width: 150px; height: 150px; justify-self: center; }
+.mviz__ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.mviz__ring strong { position: absolute; inset: 0; display: grid; place-items: center; font-size: 1.9rem; font-weight: 600; }
+.mviz__bars { margin: 0; padding: 0; list-style: none; display: flex; gap: 0.75rem; align-items: stretch; height: 170px; }
+.mviz__bars li { flex: 1; display: grid; grid-template-rows: 1fr auto auto; gap: 0.25rem; text-align: center; }
+.mviz__bar-track { position: relative; display: flex; align-items: flex-end; border-radius: 8px; background: var(--chip-bg); overflow: hidden; }
+.mviz__bar-track i { display: block; width: 100%; border-radius: 8px 8px 0 0; }
+.mviz__bars small { font: 0.7rem var(--mono); color: var(--fog); }
+.mviz__causes ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.45rem; }
+.mviz__causes li { display: flex; gap: 0.75rem; align-items: center; padding: 0.55rem 0.75rem; border-radius: 10px; background: var(--canvas); border: 1px solid var(--line); text-transform: capitalize; font-size: 0.875rem; animation: ledger-rise 0.4s var(--ease-ledger) both; }
+.mviz__causes li span { width: 24px; height: 24px; border-radius: 7px; display: grid; place-items: center; background: var(--lavender); color: var(--primary); font: 0.75rem var(--mono); }
