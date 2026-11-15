@@ -34,10 +34,12 @@ def demo_principals(
     supervisor_token: str | None = None,
     dispatcher_token: str | None = None,
     verifier_token: str | None = None,
+    case_scope: tuple[str, ...] = ("case-demo-42",),
+    subject_scope: tuple[str, ...] = ("subject-demo-1",),
 ) -> dict[str, Principal]:
     """Canonical sandbox tokens; legacy aliases only when include_aliases is true."""
-    case = ("case-demo-42",)
-    subject = ("subject-demo-1",)
+    case = case_scope
+    subject = subject_scope
     # Empty case_ids deny all; "*" is the explicit broad-access wildcard.
     workflow = Principal("workflow-demo", tenant_id, ("workflow",), subject, case)
     supervisor = Principal("supervisor-demo", tenant_id, ("supervisor",), subject, case)
@@ -86,4 +88,17 @@ def principals_from_environ(tenant_id: str | None = None) -> dict[str, Principal
         supervisor_token=os.environ.get("LEDGER_TOKEN_SUPERVISOR"),
         dispatcher_token=os.environ.get("LEDGER_TOKEN_DISPATCHER"),
         verifier_token=os.environ.get("LEDGER_TOKEN_VERIFIER"),
+        case_scope=_scope_from_env("LEDGER_PRINCIPAL_CASE_SCOPE", ("case-demo-42",)),
+        subject_scope=_scope_from_env("LEDGER_PRINCIPAL_SUBJECT_SCOPE", ("subject-demo-1",)),
     )
+
+
+def _scope_from_env(name: str, default: tuple[str, ...]) -> tuple[str, ...]:
+    """Comma-separated ids for workflow/supervisor/operator principals; "*" = all."""
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    values = tuple(v.strip() for v in raw.split(",") if v.strip())
+    if not values:
+        raise ValueError(f"{name} must list at least one id or '*'")
+    return values
