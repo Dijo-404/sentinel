@@ -1,0 +1,11 @@
+# Too large to commit (over 10 MB) or rebuildable.
+sentinel-pitch.mp4
+sentinel-pitch-small.mp4
+sentinel-explainer.mp4
+sentinel-explainer-small.mp4
+sentinel-video-source.zip
+voice-samples/
+video/node_modules/
+video/.venv/
+video/out/
+video/public/audio/

@@ -6,6 +6,7 @@ This file tracks coordinated repository/release changes. Each independent module
 
 ### Added — 15 November 2026
 
+- README media kit: banner, linked pitch and explainer videos, authorization and architecture diagrams, three animated fixture demos, and two proof images with capture-time provenance and the original fixture-check transcript.
 - Pinned Ruff and Prettier tools under `tooling/lint`, root check/fix commands, and a dedicated CI job.
 - Repository-wide lint and formatting baseline, preserving module-specific rules, supplied specifications, pinned contracts, and byte-sensitive fixtures.
 
