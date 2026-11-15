@@ -12,7 +12,7 @@ import uvicorn
 from .adapters.auth import parse_token_map
 from .adapters.bind_safety import UnsafeBindError, assert_loopback_or_non_demo
 from .application.errors import ConfigurationError, KnowledgeError
-from .bootstrap import Settings, build_app
+from .bootstrap import Settings, build_app, build_postgres_store
 from .seed import seed_demo_articles
 
 
@@ -30,6 +30,11 @@ def main(argv: list[str] | None = None) -> int:
         "seed",
         help=("Write sandbox knowledge article for tenant-demo (requires KNOWLEDGE_DATABASE_URL)"),
     )
+    reindex = sub.add_parser(
+        "reindex",
+        help="Migrate pgvector schema and embed rows missing a vector for the active model",
+    )
+    reindex.add_argument("--all", action="store_true", help="Re-embed every row")
 
     args = parser.parse_args(argv)
     try:
@@ -47,6 +52,15 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "seed":
             report = seed_demo_articles(settings.database_url)
             print(json.dumps(report))
+            return 0
+        if args.command == "reindex":
+            store = build_postgres_store(settings, reset_dimension=True)
+            rows = store.reindex(force=args.all)
+            print(
+                json.dumps(
+                    {"status": "PASS", "model": settings.embedding_model, "rows_embedded": rows}
+                )
+            )
             return 0
     except KnowledgeError as exc:
         print(f'{{"code":"{exc.code}","message":"{exc.message}"}}', file=sys.stderr)

@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import Any
 
-from .adapters.storage_postgres import PostgresArticleStore, build_engine
 from .application.errors import ConfigurationError
+from .application.ports import Embedder
+from .bootstrap import Settings, build_postgres_store
 from .domain.types import Article
 
 SEED_TENANT_ID = "tenant-demo"
@@ -25,15 +27,15 @@ SEED_ARTICLE = Article(
 )
 
 
-def seed_demo_articles(database_url: str) -> dict[str, Any]:
-    """Write synthetic knowledge rows. Requires KNOWLEDGE_DATABASE_URL."""
+def seed_demo_articles(database_url: str, embedder: Embedder | None = None) -> dict[str, Any]:
+    """Write synthetic knowledge rows (embedded on upsert). Requires KNOWLEDGE_DATABASE_URL."""
     if not database_url.strip():
         raise ConfigurationError("KNOWLEDGE_DATABASE_URL is required for seed")
     if SEED_ARTICLE.tenant_id != SEED_TENANT_ID:
         raise ConfigurationError(f"seed refuses tenant_id != {SEED_TENANT_ID}")
 
-    store = PostgresArticleStore(build_engine(database_url))
-    store.migrate()
+    settings = replace(Settings.from_environ(), database_url=database_url)
+    store = build_postgres_store(settings, embedder)
     store.upsert(SEED_ARTICLE)
     return {
         "status": "PASS",

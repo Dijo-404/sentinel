@@ -24,8 +24,9 @@
       "method": "GET",
       "path": "/v1/search",
       "query": ["q"],
+      "optional_query": ["limit"],
       "roles": ["operator", "supervisor"],
-      "response": "{ hits: ArticleSummary[] }",
+      "response": "{ hits: SearchHit[] }",
       "read_only": true
     },
     {
@@ -46,6 +47,13 @@
     "title": "string",
     "summary": "string",
     "updated_at": "string"
+  },
+  "SearchHit": {
+    "article_id": "string",
+    "title": "string",
+    "summary": "string",
+    "updated_at": "string",
+    "score": "number (optional; omitted on fixture substring path)"
   },
   "Article": {
     "article_id": "string",
