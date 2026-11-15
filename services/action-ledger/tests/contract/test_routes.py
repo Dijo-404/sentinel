@@ -264,3 +264,20 @@ def test_get_action_without_decision_has_no_approval(app_client, tokens):
         headers=auth_header(tokens["workflow"]),
     )
     assert "approval" not in got.json()
+
+
+def test_reservation_sends_approval_to_policy(app_client, tokens):
+    # Real policy.v1 answers REQUIRE_APPROVAL unless the approval is supplied; the ledger
+    # must forward the approved decision when it re-checks policy at reservation.
+    app_client.policy.require_approval = True
+    proposed, approval = propose_and_approve(app_client, tokens, operation_key="op-policy-approval")
+    reserved = app_client.post(
+        "/v1/actions/reservations",
+        headers=auth_header(tokens["workflow"]),
+        json=reservation_json(
+            operation_key="op-policy-approval", approval_id=approval["approval_id"]
+        ),
+    )
+    assert reserved.status_code in {200, 201}, reserved.text
+    assert app_client.policy.last_approval is not None
+    assert app_client.policy.last_approval.approval_id == approval["approval_id"]

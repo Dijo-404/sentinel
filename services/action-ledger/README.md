@@ -64,6 +64,7 @@ The non-loopback demo-token bind guard is unchanged.
 ## Invariants
 
 - Evidence/policy network calls happen **before** the reservation transaction. A `ReservationNetworkGuard` fails the TX if a peer call is recorded while the TX is open.
+- The reservation policy recheck receives the stored supervisor approval; the reservation transaction independently validates its binding, digest, revision, policy version and expiry.
 - `reserved + pending + refunded ≤ captured` enforced in domain code and a PostgreSQL check constraint; concurrent reservations use `SELECT … FOR UPDATE`.
 - Same `operation_key` + identical payload reuses the action (200); different payload → 409.
 - Lease expiry does not release money. Only `FAILED_FINAL` with verified evidence releases an allocation.

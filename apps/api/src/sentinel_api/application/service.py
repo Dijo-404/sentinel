@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC
+from datetime import UTC, timedelta
 
 from sentinel_api.application.authz import require_case_access, require_roles
 from sentinel_api.application.ports import (
@@ -35,6 +35,8 @@ from sentinel_api.domain.types import (
     WorkflowRequest,
 )
 
+TRANSIENT_REJECT_STATUSES = frozenset({409, 422, 429})
+
 
 class CaseService:
     def __init__(
@@ -48,8 +50,14 @@ class CaseService:
         ledger: LedgerPort,
         verifier: VerifierPort,
         service_authorization: str,
+        workflow_retry_max_attempts: int = 5,
+        workflow_retry_base_seconds: float = 2.0,
+        workflow_retry_max_seconds: float = 300.0,
     ) -> None:
         self._repo = repo
+        self._retry_max_attempts = workflow_retry_max_attempts
+        self._retry_base_seconds = workflow_retry_base_seconds
+        self._retry_max_seconds = workflow_retry_max_seconds
         self._clock = clock
         self._ids = ids
         self._workflow = workflow
@@ -452,18 +460,36 @@ class CaseService:
     def flush_workflow(self) -> int:
         """Deliver claimed outbox jobs. Safe for continuous workers and mutation hooks."""
         delivered = 0
-        for row_id, request in self._repo.claim_workflow_jobs():
+        for row_id, request in self._repo.claim_workflow_jobs(now=self._clock.now()):
             try:
                 self._workflow.start_run(request, authorization=self._service_authorization)
                 self._repo.mark_workflow_job(job_row_id=row_id, status="DELIVERED")
                 delivered += 1
             except DomainError as exc:
                 if exc.http_status == 503:
+                    # Peer down / network: redeliver on the next pass (unbounded).
                     self._repo.mark_workflow_job(
                         job_row_id=row_id, status="PENDING", detail=exc.code
                     )
+                elif exc.http_status in TRANSIENT_REJECT_STATUSES:
+                    self._defer_or_fail(row_id, exc.code)
                 else:
+                    # 400/401/403/404/malformed contract: retrying cannot help.
                     self._repo.mark_workflow_job(
                         job_row_id=row_id, status="FAILED", detail=exc.code
                     )
         return delivered
+
+    def _defer_or_fail(self, row_id: str, code: str) -> None:
+        """409/422/429 (e.g. DECISION racing the ledger): bounded exponential backoff."""
+        attempts = self._repo.count_workflow_attempt(job_row_id=row_id)
+        if attempts >= self._retry_max_attempts:
+            self._repo.mark_workflow_job(job_row_id=row_id, status="FAILED", detail=code)
+            return
+        delay = min(self._retry_max_seconds, self._retry_base_seconds * 2 ** (attempts - 1))
+        self._repo.mark_workflow_job(
+            job_row_id=row_id,
+            status="PENDING",
+            detail=code,
+            retry_at=self._clock.now() + timedelta(seconds=delay),
+        )

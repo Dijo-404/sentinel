@@ -18,6 +18,7 @@ from sqlalchemy import (
     or_,
     select,
     text,
+    update,
 )
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
@@ -163,6 +164,17 @@ class SqlJobStore:
             row.status = status
             row.detail = detail
             session.commit()
+
+    def claim_failed_job(self, job_id: str) -> bool:
+        # Conditional UPDATE: Postgres row lock re-checks status, so one concurrent caller wins.
+        with self._sessions() as session:
+            result = session.execute(
+                update(JobRow)
+                .where(JobRow.job_id == job_id, JobRow.status == "failed")
+                .values(status="running", detail=None)
+            )
+            session.commit()
+            return result.rowcount == 1
 
 
 class SqlOutbox:

@@ -75,6 +75,9 @@ class JobStorePort(Protocol):
 
     def mark_job_status(self, job_id: str, status: str, detail: str | None = None) -> None: ...
 
+    def claim_failed_job(self, job_id: str) -> bool:
+        """Atomically move a `failed` job to `running`; True only for the single winner."""
+
 
 class OutboxPort(Protocol):
     def enqueue_result(
