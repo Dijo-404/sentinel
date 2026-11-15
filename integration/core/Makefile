@@ -1,6 +1,6 @@
 UV ?= uv
 
-.PHONY: setup check preview seed-sandbox verify-wave0-1 verify-wave2 verify-wave3 verify-wave4
+.PHONY: setup check preview seed-sandbox verify-wave0-1 verify-wave2 verify-wave3 verify-wave4 verify-wave5
 setup:
 	$(UV) sync --frozen
 
@@ -14,7 +14,7 @@ preview: setup
 	$(UV) run --frozen sentinel-core-assembly run --mode fixture
 
 # Requires CORE_ASSEMBLY_TENANT_ID=tenant-demo and SENTINEL_V1_SANDBOX=1.
-# Wave 0–4 peers run `make seed` when DATABASE_URL env is set; others SKIP.
+# Wave 0–5 peers run `make seed` when DATABASE_URL env is set; others SKIP.
 seed-sandbox: setup
 	SENTINEL_V1_SANDBOX=$${SENTINEL_V1_SANDBOX:-1} \
 	CORE_ASSEMBLY_TENANT_ID=$${CORE_ASSEMBLY_TENANT_ID:-tenant-demo} \
@@ -36,3 +36,7 @@ verify-wave3: setup
 # offline approval-ui package smoke.
 verify-wave4: setup
 	./scripts/verify_wave4.sh
+
+# identity admin + policy + merchant-teams + platform-ai + evals + observability.
+verify-wave5: setup
+	./scripts/verify_wave5.sh

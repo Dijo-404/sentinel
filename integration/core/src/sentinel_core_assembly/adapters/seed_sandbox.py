@@ -25,7 +25,6 @@ class SeedReport(TypedDict, total=False):
 
 # Peers without a make-seed hook yet stay documented SKIPPED.
 _PENDING_PEER_SEEDS: tuple[str, ...] = (
-    "merchant-teams",
     "merchant-inbox",
     "action-ledger",
     "workflow",
@@ -87,6 +86,11 @@ _PEER_MAKE_SEEDS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
         "observability",
         "services/observability",
         ("OBSERVABILITY_DATABASE_URL",),
+    ),
+    (
+        "merchant-teams",
+        "services/merchant-teams",
+        ("MERCHANT_TEAMS_DATABASE_URL",),
     ),
 )
 
@@ -186,8 +190,9 @@ def seed_sandbox(
 
     Gate: CORE_ASSEMBLY_TENANT_ID must be tenant-demo and SENTINEL_V1_SANDBOX must be truthy.
     Peers (merchant-analytics, merchant-disputes, risk, case-api, identity, assistant,
-    knowledge, ops-activity, platform-ai, evals, observability) run `make seed` when their
-    DATABASE_URL env var is set; otherwise SKIPPED with run-order docs. Other peers SKIP.
+    knowledge, ops-activity, platform-ai, evals, observability, merchant-teams) run
+    `make seed` when their DATABASE_URL env var is set; otherwise SKIPPED with run-order
+    docs. Other peers SKIP.
     """
     tenant = (env.get("CORE_ASSEMBLY_TENANT_ID") or "tenant-demo").strip()
     if tenant != "tenant-demo":

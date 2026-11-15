@@ -91,11 +91,12 @@ make seed-sandbox
 
 Wave peers (`merchant-analytics`, `merchant-disputes`, `risk`, `case-api`,
 `identity`, `assistant`, `knowledge`, `ops-activity`, `platform-ai`, `evals`,
-`observability`) run that module’s `make seed` when the matching `*_DATABASE_URL`
-/ `SENTINEL_API_DATABASE_URL` / `IDENTITY_DATABASE_URL` /
-`EVALUATION_DATABASE_URL` env is set; otherwise `SKIPPED` with the manual
-`make -C <peer> seed` hint. Other peers stay `SKIPPED` until hooked.
-Non-`tenant-demo` → `SANDBOX_TENANT_REQUIRED`. Missing sandbox flag →
+`observability`, `merchant-teams`) run that module’s `make seed` when the matching
+`*_DATABASE_URL` / `SENTINEL_API_DATABASE_URL` / `IDENTITY_DATABASE_URL` /
+`EVALUATION_DATABASE_URL` / `MERCHANT_TEAMS_DATABASE_URL` env is set; otherwise
+`SKIPPED` with the manual `make -C <peer> seed` hint. Other peers stay `SKIPPED`
+until hooked. Policy catalog is file-backed (`contracts/policies.json`) — no DB
+seed hook. Non-`tenant-demo` → `SANDBOX_TENANT_REQUIRED`. Missing sandbox flag →
 `SANDBOX_FLAG_REQUIRED`. After seed + serve, `make verify-wave0-1` /
 `./scripts/verify_wave0_1.sh` asserts HTTP 200 + seeded JSON (fails without seed).
 Case-api seed leaves `case-seed-ops-escalated` (`ESCALATED`) and
@@ -110,7 +111,15 @@ seed, `make verify-wave4` / `./scripts/verify_wave4.sh` asserts assistant /
 knowledge / ops-activity health+list, voice `/v1/capabilities`, and offline
 `packages/approval-ui` export smoke (`ApprovalPanel`). Live approval UI check:
 `make -C packages/approval-ui check`. Voice smoke without Sarvam key:
-`make -C services/voice check` or hit `:8017/v1/capabilities`.
+`make -C services/voice check` or hit `:8017/v1/capabilities`. After wave-5
+admin peers serve + seed, `make verify-wave5` / `./scripts/verify_wave5.sh`
+asserts identity `GET /v1/admin/roles` + `/v1/admin/tenants` (platform_admin
+session — not matrix `tok-*`), policy `GET /v1/policies` (`tok-platform-admin`,
+`demo-policy-v1`), merchant-teams `GET /v1/admin/merchants`
+(`platform-admin-token` in `MERCHANT_TEAMS_TOKENS`, `merchant-demo-1`),
+platform-ai `GET /v1/config` + `/v1/integrations` (`admin-token`), evals
+`GET /v1/reports` (`admin-token`, `eval-sandbox-1`), observability
+`GET /v1/signals` (`admin-token`, `sig-seed-request-handle`).
 Compose DB names: see [compose/init-databases.sql](../compose/init-databases.sql).
 
 ## Path honesty

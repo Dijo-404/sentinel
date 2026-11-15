@@ -128,7 +128,7 @@
 
 **Assert:** identity admin roles/tenants; policy policies; merchants; platform-ai config/integrations; evals reports; observability signals (with admin/sandbox tokens as documented)
 
-- [ ] **Steps: check, commit** `feat(integration): wave 5 admin verify`
+- [x] **Steps: check, commit** `feat(integration): wave 5 admin verify`
 
 ---
 

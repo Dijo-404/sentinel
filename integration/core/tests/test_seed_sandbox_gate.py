@@ -49,8 +49,10 @@ def test_seed_pass_with_documented_peer_skips_without_db_urls() -> None:
     assert by_peer["platform-ai"]["status"] == "SKIPPED"
     assert by_peer["evals"]["status"] == "SKIPPED"
     assert by_peer["observability"]["status"] == "SKIPPED"
+    assert by_peer["merchant-teams"]["status"] == "SKIPPED"
     assert "MERCHANT_ANALYTICS_DATABASE_URL" in by_peer["merchant-analytics"]["detail"]
     assert "ASSISTANT_DATABASE_URL" in by_peer["assistant"]["detail"]
+    assert "MERCHANT_TEAMS_DATABASE_URL" in by_peer["merchant-teams"]["detail"]
     assert any(entry.get("status") == "SKIPPED" for entry in report["seeds"])
 
 
@@ -130,6 +132,34 @@ def test_seed_invokes_wave4_peers_when_database_urls_set() -> None:
     assert by_peer["evals"]["rows"] == 1
     assert by_peer["observability"]["status"] == "PASS"
     assert by_peer["identity"]["status"] == "SKIPPED"
+    assert by_peer["merchant-teams"]["status"] == "SKIPPED"
+
+
+def test_seed_invokes_wave5_merchant_teams_when_database_url_set() -> None:
+    calls: list[tuple[str, str]] = []
+
+    def fake_invoke(peer: str, rel_dir: str, env: dict, **_kwargs: object) -> SeedEntry:
+        calls.append((peer, rel_dir))
+        return {
+            "peer": peer,
+            "rows": 1,
+            "status": "PASS",
+            "detail": "make seed ok",
+        }
+
+    report = seed_sandbox(
+        {
+            "CORE_ASSEMBLY_TENANT_ID": "tenant-demo",
+            "SENTINEL_V1_SANDBOX": "1",
+            "MERCHANT_TEAMS_DATABASE_URL": "postgresql+psycopg://x/y",
+        },
+        invoke_peer_seed=fake_invoke,
+    )
+    assert report["status"] == "PASS"
+    assert calls == [("merchant-teams", "services/merchant-teams")]
+    by_peer = {entry["peer"]: entry for entry in report["seeds"]}
+    assert by_peer["merchant-teams"]["status"] == "PASS"
+    assert by_peer["merchant-teams"]["rows"] == 1
 
 
 def test_seed_fails_when_peer_make_seed_fails() -> None:
