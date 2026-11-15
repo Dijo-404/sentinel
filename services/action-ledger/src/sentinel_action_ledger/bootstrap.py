@@ -17,6 +17,7 @@ from sentinel_action_ledger.adapters.http_api import create_app
 from sentinel_action_ledger.adapters.ids import SecureIdGenerator
 from sentinel_action_ledger.adapters.network_guard import ReservationNetworkGuard
 from sentinel_action_ledger.adapters.policy_client import HttpPolicyClient
+from sentinel_action_ledger.adapters.portal_session import principal_map_from_environ
 from sentinel_action_ledger.adapters.postgres import PostgresLedgerStore
 from sentinel_action_ledger.application.service import ActionLedgerService
 from sentinel_action_ledger.domain.errors import PeerUnavailableError
@@ -68,7 +69,7 @@ def build_app(
     if auth is None:
         mapping = principals_from_environ()
         assert_loopback_or_non_demo(os.environ.get("LEDGER_HOST", "127.0.0.1"), mapping.keys())
-        token_map = TokenPrincipalMap(mapping)
+        token_map = principal_map_from_environ(mapping)
     else:
         token_map = auth
     return create_app(service=service, auth=token_map, mode=resolved_mode)
