@@ -13,6 +13,10 @@ Contract input: `sentinel.task-contracts.v1` · SHA-256 `0db3ba2bba994f10d3060bc
 
 Owns verified webhook inbox, scheduled rechecks, and closure assessment. Uses independent migrations and local provider/ledger/evidence/case-api stubs. Sends authenticated evidence to ledger outcome APIs — never edits ledger tables. Pending refund is not customer credit; provider confirmation and credit confirmation stay distinct.
 
+The webhook HTTP boundary runs synchronous reconciliation in a worker thread.
+Case-api can call back to fetch the assessment before accepting verified closure;
+the verifier event loop remains available for that request.
+
 ## Standalone setup and checks
 
 Requires Python 3.11+, [uv](https://docs.astral.sh/uv/), GNU Make, and Docker permission to run containers (mandatory PostgreSQL acceptance for durable inbox).
