@@ -39,6 +39,24 @@ Also: `/healthz`, `/readyz`, `/v1/capabilities`.
 
 Synthetic bearer tokens are listed in `.env.example` (`token-*-demo`). Body fields never establish identity.
 
+### Portal sessions (optional)
+
+Set `LEDGER_IDENTITY_BASE_URL` (e.g. `http://identity:8012`) to accept web-portal session
+bearers forwarded by the web BFF / case-api. Unset or empty keeps static-token-only behaviour.
+
+1. The static token map is checked first; a match never calls identity.
+2. Otherwise the ledger calls identity `GET {LEDGER_IDENTITY_BASE_URL}/v1/auth/me` with the same
+   bearer (2 s timeout, no cache).
+3. Active assignment role `supervisor` → ledger `supervisor`; `operator` → read-only `operator`.
+   Every other role → 403. No portal role ever becomes workflow/dispatcher/verifier.
+4. `principal_id` = identity `user_id` (recorded as approval `reviewer_id` and audit `actor_id`);
+   tenant = active assignment tenant; case/subject scope is tenant-wide (`*`), while decide still
+   enforces tenant, digest, case revision, policy version and expiry.
+
+Fail closed: identity unreachable/timeout/5xx → 503; identity 401, other non-200 or malformed
+body → 401; inactive user, identity 403, revoked/missing assignment or disallowed role → 403.
+The non-loopback demo-token bind guard is unchanged.
+
 ## Invariants
 
 - Evidence/policy network calls happen **before** the reservation transaction. A `ReservationNetworkGuard` fails the TX if a peer call is recorded while the TX is open.

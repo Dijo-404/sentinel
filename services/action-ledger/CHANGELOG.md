@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added — portal session authentication
+
+- Optional `LEDGER_IDENTITY_BASE_URL`: bearers not in the static token map are resolved via
+  identity `GET /v1/auth/me`. Identity `supervisor` → ledger `supervisor`, `operator` → read-only
+  `operator`; all other roles 403. `principal_id` is the identity `user_id`, so approvals record
+  the exact human reviewer. Identity unavailable/5xx → 503, malformed/non-200 → 401, inactive
+  user or missing/revoked assignment → 403. Unset = unchanged static-token behaviour. Refs #144.
+
 ### Fixed — payment merchant_ref provenance
 
 - Reservation `payment_reservations.merchant_ref` comes from verified payment
