@@ -14,7 +14,7 @@ type Laid = {
 export function layoutSankey(
   nodes: SankeyNode[],
   links: SankeyLink[],
-  { width, height, nodeWidth = 10, gap = 18 }: { width: number; height: number; nodeWidth?: number; gap?: number },
+  { width, height, nodeWidth = 10, gap = 18, fill = 1 }: { width: number; height: number; nodeWidth?: number; gap?: number; fill?: number },
 ): Laid {
   const cols = Math.max(...nodes.map((n) => n.column)) + 1;
   const inflow = new Map<string, number>();
@@ -28,7 +28,8 @@ export function layoutSankey(
     nodes.filter((n) => n.column === c).reduce((a, n) => a + value(n.id), 0),
   );
   const colCounts = Array.from({ length: cols }, (_, c) => nodes.filter((n) => n.column === c).length);
-  const scale = Math.min(...colTotals.map((t, c) => (height - gap * (colCounts[c] - 1)) / (t || 1)));
+  // fill < 1 leaves air so parallel ribbons don't read as solid blocks.
+  const scale = fill * Math.min(...colTotals.map((t, c) => (height - gap * (colCounts[c] - 1)) / (t || 1)));
 
   const laid = new Map<string, Laid["nodes"][number]>();
   const cursor = Array(cols).fill(0) as number[];
@@ -70,7 +71,7 @@ type Props = {
 /** Animated money-flow ribbons with travelling particles. */
 export function Sankey({ nodes, links, width = 900, height = 320, label, particles = 2, format = String }: Props) {
   const uid = useId().replace(/:/g, "");
-  const laid = layoutSankey(nodes, links, { width, height });
+  const laid = layoutSankey(nodes, links, { width, height, gap: 28, fill: 0.72 });
   return (
     <svg viewBox={`-4 -24 ${width + 8} ${height + 40}`} width="100%" role="img" aria-label={label} className="lk-sankey">
       <g fill="none" strokeLinecap="butt">
