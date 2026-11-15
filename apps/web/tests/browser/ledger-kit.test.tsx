@@ -56,12 +56,22 @@ describe("chart paths", () => {
     expect(linePath([0, 10], 100, 50, 10)).toBe("M0.0 50.0 L100.0 0.0");
   });
   it("stackPaths returns one closed path per layer", () => {
-    const p = stackPaths([[1, 1], [2, 2]], 10, 10);
+    const p = stackPaths(
+      [
+        [1, 1],
+        [2, 2],
+      ],
+      10,
+      10,
+    );
     expect(p).toHaveLength(2);
     expect(p.every((d) => d.endsWith("Z"))).toBe(true);
   });
   it("neighbours includes the node and its direct links", () => {
-    const n = neighbours("a", [{ a: "a", b: "b", type: "device" }, { a: "c", b: "d", type: "route" }]);
+    const n = neighbours("a", [
+      { a: "a", b: "b", type: "device" },
+      { a: "c", b: "d", type: "route" },
+    ]);
     expect([...n].sort()).toEqual(["a", "b"]);
   });
 });
@@ -70,7 +80,15 @@ describe("HoldButton", () => {
   afterEach(() => vi.useRealTimers());
 
   it("commits only after the full hold and cancels on early release", () => {
-    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "requestAnimationFrame", "cancelAnimationFrame", "performance"] });
+    vi.useFakeTimers({
+      toFake: [
+        "setTimeout",
+        "clearTimeout",
+        "requestAnimationFrame",
+        "cancelAnimationFrame",
+        "performance",
+      ],
+    });
     const onCommit = vi.fn();
     render(<HoldButton label="Hold to approve" durationMs={600} onCommit={onCommit} />);
     const btn = screen.getByRole("button", { name: "Hold to approve" });

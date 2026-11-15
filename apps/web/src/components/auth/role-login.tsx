@@ -46,7 +46,12 @@ export function RoleLogin({ role = "customer", next }: Props) {
         <fieldset className="portal-picker">
           <legend className="eyebrow">Choose a portal</legend>
           {PORTALS.map((r) => (
-            <button key={r} type="button" aria-pressed={r === selectedRole} onClick={() => setSelectedRole(r)}>
+            <button
+              key={r}
+              type="button"
+              aria-pressed={r === selectedRole}
+              onClick={() => setSelectedRole(r)}
+            >
               {ROLE_LABELS[r]}
               <small>{PICKER_HINTS[r]}</small>
             </button>

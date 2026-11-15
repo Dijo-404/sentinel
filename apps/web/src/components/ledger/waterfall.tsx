@@ -1,4 +1,9 @@
-export type WaterfallStep = { label: string; value: number; kind: "total" | "delta"; color: string };
+export type WaterfallStep = {
+  label: string;
+  value: number;
+  kind: "total" | "delta";
+  color: string;
+};
 
 /** Running-balance geometry. Totals start at 0; deltas float from the running balance. Pure. */
 export function computeWaterfall(steps: WaterfallStep[]) {
@@ -16,7 +21,17 @@ export function computeWaterfall(steps: WaterfallStep[]) {
   return { geo, max, end: run };
 }
 
-export function Waterfall({ steps, format, height = 240, caption }: { steps: WaterfallStep[]; format: (v: number) => string; height?: number; caption: string }) {
+export function Waterfall({
+  steps,
+  format,
+  height = 240,
+  caption,
+}: {
+  steps: WaterfallStep[];
+  format: (v: number) => string;
+  height?: number;
+  caption: string;
+}) {
   const { geo, max } = computeWaterfall(steps);
   return (
     <div className="lk-waterfall" style={{ height }} role="img" aria-label={caption}>
@@ -32,7 +47,10 @@ export function Waterfall({ steps, format, height = 240, caption }: { steps: Wat
                 animation: `ledger-rise .7s var(--ease-ledger) ${i * 90}ms both`,
               }}
             />
-            <span className="lk-waterfall__val tnum" style={{ bottom: `calc(${((g.base + g.size) / max) * 100}% + 4px)` }}>
+            <span
+              className="lk-waterfall__val tnum"
+              style={{ bottom: `calc(${((g.base + g.size) / max) * 100}% + 4px)` }}
+            >
               {g.kind === "delta" && g.value < 0 ? "−" : ""}
               {format(Math.abs(g.value))}
             </span>

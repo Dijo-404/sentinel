@@ -18,7 +18,10 @@ export const CHECKS = [
 
 export type Fault = "timeout" | "edited" | "double" | "stale";
 
-export const FAULTS: Record<Fault, { title: string; detail: string; failsCheck: number; tag: string; outcome: string; body: string }> = {
+export const FAULTS: Record<
+  Fault,
+  { title: string; detail: string; failsCheck: number; tag: string; outcome: string; body: string }
+> = {
   timeout: {
     title: "Provider timeout",
     detail: "Response never arrives",
@@ -94,5 +97,10 @@ export const LAYERS = [
 /** Completed + pending + reserved + this refund must fit the daily cap. */
 export function limitCheck(amount: number, used: number, cap: number) {
   const headroom = cap - used;
-  return { allowed: amount <= headroom, headroom, after: headroom - amount, over: amount - headroom };
+  return {
+    allowed: amount <= headroom,
+    headroom,
+    after: headroom - amount,
+    over: amount - headroom,
+  };
 }

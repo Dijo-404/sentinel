@@ -3,7 +3,12 @@
 import { useState } from "react";
 
 export type BarSeries = { key: string; label: string; color: string };
-export type BarRow = { label: string; values: Record<string, number>; line?: number; prevLine?: number };
+export type BarRow = {
+  label: string;
+  values: Record<string, number>;
+  line?: number;
+  prevLine?: number;
+};
 
 type Props = {
   series: BarSeries[];
@@ -18,18 +23,30 @@ type Props = {
 };
 
 /** Stacked bars with a togglable legend, hover isolation, optional rate line and a data-table fallback. */
-export function StackedBars({ series, rows, height = 260, lineMax = 5, lineLabel, showPrev, onHover, caption }: Props) {
+export function StackedBars({
+  series,
+  rows,
+  height = 260,
+  lineMax = 5,
+  lineLabel,
+  showPrev,
+  onHover,
+  caption,
+}: Props) {
   const [off, setOff] = useState<Record<string, boolean>>({});
   const [hi, setHi] = useState<number | null>(null);
   const [table, setTable] = useState(false);
   const live = series.filter((s) => !off[s.key]);
-  const max = Math.max(1, ...rows.map((r) => series.reduce((a, s) => a + (r.values[s.key] ?? 0), 0))) * 1.1;
+  const max =
+    Math.max(1, ...rows.map((r) => series.reduce((a, s) => a + (r.values[s.key] ?? 0), 0))) * 1.1;
   const n = rows.length;
   const linePath = (pick: (r: BarRow) => number | undefined) =>
     rows
       .map((r, i) => {
         const v = pick(r);
-        return v === undefined ? "" : `${i ? "L" : "M"}${(((i + 0.5) / n) * 1000).toFixed(1)} ${(height - (v / lineMax) * (height - 20)).toFixed(1)}`;
+        return v === undefined
+          ? ""
+          : `${i ? "L" : "M"}${(((i + 0.5) / n) * 1000).toFixed(1)} ${(height - (v / lineMax) * (height - 20)).toFixed(1)}`;
       })
       .join(" ");
   const hover = (i: number | null) => {
@@ -42,7 +59,11 @@ export function StackedBars({ series, rows, height = 260, lineMax = 5, lineLabel
       <ul className="lk-legend">
         {series.map((s) => (
           <li key={s.key}>
-            <button type="button" aria-pressed={!off[s.key]} onClick={() => setOff({ ...off, [s.key]: !off[s.key] })}>
+            <button
+              type="button"
+              aria-pressed={!off[s.key]}
+              onClick={() => setOff({ ...off, [s.key]: !off[s.key] })}
+            >
               <i style={{ background: s.color }} />
               {s.label}
             </button>
@@ -62,7 +83,9 @@ export function StackedBars({ series, rows, height = 260, lineMax = 5, lineLabel
             <tr>
               <th scope="col">Period</th>
               {series.map((s) => (
-                <th key={s.key} scope="col">{s.label}</th>
+                <th key={s.key} scope="col">
+                  {s.label}
+                </th>
               ))}
               {lineLabel && <th scope="col">{lineLabel}</th>}
             </tr>
@@ -72,7 +95,9 @@ export function StackedBars({ series, rows, height = 260, lineMax = 5, lineLabel
               <tr key={r.label}>
                 <th scope="row">{r.label}</th>
                 {series.map((s) => (
-                  <td key={s.key} className="tnum">{r.values[s.key] ?? 0}</td>
+                  <td key={s.key} className="tnum">
+                    {r.values[s.key] ?? 0}
+                  </td>
                 ))}
                 {lineLabel && <td className="tnum">{r.line?.toFixed(1)}</td>}
               </tr>
@@ -97,15 +122,40 @@ export function StackedBars({ series, rows, height = 260, lineMax = 5, lineLabel
               style={{ animation: `ledger-rise .6s var(--ease-ledger) ${i * 15}ms both` }}
             >
               {[...live].reverse().map((s) => (
-                <span key={s.key} style={{ height: `${((r.values[s.key] ?? 0) / max) * 100}%`, background: s.color }} />
+                <span
+                  key={s.key}
+                  style={{
+                    height: `${((r.values[s.key] ?? 0) / max) * 100}%`,
+                    background: s.color,
+                  }}
+                />
               ))}
             </div>
           ))}
           {rows.some((r) => r.line !== undefined) && (
-            <svg className="lk-bars__overlay" viewBox={`0 0 1000 ${height}`} preserveAspectRatio="none" aria-hidden="true">
-              <path d={linePath((r) => r.line)} fill="none" stroke="var(--ok)" strokeWidth={2.5} vectorEffect="non-scaling-stroke" />
+            <svg
+              className="lk-bars__overlay"
+              viewBox={`0 0 1000 ${height}`}
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              <path
+                d={linePath((r) => r.line)}
+                fill="none"
+                stroke="var(--ok)"
+                strokeWidth={2.5}
+                vectorEffect="non-scaling-stroke"
+              />
               {showPrev && (
-                <path d={linePath((r) => r.prevLine)} fill="none" stroke="var(--ok)" strokeWidth={1.5} strokeDasharray="5 5" opacity={0.45} vectorEffect="non-scaling-stroke" />
+                <path
+                  d={linePath((r) => r.prevLine)}
+                  fill="none"
+                  stroke="var(--ok)"
+                  strokeWidth={1.5}
+                  strokeDasharray="5 5"
+                  opacity={0.45}
+                  vectorEffect="non-scaling-stroke"
+                />
               )}
             </svg>
           )}
@@ -116,7 +166,12 @@ export function StackedBars({ series, rows, height = 260, lineMax = 5, lineLabel
         <span>{rows[Math.floor(n / 2)]?.label}</span>
         <span>{rows[n - 1]?.label}</span>
       </div>
-      <button type="button" className="lk-table-toggle" onClick={() => setTable(!table)} aria-pressed={table}>
+      <button
+        type="button"
+        className="lk-table-toggle"
+        onClick={() => setTable(!table)}
+        aria-pressed={table}
+      >
         {table ? "Show chart" : "Show as table"}
       </button>
     </div>

@@ -8,7 +8,11 @@ import { useEffect } from "react";
 export function SmoothScroll() {
   useEffect(() => {
     // No matchMedia (jsdom, very old browsers) or reduced motion: keep native scroll.
-    if (typeof window.matchMedia !== "function" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (
+      typeof window.matchMedia !== "function" ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    )
+      return;
     const lenis = new Lenis({ lerp: 0.1, anchors: true });
     // Drive Lenis from framer-motion's loop so scroll-linked values stay in sync.
     const tick = ({ timestamp }: { timestamp: number }) => lenis.raf(timestamp);

@@ -3,7 +3,15 @@
 import { MotionConfig } from "framer-motion";
 import { SmoothScroll } from "@/components/motion/smooth-scroll";
 import { Hero, LandingNav } from "./landing/hero";
-import { Analytics, Close, Guardrails, Portals, Problem, Simulator, Ticker } from "./landing/sections";
+import {
+  Analytics,
+  Close,
+  Guardrails,
+  Portals,
+  Problem,
+  Simulator,
+  Ticker,
+} from "./landing/sections";
 
 type Props = {
   dashboardHref?: string | null;

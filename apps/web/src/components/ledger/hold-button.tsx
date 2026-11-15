@@ -72,7 +72,9 @@ export function HoldButton({ label, durationMs = 1200, onCommit, disabled, descr
       onClick={(e) => e.preventDefault()}
     >
       <span className="hold-btn__fill" style={{ width: `${pct}%` }} aria-hidden="true" />
-      <span className="hold-btn__label">{pct > 0 && pct < 100 ? `Keep holding… ${pct}%` : label}</span>
+      <span className="hold-btn__label">
+        {pct > 0 && pct < 100 ? `Keep holding… ${pct}%` : label}
+      </span>
     </button>
   );
 }

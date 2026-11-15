@@ -8,26 +8,56 @@ import { CommandPalette, navShortcuts, type PaletteAction } from "./command-pale
 
 const PORTAL_ACTIONS: Record<string, PaletteAction[]> = {
   operator: [
-    { id: "next", label: "Take next case in queue", href: "/operator/queue", hint: "N", group: "Actions" },
+    {
+      id: "next",
+      label: "Take next case in queue",
+      href: "/operator/queue",
+      hint: "N",
+      group: "Actions",
+    },
     { id: "esc", label: "Open escalations", href: "/operator/escalations", group: "Actions" },
   ],
   supervisor: [
-    { id: "appr", label: "Review pending approvals", href: "/supervisor/approvals", hint: "A", group: "Actions" },
+    {
+      id: "appr",
+      label: "Review pending approvals",
+      href: "/supervisor/approvals",
+      hint: "A",
+      group: "Actions",
+    },
     { id: "hist", label: "Approval history", href: "/supervisor/history", group: "Actions" },
   ],
-  merchant: [{ id: "refunds", label: "Review refund requests", href: "/merchant/refunds", group: "Actions" }],
+  merchant: [
+    { id: "refunds", label: "Review refund requests", href: "/merchant/refunds", group: "Actions" },
+  ],
   risk: [{ id: "holds", label: "Manage active holds", href: "/risk/holds", group: "Actions" }],
   admin: [{ id: "invite", label: "Invite a user", href: "/admin/users/invite", group: "Actions" }],
-  customer: [{ id: "report", label: "Report a problem", href: "/customer/report", group: "Actions" }],
+  customer: [
+    { id: "report", label: "Report a problem", href: "/customer/report", group: "Actions" },
+  ],
 };
 
 function isTyping(el: EventTarget | null) {
   const t = el as HTMLElement | null;
-  return !!t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable);
+  return (
+    !!t &&
+    (t.tagName === "INPUT" ||
+      t.tagName === "TEXTAREA" ||
+      t.tagName === "SELECT" ||
+      t.isContentEditable)
+  );
 }
 
 /** Portal top bar: ⌘K, G-then-letter navigation, ? shortcut sheet, density + theme. */
-export function PortalTopbar({ portal, nav, mode }: { portal: string; nav: NavItem[]; mode: string }) {
+export function PortalTopbar({
+  portal,
+  nav,
+  mode,
+}: {
+  portal: string;
+  nav: NavItem[];
+  mode: string;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [help, setHelp] = useState(false);
@@ -79,8 +109,21 @@ export function PortalTopbar({ portal, nav, mode }: { portal: string; nav: NavIt
 
   return (
     <div className="topbar">
-      <button type="button" className="topbar__search" onClick={() => setOpen(true)} data-testid="open-palette">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+      <button
+        type="button"
+        className="topbar__search"
+        onClick={() => setOpen(true)}
+        data-testid="open-palette"
+      >
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          aria-hidden="true"
+        >
           <circle cx="7" cy="7" r="5" />
           <path d="M11 11l3 3" />
         </svg>
@@ -92,38 +135,80 @@ export function PortalTopbar({ portal, nav, mode }: { portal: string; nav: NavIt
           <span className="live-dot" aria-hidden="true" />
           {mode}
         </span>
-        <button type="button" className="topbar__icon" aria-pressed={dense} onClick={toggleDensity} aria-label="Compact density">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+        <button
+          type="button"
+          className="topbar__icon"
+          aria-pressed={dense}
+          onClick={toggleDensity}
+          aria-label="Compact density"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            aria-hidden="true"
+          >
             <path d={dense ? "M2 4h12M2 7h12M2 10h12M2 13h12" : "M2 4h12M2 8h12M2 12h12"} />
           </svg>
         </button>
-        <button type="button" className="topbar__icon" onClick={() => setHelp(true)} aria-label="Keyboard shortcuts">
+        <button
+          type="button"
+          className="topbar__icon"
+          onClick={() => setHelp(true)}
+          aria-label="Keyboard shortcuts"
+        >
           ?
         </button>
         <ThemeToggle />
       </div>
-      <CommandPalette open={open} onOpenChange={setOpen} portal={portal} nav={nav} actions={PORTAL_ACTIONS[portal]} />
+      <CommandPalette
+        open={open}
+        onOpenChange={setOpen}
+        portal={portal}
+        nav={nav}
+        actions={PORTAL_ACTIONS[portal]}
+      />
       {help && (
-        <div className="shortcut-sheet" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts" onClick={() => setHelp(false)}>
+        <div
+          className="shortcut-sheet"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Keyboard shortcuts"
+          onClick={() => setHelp(false)}
+        >
           <div className="pnl shortcut-sheet__card" onClick={(e) => e.stopPropagation()}>
             <div className="shortcut-sheet__head">
               <h2>Keyboard shortcuts</h2>
-              <button type="button" className="topbar__icon" onClick={() => setHelp(false)} aria-label="Close shortcuts">
+              <button
+                type="button"
+                className="topbar__icon"
+                onClick={() => setHelp(false)}
+                aria-label="Close shortcuts"
+              >
                 ✕
               </button>
             </div>
             <dl>
               <div>
-                <dt><kbd className="kbd">⌘</kbd> <kbd className="kbd">K</kbd></dt>
+                <dt>
+                  <kbd className="kbd">⌘</kbd> <kbd className="kbd">K</kbd>
+                </dt>
                 <dd>Command palette</dd>
               </div>
               <div>
-                <dt><kbd className="kbd">?</kbd></dt>
+                <dt>
+                  <kbd className="kbd">?</kbd>
+                </dt>
                 <dd>This sheet</dd>
               </div>
               {[...shortcuts].map(([k, item]) => (
                 <div key={item.href}>
-                  <dt><kbd className="kbd">G</kbd> <kbd className="kbd">{k.toUpperCase()}</kbd></dt>
+                  <dt>
+                    <kbd className="kbd">G</kbd> <kbd className="kbd">{k.toUpperCase()}</kbd>
+                  </dt>
                   <dd>{item.label}</dd>
                 </div>
               ))}

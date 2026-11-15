@@ -363,7 +363,8 @@ button:disabled {
   display: grid;
   place-items: center;
   padding: 1.5rem;
-  background: radial-gradient(1200px 600px at 80% -10%, rgba(139, 149, 255, 0.12), transparent 60%), var(--bg);
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(139, 149, 255, 0.12), transparent 60%), var(--bg);
 }
 
 .auth-card {

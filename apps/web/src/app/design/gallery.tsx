@@ -3,7 +3,13 @@
 import { useState } from "react";
 import { ThemeToggle } from "@/components/motion/theme-toggle";
 import { CaseReplay } from "@/components/ledger/case-replay";
-import { CohortGrid, HoverArea, RingStack, Sparkline, StreamArea } from "@/components/ledger/charts";
+import {
+  CohortGrid,
+  HoverArea,
+  RingStack,
+  Sparkline,
+  StreamArea,
+} from "@/components/ledger/charts";
 import { EvidenceFreshness } from "@/components/ledger/evidence-freshness";
 import { HoldButton } from "@/components/ledger/hold-button";
 import { LinkGraph, type GraphEdge, type GraphNode } from "@/components/ledger/link-graph";
@@ -47,7 +53,9 @@ const SAMPLE_EVIDENCE = [
     source: "sample",
     subject_ref: "sub-sample",
     observed_at: new Date(now - (ageH as number) * 3_600_000).toISOString(),
-    expires_at: new Date(now - (ageH as number) * 3_600_000 + (windowH as number) * 3_600_000).toISOString(),
+    expires_at: new Date(
+      now - (ageH as number) * 3_600_000 + (windowH as number) * 3_600_000,
+    ).toISOString(),
     digest: "sha256:sample",
     verification_status: "VERIFIED",
     facts: { kind } as Evidence["facts"],
@@ -86,7 +94,9 @@ export function DesignGallery() {
         <div>
           <p className="eyebrow">Sentinel · Night Ledger 2.0</p>
           <h1>Design system</h1>
-          <p className="muted">Every primitive on sample data. Nothing on this page comes from a peer or moves money.</p>
+          <p className="muted">
+            Every primitive on sample data. Nothing on this page comes from a peer or moves money.
+          </p>
         </div>
         <ThemeToggle />
       </header>
@@ -121,12 +131,22 @@ export function DesignGallery() {
             <NumberRoll value={inr(184920 + t * 137)} />
           </div>
           <Sparkline values={series.slice(-14)} color="var(--ok)" height={40} />
-          <h2 className="eyebrow" style={{ marginTop: "1rem" }}>Status</h2>
+          <h2 className="eyebrow" style={{ marginTop: "1rem" }}>
+            Status
+          </h2>
           <div className="row">
-            <span className="status" data-tone="verified">Credit verified</span>
-            <span className="status" data-tone="pending">Provider pending</span>
-            <span className="status" data-tone="reserved">Reserved</span>
-            <span className="status" data-tone="risk">Escalated</span>
+            <span className="status" data-tone="verified">
+              Credit verified
+            </span>
+            <span className="status" data-tone="pending">
+              Provider pending
+            </span>
+            <span className="status" data-tone="reserved">
+              Reserved
+            </span>
+            <span className="status" data-tone="risk">
+              Escalated
+            </span>
             <span className="status">Investigating</span>
           </div>
         </article>
@@ -146,11 +166,22 @@ export function DesignGallery() {
         </article>
         <article className="pnl pnl--pad">
           <h2 className="eyebrow">Ring stack</h2>
-          <RingStack rings={[{ label: "refunds", value: 0.94, color: "var(--ok)" }, { label: "disputes", value: 0.88, color: "var(--signal)" }, { label: "escalations", value: 0.73, color: "var(--ember)" }]} />
+          <RingStack
+            rings={[
+              { label: "refunds", value: 0.94, color: "var(--ok)" },
+              { label: "disputes", value: 0.88, color: "var(--signal)" },
+              { label: "escalations", value: 0.73, color: "var(--ember)" },
+            ]}
+          />
           <h2 className="eyebrow">Stream</h2>
           <StreamArea
             colors={["var(--verified)", "var(--tide)", "var(--signal)"]}
-            layers={[0, 1.3, 2.4].map((seed, k) => Array.from({ length: 24 }, (_, i) => 12 + 10 * (0.5 + 0.5 * Math.sin((i + t) / 3 + seed)) + k))}
+            layers={[0, 1.3, 2.4].map((seed, k) =>
+              Array.from(
+                { length: 24 },
+                (_, i) => 12 + 10 * (0.5 + 0.5 * Math.sin((i + t) / 3 + seed)) + k,
+              ),
+            )}
           />
         </article>
         <article className="pnl pnl--pad gallery__wide">
@@ -185,7 +216,15 @@ export function DesignGallery() {
         </article>
         <article className="pnl pnl--pad gallery__wide">
           <h2 className="eyebrow">Link graph · keyboard selectable</h2>
-          <LinkGraph nodes={NODES} edges={EDGES} selected={sel} threshold={0.7} onSelect={setSel} width={520} height={320} />
+          <LinkGraph
+            nodes={NODES}
+            edges={EDGES}
+            selected={sel}
+            threshold={0.7}
+            onSelect={setSel}
+            width={520}
+            height={320}
+          />
         </article>
         <article className="pnl pnl--pad">
           <h2 className="eyebrow">Treemap</h2>
@@ -199,9 +238,13 @@ export function DesignGallery() {
               { label: "Watches", value: 16, color: "var(--ember)", display: inr(16000) },
             ]}
           />
-          <h2 className="eyebrow" style={{ marginTop: "1rem" }}>Hold to approve</h2>
+          <h2 className="eyebrow" style={{ marginTop: "1rem" }}>
+            Hold to approve
+          </h2>
           {approved ? (
-            <p className="status stamp" data-tone="verified">Approved (sample only)</p>
+            <p className="status stamp" data-tone="verified">
+              Approved (sample only)
+            </p>
           ) : (
             <HoldButton label="Hold to approve sample" onCommit={() => setApproved(true)} />
           )}
@@ -212,7 +255,9 @@ export function DesignGallery() {
             cols={["W0", "W1", "W2", "W3", "W4", "W5"]}
             rows={Array.from({ length: 5 }, (_, r) => ({
               label: `Sep ${r * 7 + 1}`,
-              cells: Array.from({ length: 6 }, (_, w) => (w + r > 5 ? null : w === 0 ? 100 : Math.round(18 * Math.exp(-w / 2.2) + (r % 3)))),
+              cells: Array.from({ length: 6 }, (_, w) =>
+                w + r > 5 ? null : w === 0 ? 100 : Math.round(18 * Math.exp(-w / 2.2) + (r % 3)),
+              ),
             }))}
           />
         </article>

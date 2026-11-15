@@ -4,7 +4,10 @@ import { caseHref, navShortcuts } from "@/components/shell/command-palette";
 import { PortalTopbar } from "@/components/shell/portal-topbar";
 
 const push = vi.fn();
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push }), usePathname: () => "/operator/dashboard" }));
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push }),
+  usePathname: () => "/operator/dashboard",
+}));
 
 beforeAll(() => {
   // cmdk measures items via ResizeObserver and scrollIntoView, which jsdom lacks.

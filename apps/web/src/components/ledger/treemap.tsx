@@ -3,7 +3,15 @@
 export type TreeItem = { label: string; value: number; color: string; display: string };
 
 /** Flex treemap: area ∝ value via flex-grow. Click to select; selection drives a detail line. */
-export function Treemap({ items, selected, onSelect }: { items: TreeItem[]; selected: number; onSelect: (i: number) => void }) {
+export function Treemap({
+  items,
+  selected,
+  onSelect,
+}: {
+  items: TreeItem[];
+  selected: number;
+  onSelect: (i: number) => void;
+}) {
   const total = items.reduce((a, b) => a + b.value, 0) || 1;
   return (
     <div className="lk-treemap">

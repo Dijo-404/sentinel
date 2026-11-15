@@ -27,8 +27,22 @@ export function LogoMark({
   }
   return (
     <>
-      <img src="/brand/sentinel-mark-inverse.svg" alt="" aria-hidden="true" width={width} height={size} className={cls("logo-mark--on-dark")} />
-      <img src="/brand/sentinel-mark.svg" alt="" aria-hidden="true" width={width} height={size} className={cls("logo-mark--on-light")} />
+      <img
+        src="/brand/sentinel-mark-inverse.svg"
+        alt=""
+        aria-hidden="true"
+        width={width}
+        height={size}
+        className={cls("logo-mark--on-dark")}
+      />
+      <img
+        src="/brand/sentinel-mark.svg"
+        alt=""
+        aria-hidden="true"
+        width={width}
+        height={size}
+        className={cls("logo-mark--on-light")}
+      />
     </>
   );
 }

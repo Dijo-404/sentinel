@@ -39,7 +39,8 @@ export function LandingNav({ dashboardHref }: { dashboardHref?: string | null })
         </Link>
         <span className="lp-nav__live">
           <span className="live-dot" aria-hidden="true" />
-          <span className="tnum">{(1284 + t * 3).toLocaleString("en-US")}</span> cases settled today · simulated
+          <span className="tnum">{(1284 + t * 3).toLocaleString("en-US")}</span> cases settled today
+          · simulated
         </span>
         <div className="lp-nav__links">
           <a href="#simulator">Simulator</a>
@@ -73,26 +74,50 @@ export function Hero({ dashboardHref }: { dashboardHref?: string | null }) {
 
   return (
     <header ref={ref} className="lp-hero grid-bg">
-      {webgl ? <LedgerVault progress={scrollYProgress} /> : <div className="ledger-vault ledger-vault--css" aria-hidden="true"><i /><i /><i /><i /></div>}
+      {webgl ? (
+        <LedgerVault progress={scrollYProgress} />
+      ) : (
+        <div className="ledger-vault ledger-vault--css" aria-hidden="true">
+          <i />
+          <i />
+          <i />
+          <i />
+        </div>
+      )}
       <div className="lp-hero__inner">
         <div className="lp-hero__copy">
           <p className="lp-badge">MONEY OPERATIONS · REFUNDS · DISPUTES</p>
-          <MaskHeadline className="lp-hero__title" text="Every refund, from complaint to confirmed credit." accentFrom={5} />
+          <MaskHeadline
+            className="lp-hero__title"
+            text="Every refund, from complaint to confirmed credit."
+            accentFrom={5}
+          />
           <p className="lp-hero__lead">
-            AI investigates. Humans approve one exact payload. One dispatcher writes to the provider. Nothing closes until the money provably lands.
+            AI investigates. Humans approve one exact payload. One dispatcher writes to the
+            provider. Nothing closes until the money provably lands.
           </p>
           <div className="lp-hero__cta">
             {dashboardHref ? (
-              <Link href={dashboardHref} className="btn btn-lg btn-lime">Open your dashboard</Link>
+              <Link href={dashboardHref} className="btn btn-lg btn-lime">
+                Open your dashboard
+              </Link>
             ) : (
-              <Link href="/login" className="btn btn-lg btn-lime">Get started</Link>
+              <Link href="/login" className="btn btn-lg btn-lime">
+                Get started
+              </Link>
             )}
-            <a href="#simulator" className="btn btn-lg btn-glass">Run a live case</a>
+            <a href="#simulator" className="btn btn-lg btn-glass">
+              Run a live case
+            </a>
           </div>
           <dl className="lp-hero__facts">
             <div>
               <dt>verified credit today (sim)</dt>
-              <dd><NumberRoll value={formatMoney(1849200000 + t * 1370000, DEMO_CURRENCY).replace(/\.\d+$/, "")} /></dd>
+              <dd>
+                <NumberRoll
+                  value={formatMoney(1849200000 + t * 1370000, DEMO_CURRENCY).replace(/\.\d+$/, "")}
+                />
+              </dd>
             </div>
             <div>
               <dt>duplicate refund IDs on retry</dt>
@@ -109,7 +134,9 @@ export function Hero({ dashboardHref }: { dashboardHref?: string | null }) {
           <div className="lp-console__scan" aria-hidden="true" />
           <div className="lp-console__head">
             <span className="eyebrow">Live money flow · last 60 min</span>
-            <span className="status" data-tone="verified">simulator</span>
+            <span className="status" data-tone="verified">
+              simulator
+            </span>
           </div>
           <Sankey
             label="Cases flowing from intake through approval to verified credit"
@@ -136,7 +163,9 @@ export function Hero({ dashboardHref }: { dashboardHref?: string | null }) {
           <ul className="lp-console__feed" aria-live="polite">
             {feed.map(([ref, msg, tone], k) => (
               <li key={`${t}-${k}`} className={k === 0 ? "feed-in" : undefined}>
-                <span className="status" data-tone={tone || undefined}>{msg}</span>
+                <span className="status" data-tone={tone || undefined}>
+                  {msg}
+                </span>
                 <code>{ref}</code>
                 <span className="lp-console__ago">{k === 0 ? "now" : `${k * 2}s`}</span>
               </li>

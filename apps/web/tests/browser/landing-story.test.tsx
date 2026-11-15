@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import { advance, checkStates, inject, isResolved, limitCheck } from "@/components/marketing/landing/model";
+import {
+  advance,
+  checkStates,
+  inject,
+  isResolved,
+  limitCheck,
+} from "@/components/marketing/landing/model";
 import { LandingPage } from "@/components/marketing/landing-page";
 
 describe("landing simulator model", () => {
