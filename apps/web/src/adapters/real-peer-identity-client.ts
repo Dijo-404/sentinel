@@ -1,3 +1,4 @@
+import { isIP } from "node:net";
 import {
   type ChallengeAccepted,
   type IdentityNotification,
@@ -180,16 +181,70 @@ export function createRealPeerIdentityClient(options: RealPeerIdentityOptions): 
     }
   }
 
+  async function registerPublicAccount(
+    input: Parameters<IdentityClient["registerCustomer"]>[0] & { business_name?: string },
+    type: "customer" | "merchant",
+  ): Promise<RegisterResult> {
+    const allowed = [
+      "email",
+      "password",
+      "display_name",
+      "language",
+      ...(type === "merchant" ? ["business_name"] : []),
+    ];
+    if (
+      Object.entries(input).some(([key, value]) => value !== undefined && !allowed.includes(key))
+    ) {
+      return { ok: false, code: "PRIVILEGED_FIELDS_REJECTED" };
+    }
+    try {
+      const { json, requestId } = await request("POST", `/v1/auth/${type}/register`, {
+        body: {
+          email: input.email,
+          password: input.password,
+          display_name: input.display_name,
+          ...(type === "merchant" ? { business_name: input.business_name } : {}),
+          ...(input.language ? { preferred_language: input.language } : {}),
+        },
+        okStatuses: [201],
+      });
+      return mapRegisterSuccess(json, requestId);
+    } catch (err) {
+      if (err instanceof PeerError) {
+        if (err.code === "CONFLICT" || err.httpStatus === 409) {
+          return { ok: false, code: "ALREADY_EXISTS" };
+        }
+        if (err.code === "INVALID_INPUT" || err.httpStatus === 422) {
+          const msg = err.message.toLowerCase();
+          if (
+            msg.includes("role") ||
+            msg.includes("privileged") ||
+            msg.includes("tenant") ||
+            msg.includes("account_type")
+          ) {
+            return { ok: false, code: "PRIVILEGED_FIELDS_REJECTED" };
+          }
+          return { ok: false, code: "INVALID_INPUT" };
+        }
+      }
+      throw err;
+    }
+  }
+
   return {
-    async login(email, password): Promise<LoginResult> {
+    async login(email, password, clientIp): Promise<LoginResult> {
       try {
         const { json, requestId } = await request("POST", "/v1/auth/login", {
           body: { email, password },
+          ...(clientIp && isIP(clientIp) ? { headers: { "X-Forwarded-For": clientIp } } : {}),
           okStatuses: [200],
         });
         return mapLoginSuccess(json, requestId);
       } catch (err) {
         if (err instanceof PeerError) {
+          if (err.code === "ACCOUNT_NOT_FOUND") return { ok: false, code: "ACCOUNT_NOT_FOUND" };
+          if (err.code === "RATE_LIMITED" || err.httpStatus === 429)
+            return { ok: false, code: "RATE_LIMITED" };
           if (err.httpStatus === 401 || err.code === "UNAUTHORIZED") {
             return { ok: false, code: "INVALID_CREDENTIALS" };
           }
@@ -204,46 +259,8 @@ export function createRealPeerIdentityClient(options: RealPeerIdentityOptions): 
       }
     },
 
-    async registerCustomer(input): Promise<RegisterResult> {
-      if (
-        input.roles !== undefined ||
-        input.tenant_id !== undefined ||
-        input.subject_refs !== undefined
-      ) {
-        return { ok: false, code: "PRIVILEGED_FIELDS_REJECTED" };
-      }
-      try {
-        const { json, requestId } = await request("POST", "/v1/auth/customer/register", {
-          body: {
-            email: input.email,
-            password: input.password,
-            display_name: input.display_name,
-            ...(input.language ? { preferred_language: input.language } : {}),
-          },
-          okStatuses: [201],
-        });
-        return mapRegisterSuccess(json, requestId);
-      } catch (err) {
-        if (err instanceof PeerError) {
-          if (err.code === "CONFLICT" || err.httpStatus === 409) {
-            return { ok: false, code: "ALREADY_EXISTS" };
-          }
-          if (err.code === "INVALID_INPUT" || err.httpStatus === 422) {
-            const msg = err.message.toLowerCase();
-            if (
-              msg.includes("role") ||
-              msg.includes("privileged") ||
-              msg.includes("tenant") ||
-              msg.includes("account_type")
-            ) {
-              return { ok: false, code: "PRIVILEGED_FIELDS_REJECTED" };
-            }
-            return { ok: false, code: "INVALID_INPUT" };
-          }
-        }
-        throw err;
-      }
-    },
+    registerCustomer: (input) => registerPublicAccount(input, "customer"),
+    registerMerchant: (input) => registerPublicAccount(input, "merchant"),
 
     async resolveSession(sessionToken) {
       return loadMe(sessionToken);
