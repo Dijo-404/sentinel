@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added — labeled sandbox/dev-deploy credentials
+
+- Document portal seed accounts under `deploy/dev/CREDENTIALS.md` with shared
+  password `demo-password` (`IDENTITY_DEMO_PASSWORD`).
+- `SENTINEL_SANDBOX_PUBLIC_BIND=1` opt-in allows non-loopback bind while demo
+  seed passwords remain configured (sandbox/dev-deploy only).
+- Treat `demo-password` as a demo credential in bind safety.
+
 ### Fixed — admin tenants / teams invent no fallback rows
 
 - `admin_list_tenants` / `admin_list_teams` return only store-derived rows.

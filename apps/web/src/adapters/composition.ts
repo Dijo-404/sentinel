@@ -2,7 +2,6 @@ import type { CaseClient, ShellConfig, VoiceClient } from "@/application/ports";
 import { CONTRACT_SHA256, CONTRACT_VERSION, PeerError } from "@/domain/types";
 import { createBffCaseClient } from "./bff-case-client";
 import { createCaseApiStub } from "./fixture-case-client";
-import { createVoiceStub } from "../../tests/stubs/voice";
 import { createRealPeerCaseClient } from "./real-peer-case-client";
 import { createBffVoiceClient } from "./real-peer-voice-client";
 
@@ -94,10 +93,9 @@ export function createShellRuntime(
   if (overrides?.voiceClient !== undefined) {
     voiceClient = overrides.voiceClient;
   } else if (config.voiceEnabled) {
-    voiceClient =
-      config.mode === "fixture"
-        ? createVoiceStub("valid")
-        : createBffVoiceClient({ fetchImpl: overrides?.fetchImpl });
+    // Browser always uses same-origin BFF → voice peer (Sarvam key stays in voice/.env).
+    // Tests inject createVoiceStub via overrides; VOICE_BASE_URL unset → BFF 503 (visible).
+    voiceClient = createBffVoiceClient({ fetchImpl: overrides?.fetchImpl });
   }
 
   return { config, caseClient, voiceClient };

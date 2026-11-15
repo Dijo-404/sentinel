@@ -6,6 +6,8 @@ const handlers = createSessionPeerProxy({
   envKey: "VOICE_BASE_URL",
   peerLabel: "voice",
   requestIdPrefix: "web-bff-voice",
+  // Voice peer authenticates voice-demo-token; portal session stays the BFF gate.
+  upstreamTokenEnvKey: "VOICE_SERVICE_TOKEN",
 });
 
 export const GET = handlers.GET;

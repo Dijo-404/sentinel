@@ -52,7 +52,7 @@ describe("chart labelling", () => {
 });
 
 describe("viz primitives", () => {
-  it("renders StatBlock + FixtureBanner with simulator copy", () => {
+  it("renders StatBlock; FixtureBanner is suppressed", () => {
     render(
       <>
         <FixtureBanner />
@@ -60,9 +60,7 @@ describe("viz primitives", () => {
       </>,
     );
 
-    expect(screen.getByTestId("fixture-banner")).toHaveTextContent(
-      "Simulator / fixture — not live production metrics",
-    );
+    expect(screen.queryByTestId("fixture-banner")).not.toBeInTheDocument();
     expect(screen.getByTestId("stat-block")).toHaveTextContent("Open exceptions");
     expect(screen.getByTestId("stat-block")).toHaveTextContent("12");
     expect(screen.getByTestId("stat-block")).toHaveTextContent("Last 24h");

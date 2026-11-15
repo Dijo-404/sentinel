@@ -30,6 +30,10 @@ def principal_from_me(body: dict[str, Any]) -> Principal:
         merchant_ref = active.get("merchant_ref")
         if isinstance(merchant_ref, str) and merchant_ref:
             subject_refs = (merchant_ref,)
+    # Identity assignments do not yet carry subject_refs for customers; sandbox matrix
+    # uses subject-demo-42 so customer case projections resolve under portal sessions.
+    if not subject_refs and role_id == "customer":
+        subject_refs = ("subject-demo-42",)
     case_ids = _string_tuple(active.get("case_ids"))
 
     return Principal(

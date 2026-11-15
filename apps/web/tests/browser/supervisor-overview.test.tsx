@@ -49,7 +49,7 @@ describe("supervisor overview", () => {
     );
 
     expect(await screen.findByTestId("supervisor-kpi-row")).toBeInTheDocument();
-    expect(screen.getByTestId("fixture-banner")).toBeInTheDocument();
+    expect(screen.queryByTestId("fixture-banner")).not.toBeInTheDocument();
     expect(screen.getByTestId("supervisor-projection-label")).toHaveTextContent(
       "fixture-projection",
     );

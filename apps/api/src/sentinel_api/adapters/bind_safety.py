@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+
 _LOOPBACK = frozenset({"127.0.0.1", "::1", "localhost"})
 
 DEMO_BEARER_TOKENS = frozenset(
@@ -50,6 +52,11 @@ def is_demo_bearer_token(token: str) -> bool:
 TokenValues = list[str] | set[str] | tuple[str, ...]
 
 
+def sandbox_public_bind_allowed() -> bool:
+    """Explicit opt-in for labeled sandbox/dev-deploy hosts (never production)."""
+    return os.environ.get("SENTINEL_SANDBOX_PUBLIC_BIND", "").strip() in {"1", "true", "yes"}
+
+
 def assert_loopback_or_non_demo(
     host: str,
     token_values: TokenValues,
@@ -58,10 +65,13 @@ def assert_loopback_or_non_demo(
 ) -> None:
     if is_loopback_host(host):
         return
+    if sandbox_public_bind_allowed():
+        return
     if identity_sessions:
         raise UnsafeBindError(
             f"Refusing non-loopback bind host={host!r} while identity session "
-            f"projection is enabled. Use 127.0.0.1 or disable IDENTITY_BASE_URL."
+            f"projection is enabled. Use 127.0.0.1, disable IDENTITY_BASE_URL, "
+            f"or SENTINEL_SANDBOX_PUBLIC_BIND=1 for labeled sandbox/dev-deploy only."
         )
     offenders = sorted({t for t in token_values if is_demo_bearer_token(t)})
     if not offenders:
@@ -70,5 +80,6 @@ def assert_loopback_or_non_demo(
     suffix = "…" if len(offenders) > 8 else ""
     raise UnsafeBindError(
         f"Refusing non-loopback bind host={host!r} while demo bearer tokens "
-        f"are configured: {shown}{suffix}. Use 127.0.0.1 or set non-demo secrets."
+        f"are configured: {shown}{suffix}. Use 127.0.0.1, set non-demo secrets, "
+        f"or SENTINEL_SANDBOX_PUBLIC_BIND=1 for labeled sandbox/dev-deploy only."
     )
