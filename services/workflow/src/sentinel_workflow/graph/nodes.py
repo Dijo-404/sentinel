@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+import re
 from typing import Any, Literal
 
 from langchain_core.runnables import RunnableConfig
@@ -23,6 +25,27 @@ from sentinel_workflow.domain.types import (
 )
 from sentinel_workflow.graph.context import deps_from_config
 from sentinel_workflow.graph.state import WorkflowState
+
+logger = logging.getLogger(__name__)
+
+# Peer error codes are untrusted text: only bounded UPPER_SNAKE codes reach reason_code.
+_PEER_CODE = re.compile(r"[A-Z][A-Z0-9_]{1,63}")
+
+
+def _peer_reason(prefix: str, exc: WorkflowError, fallback: str) -> str:
+    """Escalation reason `<PREFIX>_<CODE>` for a coded PeerError, else `fallback`. Always logs."""
+    reason = fallback
+    if isinstance(exc, PeerError) and _PEER_CODE.fullmatch(exc.code):
+        reason = f"{prefix}_{exc.code}"
+    logger.warning(
+        "%s peer error code=%s status=%s reason_code=%s message=%r",
+        prefix.lower(),
+        exc.code,
+        exc.status_code,
+        reason,
+        exc.message[:200],
+    )
+    return reason
 
 
 def _route_after_plan(state: WorkflowState) -> Literal["policy", "clarify", "escalate", "budget"]:
@@ -305,15 +328,16 @@ def policy_check(state: WorkflowState, config: RunnableConfig) -> dict[str, Any]
     )
     try:
         result = deps.policy.evaluate(request)
-    except (PeerUnavailableError, PeerError):
+    except (PeerUnavailableError, PeerError) as exc:
+        reason = _peer_reason("POLICY", exc, "POLICY_PEER_FAILURE")
         return {
             "status": "ESCALATED",
-            "reason_code": "POLICY_PEER_FAILURE",
+            "reason_code": reason,
             "terminal": True,
             "pending_result": _pending(
                 state,
                 status="ESCALATED",
-                reason_code="POLICY_PEER_FAILURE",
+                reason_code=reason,
                 evidence_ids=state.get("evidence_ids") or [],
             ),
         }
@@ -377,15 +401,16 @@ def approval_gate(state: WorkflowState, config: RunnableConfig) -> dict[str, Any
             )
             action_id = record.action_id
             provider_ref = record.provider_ref
-        except (PeerUnavailableError, PeerError):
+        except (PeerUnavailableError, PeerError) as exc:
+            reason = _peer_reason("LEDGER", exc, "LEDGER_PEER_FAILURE")
             return {
                 "status": "ESCALATED",
-                "reason_code": "LEDGER_PEER_FAILURE",
+                "reason_code": reason,
                 "terminal": True,
                 "pending_result": _pending(
                     state,
                     status="ESCALATED",
-                    reason_code="LEDGER_PEER_FAILURE",
+                    reason_code=reason,
                     evidence_ids=state.get("evidence_ids") or [],
                 ),
             }
@@ -532,25 +557,10 @@ def execute_ledger(state: WorkflowState, config: RunnableConfig) -> dict[str, An
                     action_id=record_action_id,
                 ),
             }
-    except PeerUnavailableError as exc:
-        return {
-            "status": "ESCALATED",
-            "reason_code": "LEDGER_PEER_FAILURE",
-            "error": exc.message,
-            "terminal": True,
-            "pending_result": _pending(
-                state,
-                status="ESCALATED",
-                reason_code="LEDGER_PEER_FAILURE",
-                evidence_ids=state.get("evidence_ids") or [],
-            ),
-        }
-    except PeerError as exc:
-        reason = (
-            "ORDER_REFERENCE_REQUIRED"
-            if exc.code == "ORDER_REFERENCE_REQUIRED"
-            else "LEDGER_PEER_FAILURE"
-        )
+    except (PeerUnavailableError, PeerError) as exc:
+        reason = _peer_reason("LEDGER", exc, "LEDGER_PEER_FAILURE")
+        if exc.code == "ORDER_REFERENCE_REQUIRED":
+            reason = "ORDER_REFERENCE_REQUIRED"  # pre-existing unprefixed reason
         return {
             "status": "ESCALATED",
             "reason_code": reason,
@@ -600,15 +610,16 @@ def verify(state: WorkflowState, config: RunnableConfig) -> dict[str, Any]:
     try:
         deps.verifier.schedule_recheck(request, idem)
         assessment = deps.verifier.assess(request)
-    except (PeerUnavailableError, PeerError):
+    except (PeerUnavailableError, PeerError) as exc:
+        reason = _peer_reason("VERIFIER", exc, "VERIFIER_PEER_FAILURE")
         return {
             "status": "ESCALATED",
-            "reason_code": "VERIFIER_PEER_FAILURE",
+            "reason_code": reason,
             "terminal": True,
             "pending_result": _pending(
                 state,
                 status="ESCALATED",
-                reason_code="VERIFIER_PEER_FAILURE",
+                reason_code=reason,
                 evidence_ids=state.get("evidence_ids") or [],
                 action_id=action_id,
             ),
@@ -726,41 +737,19 @@ def _risk_hold_block(state: WorkflowState, deps: Any) -> dict[str, Any] | None:
     """Fail closed on active restriction or required risk-peer failure. No money path."""
     try:
         blocked = deps.risk.blocks_financial_actions(state["case_id"])
-    except PeerUnavailableError:
+    except WorkflowError as exc:
+        unavailable = isinstance(exc, PeerUnavailableError)
+        reason = _peer_reason(
+            "RISK", exc, "RISK_PEER_UNAVAILABLE" if unavailable else "RISK_PEER_FAILURE"
+        )
         return {
             "status": "ESCALATED",
-            "reason_code": "RISK_PEER_UNAVAILABLE",
+            "reason_code": reason,
             "terminal": True,
             "pending_result": _pending(
                 state,
                 status="ESCALATED",
-                reason_code="RISK_PEER_UNAVAILABLE",
-                evidence_ids=state.get("evidence_ids") or [],
-                action_id=state.get("action_id"),
-            ),
-        }
-    except PeerError:
-        return {
-            "status": "ESCALATED",
-            "reason_code": "RISK_PEER_FAILURE",
-            "terminal": True,
-            "pending_result": _pending(
-                state,
-                status="ESCALATED",
-                reason_code="RISK_PEER_FAILURE",
-                evidence_ids=state.get("evidence_ids") or [],
-                action_id=state.get("action_id"),
-            ),
-        }
-    except WorkflowError:
-        return {
-            "status": "ESCALATED",
-            "reason_code": "RISK_PEER_FAILURE",
-            "terminal": True,
-            "pending_result": _pending(
-                state,
-                status="ESCALATED",
-                reason_code="RISK_PEER_FAILURE",
+                reason_code=reason,
                 evidence_ids=state.get("evidence_ids") or [],
                 action_id=state.get("action_id"),
             ),

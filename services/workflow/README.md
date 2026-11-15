@@ -35,6 +35,8 @@ uv run sentinel-workflow serve
 - Financial path consults risk hold lookup (`WORKFLOW_PEER_RISK_URL` in real-peers); active hold or peer failure escalates fail-closed
 - `GET /v1/capabilities` reports `mode: fixture|real-peers`
 - Fake model scenarios via `WORKFLOW_FAKE_MODEL_SCENARIO` (`proposal`, `needs_input`, `escalate`, `malformed`, `outage`)
+- Peer error escalations carry the peer's code: a coded `PeerError` from ledger/policy/verifier/risk escalates with `reason_code` `<PEER>_<CODE>` (e.g. `LEDGER_APPROVAL_EXPIRED`, `LEDGER_POLICY_DENIED`); unavailable peers or codes outside `[A-Z][A-Z0-9_]{1,63}` keep the old `LEDGER_PEER_FAILURE` / `POLICY_PEER_FAILURE` / `VERIFIER_PEER_FAILURE` / `RISK_PEER_UNAVAILABLE` / `RISK_PEER_FAILURE`. `ORDER_REFERENCE_REQUIRED` stays unprefixed. Each is logged at warning level with code and message
+- `job_key` redelivery: same payload re-executes only a `failed` job (atomic `failed`→`running` claim, so concurrent redeliveries run once); `accepted`/`running`/`completed` jobs return 202 without re-running; a different payload is `IDEMPOTENCY_CONFLICT`
 
 ## Layout
 
@@ -52,7 +54,8 @@ uv run sentinel-workflow serve
 
 - Approval interrupt survives Postgres restart; authenticated DECISION resume; ledger `operation_key` prevents duplicate logical financial commands on node replay
 - Missing evidence → `NEEDS_INPUT`; malformed/outage model → `ESCALATED`; exhausted investigation budget → `ESCALATED`; pending verification → `WAITING_EXTERNAL`
-- Outbox retries on case-api outage; idempotent `job_key`; unauthorized token rejected
+- Outbox retries on case-api outage; idempotent `job_key`; failed job retried once on redelivery; unauthorized token rejected
+- Ledger 409 codes reach the case result and warning log
 - Real HTTP peer adapters raise on unavailable/unauthorized/malformed (no fixture fallback)
 
 ## Evidence labels
