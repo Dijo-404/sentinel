@@ -568,7 +568,9 @@ class PostgresUnitOfWork:
         approval = None
         if action.approval_id:
             approval = self.get_approval(action.tenant_id, action.approval_id)
-        elif action.status != "PROPOSED":
+        else:
+            # A supervisor decision leaves the action PROPOSED until reservation; workflow
+            # DECISION resume must see it. Reservation re-validates the approval atomically.
             approval = self.get_approval_for_action(action.tenant_id, action.action_id)
         return ActionRecord(
             action_id=action.action_id,
