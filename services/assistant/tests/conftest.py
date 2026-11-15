@@ -48,7 +48,9 @@ def store():
 
 @pytest.fixture
 def service(store, clock):
-    return AssistantService(store=store, clock=clock)
+    from sentinel_assistant.adapters.sandbox_reply import SandboxEchoReply
+
+    return AssistantService(store=store, clock=clock, replies=SandboxEchoReply())
 
 
 @pytest.fixture

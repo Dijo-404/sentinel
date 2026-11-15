@@ -55,7 +55,7 @@ def create_app(
         memory,
         sandbox=is_sandbox,
         webhook_hmac_key=resolve_webhook_hmac_key(),
-        merchant_ref=os.environ.get("SIMULATOR_MERCHANT_REF", "merchant-demo"),
+        merchant_ref=os.environ.get("SIMULATOR_MERCHANT_REF", "merchant-demo-1"),
     )
     tokens = default_token_map(
         tenant_id=os.environ.get("SIMULATOR_TENANT_ID", "tenant-demo"),

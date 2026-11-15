@@ -35,6 +35,9 @@ def test_collect_valid_duplicate_bundle(client):
     assert kinds >= {"PAYMENT", "ORDER", "REFUND"}
     for item in body["evidence"]:
         assert len(item["digest"]) == 64
+    payments = [item for item in body["evidence"] if item["facts"]["kind"] == "PAYMENT"]
+    assert payments
+    assert all(item["facts"]["payment"]["merchant_ref"] == "merchant-demo-1" for item in payments)
 
 
 def test_equal_amounts_alone_via_api(client):

@@ -34,7 +34,7 @@ uv run --frozen sentinel-finbench run --dataset indic-fin-v0.1.0 --split val --m
 uv run --frozen sentinel-finbench self-test
 ```
 
-Modes: `recorded`, `fake-model`, `live-model` (requires `--live-model`), `system`, `unsafe` (fault demo).
+Modes: `recorded`, `fake-model`, `live-model` (requires `--live-model` and `--context-peer`), `system`, `unsafe` (fault demo). Optional `--runtime-peer` discloses FinHarness runtime probe under report peers.
 
 Probe real peers (fail closed; no fixture fallback):
 

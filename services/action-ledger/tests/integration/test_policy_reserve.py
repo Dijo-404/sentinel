@@ -51,6 +51,12 @@ def test_policy_allow_proceeds(app_client, tokens):
     assert reserved.status_code == 201, reserved.text
     assert reserved.json()["status"] == "RESERVED"
     assert app_client.policy.calls >= 1
+    with app_client.engine.connect() as connection:
+        merchant_ref = connection.execute(
+            text("SELECT merchant_ref FROM payment_reservations WHERE transaction_ref = 'TXN-B'")
+        ).scalar_one()
+        assert merchant_ref == "merchant-demo-1"
+        assert merchant_ref != "case-demo-42"
 
 
 def test_policy_digest_mismatch_fails(app_client, tokens):

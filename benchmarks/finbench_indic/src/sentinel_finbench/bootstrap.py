@@ -28,11 +28,16 @@ def load_bundled_dataset(dataset_version: str) -> DatasetManifest:
     return load_dataset(datasets_root(), dataset_version)
 
 
-def select_candidate(name: str, *, live_enabled: bool = False) -> CandidateRunner:
+def select_candidate(
+    name: str,
+    *,
+    live_enabled: bool = False,
+    context: object | None = None,
+) -> CandidateRunner:
     mapping: dict[str, CandidateRunner] = {
         "recorded": RecordedBaselineCandidate(),
         "fake": FakeModelCandidate(),
-        "live": LiveModelCandidate(enabled=live_enabled),
+        "live": LiveModelCandidate(enabled=live_enabled, context=context),
         "system": DeterministicSystemCandidate(),
         "unsafe": UnsafeRegressionCandidate(),
     }

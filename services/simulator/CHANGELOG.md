@@ -4,6 +4,11 @@
 
 - Refuse non-loopback HTTP bind while demo/sandbox bearer tokens remain configured.
 
+### Fixed — payment merchant_ref on transaction wire
+
+- `Payment.to_dict()` includes `merchant_ref`. Journey seeds and default
+  `SIMULATOR_MERCHANT_REF` use `merchant-demo-1` (sandbox matrix).
+
 ### Added — 14 November 2026 (Refs #79)
 
 - V1 sandbox hardening: `SIMULATOR_MODE=real-peers` for assembly probes while `readyz` keeps `payment_provider=simulator` and `evidence_mode=fixture` (never live).

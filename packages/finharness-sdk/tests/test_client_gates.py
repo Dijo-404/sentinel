@@ -90,6 +90,49 @@ def test_notifications_disabled_by_default(manifest, enabled_harness):
         client.notify(channel="operator", message_code="WAITING")
 
 
+def test_notifications_enabled_require_port(manifest):
+    from sentinel_finharness import ConfigurationError
+
+    config = RuntimeConfig.from_mapping(
+        {
+            "enabled": True,
+            "execution_mode": "harness",
+            "notifications": True,
+            "allowed_workflows": [manifest.workflow_name],
+            "allowed_tenants": ["sandbox"],
+        }
+    )
+    client = _client(manifest, config)
+    with pytest.raises(ConfigurationError, match="NotificationPort"):
+        client.notify(channel="operator", message_code="WAITING")
+
+
+def test_notifications_enqueue_via_port(manifest):
+    class _Queue:
+        def __init__(self) -> None:
+            self.items: list[dict[str, str]] = []
+
+        def enqueue(self, *, channel: str, message_code: str) -> dict[str, str]:
+            item = {"status": "queued", "channel": channel, "message_code": message_code}
+            self.items.append(item)
+            return dict(item)
+
+    config = RuntimeConfig.from_mapping(
+        {
+            "enabled": True,
+            "execution_mode": "harness",
+            "notifications": True,
+            "allowed_workflows": [manifest.workflow_name],
+            "allowed_tenants": ["sandbox"],
+        }
+    )
+    queue = _Queue()
+    client = _client(manifest, config, notifications=queue)
+    result = client.notify(channel="operator", message_code="WAITING")
+    assert result["status"] == "queued"
+    assert queue.items == [{"status": "queued", "channel": "operator", "message_code": "WAITING"}]
+
+
 def test_bypass_helper_never_calls_ledger(manifest, enabled_harness):
     client = _client(manifest, enabled_harness)
     with pytest.raises(CapabilityDenied, match="approval_id"):

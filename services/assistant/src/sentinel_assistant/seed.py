@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typing import Any
 
+from .adapters.sandbox_reply import SandboxEchoReply
 from .adapters.storage_postgres import PostgresAssistantStore, build_engine
 from .application.errors import ConfigurationError
-from .application.service import EVIDENCE_MODE, STUB_REPLY
 from .domain.types import Message, Thread
 
 SEED_TENANT_ID = "tenant-demo"
@@ -16,6 +16,7 @@ SEED_REPLY_ID = "msg-seed-tenant-demo-assistant"
 SEED_CREATED_AT = "2026-11-15T10:00:00Z"
 SEED_TITLE = "Sandbox assistant thread"
 SEED_USER_TEXT = "Hello from tenant-demo sandbox seed."
+SEED_EVIDENCE_MODE = "sandbox"
 
 
 def seed_demo_threads(database_url: str) -> dict[str, Any]:
@@ -23,6 +24,7 @@ def seed_demo_threads(database_url: str) -> dict[str, Any]:
     if not database_url.strip():
         raise ConfigurationError("ASSISTANT_DATABASE_URL is required for seed")
 
+    reply_text, reply_mode = SandboxEchoReply().generate(text=SEED_USER_TEXT)
     thread = Thread(
         thread_id=SEED_THREAD_ID,
         tenant_id=SEED_TENANT_ID,
@@ -39,7 +41,7 @@ def seed_demo_threads(database_url: str) -> dict[str, Any]:
             tenant_id=SEED_TENANT_ID,
             role="user",
             text=SEED_USER_TEXT,
-            evidence_mode=EVIDENCE_MODE,
+            evidence_mode=SEED_EVIDENCE_MODE,
             created_at=SEED_CREATED_AT,
             principal_id="customer-demo",
         ),
@@ -48,8 +50,8 @@ def seed_demo_threads(database_url: str) -> dict[str, Any]:
             thread_id=SEED_THREAD_ID,
             tenant_id=SEED_TENANT_ID,
             role="assistant",
-            text=STUB_REPLY,
-            evidence_mode=EVIDENCE_MODE,
+            text=reply_text,
+            evidence_mode=reply_mode,
             created_at=SEED_CREATED_AT,
             principal_id=None,
         ),
@@ -66,5 +68,5 @@ def seed_demo_threads(database_url: str) -> dict[str, Any]:
         "message_ids": [SEED_MESSAGE_ID, SEED_REPLY_ID],
         "rows": 1 + len(messages),
         "evidence_label": "synthetic-sandbox",
-        "evidence_mode": EVIDENCE_MODE,
+        "evidence_mode": SEED_EVIDENCE_MODE,
     }

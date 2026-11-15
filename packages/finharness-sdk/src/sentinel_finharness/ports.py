@@ -40,3 +40,9 @@ class VerifierPort(Protocol):
 class IndicContextPort(Protocol):
     def propose(self, request: Mapping[str, Any]) -> Mapping[str, Any]:
         """indic-context.v1 POST /v1/proposals → ModelResult."""
+
+
+@runtime_checkable
+class NotificationPort(Protocol):
+    def enqueue(self, *, channel: str, message_code: str) -> Mapping[str, str]:
+        """Enqueue a non-financial notification. Must persist or refuse — never fake queued."""

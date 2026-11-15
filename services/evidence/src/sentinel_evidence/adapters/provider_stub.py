@@ -67,8 +67,24 @@ class StubPaymentProvider:
         expires_at: str | None = None,
     ) -> ProviderSnapshot:
         payments = (
-            Payment("TXN-A", order_reference, "subj-demo-1", "CAPTURED", 150000, "INR"),
-            Payment("TXN-B", order_reference, "subj-demo-1", "CAPTURED", 150000, "INR"),
+            Payment(
+                "TXN-A",
+                order_reference,
+                "subj-demo-1",
+                "CAPTURED",
+                150000,
+                "INR",
+                "merchant-demo-1",
+            ),
+            Payment(
+                "TXN-B",
+                order_reference,
+                "subj-demo-1",
+                "CAPTURED",
+                150000,
+                "INR",
+                "merchant-demo-1",
+            ),
         )
         order = Order(order_reference, "subj-demo-1", fulfilled, merchant_confirmed, True)
         refund = Refund(
@@ -92,8 +108,24 @@ class StubPaymentProvider:
     def _conflicting(self, order_reference: str) -> ProviderSnapshot:
         # Same transaction_ref with contradictory amounts → CONFLICTING.
         payments = (
-            Payment("TXN-A", order_reference, "subj-demo-1", "CAPTURED", 150000, "INR"),
-            Payment("TXN-A", order_reference, "subj-demo-1", "CAPTURED", 99900, "INR"),
+            Payment(
+                "TXN-A",
+                order_reference,
+                "subj-demo-1",
+                "CAPTURED",
+                150000,
+                "INR",
+                "merchant-demo-1",
+            ),
+            Payment(
+                "TXN-A",
+                order_reference,
+                "subj-demo-1",
+                "CAPTURED",
+                99900,
+                "INR",
+                "merchant-demo-1",
+            ),
         )
         order = Order(order_reference, "subj-demo-1", 1, False, True)
         payment_items = tuple((canonical_json_bytes(_payment_dict(p)), p) for p in payments)
@@ -115,6 +147,7 @@ def _payment_dict(payment: Payment) -> dict:
         "status": payment.status,
         "amount_minor": payment.amount_minor,
         "currency": payment.currency,
+        "merchant_ref": payment.merchant_ref,
     }
 
 

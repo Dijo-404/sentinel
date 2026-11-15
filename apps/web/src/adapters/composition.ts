@@ -54,7 +54,8 @@ export function loadShellConfig(
     caseApiBaseUrl: env.CASE_API_BASE_URL,
     // Never ship a shared portal bearer via shell config.
     bearerToken: mode === "fixture" ? env.NEXT_PUBLIC_DEMO_TOKEN : undefined,
-    // Shell-typed principal placeholder; portal auth uses session/BFF, not this.
+    // Fixture-only principal placeholder. Real-peers approval UI must pass the
+    // authenticated session user id; do not treat this as the reviewer.
     principal: demoPrincipal(role),
   };
 }

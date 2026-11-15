@@ -8,5 +8,11 @@ export default async function SupervisorApprovalDetailPage({
 }) {
   const { actionId } = await params;
   const session = await requireAnyRole(["operator", "supervisor"], "supervisor");
-  return <DecisionView actionId={actionId} canDecide={session.assignment.role === "supervisor"} />;
+  return (
+    <DecisionView
+      actionId={actionId}
+      canDecide={session.assignment.role === "supervisor"}
+      reviewerId={session.user.user_id}
+    />
+  );
 }

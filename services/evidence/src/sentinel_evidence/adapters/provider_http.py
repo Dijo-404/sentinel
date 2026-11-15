@@ -103,6 +103,9 @@ class HttpPaymentProvider:
 
 
 def _parse_payment(item: dict) -> Payment:
+    merchant_ref = str(item.get("merchant_ref") or "").strip()
+    if not merchant_ref:
+        raise PeerMalformedError("Provider payment missing merchant_ref")
     return Payment(
         transaction_ref=str(item["transaction_ref"]),
         order_reference=str(item["order_reference"]),
@@ -110,6 +113,7 @@ def _parse_payment(item: dict) -> Payment:
         status=item["status"],
         amount_minor=int(item["amount_minor"]),
         currency=item["currency"],
+        merchant_ref=merchant_ref,
     )
 
 
@@ -142,6 +146,7 @@ def _payment_wire(payment: Payment) -> dict:
         "status": payment.status,
         "amount_minor": payment.amount_minor,
         "currency": payment.currency,
+        "merchant_ref": payment.merchant_ref,
     }
 
 

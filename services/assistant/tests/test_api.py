@@ -66,9 +66,10 @@ def test_create_list_and_message_flow_customer(client):
     items = messages.json()["messages"]
     assert len(items) >= 1
     assert items[0]["evidence_mode"] == "sandbox"
-    # Optional stub assistant reply stays sandbox-labeled.
-    assert all(m["evidence_mode"] == "sandbox" for m in items)
-    assert any(m["role"] == "assistant" for m in items)
+    assistant = next(m for m in items if m["role"] == "assistant")
+    assert assistant["evidence_mode"] == "sandbox"
+    assert "Where is my refund?" in assistant["text"]
+    assert assistant["text"] != items[0]["text"]
 
 
 def test_operator_role_filter_separate_from_customer(client):

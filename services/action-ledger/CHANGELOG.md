@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Fixed — payment merchant_ref provenance
+
+- Reservation `payment_reservations.merchant_ref` comes from verified payment
+  evidence `payment.merchant_ref`. Refuses missing values and rejects
+  `merchant_ref == case_id` (no more case-id substitution).
+
 ### Added — SN-040 peer principal catalog
 
 - Additive `merchant` / `risk_officer` / `platform_admin` demo tokens and

@@ -351,10 +351,15 @@ class ActionLedgerService:
                     raise ConflictError("Approval does not bind this action")
 
                 # Lock payment first so eligibility version bumps serialize under concurrency.
+                if not snapshot.merchant_ref or snapshot.merchant_ref == snapshot.case_id:
+                    raise ConflictError(
+                        "Verified payment evidence missing merchant_ref",
+                        code="NEED_MERCHANT_REF",
+                    )
                 uow.upsert_payment(
                     tenant_id=principal.tenant_id,
                     transaction_ref=normalized["transaction_ref"],
-                    merchant_ref=snapshot.case_id,
+                    merchant_ref=snapshot.merchant_ref,
                     captured_minor=snapshot.captured_minor
                     - snapshot.external_refunded_minor
                     - snapshot.external_pending_minor,
@@ -682,6 +687,17 @@ class ActionLedgerService:
         # Empty subject_refs allowed for service principals; non-empty must contain payment subject.
         if principal.subject_refs and payment_subject not in principal.subject_refs:
             raise ForbiddenError("Subject outside principal scope")
+        merchant_ref = str(payment_obj.get("merchant_ref") or "").strip()
+        if not merchant_ref:
+            raise ConflictError(
+                "Verified payment evidence missing merchant_ref",
+                code="NEED_MERCHANT_REF",
+            )
+        if merchant_ref == payload["case_id"]:
+            raise ConflictError(
+                "merchant_ref must not equal case_id",
+                code="INVALID_MERCHANT_REF",
+            )
         captured = int(payment_obj["amount_minor"])
         return EligibilitySnapshot(
             tenant_id=principal.tenant_id,
@@ -697,4 +713,5 @@ class ActionLedgerService:
             external_refunded_minor=external_refunded,
             external_pending_minor=external_pending,
             version=1,
+            merchant_ref=merchant_ref,
         )

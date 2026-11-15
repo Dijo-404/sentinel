@@ -1,12 +1,14 @@
-"""Sandbox seed: one metrics snapshot for merchant-demo-1 / matrix window."""
+"""Sandbox seed: one metrics snapshot for merchant-demo-1 / rolling window."""
 
 from __future__ import annotations
 
 import json
+from datetime import datetime
 from pathlib import Path
 
 from .adapters.postgres_snapshots import PostgresMetricsSnapshotStore, build_engine
 from .application.errors import ConfigurationError
+from .domain.metrics_window import rolling_metrics_window
 from .domain.types import MerchantMetrics
 
 MODULE_ROOT = Path(__file__).resolve().parents[2]
@@ -15,7 +17,12 @@ SANDBOX_TENANT = "tenant-demo"
 SANDBOX_MERCHANT = "merchant-demo-1"
 
 
-def seed_demo_snapshot(database_url: str, *, snapshot_path: Path | None = None) -> MerchantMetrics:
+def seed_demo_snapshot(
+    database_url: str,
+    *,
+    snapshot_path: Path | None = None,
+    now: datetime | None = None,
+) -> MerchantMetrics:
     if not database_url.strip():
         raise ConfigurationError("MERCHANT_ANALYTICS_DATABASE_URL is required for seed")
     path = snapshot_path or DEFAULT_SNAPSHOT
@@ -24,11 +31,13 @@ def seed_demo_snapshot(database_url: str, *, snapshot_path: Path | None = None) 
         raise ConfigurationError(f"seed refuses tenant_id != {SANDBOX_TENANT}")
     if payload.get("merchant_ref") != SANDBOX_MERCHANT:
         raise ConfigurationError(f"seed refuses merchant_ref != {SANDBOX_MERCHANT}")
+    # Align with portal rollingMetricsWindow — not the fixed contract example dates.
+    window_start, window_end = rolling_metrics_window(now=now)
     metrics = MerchantMetrics(
         tenant_id=payload["tenant_id"],
         merchant_ref=payload["merchant_ref"],
-        window_start=payload["window_start"],
-        window_end=payload["window_end"],
+        window_start=window_start,
+        window_end=window_end,
         exception_rate=payload["exception_rate"],
         unresolved_minor=int(payload["unresolved_minor"]),
         currency=payload["currency"],

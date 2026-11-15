@@ -5,7 +5,9 @@ from sentinel_evidence.domain.types import Order, Payment, Refund
 
 
 def _pay(ref: str, amount: int = 150000) -> Payment:
-    return Payment(ref, "DEMO-ORDER-42", "subj-demo-1", "CAPTURED", amount, "INR")
+    return Payment(
+        ref, "DEMO-ORDER-42", "subj-demo-1", "CAPTURED", amount, "INR", "merchant-demo-1"
+    )
 
 
 def test_equal_amounts_alone_never_duplicate():

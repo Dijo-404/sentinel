@@ -4,6 +4,11 @@
 
 - Refuse non-loopback HTTP bind while demo/sandbox bearer tokens remain configured.
 
+### Fixed — payment merchant_ref for ledger reservations
+
+- Payment facts include `merchant_ref` from the provider. HTTP provider fails closed
+  when the field is missing. Fixture stub uses `merchant-demo-1` (sandbox matrix).
+
 ### Fixed — cross-service order identity
 
 - Collect maps authorized case `order_reference` (`{subject_ref}/{customer_order_id}` or

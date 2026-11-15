@@ -1,4 +1,4 @@
-"""Assistant use cases: threads and sandbox-labeled messages. No money authority."""
+"""Assistant use cases: threads and messages. No money authority."""
 
 from __future__ import annotations
 
@@ -6,16 +6,20 @@ import uuid
 
 from ..domain.types import Message, Principal, Thread, ThreadAudience
 from .errors import NotFoundError, ValidationError
-from .ports import AssistantStore, Clock
-
-EVIDENCE_MODE = "sandbox"
-STUB_REPLY = "Sandbox assistant reply. Models propose only; no payment or ledger authority."
+from .ports import AssistantStore, Clock, ReplyGenerator
 
 
 class AssistantService:
-    def __init__(self, store: AssistantStore, clock: Clock):
+    def __init__(
+        self,
+        store: AssistantStore,
+        clock: Clock,
+        *,
+        replies: ReplyGenerator,
+    ):
         self._store = store
         self._clock = clock
+        self._replies = replies
 
     def create_thread(self, principal: Principal, *, title: str | None) -> Thread:
         try:
@@ -56,18 +60,19 @@ class AssistantService:
             tenant_id=principal.tenant_id,
             role="user",
             text=body,
-            evidence_mode=EVIDENCE_MODE,
+            evidence_mode="sandbox",
             created_at=now,
             principal_id=principal.principal_id,
         )
         saved = self._store.add_message(user_message)
+        reply_text, evidence_mode = self._replies.generate(text=body)
         reply = Message(
             message_id=f"msg-{uuid.uuid4().hex[:16]}",
             thread_id=thread.thread_id,
             tenant_id=principal.tenant_id,
             role="assistant",
-            text=STUB_REPLY,
-            evidence_mode=EVIDENCE_MODE,
+            text=reply_text,
+            evidence_mode=evidence_mode,  # type: ignore[arg-type]
             created_at=now,
             principal_id=None,
         )
