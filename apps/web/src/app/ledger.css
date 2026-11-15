@@ -1939,3 +1939,25 @@
 .gallery h2.eyebrow {
   margin: 0;
 }
+
+/* ---------- Command center ---------- */
+.cc { display: grid; gap: 1rem; }
+.cc h2 { margin: 0; font-size: 1.05rem; }
+.cc__head { display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem; flex-wrap: wrap; }
+.cc__head h1 { margin: 0.25rem 0 0; font-size: clamp(2rem, 3.4vw, 3rem); letter-spacing: -0.04em; font-weight: 600; }
+.cc__controls { display: flex; gap: 0.5rem; align-items: center; }
+.cc__kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 0.75rem; }
+.cc__kpi { padding: 1rem 1.1rem; display: grid; gap: 0.35rem; text-decoration: none; color: inherit; }
+.cc__kpi span { font-size: 0.8rem; color: var(--fog); }
+.cc__kpi strong { font-size: 2.2rem; letter-spacing: -0.035em; font-weight: 600; }
+.cc__row { display: flex; flex-wrap: wrap; gap: 1rem; }
+.cc__flow { flex: 999 1 600px; min-width: 0; display: grid; gap: 0.75rem; }
+.cc__side { flex: 1 1 300px; display: grid; gap: 0.5rem; align-content: start; }
+.cc__big { font-size: 2.4rem; font-weight: 600; letter-spacing: -0.035em; }
+.cc__stages { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.45rem; }
+.cc__stages li { display: grid; grid-template-columns: 84px minmax(0, 1fr) 32px; align-items: center; gap: 0.6rem; font-size: 0.8rem; color: var(--ink-secondary); }
+.cc__stages i { display: block; height: 8px; border-radius: 4px; min-width: 2px; transition: width 0.6s var(--ease-ledger); }
+.cc__stages code { text-align: right; }
+.cc__stream { overflow: hidden; }
+.cc__stream-head { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; border-bottom: 1px solid var(--line); }
+.cc__stream .table th, .cc__stream .table td { padding-inline: 1.25rem; }
