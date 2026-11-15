@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Fixed — approved reservation policy recheck (Refs #144)
+
+- Forward the stored supervisor approval when rechecking policy before reservation.
+  The reservation transaction still validates approval binding, digest, revision,
+  policy version and expiry before creating financial state.
+
 ### Added — portal session authentication
 
 - Optional `LEDGER_IDENTITY_BASE_URL`: bearers not in the static token map are resolved via
