@@ -1,0 +1,10 @@
+{
+  "policies": [
+    {
+      "policy_id": "demo-policy-v1",
+      "version": "demo-policy-v1",
+      "status": "active",
+      "updated_at": "2026-11-13T12:00:00Z"
+    }
+  ]
+}
