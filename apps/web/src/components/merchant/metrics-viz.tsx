@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import type { MerchantMetrics } from "@/application/ports";
 import { formatMoney } from "@/components/ledger/money";
+import { pct } from "@/components/ledger/css-values";
 
 /** "0.4000" or "4.2%" → fraction 0..1, or null if unparseable. Pure. */
 export function parseRate(raw: string): number | null {
@@ -95,10 +96,10 @@ export function MerchantMetricsViz({ m }: { m: MerchantMetrics }) {
                   <span className="mviz__bar-track">
                     <motion.i
                       initial={{ height: 0 }}
-                      animate={{ height: `${(v / maxBucket) * 100}%` }}
+                      animate={{ height: pct((v / maxBucket) * 100) }}
                       transition={{ duration: 0.7, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
                       style={{
-                        background:
+                        backgroundColor:
                           i >= buckets.length - 1
                             ? "var(--escalation)"
                             : `color-mix(in srgb, var(--signal) ${90 - i * 15}%, var(--ember))`,

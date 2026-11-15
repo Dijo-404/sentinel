@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { pct } from "./css-values";
 
 export type BarSeries = { key: string; label: string; color: string };
 export type BarRow = {
@@ -125,7 +126,7 @@ export function StackedBars({
                 <span
                   key={s.key}
                   style={{
-                    height: `${((r.values[s.key] ?? 0) / max) * 100}%`,
+                    height: pct(((r.values[s.key] ?? 0) / max) * 100),
                     background: s.color,
                   }}
                 />

@@ -45,7 +45,7 @@ export function Heatmap({ rows, cols, values, unit }: Props) {
                   className="heatmap__cell"
                   aria-label={`${row} ${col}: ${v} ${unit}`}
                   style={{
-                    background: `color-mix(in srgb, var(--viz-1) ${Math.round(
+                    backgroundColor: `color-mix(in srgb, var(--viz-1) ${Math.round(
                       8 + (v / max) * 92,
                     )}%, var(--lavender))`,
                   }}

@@ -21,6 +21,7 @@ import {
   type Fault,
   type SimState,
 } from "./model";
+import { pct } from "@/components/ledger/css-values";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 const money = (major: number) =>
@@ -106,7 +107,7 @@ export function Simulator() {
   const done = isResolved(s);
   const checks = checkStates(s);
   const fault = s.fault ? FAULTS[s.fault] : null;
-  const pct = Math.min(100, s.step * 25);
+  const progress = Math.min(100, s.step * 25);
   const cta = s.fault
     ? "Clear the fault to continue"
     : s.step === 0
@@ -146,7 +147,7 @@ export function Simulator() {
           <ol className="lp-sim__track" aria-label="Case stages">
             <div className="lp-sim__rail" aria-hidden="true">
               <motion.i
-                animate={{ width: `${pct}%` }}
+                animate={{ width: `${progress}%` }}
                 transition={{ duration: 0.7, ease: EASE }}
                 data-done={done || undefined}
               />
@@ -473,7 +474,7 @@ function HeatRow({ day, row }: { day: string; row: number[] }) {
           key={h}
           title={`${day} ${h}:00`}
           style={{
-            background:
+            backgroundColor:
               v > 1.08
                 ? "var(--ember)"
                 : `color-mix(in srgb, var(--signal) ${Math.round(6 + Math.min(1, v) * 80)}%, transparent)`,
@@ -628,8 +629,8 @@ export function Portals() {
                   <i
                     key={i}
                     style={{
-                      height: `${v}%`,
-                      background:
+                      height: pct(v),
+                      backgroundColor:
                         i === 19
                           ? "var(--ok)"
                           : `color-mix(in srgb, var(--signal) ${Math.round(25 + v / 2)}%, transparent)`,

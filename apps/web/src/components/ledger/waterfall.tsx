@@ -1,3 +1,5 @@
+import { pct } from "./css-values";
+
 export type WaterfallStep = {
   label: string;
   value: number;
@@ -41,15 +43,15 @@ export function Waterfall({
             <span
               className="lk-waterfall__bar"
               style={{
-                bottom: `${(g.base / max) * 100}%`,
-                height: `${(g.size / max) * 100}%`,
+                bottom: pct((g.base / max) * 100),
+                height: pct((g.size / max) * 100),
                 background: g.color,
                 animation: `ledger-rise .7s var(--ease-ledger) ${i * 90}ms both`,
               }}
             />
             <span
               className="lk-waterfall__val tnum"
-              style={{ bottom: `calc(${((g.base + g.size) / max) * 100}% + 4px)` }}
+              style={{ bottom: `calc(${pct(((g.base + g.size) / max) * 100)} + 4px)` }}
             >
               {g.kind === "delta" && g.value < 0 ? "−" : ""}
               {format(Math.abs(g.value))}
