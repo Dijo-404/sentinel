@@ -1,0 +1,27 @@
+{
+  "environment": "staging",
+  "evidence_mode": "paytm-staging-replay",
+  "fixture_id": "refund-status-SNT-REF-PROBE1",
+  "observed_at": "2026-11-15T05:47:18Z",
+  "original_signature_verified": false,
+  "provider": "paytm",
+  "provider_result": {
+    "result_code": "335",
+    "result_msg": "Invalid merchant Id.",
+    "result_status": "TXN_FAILURE"
+  },
+  "raw_sha256": "4f00de52ecd23831d04e951415d8e3da918ff2ac38a585a28fbdc857c7dc2c05",
+  "redacted": true,
+  "refund": {
+    "accept_refund_status": null,
+    "amount_minor": null,
+    "currency": "INR",
+    "normalized_status": "FAILED_FINAL",
+    "order_ref": "NOPE",
+    "provider_ref": "SNT-REF-PROBE1",
+    "refund_id": null,
+    "transaction_ref": null
+  },
+  "replay_only": true,
+  "source": "paytm_staging"
+}

@@ -1,0 +1,22 @@
+{
+  "can_initiate": false,
+  "can_refund": false,
+  "can_status": true,
+  "initiate_api": {
+    "resultCode": "239",
+    "resultMsg": "System Error",
+    "resultStatus": "F"
+  },
+  "mid": "wkyQgn37386655602538",
+  "refund_api": {
+    "resultCode": "335",
+    "resultMsg": "Invalid merchant Id.",
+    "resultStatus": "TXN_FAILURE"
+  },
+  "status_api": {
+    "resultCode": "334",
+    "resultMsg": "Invalid Order Id.",
+    "resultStatus": "TXN_FAILURE"
+  },
+  "status_signature_verified": true
+}

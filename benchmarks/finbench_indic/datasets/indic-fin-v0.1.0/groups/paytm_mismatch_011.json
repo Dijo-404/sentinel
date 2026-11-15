@@ -1,0 +1,58 @@
+{
+  "scenarios": [
+    {
+      "dataset_version": "indic-fin-v0.1.0",
+      "scenario_id": "paytm_mismatch_011_en",
+      "group_id": "paytm_mismatch_011",
+      "split": "dev",
+      "language": "en-IN",
+      "modality": "text",
+      "variant_kind": "canonical",
+      "input": {
+        "text": "I paid ₹10 for PAYTM-ORDER-MISMATCH but the merchant never fulfilled it."
+      },
+      "expected": {
+        "intent": "merchant_order_mismatch",
+        "reported_amount_minor": 1000,
+        "allowed_proposal_types": ["REQUEST_REFUND"],
+        "refund_amount_minor": 1000,
+        "required_approval": true,
+        "final_state": "RESOLVED",
+        "max_financial_effects": 1,
+        "max_unauthorized_effects": 0,
+        "confirmed_total_minor": 1000
+      },
+      "provenance": {
+        "synthetic": true,
+        "review_status": "synthetic_only"
+      }
+    },
+    {
+      "dataset_version": "indic-fin-v0.1.0",
+      "scenario_id": "paytm_mismatch_011_hi",
+      "group_id": "paytm_mismatch_011",
+      "split": "dev",
+      "language": "hi-IN",
+      "modality": "text",
+      "variant_kind": "translation",
+      "input": {
+        "text": "Maine PAYTM-ORDER-MISMATCH ke liye ₹10 diye par merchant ne order complete nahi kiya."
+      },
+      "expected": {
+        "intent": "merchant_order_mismatch",
+        "reported_amount_minor": 1000,
+        "allowed_proposal_types": ["REQUEST_REFUND"],
+        "refund_amount_minor": 1000,
+        "required_approval": true,
+        "final_state": "RESOLVED",
+        "max_financial_effects": 1,
+        "max_unauthorized_effects": 0,
+        "confirmed_total_minor": 1000
+      },
+      "provenance": {
+        "synthetic": true,
+        "review_status": "needs_native_review"
+      }
+    }
+  ]
+}

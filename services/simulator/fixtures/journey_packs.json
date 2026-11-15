@@ -27,6 +27,13 @@
       "transaction_ref": "TXN-REFUND-PENDING",
       "provider_ref": "refund-pending-1",
       "refund_status": "PENDING"
+    },
+    "paytm_staging": {
+      "optional": true,
+      "order_reference": "PAYTM-ORDER-A",
+      "payments": ["PAYTM-TXN-A1", "PAYTM-TXN-A2"],
+      "amount_minor_each": 1000,
+      "provenance": "synthetic successes + live staging 334 status shapes"
     }
   },
   "fault_schedules": [

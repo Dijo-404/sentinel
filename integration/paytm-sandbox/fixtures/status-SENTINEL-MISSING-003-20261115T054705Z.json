@@ -1,0 +1,37 @@
+{
+  "environment": "staging",
+  "evidence_mode": "paytm-staging-live",
+  "fixture_id": "status-SENTINEL-MISSING-003-20261115T054705Z",
+  "observed_at": "2026-11-15T05:47:05Z",
+  "original_signature_verified": true,
+  "payment": {
+    "amount_minor": null,
+    "currency": "INR",
+    "merchant_ref": "wkyQgn37386655602538",
+    "normalized_status": "FAILED",
+    "order_ref": "SENTINEL-MISSING-003",
+    "payment_mode": null,
+    "provider_result_code": "334",
+    "provider_status": "TXN_FAILURE",
+    "transaction_ref": "NONE-status-SENTINEL-MISSING-003-20261115T054705Z"
+  },
+  "provider": "paytm",
+  "provider_result": {
+    "result_code": "334",
+    "result_msg": "Invalid Order Id.",
+    "result_status": "TXN_FAILURE"
+  },
+  "raw_sha256": "060844e013220b8fe3bd22dbbba9059490351080cf0ecb2b97744835bbf0e2b1",
+  "redacted": true,
+  "replay_only": false,
+  "sentinel_payment": {
+    "amount_minor": 0,
+    "currency": "INR",
+    "merchant_ref": "merchant-paytm-staging",
+    "order_reference": "SENTINEL-MISSING-003",
+    "status": "FAILED",
+    "subject_ref": "subject-paytm-staging",
+    "transaction_ref": "NONE-status-SENTINEL-MISSING-003-20261115T054705Z"
+  },
+  "source": "paytm_staging"
+}

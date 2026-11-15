@@ -1,0 +1,85 @@
+{
+  "provenance": {
+    "status_observations": "paytm-staging-live (resultCode 334 on shared test MID)",
+    "successful_payments": "synthetic-simulator (initiate blocked: resultCode 239)",
+    "refunds": "synthetic-simulator (refund blocked: resultCode 335)"
+  },
+  "orders": [
+    {
+      "order_reference": "PAYTM-ORDER-A",
+      "subject_ref": "subject-paytm-staging",
+      "fulfilled_order_count": 1,
+      "merchant_confirmed_duplicate": true,
+      "paid": true
+    },
+    {
+      "order_reference": "PAYTM-ORDER-MISMATCH",
+      "subject_ref": "subject-paytm-staging",
+      "fulfilled_order_count": 0,
+      "merchant_confirmed_duplicate": false,
+      "paid": false
+    },
+    {
+      "order_reference": "PAYTM-ORDER-FAIL-001",
+      "subject_ref": "subject-paytm-staging",
+      "fulfilled_order_count": 0,
+      "merchant_confirmed_duplicate": false,
+      "paid": false
+    },
+    {
+      "order_reference": "SENTINEL-MISSING-001",
+      "subject_ref": "subject-paytm-staging",
+      "fulfilled_order_count": 0,
+      "merchant_confirmed_duplicate": false,
+      "paid": false
+    }
+  ],
+  "payments": [
+    {
+      "transaction_ref": "PAYTM-TXN-A1",
+      "order_reference": "PAYTM-ORDER-A",
+      "subject_ref": "subject-paytm-staging",
+      "status": "CAPTURED",
+      "amount_minor": 1000,
+      "currency": "INR",
+      "merchant_ref": "merchant-paytm-staging"
+    },
+    {
+      "transaction_ref": "PAYTM-TXN-A2",
+      "order_reference": "PAYTM-ORDER-A",
+      "subject_ref": "subject-paytm-staging",
+      "status": "CAPTURED",
+      "amount_minor": 1000,
+      "currency": "INR",
+      "merchant_ref": "merchant-paytm-staging"
+    },
+    {
+      "transaction_ref": "PAYTM-TXN-MISMATCH",
+      "order_reference": "PAYTM-ORDER-MISMATCH",
+      "subject_ref": "subject-paytm-staging",
+      "status": "CAPTURED",
+      "amount_minor": 1000,
+      "currency": "INR",
+      "merchant_ref": "merchant-paytm-staging"
+    },
+    {
+      "transaction_ref": "PAYTM-TXN-FAIL-001",
+      "order_reference": "PAYTM-ORDER-FAIL-001",
+      "subject_ref": "subject-paytm-staging",
+      "status": "FAILED",
+      "amount_minor": 1000,
+      "currency": "INR",
+      "merchant_ref": "merchant-paytm-staging"
+    }
+  ],
+  "refunds": [
+    {
+      "action_id": "action-paytm-refund-1",
+      "provider_ref": "SNT-REF-PAYTM-001",
+      "transaction_ref": "PAYTM-TXN-A1",
+      "amount_minor": 500,
+      "currency": "INR",
+      "status": "PENDING"
+    }
+  ]
+}
