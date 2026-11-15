@@ -16,6 +16,22 @@ _LOOPBACK = frozenset({"127.0.0.1", "::1", "localhost"})
 DEMO_TOKENS = frozenset({"tok-workflow", "workflow-token", "tok-case-api", "case-api-token"})
 
 
+def assert_safe_bind(host: str, settings: Settings) -> None:
+    """Non-loopback needs non-demo tokens and reply tokens (else /v1/replies is open)."""
+    if host.strip().lower() in _LOOPBACK:
+        return
+    demo = sorted((settings.proposal_tokens | settings.reply_tokens) & DEMO_TOKENS)
+    if demo:
+        raise ConfigurationError(
+            f"Refusing non-loopback bind {host!r} with demo bearer tokens: {', '.join(demo)}"
+        )
+    if not settings.reply_tokens:
+        raise ConfigurationError(
+            f"Refusing non-loopback bind {host!r}: set MODEL_GATEWAY_REPLY_TOKENS so "
+            "/v1/replies requires a bearer token"
+        )
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="sentinel-model-gateway")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -27,12 +43,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         settings = Settings.from_environ()
-        demo = sorted(settings.proposal_tokens & DEMO_TOKENS)
-        if args.host.strip().lower() not in _LOOPBACK and demo:
-            raise ConfigurationError(
-                f"Refusing non-loopback bind {args.host!r} with demo bearer tokens: "
-                f"{', '.join(demo)}"
-            )
+        assert_safe_bind(args.host, settings)
         app = build_app(settings)
     except ConfigurationError as exc:
         print(json.dumps({"code": exc.code, "message": exc.message}), file=sys.stderr)

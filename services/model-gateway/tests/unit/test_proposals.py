@@ -61,18 +61,56 @@ def test_amount_as_string_is_malformed_not_coerced(client, sarvam):
     assert body == {**body, "outcome": "ESCALATE", "reason_codes": ["MODEL_OUTPUT_INVALID"]}
 
 
-def test_prior_refund_reduces_refundable_balance(client, sarvam):
-    request = model_request()
-    refund = _payment("evidence-refund-1", "TXN-B")
-    refund["facts"] = {
-        "kind": "REFUND",
-        "refund": {"transaction_ref": "TXN-B", "amount_minor": 50000, "status": "PENDING"},
-    }
+def _with_refund(request, refund_id="evidence-refund-1", verification="VERIFIED", **fields):
+    refund = _payment(refund_id, "TXN-B")
+    refund["verification_status"] = verification
+    body = {"transaction_ref": "TXN-B", "amount_minor": 50000, "currency": "INR"}
+    body.update(fields)
+    refund["facts"] = {"kind": "REFUND", "refund": {k: v for k, v in body.items() if v != ...}}
     request["evidence"].append(refund)
+    return request
+
+
+@pytest.mark.parametrize("status", ["PENDING", "PROVIDER_CONFIRMED"])
+def test_pending_and_completed_refunds_reduce_refundable_balance(client, sarvam, status):
+    request = _with_refund(model_request(), status=status)
     sarvam.queue.append(draft(amount_minor=150000))
     assert _post(client, request).json()["reason_codes"] == ["AMOUNT_NOT_BACKED_BY_EVIDENCE"]
     sarvam.queue.append(draft(amount_minor=100000))
     assert _post(client, request).json()["proposal"]["amount_minor"] == 100000
+
+
+def test_pending_plus_completed_refunds_both_count(client, sarvam):
+    request = _with_refund(model_request(), status="PROVIDER_CONFIRMED")
+    request = _with_refund(request, "evidence-refund-2", status="PENDING", amount_minor=60000)
+    sarvam.queue.append(draft(amount_minor=40000))
+    assert _post(client, request).json()["proposal"]["amount_minor"] == 40000
+
+
+def test_final_failed_refund_frees_balance(client, sarvam):
+    request = _with_refund(model_request(), status="FAILED_FINAL")
+    sarvam.queue.append(draft(amount_minor=150000))
+    assert _post(client, request).json()["proposal"]["amount_minor"] == 150000
+
+
+@pytest.mark.parametrize(
+    "fields,verification",
+    [
+        ({"status": ...}, "VERIFIED"),  # missing status
+        ({"status": "FAILED"}, "VERIFIED"),  # not a recognised provider status
+        ({"status": "REVERSED"}, "VERIFIED"),
+        ({"status": "PENDING", "amount_minor": "50000"}, "VERIFIED"),
+        ({"status": "PENDING", "currency": "USD"}, "VERIFIED"),
+        ({"status": "PENDING"}, "UNVERIFIED"),  # unverified refund must not be ignored
+        ({"status": "PENDING"}, "CONFLICTING"),
+    ],
+)
+def test_unrecognised_refund_evidence_escalates(client, sarvam, fields, verification):
+    request = _with_refund(model_request(), verification=verification, **fields)
+    sarvam.queue.append(draft(amount_minor=150000))
+    body = _post(client, request).json()
+    assert body["outcome"] == "ESCALATE"
+    assert body["reason_codes"] == ["REFUND_EVIDENCE_UNVERIFIED"]
 
 
 def test_unknown_transaction_escalates(client, sarvam):
@@ -97,6 +135,18 @@ def test_other_order_payment_escalates(client, sarvam):
     request["evidence"][1]["facts"]["payment"]["order_reference"] = "OTHER-ORDER"
     sarvam.queue.append(draft())
     assert _post(client, request).json()["reason_codes"] == ["ORDER_REFERENCE_MISMATCH"]
+
+
+@pytest.mark.parametrize("value", [..., None, ""])
+def test_payment_without_order_reference_escalates(client, sarvam, value):
+    request = model_request()
+    payment = request["evidence"][1]["facts"]["payment"]
+    if value is ...:
+        del payment["order_reference"]
+    else:
+        payment["order_reference"] = value
+    sarvam.queue.append(draft())
+    assert _post(client, request).json()["reason_codes"] == ["ORDER_REFERENCE_MISSING"]
 
 
 def test_needs_input_passes_through_without_proposal(client, sarvam):

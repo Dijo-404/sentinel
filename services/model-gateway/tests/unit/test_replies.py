@@ -7,6 +7,8 @@ import json
 import httpx
 import pytest
 
+from tests.conftest import REPLY_AUTH, model_request
+
 
 def test_reply_is_grounded_in_knowledge_hits(client, sarvam, knowledge):
     sarvam.queue.append('{"text": "Duplicate charges are reviewed by an operator."}')
@@ -64,3 +66,27 @@ def test_malformed_twice_is_502_never_invented_text(client, sarvam):
 def test_empty_text_is_422(client, sarvam, body):
     assert client.post("/v1/replies", json=body).status_code == 422
     assert sarvam.requests == []
+
+
+@pytest.mark.parametrize(
+    "headers",
+    [{}, {"Authorization": "Bearer wrong"}, {"Authorization": "Bearer tok-gateway-test"}],
+)
+def test_reply_tokens_configured_require_matching_bearer(
+    reply_auth_client, sarvam, knowledge, headers
+):
+    response = reply_auth_client.post("/v1/replies", json={"text": "hi"}, headers=headers)
+    assert response.status_code == 401
+    assert response.json()["code"] == "UNAUTHORIZED"
+    assert sarvam.requests == [] and knowledge.requests == []
+
+
+def test_reply_tokens_configured_accept_reply_bearer(reply_auth_client, sarvam):
+    sarvam.queue.append('{"text": "ok"}')
+    response = reply_auth_client.post("/v1/replies", json={"text": "hi"}, headers=REPLY_AUTH)
+    assert response.status_code == 200
+
+
+def test_reply_token_is_not_a_proposal_token(reply_auth_client, sarvam):
+    response = reply_auth_client.post("/v1/proposals", json=model_request(), headers=REPLY_AUTH)
+    assert response.status_code == 401

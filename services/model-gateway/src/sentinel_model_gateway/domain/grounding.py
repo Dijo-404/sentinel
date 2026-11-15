@@ -23,6 +23,36 @@ def _minor(value: Any) -> int | None:
     return value if isinstance(value, int) and not isinstance(value, bool) else None
 
 
+# evidence.v1 / simulator RefundStatus. Pending and confirmed refunds consume the balance.
+_REFUND_COUNTED = frozenset({"PENDING", "PROVIDER_CONFIRMED"})
+_REFUND_RELEASED = frozenset({"FAILED_FINAL"})
+
+
+def _refunded_minor(request: ModelRequest, transaction_ref: str) -> int | None:
+    """Sum of pending + completed refunds on the transaction; None if any refund is unusable."""
+    total = 0
+    for item in request.evidence:
+        if item.facts.get("kind") != "REFUND":
+            continue
+        refund = item.facts.get("refund")
+        if not isinstance(refund, dict):
+            return None
+        if refund.get("transaction_ref") != transaction_ref:
+            continue
+        status, amount = refund.get("status"), _minor(refund.get("amount_minor"))
+        # Never skip unverified or unrecognised refunds: that could hide money already out.
+        if (
+            item.verification_status != "VERIFIED"
+            or status not in _REFUND_COUNTED | _REFUND_RELEASED
+            or amount is None
+            or refund.get("currency") != "INR"
+        ):
+            return None
+        if status in _REFUND_COUNTED:
+            total += amount
+    return total
+
+
 def escalate(request: ModelRequest, reason_code: str) -> ModelResult:
     return ModelResult(
         outcome="ESCALATE",
@@ -54,23 +84,20 @@ def ground(request: ModelRequest, draft: ProposalDraft) -> ModelResult:
     if not draft.transaction_ref or len(payments) != 1:
         return escalate(request, "TRANSACTION_NOT_IN_EVIDENCE")
     payment_evidence, payment = payments[0]
-    if payment.get("order_reference") not in (None, request.input.order_reference):
+    if not payment.get("order_reference"):
+        return escalate(request, "ORDER_REFERENCE_MISSING")
+    if payment["order_reference"] != request.input.order_reference:
         return escalate(request, "ORDER_REFERENCE_MISMATCH")
     if payment.get("status") != "CAPTURED" or payment.get("currency") != "INR":
         return escalate(request, "PAYMENT_NOT_REFUNDABLE")
 
+    refunded = _refunded_minor(request, draft.transaction_ref)
+    if refunded is None:
+        return escalate(request, "REFUND_EVIDENCE_UNVERIFIED")
     captured = _minor(payment.get("amount_minor"))
-    # Pending and succeeded refunds both consume the refundable balance; only FAILED frees it.
-    refunded = [
-        _minor(r.get("amount_minor"))
-        for e in request.evidence
-        if (r := _facts(e, "REFUND"))
-        and r.get("transaction_ref") == draft.transaction_ref
-        and r.get("status") != "FAILED"
-    ]
-    if captured is None or None in refunded:
+    if captured is None:
         return escalate(request, "AMOUNT_NOT_BACKED_BY_EVIDENCE")
-    refundable = captured - sum(refunded)  # type: ignore[arg-type]
+    refundable = captured - refunded
     if refundable < 1 or draft.amount_minor != refundable:
         return escalate(request, "AMOUNT_NOT_BACKED_BY_EVIDENCE")
 

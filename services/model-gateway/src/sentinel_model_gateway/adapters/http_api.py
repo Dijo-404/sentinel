@@ -25,6 +25,15 @@ class AppServices:
     replies: ReplyService
     proposal_tokens: frozenset[str]
     model: str
+    reply_tokens: frozenset[str] = frozenset()
+
+
+def _check_bearer(authorization: str | None, tokens: frozenset[str]) -> None:
+    token = (authorization or "").removeprefix("Bearer ").strip()
+    if not authorization or not authorization.startswith("Bearer ") or not token:
+        raise UnauthorizedError("Missing bearer token")
+    if not any(hmac.compare_digest(token, t) for t in tokens):
+        raise UnauthorizedError("Unknown bearer token")
 
 
 def _error(code: str, message: str, status: int, request: Request) -> JSONResponse:
@@ -42,11 +51,13 @@ def create_app(services: AppServices) -> FastAPI:
         return _error(exc.code, exc.message, exc.http_status, request)
 
     def require_bearer(authorization: Annotated[str | None, Header()] = None) -> None:
-        token = (authorization or "").removeprefix("Bearer ").strip()
-        if not authorization or not authorization.startswith("Bearer ") or not token:
-            raise UnauthorizedError("Missing bearer token")
-        if not any(hmac.compare_digest(token, t) for t in services.proposal_tokens):
-            raise UnauthorizedError("Unknown bearer token")
+        _check_bearer(authorization, services.proposal_tokens)
+
+    def require_reply_bearer(authorization: Annotated[str | None, Header()] = None) -> None:
+        # shortcut: open when MODEL_GATEWAY_REPLY_TOKENS is unset, because the assistant's
+        # HttpModelReply sends no bearer yet; the CLI then allows loopback binds only.
+        if services.reply_tokens:
+            _check_bearer(authorization, services.reply_tokens)
 
     @app.get("/healthz")
     def healthz() -> dict:
@@ -76,10 +87,8 @@ def create_app(services: AppServices) -> FastAPI:
         result = services.proposals.propose(model_request)
         return JSONResponse(result.model_dump(exclude_none=True))
 
-    @app.post("/v1/replies")
+    @app.post("/v1/replies", dependencies=[Depends(require_reply_bearer)])
     def replies(request: Request, body: Annotated[dict[str, Any], Body()]) -> JSONResponse:
-        # shortcut: unauthenticated because the assistant's HttpModelReply sends no bearer;
-        # add auth here once that caller sends one. Keep the gateway on a private network.
         text = body.get("text")
         if not isinstance(text, str) or not text.strip():
             return _error("VALIDATION_ERROR", "text is required", 422, request)

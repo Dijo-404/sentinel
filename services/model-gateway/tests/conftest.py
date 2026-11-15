@@ -152,23 +152,34 @@ def knowledge() -> FakeKnowledge:
     return FakeKnowledge()
 
 
-@pytest.fixture
-def client(sarvam: FakeSarvam, knowledge: FakeKnowledge) -> TestClient:
-    settings = Settings.from_environ(
-        {
-            "SARVAM_API_KEY": FAKE_KEY,
-            "MODEL_GATEWAY_MODEL": "sarvam-test-model",
-            "MODEL_GATEWAY_TOKENS": PROPOSAL_TOKEN,
-            "MODEL_GATEWAY_KNOWLEDGE_URL": "http://knowledge.test",
-            "MODEL_GATEWAY_KNOWLEDGE_TOKEN": "knowledge-test-token",
-        }
-    )
+BASE_ENV = {
+    "SARVAM_API_KEY": FAKE_KEY,
+    "MODEL_GATEWAY_MODEL": "sarvam-test-model",
+    "MODEL_GATEWAY_TOKENS": PROPOSAL_TOKEN,
+    "MODEL_GATEWAY_KNOWLEDGE_URL": "http://knowledge.test",
+    "MODEL_GATEWAY_KNOWLEDGE_TOKEN": "knowledge-test-token",
+}
+REPLY_TOKEN = "tok-reply-test"
+
+
+def _client(sarvam: FakeSarvam, knowledge: FakeKnowledge, **env: str) -> TestClient:
     app = build_app(
-        settings,
+        Settings.from_environ({**BASE_ENV, **env}),
         sarvam_client=httpx.Client(transport=httpx.MockTransport(sarvam.handler)),
         knowledge_client=httpx.Client(transport=httpx.MockTransport(knowledge.handler)),
     )
     return TestClient(app)
 
 
+@pytest.fixture
+def client(sarvam: FakeSarvam, knowledge: FakeKnowledge) -> TestClient:
+    return _client(sarvam, knowledge)
+
+
+@pytest.fixture
+def reply_auth_client(sarvam: FakeSarvam, knowledge: FakeKnowledge) -> TestClient:
+    return _client(sarvam, knowledge, MODEL_GATEWAY_REPLY_TOKENS=REPLY_TOKEN)
+
+
 AUTH = {"Authorization": f"Bearer {PROPOSAL_TOKEN}"}
+REPLY_AUTH = {"Authorization": f"Bearer {REPLY_TOKEN}"}

@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Security
+
+- Refund grounding fails closed. Pending (`PENDING`) and completed (`PROVIDER_CONFIRMED`)
+  refunds reduce the balance, and only `FAILED_FINAL` releases it. Any other or missing
+  status, unverified refund evidence, a non-integer amount or a non-INR refund returns
+  `REFUND_EVIDENCE_UNVERIFIED`.
+- The payment's `order_reference` must be present and match the case exactly
+  (`ORDER_REFERENCE_MISSING` / `ORDER_REFERENCE_MISMATCH`).
+- Optional `MODEL_GATEWAY_REPLY_TOKENS` bearer auth on `/v1/replies`. `serve` refuses a
+  non-loopback bind without it.
+
 ### Added
 
 - Sarvam AI backed gateway (`sentinel-model-gateway serve`, default `127.0.0.1:8040`).

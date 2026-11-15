@@ -12,6 +12,10 @@ from .application.errors import ConfigurationError
 from .application.service import ProposalService, ReplyService
 
 
+def _token_set(raw: str) -> frozenset[str]:
+    return frozenset(t.strip() for t in raw.split(",") if t.strip())
+
+
 @dataclass(frozen=True)
 class Settings:
     sarvam_api_key: str
@@ -21,15 +25,14 @@ class Settings:
     sarvam_timeout_s: float
     reasoning_effort: str | None
     proposal_tokens: frozenset[str]
+    reply_tokens: frozenset[str]
     knowledge_url: str
     knowledge_token: str
 
     @classmethod
     def from_environ(cls, env: dict[str, str] | None = None) -> Settings:
         source = env if env is not None else os.environ
-        tokens = frozenset(
-            t.strip() for t in source.get("MODEL_GATEWAY_TOKENS", "").split(",") if t.strip()
-        )
+        tokens = _token_set(source.get("MODEL_GATEWAY_TOKENS", ""))
         if not tokens:
             raise ConfigurationError("MODEL_GATEWAY_TOKENS must list at least one bearer token")
         try:
@@ -48,6 +51,7 @@ class Settings:
             sarvam_timeout_s=timeout_s,
             reasoning_effort=None if effort == "off" else effort,
             proposal_tokens=tokens,
+            reply_tokens=_token_set(source.get("MODEL_GATEWAY_REPLY_TOKENS", "")),
             knowledge_url=source.get("MODEL_GATEWAY_KNOWLEDGE_URL", "").strip(),
             knowledge_token=source.get("MODEL_GATEWAY_KNOWLEDGE_TOKEN", "").strip(),
         )
@@ -74,5 +78,6 @@ def build_app(settings: Settings | None = None, *, sarvam_client=None, knowledge
             replies=ReplyService(chat, knowledge),
             proposal_tokens=settings.proposal_tokens,
             model=settings.model,
+            reply_tokens=settings.reply_tokens,
         )
     )
