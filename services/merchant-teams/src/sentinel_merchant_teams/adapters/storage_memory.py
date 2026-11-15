@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from ..domain.types import MerchantSettings, MerchantStaff, StaffActivity
+from ..domain.types import Merchant, MerchantSettings, MerchantStaff, StaffActivity
 
 
 class MemoryStaffStore:
@@ -10,6 +10,7 @@ class MemoryStaffStore:
         self._staff: dict[tuple[str, str], MerchantStaff] = {}
         self._activity: dict[str, list[StaffActivity]] = {}
         self._settings: dict[tuple[str, str], MerchantSettings] = {}
+        self._merchants: dict[tuple[str, str], Merchant] = {}
 
     def create(self, staff: MerchantStaff) -> MerchantStaff:
         key = (staff.tenant_id, staff.staff_id)
@@ -49,3 +50,11 @@ class MemoryStaffStore:
     def save_settings(self, settings: MerchantSettings) -> MerchantSettings:
         self._settings[(settings.tenant_id, settings.merchant_ref)] = settings
         return settings
+
+    def list_merchants(self, *, tenant_id: str) -> tuple[Merchant, ...]:
+        rows = [m for (tid, _), m in self._merchants.items() if tid == tenant_id]
+        return tuple(sorted(rows, key=lambda m: m.merchant_ref))
+
+    def save_merchant(self, merchant: Merchant) -> Merchant:
+        self._merchants[(merchant.tenant_id, merchant.merchant_ref)] = merchant
+        return merchant

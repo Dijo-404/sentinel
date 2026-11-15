@@ -25,7 +25,8 @@ IMAGE = "postgres:17-alpine@sha256:d3244e8ce3f165ee3c93d9c4a4b1d0fe48b3a89e2287b
 ROOT = Path(__file__).resolve().parents[1]
 TOKENS = (
     "operator-token=op-1|tenant-demo|operator|merchant-demo-1|case-demo-42;"
-    "supervisor-token=sup-1|tenant-demo|supervisor|merchant-demo-1,*|case-demo-42"
+    "supervisor-token=sup-1|tenant-demo|supervisor|merchant-demo-1,*|case-demo-42;"
+    "platform-admin-token=padmin-1|tenant-demo|platform_admin|*|*"
 )
 
 
@@ -156,6 +157,18 @@ def test_seed_membership_served_by_list_api(postgres_url: str):
     assert settings_body["notify_disputes"] is True
     assert settings_body["notify_settlements"] is True
     assert report["settings_merchant_ref"] == "merchant-demo-1"
+    assert report["merchant_status"] == "active"
+
+    admin_merchants = client.get(
+        "/v1/admin/merchants",
+        headers={"Authorization": "Bearer platform-admin-token"},
+    )
+    assert admin_merchants.status_code == 200
+    merchants_body = admin_merchants.json()["merchants"]
+    assert len(merchants_body) == 1
+    assert merchants_body[0]["merchant_ref"] == "merchant-demo-1"
+    assert merchants_body[0]["display_name"] == "Demo Merchant"
+    assert merchants_body[0]["status"] == "active"
 
 
 @pytest.mark.postgres

@@ -92,6 +92,13 @@
       "request": { "amount_minor": "int", "currency": "string" },
       "response": "always 403 FINANCIAL_AUTHORITY_DENIED",
       "roles": ["operator", "supervisor", "sandbox-admin"]
+    },
+    {
+      "method": "GET",
+      "path": "/v1/admin/merchants",
+      "response": "{ merchants: [{ merchant_ref, display_name?, status }] }",
+      "roles": ["platform_admin", "sandbox-admin"],
+      "notes": "Tenant-scoped merchant catalog; seeded merchant-demo-1 in sandbox"
     }
   ],
   "notes": [

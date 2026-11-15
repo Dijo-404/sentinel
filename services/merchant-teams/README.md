@@ -40,10 +40,15 @@ Prefer the projection surface for merchant portal Team:
 | `GET` | `/v1/merchant/team?merchant_ref=merchant-demo-1` | `{ "staff": MerchantStaff[], "source": "identity_projection" \| "local_projection" }` |
 | `GET` | `/v1/staff?merchant_ref=merchant-demo-1` | `{ "staff": MerchantStaff[] }` |
 | `GET` | `/v1/merchant/settings?merchant_ref=merchant-demo-1` | `MerchantSettings` wire object |
+| `GET` | `/v1/admin/merchants` | `{ "merchants": [{ merchant_ref, display_name?, status }] }` |
 
 `MerchantSettings` fields: `tenant_id`, `merchant_ref`, `notification_language`,
 `notify_disputes`, `notify_settlements`. Missing row returns `404 NOT_FOUND`
 (fail closed — no silent defaults).
+
+Admin merchants: `platform_admin` / `sandbox-admin` only; tenant-scoped rows from
+`merchant_teams.merchants` (sandbox seed includes `merchant-demo-1`). Operator
+gets `403`. Empty catalog is honest `[]`.
 
 Auth: `Authorization: Bearer <token>` from `MERCHANT_TEAMS_TOKENS`. Operator /
 supervisor / sandbox-admin with merchant scope. Empty merchant list is honest
@@ -73,10 +78,10 @@ make seed
 # {"evidence_label":"synthetic_seed","merchant_ref":"merchant-demo-1","staff_id":"staff-demo-1","status":"PASS","tenant_id":"tenant-demo"}
 ```
 
-Seed migrates schema `merchant_teams`, upserts `staff-demo-1` and one
-`merchant_settings` row for `tenant-demo` / `merchant-demo-1` from
-`fixtures/staff_demo.json` (synthetic), and appends demo activity when missing.
-Idempotent.
+Seed migrates schema `merchant_teams`, upserts `staff-demo-1`, one
+`merchant_settings` row, and one `merchants` catalog row for
+`tenant-demo` / `merchant-demo-1` from `fixtures/staff_demo.json` (synthetic),
+and appends demo activity when missing. Idempotent.
 
 real-peers requires `MERCHANT_TEAMS_DATABASE_URL` (or an injected durable store).
 

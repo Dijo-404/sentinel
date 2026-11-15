@@ -23,12 +23,13 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from ..application.errors import ConfigurationError, PeerUnavailableError
-from ..domain.types import MerchantSettings, MerchantStaff, StaffActivity
+from ..domain.types import Merchant, MerchantSettings, MerchantStaff, StaffActivity
 
 SCHEMA = "merchant_teams"
 STAFF_TABLE = "merchant_staff"
 ACTIVITY_TABLE = "staff_activity"
 SETTINGS_TABLE = "merchant_settings"
+MERCHANTS_TABLE = "merchants"
 
 SANDBOX_TENANT_ID = "tenant-demo"
 SANDBOX_MERCHANT_REF = "merchant-demo-1"
@@ -88,6 +89,19 @@ def _settings_table(schema: str = SCHEMA) -> Table:
     )
 
 
+def _merchants_table(schema: str = SCHEMA) -> Table:
+    metadata = MetaData()
+    return Table(
+        MERCHANTS_TABLE,
+        metadata,
+        Column("tenant_id", String(256), primary_key=True),
+        Column("merchant_ref", String(256), primary_key=True),
+        Column("display_name", String(512), nullable=True),
+        Column("status", String(64), nullable=False),
+        schema=schema,
+    )
+
+
 class PostgresStaffStore:
     def __init__(self, engine: Engine, schema: str = SCHEMA) -> None:
         if engine.dialect.name != "postgresql":
@@ -97,6 +111,7 @@ class PostgresStaffStore:
         self._staff = _staff_table(schema)
         self._activity = _activity_table(schema)
         self._settings = _settings_table(schema)
+        self._merchants = _merchants_table(schema)
 
     @classmethod
     def from_url(cls, database_url: str) -> PostgresStaffStore:
@@ -109,6 +124,7 @@ class PostgresStaffStore:
                 self._staff.create(connection, checkfirst=True)
                 self._activity.create(connection, checkfirst=True)
                 self._settings.create(connection, checkfirst=True)
+                self._merchants.create(connection, checkfirst=True)
                 connection.execute(
                     text(
                         f"CREATE INDEX IF NOT EXISTS ix_merchant_staff_tenant_merchant "
@@ -259,6 +275,39 @@ class PostgresStaffStore:
             raise PeerUnavailableError("merchant-teams database unavailable") from exc
         return settings
 
+    def list_merchants(self, *, tenant_id: str) -> tuple[Merchant, ...]:
+        try:
+            with self._engine.begin() as connection:
+                rows = (
+                    connection.execute(
+                        select(self._merchants)
+                        .where(self._merchants.c.tenant_id == tenant_id)
+                        .order_by(self._merchants.c.merchant_ref)
+                    )
+                    .mappings()
+                    .all()
+                )
+        except SQLAlchemyError as exc:
+            raise PeerUnavailableError("merchant-teams database unavailable") from exc
+        return tuple(_row_to_merchant(dict(row)) for row in rows)
+
+    def save_merchant(self, merchant: Merchant) -> Merchant:
+        values = _merchant_to_row(merchant)
+        try:
+            with self._engine.begin() as connection:
+                stmt = pg_insert(self._merchants).values(**values)
+                stmt = stmt.on_conflict_do_update(
+                    index_elements=["tenant_id", "merchant_ref"],
+                    set_={
+                        "display_name": stmt.excluded.display_name,
+                        "status": stmt.excluded.status,
+                    },
+                )
+                connection.execute(stmt)
+        except SQLAlchemyError as exc:
+            raise PeerUnavailableError("merchant-teams database unavailable") from exc
+        return merchant
+
 
 def _staff_demo_fixture_path() -> Path:
     here = Path(__file__).resolve()
@@ -291,12 +340,22 @@ def seed_merchant_demo_membership(database_url: str) -> dict[str, Any]:
     if settings_body.get("merchant_ref") != SANDBOX_MERCHANT_REF:
         raise ConfigurationError("sandbox seed settings require merchant-demo-1")
 
+    merchant_body = fixture.get("merchant")
+    if not isinstance(merchant_body, dict):
+        raise ConfigurationError("sandbox seed requires merchant object")
+    if merchant_body.get("tenant_id") != SANDBOX_TENANT_ID:
+        raise ConfigurationError("sandbox seed merchant requires tenant-demo")
+    if merchant_body.get("merchant_ref") != SANDBOX_MERCHANT_REF:
+        raise ConfigurationError("sandbox seed merchant requires merchant-demo-1")
+
     store = PostgresStaffStore.from_url(database_url)
     store.migrate()
     staff = MerchantStaff.from_wire(staff_body)
     store.save(staff)
     settings = MerchantSettings.from_wire(settings_body)
     store.save_settings(settings)
+    merchant = Merchant.from_wire(merchant_body)
+    store.save_merchant(merchant)
 
     activity_rows = fixture.get("activity") or []
     existing = {event.event_id for event in store.list_activity(staff_id=staff.staff_id)}
@@ -318,6 +377,7 @@ def seed_merchant_demo_membership(database_url: str) -> dict[str, Any]:
         "merchant_ref": staff.merchant_ref,
         "staff_id": staff.staff_id,
         "settings_merchant_ref": settings.merchant_ref,
+        "merchant_status": merchant.status,
         "evidence_label": "synthetic_seed",
     }
 
@@ -392,4 +452,22 @@ def _row_to_settings(row: dict[str, Any]) -> MerchantSettings:
         notification_language=str(row["notification_language"]),
         notify_disputes=bool(row["notify_disputes"]),
         notify_settlements=bool(row["notify_settlements"]),
+    )
+
+
+def _merchant_to_row(merchant: Merchant) -> dict[str, Any]:
+    return {
+        "tenant_id": merchant.tenant_id,
+        "merchant_ref": merchant.merchant_ref,
+        "display_name": merchant.display_name,
+        "status": merchant.status,
+    }
+
+
+def _row_to_merchant(row: dict[str, Any]) -> Merchant:
+    return Merchant(
+        tenant_id=str(row["tenant_id"]),
+        merchant_ref=str(row["merchant_ref"]),
+        status=str(row["status"]),
+        display_name=str(row["display_name"]) if row.get("display_name") is not None else None,
     )
