@@ -10,6 +10,7 @@ import type { AuthSession } from "@/lib/server/auth";
 import { PORTAL_META } from "@/lib/permissions";
 import { ChartCard } from "@/components/viz/chart-card";
 import { FixtureBanner } from "@/components/viz/fixture-banner";
+import { DashboardHeader } from "./dashboard-header";
 import { StatBlock } from "@/components/viz/stat-block";
 import { TrendPill } from "@/components/viz/trend-pill";
 import { UiState } from "@/components/ui-states";
@@ -131,14 +132,13 @@ export function SupervisorOverview({ session, caseClient: caseClientProp }: Prop
 
   return (
     <div className="stack" data-testid="supervisor-dashboard">
-      <div className="panel stack">
-        <h1>{meta.title} dashboard</h1>
-        <p className="muted">{meta.description}</p>
-        <p className="muted">
-          Signed in as {session.user.email} · {session.assignment.label}
-        </p>
-        {showFixtureBanner ? <FixtureBanner /> : null}
-      </div>
+      <DashboardHeader
+        title={`${meta.title} dashboard`}
+        description={meta.description}
+        displayName={session.user.display_name}
+        workspace={session.assignment.label}
+      />
+      {showFixtureBanner ? <FixtureBanner /> : null}
 
       {load.status === "loading" ? (
         <UiState tone="loading" title="Loading supervisor overview…" />

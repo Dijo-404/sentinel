@@ -4,17 +4,19 @@ import { TrendPill } from "./trend-pill";
 type Props = {
   label: string;
   value: string;
+  valueType?: "number" | "text";
   caption?: string;
   /** Optional trend series rendered as a sparkline under the value. */
   series?: number[];
   trend?: {
     value: string;
+    valueType?: "number" | "text";
     direction: "up" | "down" | "flat";
     tone?: "good" | "bad" | "neutral";
   };
 };
 
-export function StatBlock({ label, value, caption, series, trend }: Props) {
+export function StatBlock({ label, value, valueType = "number", caption, series, trend }: Props) {
   return (
     <article className="stat-block" data-testid="stat-block">
       <div className="stat-block__head">
@@ -23,7 +25,9 @@ export function StatBlock({ label, value, caption, series, trend }: Props) {
           <TrendPill value={trend.value} direction={trend.direction} tone={trend.tone} />
         ) : null}
       </div>
-      <p className="stat-block__value tnum">{value}</p>
+      <p className="stat-block__value tnum" data-type={valueType}>
+        {value}
+      </p>
       {series ? (
         <div className="stat-block__spark">
           <Sparkline values={series} width={220} height={40} />

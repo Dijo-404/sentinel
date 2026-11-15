@@ -5,10 +5,12 @@ import { useShell } from "@/adapters/shell-context";
 import { createMerchantAnalyticsClientForMode } from "@/adapters/composition-peers";
 import type { MerchantAnalyticsClient, MerchantMetrics } from "@/application/ports";
 import { PeerError } from "@/domain/types";
-import { formatAmountMinor } from "@/domain/mask";
+import { formatMoney } from "@/components/ledger/money";
+import { humanDuration, parseRate } from "@/components/merchant/metrics-viz";
 import type { AuthSession } from "@/lib/server/auth";
 import { PORTAL_META } from "@/lib/permissions";
 import { FixtureBanner } from "@/components/viz/fixture-banner";
+import { DashboardHeader } from "./dashboard-header";
 import { StatBlock } from "@/components/viz/stat-block";
 import { UiState } from "@/components/ui-states";
 import { FIXTURE_MERCHANT_METRICS } from "../../../tests/stubs/merchant-analytics";
@@ -109,18 +111,19 @@ export function MerchantOverview({ session, analyticsClient }: Props) {
       ? "merchant-analytics projection"
       : "Fixture peer";
 
+  const exceptionRate = load.status === "ready" ? parseRate(load.metrics.exception_rate) : null;
+
   return (
     <div className="stack" data-testid="merchant-dashboard">
-      <div className="panel stack">
-        <h1>{meta.title} dashboard</h1>
-        <p className="muted">{meta.description}</p>
-        <p className="muted">
-          Signed in as {session.user.email} · {session.assignment.label}
-        </p>
-        {config.mode === "fixture" || (load.status === "ready" && load.source === "fixture") ? (
-          <FixtureBanner />
-        ) : null}
-      </div>
+      <DashboardHeader
+        title={`${meta.title} dashboard`}
+        description={meta.description}
+        displayName={session.user.display_name}
+        workspace={session.assignment.label}
+      />
+      {config.mode === "fixture" || (load.status === "ready" && load.source === "fixture") ? (
+        <FixtureBanner />
+      ) : null}
 
       {load.status === "loading" ? (
         <UiState tone="loading" title="Loading merchant metrics…" />
@@ -129,28 +132,25 @@ export function MerchantOverview({ session, analyticsClient }: Props) {
         <UiState tone="empty" title="Merchant metrics unavailable" detail={load.detail} />
       ) : null}
       {load.status === "ready" ? (
-        <div
-          className="stack"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 12rem), 1fr))",
-            gap: "0.85rem",
-          }}
-          data-testid="merchant-kpi-row"
-        >
+        <div className="kpi-row" data-testid="merchant-kpi-row">
           <StatBlock
             label="Unresolved"
-            value={formatAmountMinor(load.metrics.unresolved_minor, load.metrics.currency)}
+            value={formatMoney(load.metrics.unresolved_minor, load.metrics.currency)}
             caption={caption}
           />
-          <StatBlock label="Exception rate" value={load.metrics.exception_rate} caption={caption} />
+          <StatBlock
+            label="Exception rate"
+            value={exceptionRate === null ? "Unavailable" : `${(exceptionRate * 100).toFixed(1)}%`}
+            caption={caption}
+          />
           <StatBlock
             label="Median handling"
-            value={`${load.metrics.median_handling_seconds}s`}
+            value={humanDuration(load.metrics.median_handling_seconds)}
             caption={caption}
           />
           <StatBlock
             label="Top cause"
+            valueType="text"
             value={load.metrics.top_causes[0]?.replace(/_/g, " ").toLowerCase() ?? "—"}
             caption={caption}
           />

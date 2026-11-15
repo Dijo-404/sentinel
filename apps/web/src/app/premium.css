@@ -11,11 +11,11 @@
   padding: 0 1.25rem;
   text-decoration: none;
   font: inherit;
-  font-weight: 420;
-  line-height: 1;
+  font-weight: 500;
+  line-height: 1.25;
   cursor: pointer;
   border: 1px solid transparent;
-  border-radius: var(--radius-pill);
+  border-radius: var(--control-radius);
   color: var(--ink);
   background: transparent;
   transition:
@@ -25,7 +25,7 @@
 }
 
 .btn:active {
-  transform: scale(0.97);
+  filter: brightness(0.94);
 }
 
 .btn-primary {
@@ -40,14 +40,13 @@
 }
 
 .btn-glass {
-  background: color-mix(in srgb, var(--fog) 20%, transparent);
-  border-color: color-mix(in srgb, var(--fog) 36%, transparent);
+  background: var(--surface);
+  border-color: var(--line-strong);
   color: var(--ink);
-  backdrop-filter: blur(8px);
 }
 
 .btn-glass:hover {
-  background: color-mix(in srgb, var(--fog) 28%, transparent);
+  background: var(--surface-tint);
 }
 
 .btn-tint {
@@ -636,9 +635,12 @@
   border: 0;
   border-radius: var(--radius-pill);
   background: transparent;
-  color: var(--fog);
-  font-weight: 420;
-  transition: color 0.2s;
+  color: var(--ink-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition:
+    color var(--t-ui),
+    background-color var(--t-ui);
 }
 
 .hero__chip:hover,
@@ -1307,8 +1309,8 @@
 
 .landing-footer__head {
   margin: 0;
-  color: var(--on-dark);
-  font-weight: 480;
+  color: var(--ink);
+  font-weight: 600;
 }
 
 .landing .landing-footer a {
@@ -1318,7 +1320,7 @@
 }
 
 .landing .landing-footer a:hover {
-  color: var(--on-dark);
+  color: var(--ink);
 }
 
 .landing-legal {
@@ -1375,7 +1377,7 @@
 .portal-shell {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   background: var(--canvas);
 }
 
@@ -1383,10 +1385,12 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  height: 60px;
-  padding: 0 1rem;
-  background: var(--night);
-  color: var(--on-dark);
+  min-height: 64px;
+  flex-wrap: wrap;
+  padding: 0.5rem 1rem;
+  background: var(--surface);
+  color: var(--ink);
+  border-bottom: 1px solid var(--line);
   position: sticky;
   top: 0;
   z-index: 30;
@@ -1418,10 +1422,10 @@
   overflow-y: auto;
   display: none;
   flex-direction: column;
-  gap: 1.5rem;
-  background: var(--night);
-  color: var(--on-dark);
-  padding: 1.5rem 1rem;
+  gap: 1.25rem;
+  background: var(--surface);
+  color: var(--ink);
+  padding: 1.5rem 1rem 1rem;
 }
 
 .app-sidebar.is-open {
@@ -1470,10 +1474,10 @@
   height: 32px;
   flex: none;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary), var(--periwinkle));
-  color: var(--on-primary);
+  background: var(--lavender);
+  color: var(--primary);
   font-size: 0.875rem;
-  font-weight: 480;
+  font-weight: 600;
 }
 
 .app-sidebar__email {
@@ -1499,14 +1503,17 @@
   padding: 0 0.85rem;
   border-radius: var(--radius);
   text-decoration: none;
-  color: var(--fog);
-  font-weight: 420;
-  transition: color 0.2s;
+  color: var(--ink-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition:
+    color var(--t-ui),
+    background-color var(--t-ui);
 }
 
 .app-sidebar__nav a:hover {
-  color: var(--on-dark);
-  background: color-mix(in srgb, var(--on-dark) 6%, transparent);
+  color: var(--ink);
+  background: var(--chip-bg);
 }
 
 .app-sidebar__nav a[aria-current="page"] {
@@ -1534,7 +1541,8 @@
   overflow-wrap: anywhere;
   width: min(1240px, 100%);
   margin: 0 auto;
-  padding: clamp(1rem, 3vw, 2.25rem);
+  padding: 0 clamp(1rem, 3vw, 2.5rem) 2.5rem;
+  gap: 1.75rem;
   background: var(--canvas);
   min-width: 0;
   align-content: start;
@@ -1542,7 +1550,7 @@
 
 @media (min-width: 900px) {
   .portal-shell {
-    grid-template-columns: 264px 1fr;
+    grid-template-columns: 248px minmax(0, 1fr);
   }
 
   .app-sidebar__mobile-bar,
@@ -1572,57 +1580,53 @@
 }
 
 .dash-header {
-  display: grid;
-  gap: 1rem;
-  align-items: end;
-  padding: 0.5rem 0 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem 2rem;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0.75rem 0 0.25rem;
 }
-
-@media (min-width: 720px) {
-  .dash-header {
-    grid-template-columns: 1fr auto;
-  }
-
-  .dash-header__extra {
-    grid-column: 2;
-    justify-self: end;
-  }
+.dash-header__text {
+  flex: 1 1 280px;
+  min-width: 0;
 }
-
 .dash-header__greeting {
-  margin: 0 0 0.35rem;
-  color: var(--ink-secondary);
-  font-size: 0.9375rem;
-}
-
-.dash-header h1 {
   margin: 0 0 0.5rem;
-  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  color: var(--ink-secondary);
+  font-size: 0.875rem;
 }
-
+.dash-header h1 {
+  margin: 0 0 0.65rem;
+  font-size: clamp(1.75rem, 2.5vw, 2.25rem);
+  font-weight: 600;
+  line-height: 1.2;
+}
 .dash-header__desc {
   margin: 0;
-  max-width: 60ch;
+  max-width: 62ch;
+  font-size: 0.9375rem;
   color: var(--ink-secondary);
-  font-weight: 360;
 }
-
+.dash-header__aside {
+  display: grid;
+  gap: 1rem;
+  justify-items: start;
+}
 .dash-header__workspace {
-  justify-self: start;
   display: inline-flex;
   align-items: center;
-  min-height: 32px;
-  padding: 0 0.9rem;
-  border-radius: var(--radius-pill);
-  background: color-mix(in srgb, var(--primary) 10%, transparent);
-  color: var(--ink);
-  font-size: 0.875rem;
-  font-weight: 420;
+  min-height: 28px;
+  padding: 0.25rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink-secondary);
+  font-size: 0.8125rem;
 }
-
 @media (min-width: 720px) {
-  .dash-header__workspace {
-    justify-self: end;
+  .dash-header__aside {
+    justify-items: end;
   }
 }
 
@@ -1648,17 +1652,18 @@
 .kpi-row {
   display: grid;
   gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
   align-items: stretch;
 }
 
 /* —— Viz primitives —— */
 .stat-block {
-  background: var(--lavender);
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 1.25rem 1.4rem;
+  padding: 1.25rem;
   display: grid;
-  gap: 0.4rem;
+  gap: 0.75rem;
   align-content: start;
   min-width: 0;
 }
@@ -1679,10 +1684,19 @@
 
 .stat-block__value {
   margin: 0;
-  font-size: 2rem;
-  font-weight: 480;
+  font-size: clamp(1.6rem, 2.3vw, 2.1rem);
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  overflow-wrap: anywhere;
   color: var(--ink);
   line-height: 1.15;
+}
+
+.stat-block__value[data-type="text"] {
+  font-size: 1.3rem;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
 }
 
 .stat-block__spark .sparkline {
@@ -1694,12 +1708,13 @@
 .stat-block__caption {
   margin: 0;
   font-size: 0.8125rem;
-  color: var(--ink-secondary);
+  line-height: 1.5;
+  color: var(--fog);
 }
 
 .stat-block--action {
   background: var(--surface);
-  border: 1px solid color-mix(in srgb, var(--fog) 50%, transparent);
+  border: 1px solid var(--line);
   gap: 0.75rem;
 }
 
@@ -1731,10 +1746,10 @@
 .chart-card {
   background: var(--surface);
   color: var(--ink);
-  border-radius: 16px;
-  padding: 1.25rem 1.5rem 1.5rem;
-  border: 1px solid color-mix(in srgb, var(--fog) 45%, transparent);
-  box-shadow: var(--shadow-soft);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  border: 1px solid var(--line);
+  box-shadow: none;
   display: grid;
   gap: 1rem;
   align-content: start;
@@ -1752,7 +1767,7 @@
 .chart-card__title {
   margin: 0;
   font-size: 1.0625rem;
-  font-weight: 480;
+  font-weight: 600;
   color: var(--ink);
 }
 
@@ -1763,8 +1778,10 @@
 }
 
 .chart-tooltip {
-  background: var(--night);
-  color: var(--on-dark);
+  background: var(--surface-raised);
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--shadow-soft);
   border-radius: 10px;
   padding: 0.6rem 0.75rem;
   font-size: 0.8125rem;
@@ -2127,13 +2144,13 @@
 .table th {
   font-size: 0.75rem;
   font-weight: 500;
-  letter-spacing: 0.02em;
   color: var(--ink-secondary);
-  border-bottom-color: color-mix(in srgb, var(--fog) 60%, transparent);
+  background: var(--surface-tint);
+  border-bottom-color: var(--line);
 }
 
 .table td {
-  border-bottom-color: color-mix(in srgb, var(--fog) 35%, transparent);
+  border-bottom-color: var(--line);
 }
 
 .table tbody tr {

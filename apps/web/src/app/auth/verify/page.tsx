@@ -1,9 +1,10 @@
+import { AuthShell } from "@/components/auth/auth-shell";
 import { VerifyContactForm } from "@/components/auth/verify-contact-form";
 
 export default function AuthVerifyPage() {
   return (
-    <div className="auth-page">
+    <AuthShell>
       <VerifyContactForm />
-    </div>
+    </AuthShell>
   );
 }

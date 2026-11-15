@@ -38,6 +38,9 @@ export function RoleLogin({ next }: { next?: string }) {
             data-testid="login-password"
           />
         </label>
+        <Link href="/auth/forgot-password" className="auth-recovery">
+          Forgot password?
+        </Link>
         {state && !state.ok ? (
           <div className="state-banner" data-tone="error" data-testid="login-error" role="alert">
             {state.message}

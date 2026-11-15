@@ -162,6 +162,18 @@ function fetchFail(): typeof fetch {
 }
 
 describe("admin peer pages", () => {
+  it("keeps one page heading when security is embedded in a dashboard", async () => {
+    render(
+      <>
+        <h1>Platform dashboard</h1>
+        <AdminPeerPanel view="security" headingLevel={2} fetchImpl={fetchFail()} />
+      </>,
+    );
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+    expect(screen.getByRole("heading", { level: 2, name: "Security" })).toBeInTheDocument();
+    expect(await screen.findByTestId("peer-error")).toBeInTheDocument();
+  });
+
   it.each(PEER_FAMILY_PAGES)(
     "$view ($peer) never shows stub copy; data when fetch succeeds",
     async (entry) => {

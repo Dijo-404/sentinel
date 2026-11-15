@@ -9,6 +9,7 @@ import { createRiskClientForMode } from "@/adapters/composition-peers";
 import type { RiskClient, RiskDashboard } from "@/application/ports";
 import { PeerError } from "@/domain/types";
 import { FixtureBanner } from "@/components/viz/fixture-banner";
+import { DashboardHeader } from "./dashboard-header";
 import { StatBlock } from "@/components/viz/stat-block";
 import { AdminPeerPanel } from "@/components/admin/admin-peer-panel";
 import { UiState } from "@/components/ui-states";
@@ -149,35 +150,29 @@ export function PortalDashboard({ role, session, highlights, riskClient: riskCli
 
   return (
     <div className="stack" data-testid={`${role}-dashboard`}>
-      <div className="panel stack">
-        <h1>{meta.title} dashboard</h1>
-        <p className="muted">{meta.description}</p>
-        {config.mode === "fixture" || load.status === "ready" ? <FixtureBanner /> : null}
-      </div>
-      <div className="panel">
-        <h2>Session</h2>
+      <DashboardHeader
+        title={`${meta.title} dashboard`}
+        description={meta.description}
+        displayName={session.user.display_name}
+        workspace={session.assignment.label}
+      />
+      {config.mode === "fixture" || load.status === "ready" ? <FixtureBanner /> : null}
+      <details className="panel session-details">
+        <summary>Session details</summary>
         <ul>
           {items.map((item) => (
             <li key={item}>{item}</li>
           ))}
         </ul>
-      </div>
+      </details>
 
       {load.status === "loading" ? <UiState tone="loading" title="Loading metrics…" /> : null}
-      {role === "admin" ? <AdminPeerPanel view="security" /> : null}
+      {role === "admin" ? <AdminPeerPanel view="security" headingLevel={2} /> : null}
       {load.status === "unavailable" && role !== "admin" ? (
         <UiState tone="empty" title="Metrics unavailable" detail={load.detail} />
       ) : null}
       {load.status === "ready" && load.kind === "customer" ? (
-        <div
-          className="stack"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(9.5rem, 1fr))",
-            gap: "0.85rem",
-          }}
-          data-testid="portal-kpi-row"
-        >
+        <div className="kpi-row" data-testid="portal-kpi-row">
           <StatBlock label="Open cases" value={String(load.kpis.open_cases)} caption={caption} />
           <StatBlock label="Needs input" value={String(load.kpis.needs_input)} caption={caption} />
           <StatBlock
@@ -193,15 +188,7 @@ export function PortalDashboard({ role, session, highlights, riskClient: riskCli
         </div>
       ) : null}
       {load.status === "ready" && load.kind === "risk" ? (
-        <div
-          className="stack"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(9.5rem, 1fr))",
-            gap: "0.85rem",
-          }}
-          data-testid="risk-kpi-row"
-        >
+        <div className="kpi-row" data-testid="risk-kpi-row">
           <StatBlock
             label="Open investigations"
             value={String(load.kpis.open_investigations)}

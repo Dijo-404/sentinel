@@ -1,9 +1,10 @@
+import { AuthShell } from "@/components/auth/auth-shell";
 import { Suspense } from "react";
 import { AcceptInvitationForm } from "@/components/auth/accept-invitation-form";
 
 export default function AuthAcceptInvitationPage() {
   return (
-    <div className="auth-page">
+    <AuthShell>
       <Suspense
         fallback={
           <div className="auth-card panel stack">
@@ -15,6 +16,6 @@ export default function AuthAcceptInvitationPage() {
       >
         <AcceptInvitationForm />
       </Suspense>
-    </div>
+    </AuthShell>
   );
 }

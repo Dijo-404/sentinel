@@ -9,6 +9,7 @@ import type { AuthSession } from "@/lib/server/auth";
 import { PORTAL_META } from "@/lib/permissions";
 import { ChartCard } from "@/components/viz/chart-card";
 import { FixtureBanner } from "@/components/viz/fixture-banner";
+import { DashboardHeader } from "./dashboard-header";
 import { StatBlock } from "@/components/viz/stat-block";
 import { UiState } from "@/components/ui-states";
 
@@ -37,7 +38,7 @@ type LoadState =
       source: "live" | "fixture";
     };
 
-const PIE_COLORS = ["#5266eb", "#9cb4e8", "#c3c3cc", "#edecfb", "#7a86c8"];
+const PIE_COLORS = ["var(--viz-1)", "var(--viz-2)", "var(--viz-3)", "var(--viz-4)", "var(--viz-5)"];
 
 /** Pie slices from operator dashboard projection aggregates (not page-scoped lists). */
 export function projectionStatusSlices(kpis: OperatorDashboardKpis): StatusSlice[] {
@@ -96,19 +97,19 @@ export function OperatorOverview({ session, caseClient, mode = "fixture" }: Prop
 
   return (
     <div className="stack" data-testid="operator-dashboard">
-      <div className="panel stack">
-        <h1>{meta.title} dashboard</h1>
-        <p className="muted">{meta.description}</p>
-        <p className="muted">
-          Signed in as {session.user.email} · {session.assignment.label}
-        </p>
-        {mode === "fixture" || (load.status === "ready" && load.source === "fixture") ? (
-          <FixtureBanner />
-        ) : null}
-        <p>
-          <Link href="/operator/queue">Open full queue</Link>
-        </p>
-      </div>
+      <DashboardHeader
+        title={`${meta.title} dashboard`}
+        description={meta.description}
+        displayName={session.user.display_name}
+        workspace={session.assignment.label}
+      >
+        <Link href="/operator/queue" className="btn btn-primary">
+          Open full queue
+        </Link>
+      </DashboardHeader>
+      {mode === "fixture" || (load.status === "ready" && load.source === "fixture") ? (
+        <FixtureBanner />
+      ) : null}
 
       {load.status === "loading" ? (
         <UiState tone="loading" title="Loading operator overview…" />
@@ -119,15 +120,7 @@ export function OperatorOverview({ session, caseClient, mode = "fixture" }: Prop
 
       {load.status === "ready" ? (
         <>
-          <div
-            className="stack"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(9.5rem, 1fr))",
-              gap: "0.85rem",
-            }}
-            data-testid="operator-kpi-row"
-          >
+          <div className="kpi-row" data-testid="operator-kpi-row">
             <StatBlock label="Open" value={String(load.kpis.open_total)} caption={caption} />
             <StatBlock
               label="Waiting"

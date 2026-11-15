@@ -2,6 +2,31 @@
 
 ## Unreleased
 
+### Changed — consistent professional web presentation (#173)
+
+- Unify public, account, and portal surfaces with slate/blue semantic tokens,
+  consistent type hierarchy, quieter borders, shared control sizes, and legible
+  dark/light themes. Use the existing fonts and dependencies.
+- Reuse dashboard headings and responsive metric grids across all six roles;
+  reduce session details to an expandable panel. Format merchant amounts, rates,
+  and durations with existing presentation helpers, including Indian INR grouping.
+- Add workspace context and complete navigation icons. Replace the animated cursor
+  with the native pointer, preserve visible evidence-mode labels, and keep primary
+  actions distinct from verified-outcome green.
+- Share account branding/layout across login, signup, recovery, verification,
+  invitations, workspace selection, and denied access. Add password recovery to
+  sign-in; retain the existing authentication and validation behavior.
+- Add a portal skip link, keyboard handling/focus return for the mobile drawer,
+  a native shortcuts dialog, and immediately readable reduced-motion landing
+  content. Strengthen field borders in both themes.
+- Document the design in [the UI guide](docs/ui-design.md). Wire contracts,
+  authenticated role scope, financial approval, and provider execution are unchanged.
+- Standalone verification: 356 tests in 57 files plus TypeScript; production build;
+  root metadata and 21 tests; 104 browser checks with synthetic identity and
+  browser-intercepted metrics, plus keyboard and reduced-motion checks. See
+  [browser results](docs/ui-review-results.json) and the linked screenshots.
+  Live peers, provider writes, and assembled credit verification were not exercised.
+
 ### Fixed — role credential fallback review (#172)
 
 - A missing role-specific peer credential cannot borrow the shared credential

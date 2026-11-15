@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import { PORTAL_META } from "@/lib/permissions";
 import { LogoMark } from "@/components/brand/logo-mark";
 import { NavIcon } from "./nav-icon";
 import { WorkspaceSwitcher } from "@/components/identity/workspace-switcher";
@@ -33,6 +34,48 @@ export function AppSidebar({ role, session, nav }: Props) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const activeHref = longestMatchingHref(pathname, nav);
+  const sidebar = useRef<HTMLElement>(null);
+  const menuButton = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    sidebar.current?.focus();
+    function closeOnDesktop() {
+      if (window.innerWidth >= 900) setOpen(false);
+    }
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpen(false);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const controls = sidebar.current?.querySelectorAll<HTMLElement>(
+        "a[href], button:not(:disabled), select:not(:disabled)",
+      );
+      const first = controls?.[0];
+      const last = controls?.[controls.length - 1];
+      if (
+        event.shiftKey &&
+        (document.activeElement === first || document.activeElement === sidebar.current)
+      ) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
+      }
+    }
+    document.addEventListener("keydown", onKey);
+    window.addEventListener("resize", closeOnDesktop);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", onKey);
+      window.removeEventListener("resize", closeOnDesktop);
+      menuButton.current?.focus();
+    };
+  }, [open]);
 
   return (
     <>
@@ -40,6 +83,7 @@ export function AppSidebar({ role, session, nav }: Props) {
         <button
           type="button"
           className="btn btn-glass app-sidebar__menu-btn"
+          ref={menuButton}
           aria-expanded={open}
           aria-controls="app-sidebar-nav"
           onClick={() => setOpen((v) => !v)}
@@ -56,7 +100,7 @@ export function AppSidebar({ role, session, nav }: Props) {
           Menu
         </button>
         <span className="app-sidebar__mobile-brand">
-          <LogoMark inverse size={22} />
+          <LogoMark size={22} />
           Sentinel
         </span>
       </div>
@@ -68,12 +112,29 @@ export function AppSidebar({ role, session, nav }: Props) {
           onClick={() => setOpen(false)}
         />
       ) : null}
-      <aside id="app-sidebar-nav" className={`app-sidebar${open ? " is-open" : ""}`}>
+      <aside
+        ref={sidebar}
+        id="app-sidebar-nav"
+        className={`app-sidebar${open ? " is-open" : ""}`}
+        tabIndex={-1}
+        role={open ? "dialog" : undefined}
+        aria-modal={open ? true : undefined}
+        aria-label={open ? "Workspace navigation" : undefined}
+      >
         <div className="app-sidebar__brand">
           <Link href="/" className="landing-wordmark">
-            <LogoMark inverse size={28} />
+            <LogoMark size={28} />
             Sentinel
           </Link>
+        </div>
+        <div className="app-sidebar__workspace">
+          <span className="app-sidebar__workspace-icon" aria-hidden="true">
+            <NavIcon label="Dashboard" />
+          </span>
+          <div>
+            <strong>{PORTAL_META[role].title}</strong>
+            <span>{session.assignment.label}</span>
+          </div>
         </div>
         <nav className="app-sidebar__nav" aria-label={`${role} navigation`}>
           {nav.map((item) => {

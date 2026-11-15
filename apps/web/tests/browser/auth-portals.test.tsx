@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { LandingPage } from "@/components/marketing/landing-page";
 import { RoleLogin } from "@/components/auth/role-login";
@@ -78,6 +78,10 @@ describe("portal auth UI", () => {
     expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
     expect(screen.queryByText("Choose a portal")).not.toBeInTheDocument();
     expect(screen.getByTestId("register-link")).toHaveAttribute("href", "/signup");
+    expect(screen.getByRole("link", { name: "Forgot password?" })).toHaveAttribute(
+      "href",
+      "/auth/forgot-password",
+    );
   });
 
   it("sign-in failure remains visible", async () => {
@@ -141,5 +145,17 @@ describe("portal auth UI", () => {
     expect(shell).toBeTruthy();
     expect(screen.getByTestId("logout")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Dashboard" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Skip to content" })).toHaveAttribute(
+      "href",
+      "#portal-content",
+    );
+    expect(screen.getByRole("main")).toHaveAttribute("id", "portal-content");
+    expect(screen.getByText("Support Operator")).toBeInTheDocument();
+    const menu = screen.getByRole("button", { name: "Menu" });
+    fireEvent.click(menu);
+    expect(screen.getByRole("dialog", { name: "Workspace navigation" })).toHaveFocus();
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.queryByRole("dialog", { name: "Workspace navigation" })).not.toBeInTheDocument();
+    expect(menu).toHaveFocus();
   });
 });

@@ -10,6 +10,9 @@ vi.mock("next/navigation", () => ({
 }));
 
 beforeAll(() => {
+  HTMLDialogElement.prototype.showModal ??= function () {
+    this.setAttribute("open", "");
+  };
   // cmdk measures items via ResizeObserver and scrollIntoView, which jsdom lacks.
   globalThis.ResizeObserver ??= class {
     observe() {}
@@ -63,5 +66,7 @@ describe("PortalTopbar", () => {
     expect(push).toHaveBeenCalledWith("/operator/queue");
     fireEvent.keyDown(window, { key: "?" });
     expect(screen.getByRole("dialog", { name: "Keyboard shortcuts" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Close shortcuts" }));
+    expect(screen.queryByRole("dialog", { name: "Keyboard shortcuts" })).not.toBeInTheDocument();
   });
 });

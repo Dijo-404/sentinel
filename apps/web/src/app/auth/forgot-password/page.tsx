@@ -1,9 +1,10 @@
+import { AuthShell } from "@/components/auth/auth-shell";
 import { ForgotPasswordForm } from "@/components/auth/forgot-password-form";
 
 export default function AuthForgotPasswordPage() {
   return (
-    <div className="auth-page">
+    <AuthShell>
       <ForgotPasswordForm />
-    </div>
+    </AuthShell>
   );
 }

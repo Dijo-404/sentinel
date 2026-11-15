@@ -15,6 +15,7 @@ import type { SupervisorDashboardKpis } from "@/components/dashboards/supervisor
 import { ChartCard } from "@/components/viz/chart-card";
 import { ChartTooltip } from "@/components/viz/chart-tooltip";
 import { FixtureBanner } from "@/components/viz/fixture-banner";
+import { DashboardHeader } from "./dashboard-header";
 import { StatBlock } from "@/components/viz/stat-block";
 import { TrendPill } from "@/components/viz/trend-pill";
 import { UiState } from "@/components/ui-states";
@@ -43,27 +44,29 @@ type CombinedState =
 function CountBars({ data }: { data: { label: string; count: number }[] }) {
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+      <BarChart data={data} layout="vertical" margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
         <XAxis
+          type="number"
+          allowDecimals={false}
+          tick={{ fill: "var(--ink-secondary)", fontSize: 12 }}
+          tickLine={false}
+          axisLine={false}
+        />
+        <YAxis
+          type="category"
           dataKey="label"
           tick={{ fill: "var(--ink-secondary)", fontSize: 12 }}
           tickLine={false}
-          interval={0}
-        />
-        <YAxis
-          allowDecimals={false}
-          tick={{ fill: "var(--ink-secondary)", fontSize: 11 }}
-          tickLine={false}
           axisLine={false}
-          width={28}
+          width={128}
         />
         <Tooltip cursor={{ fill: "rgba(82, 102, 235, 0.06)" }} content={<ChartTooltip />} />
         <Bar
           dataKey="count"
           name="Cases"
           fill="var(--periwinkle)"
-          radius={[4, 4, 0, 0]}
-          maxBarSize={72}
+          radius={[0, 4, 4, 0]}
+          maxBarSize={28}
         />
       </BarChart>
     </ResponsiveContainer>
@@ -210,19 +213,20 @@ export function OpsCombinedOverview({
 
   return (
     <div className="stack" data-testid="ops-combined-dashboard">
-      <div className="panel stack">
-        <h1>Operations dashboard</h1>
-        <p className="muted">Workload and approval projections for your active role.</p>
-        <p className="muted">
-          Signed in as {session.user.email} · {session.assignment.label}
-        </p>
-        {showFixture ? <FixtureBanner /> : null}
-        <p>
-          <Link href="/operator/queue">Open queue</Link>
-          {" · "}
-          <Link href="/supervisor/approvals">Open approvals</Link>
-        </p>
-      </div>
+      <DashboardHeader
+        title="Operations dashboard"
+        description="Workload and approval projections for your active role."
+        displayName={session.user.display_name}
+        workspace={session.assignment.label}
+      >
+        <Link href="/operator/queue" className="btn btn-primary">
+          Open queue
+        </Link>
+        <Link href="/supervisor/approvals" className="btn btn-glass">
+          Open approvals
+        </Link>
+      </DashboardHeader>
+      {showFixture ? <FixtureBanner /> : null}
 
       {load.status === "loading" ? (
         <UiState tone="loading" title="Loading operations overview…" />
@@ -249,15 +253,7 @@ export function OpsCombinedOverview({
               ) : null}
               {load.operator.status === "ready" ? (
                 <>
-                  <div
-                    className="stack"
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "repeat(auto-fit, minmax(9.5rem, 1fr))",
-                      gap: "0.85rem",
-                    }}
-                    data-testid="operator-kpi-row"
-                  >
+                  <div className="kpi-row" data-testid="operator-kpi-row">
                     <StatBlock
                       label="Open"
                       value={String(load.operator.data.open_total)}

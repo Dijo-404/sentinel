@@ -33,6 +33,10 @@ describe("landing simulator model", () => {
 describe("landing interactions", () => {
   it("injecting a provider timeout explains reconcile-not-resend", () => {
     render(<LandingPage />);
+    expect(screen.getByRole("link", { name: "Try the simulator" })).toHaveAttribute(
+      "href",
+      "#simulator",
+    );
     const sim = document.getElementById("simulator")!;
     fireEvent.click(within(sim).getByRole("button", { name: /Provider timeout/ }));
     expect(within(sim).getByText("RECONCILE · NOT RESEND")).toBeInTheDocument();

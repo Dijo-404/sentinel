@@ -1,0 +1,621 @@
+{
+  "evidence": "Standalone browser UI review. Synthetic identity, browser-intercepted metric fixtures, and explicit unavailable peers. No live payment or assembled acceptance.",
+  "results": [
+    {
+      "name": "contrast-dark-body",
+      "ratio": 15.47
+    },
+    {
+      "name": "contrast-dark-secondary",
+      "ratio": 8.11
+    },
+    {
+      "name": "contrast-dark-muted",
+      "ratio": 6.81
+    },
+    {
+      "name": "contrast-dark-button",
+      "ratio": 8.42
+    },
+    {
+      "name": "contrast-dark-field-border",
+      "ratio": 3.49
+    },
+    {
+      "name": "login-dark-375",
+      "width": 375,
+      "scroll": 375,
+      "h1": 1
+    },
+    {
+      "name": "login-dark-768",
+      "width": 768,
+      "scroll": 768,
+      "h1": 1
+    },
+    {
+      "name": "login-dark-1024",
+      "width": 1024,
+      "scroll": 1024,
+      "h1": 1
+    },
+    {
+      "name": "login-dark-1440",
+      "width": 1440,
+      "scroll": 1440,
+      "h1": 1
+    },
+    {
+      "name": "signup-dark-375",
+      "width": 375,
+      "scroll": 375,
+      "h1": 1
+    },
+    {
+      "name": "signup-dark-768",
+      "width": 768,
+      "scroll": 768,
+      "h1": 1
+    },
+    {
+      "name": "signup-dark-1024",
+      "width": 1024,
+      "scroll": 1024,
+      "h1": 1
+    },
+    {
+      "name": "signup-dark-1440",
+      "width": 1440,
+      "scroll": 1440,
+      "h1": 1
+    },
+    {
+      "name": "auth-forgot-password-dark-375",
+      "width": 375,
+      "scroll": 375,
+      "h1": 1
+    },
+    {
+      "name": "auth-forgot-password-dark-768",
+      "width": 768,
+      "scroll": 768,
+      "h1": 1
+    },
+    {
+      "name": "auth-forgot-password-dark-1024",
+      "width": 1024,
+      "scroll": 1024,
+      "h1": 1
+    },
+    {
+      "name": "auth-forgot-password-dark-1440",
+      "width": 1440,
+      "scroll": 1440,
+      "h1": 1
+    },
+    {
+      "name": "landing-dark-375",
+      "width": 375,
+      "scroll": 375,
+      "h1": 1
+    },
+    {
+      "name": "landing-dark-768",
+      "width": 768,
+      "scroll": 768,
+      "h1": 1
+    },
+    {
+      "name": "landing-dark-1024",
+      "width": 1024,
+      "scroll": 1024,
+      "h1": 1
+    },
+    {
+      "name": "landing-dark-1440",
+      "width": 1440,
+      "scroll": 1440,
+      "h1": 1
+    },
+    {
+      "name": "contrast-light-body",
+      "ratio": 13.7
+    },
+    {
+      "name": "contrast-light-secondary",
+      "ratio": 6.43
+    },
+    {
+      "name": "contrast-light-muted",
+      "ratio": 5.77
+    },
+    {
+      "name": "contrast-light-button",
+      "ratio": 6.32
+    },
+    {
+      "name": "contrast-light-field-border",
+      "ratio": 3.12
+    },
+    {
+      "name": "login-light-375",
+      "width": 375,
+      "scroll": 375,
+      "h1": 1
+    },
+    {
+      "name": "login-light-768",
+      "width": 768,
+      "scroll": 768,
+      "h1": 1
+    },
+    {
+      "name": "login-light-1024",
+      "width": 1024,
+      "scroll": 1024,
+      "h1": 1
+    },
+    {
+      "name": "login-light-1440",
+      "width": 1440,
+      "scroll": 1440,
+      "h1": 1
+    },
+    {
+      "name": "signup-light-375",
+      "width": 375,
+      "scroll": 375,
+      "h1": 1
+    },
+    {
+      "name": "signup-light-768",
+      "width": 768,
+      "scroll": 768,
+      "h1": 1
+    },
+    {
+      "name": "signup-light-1024",
+      "width": 1024,
+      "scroll": 1024,
+      "h1": 1
+    },
+    {
+      "name": "signup-light-1440",
+      "width": 1440,
+      "scroll": 1440,
+      "h1": 1
+    },
+    {
+      "name": "auth-forgot-password-light-375",
+      "width": 375,
+      "scroll": 375,
+      "h1": 1
+    },
+    {
+      "name": "auth-forgot-password-light-768",
+      "width": 768,
+      "scroll": 768,
+      "h1": 1
+    },
+    {
+      "name": "auth-forgot-password-light-1024",
+      "width": 1024,
+      "scroll": 1024,
+      "h1": 1
+    },
+    {
+      "name": "auth-forgot-password-light-1440",
+      "width": 1440,
+      "scroll": 1440,
+      "h1": 1
+    },
+    {
+      "name": "landing-light-375",
+      "width": 375,
+      "scroll": 375,
+      "h1": 1
+    },
+    {
+      "name": "landing-light-768",
+      "width": 768,
+      "scroll": 768,
+      "h1": 1
+    },
+    {
+      "name": "landing-light-1024",
+      "width": 1024,
+      "scroll": 1024,
+      "h1": 1
+    },
+    {
+      "name": "landing-light-1440",
+      "width": 1440,
+      "scroll": 1440,
+      "h1": 1
+    },
+    {
+      "name": "customer-dark-375",
+      "width": 375,
+      "scroll": 375,
+      "h1": 1
+    },
+    {
+      "name": "customer-dark-768",
+      "width": 768,
+      "scroll": 768,
+      "h1": 1
+    },
+    {
+      "name": "customer-dark-1024",
+      "width": 1024,
+      "scroll": 1024,
+      "h1": 1
+    },
+    {
+      "name": "customer-dark-1440",
+      "width": 1440,
+      "scroll": 1440,
+      "h1": 1
+    },
+    {
+      "name": "customer-light-375",
+      "width": 375,
+      "scroll": 375,
+      "h1": 1
+    },
+    {
+      "name": "customer-light-768",
+      "width": 768,
+      "scroll": 768,
+      "h1": 1
+    },
+    {
+      "name": "customer-light-1024",
+      "width": 1024,
+      "scroll": 1024,
+      "h1": 1
+    },
+    {
+      "name": "customer-light-1440",
+      "width": 1440,
+      "scroll": 1440,
+      "h1": 1
+    },
+    {
+      "name": "customer-landscape",
+      "width": 844,
+      "scroll": 844,
+      "h1": 1
+    },
+    {
+      "name": "customer-large-text",
+      "width": 375,
+      "scroll": 375,
+      "h1": 1
+    },
+    {
+      "name": "merchant-dark-375",
+      "width": 375,
+      "scroll": 375,
+      "h1": 1
+    },
+    {
+      "name": "merchant-dark-768",
+      "width": 768,
+      "scroll": 768,
+      "h1": 1
+    },
+    {
+      "name": "merchant-dark-1024",
+      "width": 1024,
+      "scroll": 1024,
+      "h1": 1
+    },
+    {
+      "name": "merchant-dark-1440",
+      "width": 1440,
+      "scroll": 1440,
+      "h1": 1
+    },
+    {
+      "name": "merchant-light-375",
+      "width": 375,
+      "scroll": 375,
+      "h1": 1
+    },
+    {
+      "name": "merchant-light-768",
+      "width": 768,
+      "scroll": 768,
+      "h1": 1
+    },
+    {
+      "name": "merchant-light-1024",
+      "width": 1024,
+      "scroll": 1024,
+      "h1": 1
+    },
+    {
+      "name": "merchant-light-1440",
+      "width": 1440,
+      "scroll": 1440,
+      "h1": 1
+    },
+    {
+      "name": "merchant-landscape",
+      "width": 844,
+      "scroll": 844,
+      "h1": 1
+    },
+    {
+      "name": "merchant-large-text",
+      "width": 375,
+      "scroll": 375,
+      "h1": 1
+    },
+    {
+      "name": "operator-dark-375",
+      "width": 375,
+      "scroll": 375,
+      "h1": 1
+    },
+    {
+      "name": "operator-dark-768",
+      "width": 768,
+      "scroll": 768,
+      "h1": 1
+    },
+    {
+      "name": "operator-dark-1024",
+      "width": 1024,
+      "scroll": 1024,
+      "h1": 1
+    },
+    {
+      "name": "operator-dark-1440",
+      "width": 1440,
+      "scroll": 1440,
+      "h1": 1
+    },
+    {
+      "name": "operator-light-375",
+      "width": 375,
+      "scroll": 375,
+      "h1": 1
+    },
+    {
+      "name": "operator-light-768",
+      "width": 768,
+      "scroll": 768,
+      "h1": 1
+    },
+    {
+      "name": "operator-light-1024",
+      "width": 1024,
+      "scroll": 1024,
+      "h1": 1
+    },
+    {
+      "name": "operator-light-1440",
+      "width": 1440,
+      "scroll": 1440,
+      "h1": 1
+    },
+    {
+      "name": "operator-queue-light-1440",
+      "width": 1440,
+      "scroll": 1440,
+      "h1": 1
+    },
+    {
+      "name": "unavailable-peer-remains-visible",
+      "pass": true
+    },
+    {
+      "name": "operator-landscape",
+      "width": 844,
+      "scroll": 844,
+      "h1": 1
+    },
+    {
+      "name": "operator-large-text",
+      "width": 375,
+      "scroll": 375,
+      "h1": 1
+    },
+    {
+      "name": "supervisor-dark-375",
+      "width": 375,
+      "scroll": 375,
+      "h1": 1
+    },
+    {
+      "name": "supervisor-dark-768",
+      "width": 768,
+      "scroll": 768,
+      "h1": 1
+    },
+    {
+      "name": "supervisor-dark-1024",
+      "width": 1024,
+      "scroll": 1024,
+      "h1": 1
+    },
+    {
+      "name": "supervisor-dark-1440",
+      "width": 1440,
+      "scroll": 1440,
+      "h1": 1
+    },
+    {
+      "name": "supervisor-light-375",
+      "width": 375,
+      "scroll": 375,
+      "h1": 1
+    },
+    {
+      "name": "supervisor-light-768",
+      "width": 768,
+      "scroll": 768,
+      "h1": 1
+    },
+    {
+      "name": "supervisor-light-1024",
+      "width": 1024,
+      "scroll": 1024,
+      "h1": 1
+    },
+    {
+      "name": "supervisor-light-1440",
+      "width": 1440,
+      "scroll": 1440,
+      "h1": 1
+    },
+    {
+      "name": "supervisor-landscape",
+      "width": 844,
+      "scroll": 844,
+      "h1": 1
+    },
+    {
+      "name": "supervisor-large-text",
+      "width": 375,
+      "scroll": 375,
+      "h1": 1
+    },
+    {
+      "name": "risk-dark-375",
+      "width": 375,
+      "scroll": 375,
+      "h1": 1
+    },
+    {
+      "name": "risk-dark-768",
+      "width": 768,
+      "scroll": 768,
+      "h1": 1
+    },
+    {
+      "name": "risk-dark-1024",
+      "width": 1024,
+      "scroll": 1024,
+      "h1": 1
+    },
+    {
+      "name": "risk-dark-1440",
+      "width": 1440,
+      "scroll": 1440,
+      "h1": 1
+    },
+    {
+      "name": "risk-light-375",
+      "width": 375,
+      "scroll": 375,
+      "h1": 1
+    },
+    {
+      "name": "risk-light-768",
+      "width": 768,
+      "scroll": 768,
+      "h1": 1
+    },
+    {
+      "name": "risk-light-1024",
+      "width": 1024,
+      "scroll": 1024,
+      "h1": 1
+    },
+    {
+      "name": "risk-light-1440",
+      "width": 1440,
+      "scroll": 1440,
+      "h1": 1
+    },
+    {
+      "name": "risk-landscape",
+      "width": 844,
+      "scroll": 844,
+      "h1": 1
+    },
+    {
+      "name": "risk-large-text",
+      "width": 375,
+      "scroll": 375,
+      "h1": 1
+    },
+    {
+      "name": "admin-dark-375",
+      "width": 375,
+      "scroll": 375,
+      "h1": 1
+    },
+    {
+      "name": "admin-dark-768",
+      "width": 768,
+      "scroll": 768,
+      "h1": 1
+    },
+    {
+      "name": "admin-dark-1024",
+      "width": 1024,
+      "scroll": 1024,
+      "h1": 1
+    },
+    {
+      "name": "admin-dark-1440",
+      "width": 1440,
+      "scroll": 1440,
+      "h1": 1
+    },
+    {
+      "name": "admin-light-375",
+      "width": 375,
+      "scroll": 375,
+      "h1": 1
+    },
+    {
+      "name": "admin-light-768",
+      "width": 768,
+      "scroll": 768,
+      "h1": 1
+    },
+    {
+      "name": "admin-light-1024",
+      "width": 1024,
+      "scroll": 1024,
+      "h1": 1
+    },
+    {
+      "name": "admin-light-1440",
+      "width": 1440,
+      "scroll": 1440,
+      "h1": 1
+    },
+    {
+      "name": "admin-landscape",
+      "width": 844,
+      "scroll": 844,
+      "h1": 1
+    },
+    {
+      "name": "admin-large-text",
+      "width": 375,
+      "scroll": 375,
+      "h1": 1
+    }
+  ],
+  "errors": [],
+  "source_branch": "feat/sn-012-ui-shell",
+  "baseline_commit": "52bd829",
+  "keyboard_checks": [
+    "Mobile drawer entry focus, Tab containment, Escape and focus return",
+    "Native shortcuts dialog background inertness and Escape dismissal",
+    "Saved compact density"
+  ],
+  "reduced_motion_check": {
+    "section_heads": 4,
+    "problem_phrases": 5,
+    "all_opaque": true
+  },
+  "captured_at": "2026-11-15T12:14:04.254280+00:00"
+}

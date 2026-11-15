@@ -1,3 +1,4 @@
+import { AuthShell } from "@/components/auth/auth-shell";
 import Link from "next/link";
 import { WorkspaceSwitcher } from "@/components/identity/workspace-switcher";
 import { getAuthSession, workspaceChoices } from "@/lib/server/auth";
@@ -12,7 +13,7 @@ export default async function UnauthorizedPage({
   const workspaces = session ? workspaceChoices(session.workspaces) : [];
 
   return (
-    <div className="auth-page">
+    <AuthShell>
       <div className="auth-card panel stack" data-testid="unauthorized">
         <p className="brand auth-brand">Sentinel</p>
         <h1>Workspace not available</h1>
@@ -35,6 +36,6 @@ export default async function UnauthorizedPage({
           </p>
         )}
       </div>
-    </div>
+    </AuthShell>
   );
 }
