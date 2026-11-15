@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Fixed — role credential fallback review (#172)
+
+- A missing role-specific peer credential cannot borrow the shared credential
+  for a different role. Merchant Teams explicitly permits only its merchant role
+  to use the shared merchant credential; admin and Assistant roles require their
+  own configured credentials. Four regression cases cover missing and present
+  role credentials and the explicitly permitted merchant fallback.
+
 ### Fixed — six-role deployed Playwright review (#168)
 
 - Make HTTP sandbox login persistent with two explicit server-side flags;

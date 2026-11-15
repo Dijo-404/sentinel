@@ -49,3 +49,49 @@ describe("sandbox peer token binding", () => {
     },
   );
 });
+
+describe("role-specific sandbox credentials", () => {
+  it.each([
+    ["customer", undefined, undefined, "caller-session"],
+    ["customer", "customer-token", undefined, "customer-token"],
+    ["admin", undefined, "merchant", "caller-session"],
+    ["merchant", undefined, "merchant", "shared-token"],
+  ] as const)(
+    "never borrows another role's shared credential (%s)",
+    async (role, keyed, fallbackRole, expected) => {
+      const active = {
+        tenant_id: "tenant-demo",
+        role_id: role === "admin" ? "platform_admin" : role,
+      };
+      vi.stubEnv("QA_PEER_URL", "http://peer.test");
+      vi.stubEnv("QA_PEER_TOKEN", "shared-token");
+      vi.stubEnv(`QA_ROLE_${role}`, keyed);
+      vi.stubEnv("IDENTITY_BASE_URL", "http://identity.test");
+      vi.stubEnv("SENTINEL_V1_SANDBOX", "1");
+      vi.stubEnv("WEB_SANDBOX_PEER_BINDINGS", JSON.stringify({ "seed-user": active }));
+      const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+        if (url.startsWith("http://identity.test"))
+          return Response.json({ user: { user_id: "seed-user" }, active_assignment: active });
+        expect(new Headers(init?.headers).get("Authorization")).toBe(`Bearer ${expected}`);
+        return Response.json({ ok: true });
+      });
+      vi.stubGlobal("fetch", fetchMock);
+      const handlers = createSessionPeerProxy({
+        envKey: "QA_PEER_URL",
+        peerLabel: "QA",
+        requestIdPrefix: "qa",
+        upstreamTokenEnvKey: "QA_PEER_TOKEN",
+        upstreamTokenRolePrefix: "QA_ROLE_",
+        upstreamTokenRoles: ["customer", "merchant", "admin"],
+        upstreamTokenFallbackRole: fallbackRole,
+      });
+      expect(
+        (
+          await handlers.GET(new NextRequest("http://localhost/api/bff/qa/v1/data"), {
+            params: Promise.resolve({ path: ["v1", "data"] }),
+          })
+        ).status,
+      ).toBe(200);
+    },
+  );
+});

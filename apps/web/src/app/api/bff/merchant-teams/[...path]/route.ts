@@ -10,6 +10,7 @@ const handlers = createSessionPeerProxy({
   upstreamTokenRoles: ["merchant", "admin"],
   upstreamTokenEnvKey: "MERCHANT_TEAMS_SERVICE_TOKEN",
   upstreamTokenRolePrefix: "MERCHANT_TEAMS_TOKEN_",
+  upstreamTokenFallbackRole: "merchant",
 });
 
 export const GET = handlers.GET;

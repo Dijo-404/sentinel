@@ -17,11 +17,14 @@ export type SessionProxyConfig = {
   /**
    * Optional prefix for role-scoped upstream tokens, e.g. "ASSISTANT_TOKEN_".
    * When set, BFF resolves active portal role via identity /me and uses
-   * process.env[`${prefix}${portalRole}`] when present, else upstreamTokenEnvKey.
+   * process.env[`${prefix}${portalRole}`] when present. A missing role key cannot
+   * borrow the shared credential unless upstreamTokenFallbackRole explicitly matches.
    */
   upstreamTokenRolePrefix?: string;
   /** Roles permitted to use this peer's explicitly bound sandbox credential. */
   upstreamTokenRoles?: PortalRole[];
+  /** The single role allowed to use the shared credential when its role key is absent. */
+  upstreamTokenFallbackRole?: PortalRole;
 };
 
 /**
@@ -162,7 +165,9 @@ async function resolveUpstreamBearer(
     const keyed = config.upstreamTokenRolePrefix
       ? (process.env[`${config.upstreamTokenRolePrefix}${role}`] ?? "").trim()
       : "";
-    return keyed || fallback || sessionBearer;
+    const shared =
+      !config.upstreamTokenRolePrefix || config.upstreamTokenFallbackRole === role ? fallback : "";
+    return keyed || shared || sessionBearer;
   } catch {
     return sessionBearer;
   }

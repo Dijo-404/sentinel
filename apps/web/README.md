@@ -197,3 +197,8 @@ original caller session, so configured demo credentials cannot elevate it.
 `MERCHANT_TEAMS_TOKEN_admin` supplies the separate admin bridge credential.
 Keep all such values server-side. Fresh merchant accounts need their own peer
 provisioning; they never inherit the demo merchant's records.
+
+For peers using role-specific credentials, every role requires its own key.
+A missing Assistant role key preserves the caller's session instead of borrowing
+`ASSISTANT_SERVICE_TOKEN`. Merchant Teams permits its shared credential only for
+`merchant`; `admin` requires `MERCHANT_TEAMS_TOKEN_admin`.
