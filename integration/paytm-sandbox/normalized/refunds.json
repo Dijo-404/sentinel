@@ -1,0 +1,24 @@
+{
+  "refunds": [
+    {
+      "accept_refund_status": null,
+      "amount_minor": null,
+      "currency": "INR",
+      "normalized_status": "FAILED_FINAL",
+      "order_ref": "NOPE",
+      "provider_ref": "SNT-REF-57eff7076c",
+      "refund_id": null,
+      "transaction_ref": "NOPE"
+    },
+    {
+      "accept_refund_status": null,
+      "amount_minor": null,
+      "currency": "INR",
+      "normalized_status": "FAILED_FINAL",
+      "order_ref": "NOPE",
+      "provider_ref": "SNT-REF-PROBE1",
+      "refund_id": null,
+      "transaction_ref": null
+    }
+  ]
+}

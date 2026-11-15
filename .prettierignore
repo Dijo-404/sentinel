@@ -26,3 +26,6 @@ docs/independent-task-contracts.md
 **/contracts/
 **/fixtures/
 packages/contract-checks/src/sentinel_contract_checks/data/
+integration/paytm-sandbox/.raw/
+**/.raw/
+**/.pytest_cache/

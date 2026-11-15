@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added — Paytm-shaped FinBench groups
+
+- `paytm_dup_010` (en/ta/hi/code-mix/wrong-amount/injection/ambiguous), `paytm_mismatch_011`,
+  `paytm_unauthorized_012`. Same-group variants stay in one split. Synthetic provenance;
+  amounts mirror ₹10 staging-shaped simulator pack.
+
 ### Fixed — live candidate honesty
 
 - `LiveModelCandidate` requires an injected context peer when enabled; refuses

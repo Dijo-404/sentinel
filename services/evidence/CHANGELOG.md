@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Document live Paytm staging reads via `integration/paytm-sandbox` payment-provider
+  bridge (`EVIDENCE_MODE=real-peers` → bridge → Paytm status). No silent fixture fallback.
 - Refuse non-loopback HTTP bind while demo/sandbox bearer tokens remain configured.
 
 ### Fixed — payment merchant_ref for ledger reservations

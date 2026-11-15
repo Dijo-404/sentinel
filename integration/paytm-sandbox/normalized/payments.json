@@ -1,0 +1,49 @@
+{
+  "payments": [
+    {
+      "amount_minor": 0,
+      "currency": "INR",
+      "merchant_ref": "merchant-paytm-staging",
+      "order_reference": "SENTINEL-FAIL-DEMO-001",
+      "status": "FAILED",
+      "subject_ref": "subject-paytm-staging",
+      "transaction_ref": "NONE-status-SENTINEL-FAIL-DEMO-001-20261115T054707Z"
+    },
+    {
+      "amount_minor": 0,
+      "currency": "INR",
+      "merchant_ref": "merchant-paytm-staging",
+      "order_reference": "SENTINEL-FAIL-DEMO-002",
+      "status": "FAILED",
+      "subject_ref": "subject-paytm-staging",
+      "transaction_ref": "NONE-status-SENTINEL-FAIL-DEMO-002-20261115T054709Z"
+    },
+    {
+      "amount_minor": 0,
+      "currency": "INR",
+      "merchant_ref": "merchant-paytm-staging",
+      "order_reference": "SENTINEL-MISSING-001",
+      "status": "FAILED",
+      "subject_ref": "subject-paytm-staging",
+      "transaction_ref": "NONE-status-SENTINEL-MISSING-001-20261115T054703Z"
+    },
+    {
+      "amount_minor": 0,
+      "currency": "INR",
+      "merchant_ref": "merchant-paytm-staging",
+      "order_reference": "SENTINEL-MISSING-002",
+      "status": "FAILED",
+      "subject_ref": "subject-paytm-staging",
+      "transaction_ref": "NONE-status-SENTINEL-MISSING-002-20261115T054704Z"
+    },
+    {
+      "amount_minor": 0,
+      "currency": "INR",
+      "merchant_ref": "merchant-paytm-staging",
+      "order_reference": "SENTINEL-MISSING-003",
+      "status": "FAILED",
+      "subject_ref": "subject-paytm-staging",
+      "transaction_ref": "NONE-status-SENTINEL-MISSING-003-20261115T054705Z"
+    }
+  ]
+}

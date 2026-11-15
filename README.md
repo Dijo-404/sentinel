@@ -155,10 +155,10 @@ services/       ledger, dispatcher, verifier, workflow, evidence, policy,
                 simulator, voice, merchant-* , finharness-runtime
 packages/       contract-checks, persistence, telemetry, approval-ui,
                 finharness-*, indic-context, merchant-comms
-integration/    core assembly + sandbox runbook
+integration/    core assembly + sandbox runbook + paytm-sandbox staging capture
 tooling/        optional module-check discovery
 evals/ replay/ benchmarks/ release/ validation/
-docs/           architecture, contracts, task register, Phase 1/2 specs
+docs/           architecture, contracts, task register, Phase 1/2 specs, Paytm guide
 scripts/ tests/ repository validation
 AGENTS.md       ownership, money rules, handoff
 ```
@@ -228,6 +228,8 @@ make format     # apply safe Ruff fixes and format
 | [Task register](docs/task-register.md)                          | All 34 tasks ↔ GitHub issues                   |
 | [Contract baseline](docs/independent-task-contracts.md)         | Wire types, digests, failure codes             |
 | [Sandbox runbook](integration/core/docs/sandbox-runbook.md)     | Bring up V1 simulator stack                    |
+| [Paytm staging guide](docs/paytm-testdata-integration.md)       | Staging capture, bridge, dataset plan          |
+| [Paytm sandbox](integration/paytm-sandbox/README.md)            | Capture CLI + payment-provider bridge          |
 | [GitHub workflow](docs/github-workflow.md)                      | Claims, labels, review                         |
 | [Phase 1](docs/sentinel-p1.md) / [Phase 2](docs/sentinel-p2.md) | Planned product intent (not proof of behavior) |
 | [Pitch deck](docs/Sentinel_Pitch_Deck.pdf)                      | Product narrative                              |

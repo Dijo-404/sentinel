@@ -1,19 +1,22 @@
 {
   "contract_baseline_sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb",
-  "dataset_sha256": "ecbfc5a0ffe1e30519bfc23449afcc196d3d51c96afb1fd998326697be6f113c",
+  "dataset_sha256": "94d0e2ca1b0f667a9f7b9481e876d98527fa2f1156c1fa643a6d99e10a53469f",
   "dataset_version": "indic-fin-v0.1.0",
   "groups": [
     "ambiguous_amount_003",
     "dup_payment_001",
     "heldout_dup_005",
     "injection_004",
+    "paytm_dup_010",
+    "paytm_mismatch_011",
+    "paytm_unauthorized_012",
     "pending_debit_002"
   ],
-  "scenario_count": 11,
+  "scenario_count": 22,
   "split_sha256": {
-    "dev": "20866b685d72d19140a66acbecff8fa73154ae62e0b22e6241a0d0a81bd83050",
+    "dev": "971d039e241223db75205e44cc33ff374dbc7509f1771d8d19a45b64e2b38c88",
     "test": "329e9d914ffdb06f48c096281defc4f1c3850dda3b31ececc9abfde92b8daba0",
-    "val": "24bffbe5fc7192ac6528e476962ce8936eaa7c5a07b4564ae79918da8f9c7e67"
+    "val": "b56f23a7faa7bf7f4436c85740a8b50bf804481d95a9c6bdf953e71a0b92d91d"
   },
   "splits": ["dev", "test", "val"],
   "synthetic_only": true

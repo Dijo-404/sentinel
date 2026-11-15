@@ -1,0 +1,61 @@
+{
+  "fixture_count": 9,
+  "fixtures": [
+    {
+      "evidence_mode": null,
+      "fixture_id": null,
+      "path": "fixtures/capabilities.json",
+      "sha256": "98f15be906860f98c2d41d27709a6146d94df9a59dc75cb994fa8a14a4288d37"
+    },
+    {
+      "evidence_mode": "paytm-staging-live",
+      "fixture_id": "initiate-SENTINEL-52c9d1f25ac4",
+      "path": "fixtures/initiate-SENTINEL-52c9d1f25ac4.json",
+      "sha256": "2ddfdfabd67ea6cb7a8b048416be7d7f3098911304fe82c442f49a95ead017a2"
+    },
+    {
+      "evidence_mode": "paytm-staging-replay",
+      "fixture_id": "refund-apply-SNT-REF-57eff7076c",
+      "path": "fixtures/refund-apply-SNT-REF-57eff7076c.json",
+      "sha256": "7242eac1565abf3f77af72b380787f93ac486e2b6fb6fc3eea8939fd270a98c1"
+    },
+    {
+      "evidence_mode": "paytm-staging-replay",
+      "fixture_id": "refund-status-SNT-REF-PROBE1",
+      "path": "fixtures/refund-status-SNT-REF-PROBE1.json",
+      "sha256": "d8d682c5f69af102966e17efd7ee822acc1fb5f604366e479e5357e765ef7bb7"
+    },
+    {
+      "evidence_mode": "paytm-staging-live",
+      "fixture_id": "status-SENTINEL-FAIL-DEMO-001-20261115T054707Z",
+      "path": "fixtures/status-SENTINEL-FAIL-DEMO-001-20261115T054707Z.json",
+      "sha256": "68f6368b30cfd64de928fcedb1efae3ed3d28f3ef2f683a068a3f326b3416e57"
+    },
+    {
+      "evidence_mode": "paytm-staging-live",
+      "fixture_id": "status-SENTINEL-FAIL-DEMO-002-20261115T054709Z",
+      "path": "fixtures/status-SENTINEL-FAIL-DEMO-002-20261115T054709Z.json",
+      "sha256": "09cca4832db7dbae7191a1a69838fc3b798fee7cde42fa7d84e479290815d07b"
+    },
+    {
+      "evidence_mode": "paytm-staging-live",
+      "fixture_id": "status-SENTINEL-MISSING-001-20261115T054703Z",
+      "path": "fixtures/status-SENTINEL-MISSING-001-20261115T054703Z.json",
+      "sha256": "dad5b02b27bf1a81a224f82033c066e9bd95184bbbe64bfdba0fc729a722ab2a"
+    },
+    {
+      "evidence_mode": "paytm-staging-live",
+      "fixture_id": "status-SENTINEL-MISSING-002-20261115T054704Z",
+      "path": "fixtures/status-SENTINEL-MISSING-002-20261115T054704Z.json",
+      "sha256": "34469f127f89895b8451260b875e577189cb5fe7f81b82f81bd3990f75fa23e9"
+    },
+    {
+      "evidence_mode": "paytm-staging-live",
+      "fixture_id": "status-SENTINEL-MISSING-003-20261115T054705Z",
+      "path": "fixtures/status-SENTINEL-MISSING-003-20261115T054705Z.json",
+      "sha256": "36cf2190e2cd458898bed8efe5c0fac738fe440b7cd49bd96d69dad3ee3a9bba"
+    }
+  ],
+  "generated_at": "2026-11-15T05:47:18Z",
+  "note": "Replay fixtures are not fresh evidence. Live staging writes require an initiate-capable test MID; shared demo MID may only support status reads."
+}

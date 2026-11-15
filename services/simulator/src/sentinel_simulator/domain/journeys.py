@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
+from pathlib import Path
 
 from sentinel_simulator.domain.models import Order, Payment, Refund
 
@@ -8,6 +10,9 @@ SANDBOX_TENANT_ID = "tenant-demo"
 SUBJECT_REF = "subject-demo-42"
 MERCHANT_REF = "merchant-demo-1"
 AMOUNT_MINOR = 150_000
+PAYTM_SUBJECT_REF = "subject-paytm-staging"
+PAYTM_MERCHANT_REF = "merchant-paytm-staging"
+PAYTM_AMOUNT_MINOR = 1_000
 
 JOURNEY_PACKS = (
     "pending",
@@ -15,6 +20,8 @@ JOURNEY_PACKS = (
     "duplicate_payment",
     "refund_pending",
 )
+# Opt-in via POST /v1/admin/seeds/paytm_staging — not merged into default sandbox seed.
+OPTIONAL_PACKS = ("paytm_staging",)
 
 FAULT_SCHEDULES = {
     "timeout-after-accept": {
@@ -163,11 +170,91 @@ def _refund_pending_pack() -> SeedSnapshot:
     )
 
 
+def _paytm_staging_pack() -> SeedSnapshot:
+    """Paytm-shaped replay pack.
+
+    Successful payments/refunds are synthetic-simulator until an initiate-capable
+    staging MID can capture TXN_SUCCESS. Failed/missing order ids mirror live
+    staging status observations (resultCode 334).
+    """
+    fixtures = Path(__file__).resolve().parents[3] / "fixtures" / "paytm_staging" / "seed_pack.json"
+    if fixtures.is_file():
+        payload = json.loads(fixtures.read_text(encoding="utf-8"))
+        orders = {
+            item["order_reference"]: Order(
+                order_reference=str(item["order_reference"]),
+                subject_ref=str(item["subject_ref"]),
+                fulfilled_order_count=int(item["fulfilled_order_count"]),
+                merchant_confirmed_duplicate=bool(item["merchant_confirmed_duplicate"]),
+                paid=bool(item["paid"]),
+            )
+            for item in payload.get("orders", [])
+        }
+        payments = {
+            item["transaction_ref"]: Payment(
+                transaction_ref=str(item["transaction_ref"]),
+                order_reference=str(item["order_reference"]),
+                subject_ref=str(item["subject_ref"]),
+                status=item["status"],
+                amount_minor=int(item["amount_minor"]),
+                currency=item["currency"],
+                merchant_ref=str(item["merchant_ref"]),
+            )
+            for item in payload.get("payments", [])
+        }
+        refunds = {
+            item["provider_ref"]: Refund(
+                action_id=str(item["action_id"]),
+                provider_ref=str(item["provider_ref"]),
+                transaction_ref=str(item["transaction_ref"]),
+                amount_minor=int(item["amount_minor"]),
+                currency=item["currency"],
+                status=item["status"],
+            )
+            for item in payload.get("refunds", [])
+        }
+        return SeedSnapshot(orders=orders, payments=payments, refunds=refunds)
+
+    order = Order(
+        order_reference="PAYTM-ORDER-A",
+        subject_ref=PAYTM_SUBJECT_REF,
+        fulfilled_order_count=1,
+        merchant_confirmed_duplicate=True,
+        paid=True,
+    )
+    payments = (
+        Payment(
+            transaction_ref="PAYTM-TXN-A1",
+            order_reference=order.order_reference,
+            subject_ref=PAYTM_SUBJECT_REF,
+            status="CAPTURED",
+            amount_minor=PAYTM_AMOUNT_MINOR,
+            currency="INR",
+            merchant_ref=PAYTM_MERCHANT_REF,
+        ),
+        Payment(
+            transaction_ref="PAYTM-TXN-A2",
+            order_reference=order.order_reference,
+            subject_ref=PAYTM_SUBJECT_REF,
+            status="CAPTURED",
+            amount_minor=PAYTM_AMOUNT_MINOR,
+            currency="INR",
+            merchant_ref=PAYTM_MERCHANT_REF,
+        ),
+    )
+    return SeedSnapshot(
+        orders={order.order_reference: order},
+        payments={payment.transaction_ref: payment for payment in payments},
+        refunds={},
+    )
+
+
 _PACK_BUILDERS = {
     "pending": _pending_pack,
     "merchant_mismatch": _merchant_mismatch_pack,
     "duplicate_payment": _duplicate_payment_pack,
     "refund_pending": _refund_pending_pack,
+    "paytm_staging": _paytm_staging_pack,
 }
 
 

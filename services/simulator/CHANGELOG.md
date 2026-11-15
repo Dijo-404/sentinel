@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Opt-in `paytm_staging` seed pack (₹10 Paytm-shaped duplicate/mismatch/fail/refund).
+  Load via admin seeds; not merged into default sandbox seed. Success/refund rows are
+  synthetic until an initiate-capable staging MID captures TXN_SUCCESS.
 - Refuse non-loopback HTTP bind while demo/sandbox bearer tokens remain configured.
 
 ### Fixed — payment merchant_ref on transaction wire

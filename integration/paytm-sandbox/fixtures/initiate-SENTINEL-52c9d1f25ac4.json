@@ -1,0 +1,16 @@
+{
+  "amount": "10.00",
+  "environment": "staging",
+  "evidence_mode": "paytm-staging-live",
+  "fixture_id": "initiate-SENTINEL-52c9d1f25ac4",
+  "order_id": "SENTINEL-52c9d1f25ac4",
+  "original_signature_verified": false,
+  "provider_result": {
+    "resultCode": "239",
+    "resultMsg": "System Error",
+    "resultStatus": "F"
+  },
+  "raw_sha256": "c2124d3f35dd04d5387cb03b4ae1dd2751c492d0ff3282d448b20c996fbc6089",
+  "source": "paytm_staging",
+  "txn_token_present": false
+}
