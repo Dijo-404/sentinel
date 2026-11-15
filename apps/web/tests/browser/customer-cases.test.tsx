@@ -36,23 +36,17 @@ describe("customer cases / transactions wiring", () => {
       </ShellProvider>,
     );
 
-    expect(await screen.findByTestId("state-error")).toHaveTextContent(
-      "Cases unavailable",
-    );
+    expect(await screen.findByTestId("state-error")).toHaveTextContent("Cases unavailable");
   });
 
   it("customer transactions fail closed — no hardcoded product rows", () => {
     render(
-      <ShellProvider
-        config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}
-      >
+      <ShellProvider config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}>
         <CustomerTransactionsPage />
       </ShellProvider>,
     );
 
-    expect(screen.getByTestId("state-error")).toHaveTextContent(
-      "Transactions unavailable",
-    );
+    expect(screen.getByTestId("state-error")).toHaveTextContent("Transactions unavailable");
     expect(screen.queryByText("txn-…1001")).not.toBeInTheDocument();
     expect(screen.queryByTestId("fixture-banner")).not.toBeInTheDocument();
   });

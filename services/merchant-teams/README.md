@@ -35,12 +35,12 @@ local create/update role mutations are rejected (projection-only).
 
 Prefer the projection surface for merchant portal Team:
 
-| Method | Path | Response |
-| --- | --- | --- |
-| `GET` | `/v1/merchant/team?merchant_ref=merchant-demo-1` | `{ "staff": MerchantStaff[], "source": "identity_projection" \| "local_projection" }` |
-| `GET` | `/v1/staff?merchant_ref=merchant-demo-1` | `{ "staff": MerchantStaff[] }` |
-| `GET` | `/v1/merchant/settings?merchant_ref=merchant-demo-1` | `MerchantSettings` wire object |
-| `GET` | `/v1/admin/merchants` | `{ "merchants": [{ merchant_ref, display_name?, status }] }` |
+| Method | Path                                                 | Response                                                                              |
+| ------ | ---------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `GET`  | `/v1/merchant/team?merchant_ref=merchant-demo-1`     | `{ "staff": MerchantStaff[], "source": "identity_projection" \| "local_projection" }` |
+| `GET`  | `/v1/staff?merchant_ref=merchant-demo-1`             | `{ "staff": MerchantStaff[] }`                                                        |
+| `GET`  | `/v1/merchant/settings?merchant_ref=merchant-demo-1` | `MerchantSettings` wire object                                                        |
+| `GET`  | `/v1/admin/merchants`                                | `{ "merchants": [{ merchant_ref, display_name?, status }] }`                          |
 
 `MerchantSettings` fields: `tenant_id`, `merchant_ref`, `notification_language`,
 `notify_disputes`, `notify_settlements`. Missing row returns `404 NOT_FOUND`
@@ -108,12 +108,12 @@ auto-syncs, and local membership writes are projection-only. See
 
 ## Evidence labels
 
-| Dimension | This module check |
-| --- | --- |
-| Component under test | Real `merchant-teams` implementation |
-| case-api peer | Local stub (`fixture`) |
-| identity peer | Local stub (`fixture`); optional real-peer when `IDENTITY_BASE_URL` set |
-| Persistence | In-memory (`fixture`); PostgreSQL when `MERCHANT_TEAMS_DATABASE_URL` set |
-| Sandbox seed | Synthetic (`make seed` → `evidence_label=synthetic_seed`) |
-| Payment provider | N/A (no provider writes) |
-| Assembly / live peers | UNVERIFIED |
+| Dimension             | This module check                                                        |
+| --------------------- | ------------------------------------------------------------------------ |
+| Component under test  | Real `merchant-teams` implementation                                     |
+| case-api peer         | Local stub (`fixture`)                                                   |
+| identity peer         | Local stub (`fixture`); optional real-peer when `IDENTITY_BASE_URL` set  |
+| Persistence           | In-memory (`fixture`); PostgreSQL when `MERCHANT_TEAMS_DATABASE_URL` set |
+| Sandbox seed          | Synthetic (`make seed` → `evidence_label=synthetic_seed`)                |
+| Payment provider      | N/A (no provider writes)                                                 |
+| Assembly / live peers | UNVERIFIED                                                               |

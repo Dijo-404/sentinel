@@ -79,10 +79,7 @@ const VIEW_COPY: Record<AdminPeerView, ViewCopy> = {
   ai: {
     title: "AI configuration",
     muted: "Platform-ai config + runs metadata. No money fields.",
-    paths: [
-      "/api/bff/platform-ai/v1/config",
-      "/api/bff/platform-ai/v1/runs",
-    ],
+    paths: ["/api/bff/platform-ai/v1/config", "/api/bff/platform-ai/v1/runs"],
   },
   evaluations: {
     title: "Evaluations",
@@ -96,10 +93,7 @@ const VIEW_COPY: Record<AdminPeerView, ViewCopy> = {
   },
 };
 
-async function fetchJson(
-  path: string,
-  fetchImpl: typeof fetch,
-): Promise<unknown> {
+async function fetchJson(path: string, fetchImpl: typeof fetch): Promise<unknown> {
   let response: Response;
   try {
     response = await fetchImpl(path, {
@@ -128,12 +122,7 @@ async function fetchJson(
   try {
     return JSON.parse(text) as unknown;
   } catch {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      "Response is not JSON",
-      "admin-peer",
-      502,
-    );
+    throw new PeerError("MALFORMED_PEER_RESPONSE", "Response is not JSON", "admin-peer", 502);
   }
 }
 
@@ -151,9 +140,7 @@ export function AdminPeerPanel({ view, fetchImpl }: Props) {
     async function run() {
       try {
         if (view === "ai") {
-          const [config, runs] = await Promise.all(
-            copy.paths.map((p) => fetchJson(p, doFetch)),
-          );
+          const [config, runs] = await Promise.all(copy.paths.map((p) => fetchJson(p, doFetch)));
           if (cancelled) return;
           setLoad({ status: "ready", payload: { config, runs } });
           return;
@@ -184,16 +171,10 @@ export function AdminPeerPanel({ view, fetchImpl }: Props) {
       <h1>{copy.title}</h1>
       <p className="muted">{copy.muted}</p>
 
-      {load.status === "loading" ? (
-        <UiState tone="loading" title="Loading admin data…" />
-      ) : null}
+      {load.status === "loading" ? <UiState tone="loading" title="Loading admin data…" /> : null}
       {load.status === "error" ? (
         <div data-testid="peer-error">
-          <UiState
-            tone="error"
-            title="Admin peer unavailable"
-            detail={load.detail}
-          />
+          <UiState tone="error" title="Admin peer unavailable" detail={load.detail} />
         </div>
       ) : null}
       {load.status === "ready" ? (
@@ -205,13 +186,7 @@ export function AdminPeerPanel({ view, fetchImpl }: Props) {
   );
 }
 
-function AdminPayload({
-  view,
-  payload,
-}: {
-  view: AdminPeerView;
-  payload: unknown;
-}) {
+function AdminPayload({ view, payload }: { view: AdminPeerView; payload: unknown }) {
   switch (view) {
     case "roles":
       return <RolesBody data={asRecord(payload)} />;

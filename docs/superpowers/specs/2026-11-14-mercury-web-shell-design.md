@@ -48,16 +48,16 @@ Why now: the shell already has six role trees, fixture auth, BFF, and approval p
 
 ## Decisions (from conversation)
 
-| Topic | Decision |
-| --- | --- |
-| Surface | Rebuild inside existing `apps/web`, replace old UI |
-| Flow | Landing → Log in → role dashboard + menus |
-| Login | **One shared `/login`**. Server owns role. Legacy `/{role}/login` redirect to `/login` (optional `?portal=` for copy only). |
-| Viz priority | Merchant + operator + supervisor in parallel after approval |
-| Visual system | Mercury tokens (night/canvas/indigo/lavender, light type weights); Inter as Arcadia substitute |
-| References | Ramos (bento + KPI widgets), Cometly (night hero → day product viz), Wezom (product stage / multi-panel), Ventriloc (pill nav, dashboard mock as hero art) |
-| Motion | Framer Motion; respect reduced motion |
-| 3D | Landing hero atmosphere only (CSS/canvas/Three lightweight); not required inside every dashboard cell |
+| Topic         | Decision                                                                                                                                                   |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Surface       | Rebuild inside existing `apps/web`, replace old UI                                                                                                         |
+| Flow          | Landing → Log in → role dashboard + menus                                                                                                                  |
+| Login         | **One shared `/login`**. Server owns role. Legacy `/{role}/login` redirect to `/login` (optional `?portal=` for copy only).                                |
+| Viz priority  | Merchant + operator + supervisor in parallel after approval                                                                                                |
+| Visual system | Mercury tokens (night/canvas/indigo/lavender, light type weights); Inter as Arcadia substitute                                                             |
+| References    | Ramos (bento + KPI widgets), Cometly (night hero → day product viz), Wezom (product stage / multi-panel), Ventriloc (pill nav, dashboard mock as hero art) |
+| Motion        | Framer Motion; respect reduced motion                                                                                                                      |
+| 3D            | Landing hero atmosphere only (CSS/canvas/Three lightweight); not required inside every dashboard cell                                                      |
 
 ## Information architecture
 
@@ -133,7 +133,7 @@ Shared building blocks (one design system module):
 
 **Widgets (fixture aggregates + any scoped reads later):**
 
-1. KPI row: captured volume (display), open exceptions, pending refund *requests*, settlement status summary — all synthetic unless peer exists
+1. KPI row: captured volume (display), open exceptions, pending refund _requests_, settlement status summary — all synthetic unless peer exists
 2. Area/line: volume vs refunds over time (fixture series)
 3. Table: recent exceptions / transactions stub with masked refs
 4. Nav unchanged: Dashboard, Transactions, Settlements, Refunds
@@ -201,4 +201,4 @@ Shared building blocks (one design system module):
 4. Signed-in visit to `/`: stay on marketing landing; nav swaps Log in for **Dashboard** → `/{role}/dashboard`. No forced redirect.
 5. Customer / risk / admin and non-dashboard pages: new shell + token cascade only (no rich viz this pass).
 6. Parallel tracks: Track A (landing + tokens + shell + `/login`) first, then B/C/D dashboards in parallel.
-)
+   )

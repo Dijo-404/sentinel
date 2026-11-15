@@ -3,10 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useShell } from "@/adapters/shell-context";
 import { createMerchantInboxClientForMode } from "@/adapters/composition-peers";
-import type {
-  InboxExceptionItem,
-  MerchantInboxClient,
-} from "@/application/ports";
+import type { InboxExceptionItem, MerchantInboxClient } from "@/application/ports";
 import { PeerError } from "@/domain/types";
 import { formatAmountMinor, maskTransactionRef } from "@/domain/mask";
 import type { AuthSession } from "@/lib/server/auth";
@@ -77,8 +74,7 @@ export function ExceptionsPanel({ session, inboxClient }: Props) {
         if (!cancelled) {
           setLoad({
             status: "error",
-            detail:
-              "Active assignment has no merchant_ref; exceptions withheld",
+            detail: "Active assignment has no merchant_ref; exceptions withheld",
           });
         }
         return;
@@ -118,24 +114,17 @@ export function ExceptionsPanel({ session, inboxClient }: Props) {
     <div className="panel stack" data-testid="merchant-exceptions">
       <h1>Exceptions</h1>
       <p className="muted">
-        Exception inbox from merchant-inbox{" "}
-        <code>GET /v1/exceptions</code>. Escalation is not verified credit.
+        Exception inbox from merchant-inbox <code>GET /v1/exceptions</code>. Escalation is not
+        verified credit.
       </p>
-      {config.mode === "fixture" ||
-      (load.status === "ready" && load.source === "fixture") ? (
+      {config.mode === "fixture" || (load.status === "ready" && load.source === "fixture") ? (
         <FixtureBanner />
       ) : null}
 
-      {load.status === "loading" ? (
-        <UiState tone="loading" title="Loading exceptions…" />
-      ) : null}
+      {load.status === "loading" ? <UiState tone="loading" title="Loading exceptions…" /> : null}
       {load.status === "error" ? (
         <div data-testid="peer-error">
-          <UiState
-            tone="error"
-            title="Exceptions unavailable"
-            detail={load.detail}
-          />
+          <UiState tone="error" title="Exceptions unavailable" detail={load.detail} />
         </div>
       ) : null}
       {load.status === "empty" ? (
@@ -165,15 +154,9 @@ export function ExceptionsPanel({ session, inboxClient }: Props) {
               <tr key={row.item_id}>
                 <td>{row.item_id}</td>
                 <td>{row.kind}</td>
-                <td className="tnum">
-                  {formatAmountMinor(row.amount_minor, row.currency)}
-                </td>
+                <td className="tnum">{formatAmountMinor(row.amount_minor, row.currency)}</td>
                 <td>{row.status}</td>
-                <td>
-                  {row.transaction_ref
-                    ? maskTransactionRef(row.transaction_ref)
-                    : "—"}
-                </td>
+                <td>{row.transaction_ref ? maskTransactionRef(row.transaction_ref) : "—"}</td>
               </tr>
             ))}
           </tbody>

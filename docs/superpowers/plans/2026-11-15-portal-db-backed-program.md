@@ -6,14 +6,14 @@
 
 ## Wave plans
 
-| Wave | Plan file | Status |
-| --- | --- | --- |
+| Wave                                | Plan file                                                                      | Status                                 |
+| ----------------------------------- | ------------------------------------------------------------------------------ | -------------------------------------- |
 | 0–1 Foundation + Merchant/Risk wire | `docs/superpowers/plans/2026-11-15-portal-wave0-1-foundation-merchant-risk.md` | done (hardcode audit merged on branch) |
-| 2 Ops case surfaces | `docs/superpowers/plans/2026-11-15-portal-wave2-ops-case-surfaces.md` | done |
-| 3 Identity / auth / customer | `docs/superpowers/plans/2026-11-15-portal-wave3-identity-auth-customer.md` | done |
-| 4 Intel + voice + approval-ui | `docs/superpowers/plans/2026-11-15-portal-wave4-intel-voice-approval.md` | done |
-| 5 Admin remainder | `docs/superpowers/plans/2026-11-15-portal-wave5-admin-remainder.md` | done |
-| 6 Money-path E2E | `docs/superpowers/plans/2026-11-15-portal-wave6-money-path-e2e.md` | done |
+| 2 Ops case surfaces                 | `docs/superpowers/plans/2026-11-15-portal-wave2-ops-case-surfaces.md`          | done                                   |
+| 3 Identity / auth / customer        | `docs/superpowers/plans/2026-11-15-portal-wave3-identity-auth-customer.md`     | done                                   |
+| 4 Intel + voice + approval-ui       | `docs/superpowers/plans/2026-11-15-portal-wave4-intel-voice-approval.md`       | done                                   |
+| 5 Admin remainder                   | `docs/superpowers/plans/2026-11-15-portal-wave5-admin-remainder.md`            | done                                   |
+| 6 Money-path E2E                    | `docs/superpowers/plans/2026-11-15-portal-wave6-money-path-e2e.md`             | done                                   |
 
 **Program status:** waves 0–6 complete. Assembled MVP / product release remains an **owner review** decision — harness PASS and `verify-wave6` are not release evidence. Thin pointer: [`2026-11-15-portal-program-complete.md`](2026-11-15-portal-program-complete.md).
 

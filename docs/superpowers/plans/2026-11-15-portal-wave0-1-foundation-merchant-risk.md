@@ -33,6 +33,7 @@
 ### Task 1: Sandbox seed harness (integration/core)
 
 **Files:**
+
 - Create: `integration/core/scripts/seed_sandbox.py` (or module CLI entry already patterned in repo)
 - Create: `integration/core/tests/test_seed_sandbox_gate.py`
 - Modify: `integration/core/Makefile` (add `seed-sandbox` target)
@@ -40,6 +41,7 @@
 - Modify: `integration/core/docs/sandbox-matrix.md` (document seed command + DB names)
 
 **Interfaces:**
+
 - Consumes: sandbox matrix tokens/URLs from `integration/core/fixtures/sandbox-assembly.json` / `sandbox-tokens.json`
 - Produces: `seed_sandbox(env: Mapping[str, str]) -> SeedReport` where `SeedReport = { status: "PASS"|"FAIL", seeds: list[{peer, rows}], reason_code?: str }`; refuses unless `CORE_ASSEMBLY_TENANT_ID=tenant-demo` and sandbox flag true
 
@@ -65,6 +67,7 @@ git commit -m "feat(integration): sandbox seed gate for tenant-demo"
 ### Task 2: Merchant-analytics Postgres snapshot store
 
 **Files:**
+
 - Create/Modify under `services/merchant-analytics/`: schema/migration or SQLAlchemy metadata for `merchant_metrics_snapshots`
 - Modify: storage adapter + bootstrap to prefer `MERCHANT_ANALYTICS_DATABASE_URL` in real-peers
 - Create: `make seed` writing one snapshot for `merchant-demo-1` / matrix window
@@ -72,6 +75,7 @@ git commit -m "feat(integration): sandbox seed gate for tenant-demo"
 - Update README/CHANGELOG/`.env.example`
 
 **Interfaces:**
+
 - Consumes: existing `GET /v1/merchants/{merchant_ref}/metrics`
 - Produces: same JSON from DB row when present; `404`/`503` with clear code when missing/DB down (no in-memory fake metrics in real-peers)
 
@@ -90,6 +94,7 @@ git commit -m "feat(integration): sandbox seed gate for tenant-demo"
 ### Task 3: Web merchant Analytics page (real BFF)
 
 **Files:**
+
 - Modify: `apps/web/src/app/merchant/(protected)/analytics/page.tsx`
 - Create: `apps/web/src/components/merchant/analytics-panel.tsx` (client fetch via `/api/bff/merchant-analytics/...`)
 - Create: `apps/web/tests/.../merchant-analytics-page.test.tsx`
@@ -97,6 +102,7 @@ git commit -m "feat(integration): sandbox seed gate for tenant-demo"
 - Update `apps/web/CHANGELOG.md`
 
 **Interfaces:**
+
 - Consumes: existing BFF `apps/web/src/app/api/bff/merchant-analytics/[...path]/route.ts`
 - Produces: page `data-testid="merchant-analytics"` showing metrics from fetch OR error banner `data-testid="peer-error"`; never “Not available yet”
 
@@ -115,11 +121,13 @@ git commit -m "feat(integration): sandbox seed gate for tenant-demo"
 ### Task 4: Merchant-disputes Postgres + seed
 
 **Files:**
+
 - Under `services/merchant-disputes/`: add Postgres adapter (or promote sqlite path to Postgres DSN), migration, `make seed` for one OPEN dispute on `tenant-demo`
 - Tests for list/get from DB
 - README/CHANGELOG/`.env.example`
 
 **Interfaces:**
+
 - Produces: `GET` list/detail routes already in service (or add `GET /v1/merchants/{ref}/disputes` if missing — prefer existing routes; document exact path in README)
 
 - [ ] **Step 1: Failing DB persistence test**
@@ -131,12 +139,14 @@ git commit -m "feat(integration): sandbox seed gate for tenant-demo"
 ### Task 5: Web merchant Disputes + Exceptions + Tasks pages
 
 **Files:**
+
 - Replace stubs: `apps/web/src/app/merchant/(protected)/disputes/page.tsx`, `exceptions/page.tsx`, `tasks/page.tsx`
 - BFF: add `apps/web/src/app/api/bff/merchant-disputes/[...path]/route.ts` if missing (mirror `_session-proxy.ts` pattern)
 - Exceptions/Tasks: map to merchant-inbox and/or case-api queue endpoints already available; if inbox has no HTTP list yet, extend `services/merchant-inbox` in this task’s ownership only after claiming — else read case-api ops list filtered for merchant (document ruling in PR)
 - Tests for each page: no stub copy; empty/error from API OK
 
 **Interfaces:**
+
 - Consumes: disputes peer + inbox/case-api as chosen
 - Produces: `data-testid` `merchant-disputes` | `merchant-exceptions` | `merchant-tasks`
 
@@ -147,6 +157,7 @@ git commit -m "feat(integration): sandbox seed gate for tenant-demo"
 ### Task 6: Merchant Team page via merchant-teams
 
 **Files:**
+
 - `services/merchant-teams`: ensure Postgres + seed membership for `merchant-demo-1` if not present
 - BFF `merchant-teams` proxy if missing
 - Replace `apps/web/src/app/merchant/(protected)/team/page.tsx`
@@ -159,6 +170,7 @@ git commit -m "feat(integration): sandbox seed gate for tenant-demo"
 ### Task 7: Merchant Settings page (DB-backed)
 
 **Files:**
+
 - Prefer thin settings resource on `services/merchant-teams` or existing merchant service (builder picks thinner; record in README)
 - Web `settings/page.tsx` + BFF
 - Seed one settings row; GET returns it
@@ -170,11 +182,13 @@ git commit -m "feat(integration): sandbox seed gate for tenant-demo"
 ### Task 8: Risk service Postgres seed + list endpoints
 
 **Files:**
+
 - `services/risk`: enable `RISK_DATABASE_URL` path; `make seed` creates investigation + restriction + findings for `case-demo-42`
 - Ensure list routes cover queue/holds/transactions/reports/analytics/audit needs (add read models only if missing)
 - Tests + README/CHANGELOG
 
 **Interfaces:**
+
 - Existing risk routes from README; extend only with versioned additive GETs if required for portal columns
 
 - [ ] **Steps: TDD seed+lists, `make -C services/risk check`, commit**
@@ -184,6 +198,7 @@ git commit -m "feat(integration): sandbox seed gate for tenant-demo"
 ### Task 9: Web risk stub pages → BFF risk
 
 **Files:**
+
 - Replace stubs under `apps/web/src/app/risk/(protected)/{queue,holds,audit,analytics,reports,transactions}/page.tsx`
 - Use existing `apps/web/src/app/api/bff/risk/[...path]/route.ts`
 - Shared `RiskPeerPanel` component OK if thin
@@ -196,6 +211,7 @@ git commit -m "feat(integration): sandbox seed gate for tenant-demo"
 ### Task 10: Remove invented merchant/customer fixture transaction tables (real-peers honesty)
 
 **Files:**
+
 - `apps/web/src/app/merchant/(protected)/transactions/page.tsx`
 - `apps/web/src/app/merchant/(protected)/refunds/page.tsx`
 - `apps/web/src/app/customer/(protected)/transactions/page.tsx`
@@ -209,6 +225,7 @@ git commit -m "feat(integration): sandbox seed gate for tenant-demo"
 ### Task 11: Wave 0–1 verification script
 
 **Files:**
+
 - Create: `integration/core/scripts/verify_wave0_1.sh` (or pytest) hitting analytics/disputes/risk BFF paths against seeded stack OR documenting manual curl checklist in README if full compose not yet automated
 - Must assert HTTP 200 + JSON from DB-backed peers for at least analytics metrics + one risk list + one dispute list
 

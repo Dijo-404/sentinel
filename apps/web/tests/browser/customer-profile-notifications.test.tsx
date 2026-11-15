@@ -77,9 +77,7 @@ describe("customer profile + notifications", () => {
       ...profileUser,
       password: SECRET_PASSWORD,
     };
-    const { container } = render(
-      <ProfilePanel user={sneaky as typeof profileUser} />,
-    );
+    const { container } = render(<ProfilePanel user={sneaky as typeof profileUser} />);
     expect(container.innerHTML).not.toContain(SECRET_PASSWORD);
     expect(document.body.innerHTML).not.toContain(SECRET_PASSWORD);
   });
@@ -116,9 +114,7 @@ describe("customer profile + notifications", () => {
   });
 
   it("profile peer failure on save shows peer-error — form stays", async () => {
-    const { patchProfileAction } = await import(
-      "@/lib/server/customer-actions"
-    );
+    const { patchProfileAction } = await import("@/lib/server/customer-actions");
     vi.mocked(patchProfileAction).mockResolvedValueOnce({
       ok: false,
       message: "Identity peer unavailable",
@@ -139,9 +135,7 @@ describe("customer profile + notifications", () => {
     expect(screen.getByTestId("customer-notifications")).toBeInTheDocument();
     expect(screen.getByTestId("customer-notifications-list")).toBeInTheDocument();
     expect(screen.getByText("Welcome")).toBeInTheDocument();
-    expect(
-      screen.getByText("Your customer workspace is ready."),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Your customer workspace is ready.")).toBeInTheDocument();
     expect(screen.queryByText("Not available yet")).not.toBeInTheDocument();
   });
 
@@ -157,9 +151,7 @@ describe("customer profile + notifications", () => {
 
     expect(screen.getByTestId("customer-notifications")).toBeInTheDocument();
     expect(screen.getByTestId("peer-error")).toBeInTheDocument();
-    expect(
-      screen.queryByTestId("customer-notifications-list"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId("customer-notifications-list")).not.toBeInTheDocument();
     expect(screen.queryByText("Not available yet")).not.toBeInTheDocument();
   });
 
@@ -173,9 +165,7 @@ describe("customer profile + notifications", () => {
   });
 
   it("mark-read soft failure shows yellow warning — list stays", async () => {
-    const { markNotificationReadAction } = await import(
-      "@/lib/server/customer-actions"
-    );
+    const { markNotificationReadAction } = await import("@/lib/server/customer-actions");
     vi.mocked(markNotificationReadAction).mockResolvedValueOnce({
       ok: false,
       message: "Notification not found",

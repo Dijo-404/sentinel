@@ -12,8 +12,8 @@ export default function MerchantTasksPage() {
     <div className="panel stack" data-testid="merchant-tasks">
       <h1>Tasks</h1>
       <p className="muted">
-        SLA task list withheld. merchant-inbox has no tasks route; case-api has
-        no merchant task list. Live rows not invented.
+        SLA task list withheld. merchant-inbox has no tasks route; case-api has no merchant task
+        list. Live rows not invented.
       </p>
       <div data-testid="peer-error">
         <UiState

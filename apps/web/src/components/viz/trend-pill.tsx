@@ -12,9 +12,7 @@ const PATH: Record<Props["direction"], string> = {
 };
 
 export function TrendPill({ value, direction, tone }: Props) {
-  const resolved =
-    tone ??
-    (direction === "up" ? "good" : direction === "down" ? "bad" : "neutral");
+  const resolved = tone ?? (direction === "up" ? "good" : direction === "down" ? "bad" : "neutral");
   return (
     <span
       className="trend-pill"

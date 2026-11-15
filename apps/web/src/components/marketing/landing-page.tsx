@@ -59,11 +59,7 @@ const STEPS = [
   {
     title: "Investigate",
     body: "Operators see the case timeline and evidence. Card numbers and account identifiers stay masked.",
-    checks: [
-      "Order bound to the customer",
-      "Fresh evidence attached",
-      "Payment route recorded",
-    ],
+    checks: ["Order bound to the customer", "Fresh evidence attached", "Payment route recorded"],
   },
   {
     title: "Approve",
@@ -86,11 +82,7 @@ const STEPS = [
   {
     title: "Verify",
     body: "A case resolves when the provider confirms the credit. Pending is not proof.",
-    checks: [
-      "Postconditions pass",
-      "Financial audit written",
-      "Escalation is not resolution",
-    ],
+    checks: ["Postconditions pass", "Financial audit written", "Escalation is not resolution"],
   },
 ] as const;
 
@@ -186,11 +178,7 @@ function Headline() {
   return (
     <h1 className="hero__title" aria-label={HEADLINE}>
       {HEADLINE.split(" ").map((word, i) => (
-        <span
-          key={`${word}-${i}`}
-          className="hero__word-mask"
-          aria-hidden="true"
-        >
+        <span key={`${word}-${i}`} className="hero__word-mask" aria-hidden="true">
           <motion.span
             className="hero__word"
             initial={{ y: "110%", opacity: 0 }}
@@ -215,9 +203,7 @@ function ScrollSteps() {
   const fill = useSpring(scrollYProgress, { stiffness: 140, damping: 28 });
   const [step, setStep] = useState(0);
   useMotionValueEvent(scrollYProgress, "change", (v) =>
-    setStep(
-      Math.min(STEPS.length - 1, Math.max(0, Math.floor(v * STEPS.length))),
-    ),
+    setStep(Math.min(STEPS.length - 1, Math.max(0, Math.floor(v * STEPS.length)))),
   );
 
   function go(i: number) {
@@ -239,8 +225,7 @@ function ScrollSteps() {
         <div className="landing-section__head">
           <h2>How a case moves</h2>
           <p className="landing-section-lead">
-            Each stage has checks the next one relies on. Keep scrolling, or
-            pick a stage.
+            Each stage has checks the next one relies on. Keep scrolling, or pick a stage.
           </p>
         </div>
         <div className="steps">
@@ -259,9 +244,7 @@ function ScrollSteps() {
                   >
                     <span className="steps__num tnum">{i + 1}</span>
                     <span className="steps__title">{s.title}</span>
-                    <span className="steps__count tnum">
-                      {PIPELINE[i]?.count} cases
-                    </span>
+                    <span className="steps__count tnum">{PIPELINE[i]?.count} cases</span>
                   </button>
                 </li>
               ))}
@@ -289,12 +272,7 @@ function ScrollSteps() {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.12 + i * 0.07, duration: 0.3 }}
                     >
-                      <svg
-                        viewBox="0 0 16 16"
-                        width="16"
-                        height="16"
-                        aria-hidden="true"
-                      >
+                      <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
                         <path
                           d="M3.5 8.5l3 3 6-7"
                           fill="none"
@@ -318,8 +296,7 @@ function ScrollSteps() {
 }
 
 export function LandingPage({ dashboardHref }: Props) {
-  const [dataset, setDataset] =
-    useState<(typeof DATASETS)[number]["key"]>("refunds");
+  const [dataset, setDataset] = useState<(typeof DATASETS)[number]["key"]>("refunds");
   const [stage, setStage] = useState(1);
   const [role, setRole] = useState<(typeof ROLES)[number]["key"]>("operator");
 
@@ -376,9 +353,8 @@ export function LandingPage({ dashboardHref }: Props) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.6, ease: EASE }}
             >
-              Sentinel runs payment exceptions through four checked stages.
-              Models suggest, people approve, and the server moves money and
-              proves it arrived.
+              Sentinel runs payment exceptions through four checked stages. Models suggest, people
+              approve, and the server moves money and proves it arrived.
             </motion.p>
             <motion.div
               className="hero__cta"
@@ -405,11 +381,7 @@ export function LandingPage({ dashboardHref }: Props) {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.95 }}
             >
-              <div
-                className="hero__chips"
-                role="group"
-                aria-label="Pipeline stages"
-              >
+              <div className="hero__chips" role="group" aria-label="Pipeline stages">
                 {PIPELINE.map((s, i) => (
                   <button
                     key={s.key}
@@ -455,11 +427,7 @@ export function LandingPage({ dashboardHref }: Props) {
           </div>
         </section>
 
-        <section
-          id="product"
-          className="landing-product"
-          aria-label="Product preview"
-        >
+        <section id="product" className="landing-product" aria-label="Product preview">
           <ProductPreview />
         </section>
 
@@ -494,8 +462,8 @@ export function LandingPage({ dashboardHref }: Props) {
           <div className="landing-section__head">
             <h2>See where exceptions pile up</h2>
             <p className="landing-section-lead">
-              Volume by weekday, time to verified credit and the 30-day trend,
-              for each exception type.
+              Volume by weekday, time to verified credit and the 30-day trend, for each exception
+              type.
             </p>
           </div>
 
@@ -527,12 +495,7 @@ export function LandingPage({ dashboardHref }: Props) {
                 <h3>{ds.label} this week</h3>
                 <span className="card-tag">Simulator</span>
               </div>
-              <Bars3D
-                bars={bars}
-                unit={ds.label.toLowerCase()}
-                tone="night"
-                height={400}
-              />
+              <Bars3D bars={bars} unit={ds.label.toLowerCase()} tone="night" height={400} />
             </article>
             <article className="feature-card-dark">
               <div className="card-head">
@@ -602,8 +565,8 @@ export function LandingPage({ dashboardHref }: Props) {
           <div className="landing-section__head">
             <h2>Six portals, one login</h2>
             <p className="landing-section-lead">
-              Everyone signs in at the same place and lands in the workspace
-              they are authorised for.
+              Everyone signs in at the same place and lands in the workspace they are authorised
+              for.
             </p>
           </div>
           <div className="roles">
@@ -661,8 +624,8 @@ export function LandingPage({ dashboardHref }: Props) {
 
         <section className="landing-quote">
           <blockquote>
-            Models propose. Authenticated identity, deterministic policy and
-            verified outcomes govern money.
+            Models propose. Authenticated identity, deterministic policy and verified outcomes
+            govern money.
           </blockquote>
         </section>
 
@@ -690,8 +653,8 @@ export function LandingPage({ dashboardHref }: Props) {
                 Sentinel
               </p>
               <p className="landing-legal">
-                Demo environment. All payments, customers and metrics shown are
-                simulated. No real money moves.
+                Demo environment. All payments, customers and metrics shown are simulated. No real
+                money moves.
               </p>
             </div>
             <div>

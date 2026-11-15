@@ -75,14 +75,14 @@ GitHub issues own live status, assignees, claims, blockers, PR links, and update
 
 Every issue receives `agents` and exactly one status:
 
-| Label | Meaning |
-| --- | --- |
-| `status:backlog` | Task not yet admitted to the queue or scope/contract needs clarification. No automatic predecessor gate. |
-| `status:ready` | Self-contained scope, baseline contract, fixtures, and owned root are supplied; available to claim. |
-| `status:in-progress` | One agreed human/agent pair works in its own branch/worktree. |
-| `status:blocked` | A real scope/contract/environment blocker is recorded. An unfinished peer alone is not a blocker. |
-| `status:review` | Standalone implementation, PR, checks, and evidence are ready for owner review. |
-| `status:done` | PR merged and component acceptance approved; issue closed. Assembly readiness is separate. |
+| Label                | Meaning                                                                                                  |
+| -------------------- | -------------------------------------------------------------------------------------------------------- |
+| `status:backlog`     | Task not yet admitted to the queue or scope/contract needs clarification. No automatic predecessor gate. |
+| `status:ready`       | Self-contained scope, baseline contract, fixtures, and owned root are supplied; available to claim.      |
+| `status:in-progress` | One agreed human/agent pair works in its own branch/worktree.                                            |
+| `status:blocked`     | A real scope/contract/environment blocker is recorded. An unfinished peer alone is not a blocker.        |
+| `status:review`      | Standalone implementation, PR, checks, and evidence are ready for owner review.                          |
+| `status:done`        | PR merged and component acceptance approved; issue closed. Assembly readiness is separate.               |
 
 Lane, priority, phase, and optional labels describe planning, not a dependency graph. Admitted tasks can enter `status:ready` together when the reviewed planning baseline and issues exist. There is no post-merge downstream-readiness transition.
 

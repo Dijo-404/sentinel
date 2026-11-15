@@ -15,9 +15,9 @@ Expected fixture metrics: [contracts/expected-metrics.json](contracts/expected-m
 
 ## Routes
 
-| Method | Path | Roles | Response |
-| --- | --- | --- | --- |
-| `GET` | `/v1/merchants/{merchant_ref}/metrics?window_start&window_end` | operator, supervisor | `MerchantMetrics` |
+| Method | Path                                                           | Roles                | Response          |
+| ------ | -------------------------------------------------------------- | -------------------- | ----------------- |
+| `GET`  | `/v1/merchants/{merchant_ref}/metrics?window_start&window_end` | operator, supervisor | `MerchantMetrics` |
 
 Also: `/healthz`, `/readyz`, `/v1/capabilities` (`mode: fixture|real-peers`).
 `POST`/`PUT`/`PATCH`/`DELETE` on metrics return 405.
@@ -44,8 +44,8 @@ and stubs under `tests/stubs/`. No sibling Sentinel services or payment credenti
 
 ## Local peer doubles
 
-| Port | Location | Behaviors |
-| --- | --- | --- |
+| Port          | Location                | Behaviors                                                   |
+| ------------- | ----------------------- | ----------------------------------------------------------- |
 | `case-api.v1` | `tests/stubs/case_api/` | valid, unavailable, malformed, unauthorized_or_out_of_scope |
 | `evidence.v1` | `tests/stubs/evidence/` | valid, unavailable, malformed, unauthorized_or_out_of_scope |
 

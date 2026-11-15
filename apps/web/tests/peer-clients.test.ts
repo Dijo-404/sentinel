@@ -30,9 +30,7 @@ describe("peer clients", () => {
     });
     const result = await client.listCustomerCases!();
     expect(result.cases).toHaveLength(1);
-    expect(String(fetchImpl.mock.calls[0]![0])).toContain(
-      "/v1/customer/cases",
-    );
+    expect(String(fetchImpl.mock.calls[0]![0])).toContain("/v1/customer/cases");
   });
 
   it("merchant analytics client GETs metrics path", async () => {
@@ -52,9 +50,7 @@ describe("peer clients", () => {
       window_end: FIXTURE_MERCHANT_METRICS.window_end,
     });
     expect(metrics.unresolved_minor).toBe(100000);
-    expect(String(fetchImpl.mock.calls[0]![0])).toContain(
-      "/v1/merchants/merchant-demo-1/metrics",
-    );
+    expect(String(fetchImpl.mock.calls[0]![0])).toContain("/v1/merchants/merchant-demo-1/metrics");
   });
 
   it("risk client GETs /v1/risk/dashboard", async () => {
@@ -136,13 +132,10 @@ describe("peer clients", () => {
     });
     expect((await client.listInvestigations()).investigations).toHaveLength(1);
     expect(
-      (
-        await client.listRestrictions({ blocks_financial_actions: true })
-      ).restrictions[0]?.blocks_financial_actions,
+      (await client.listRestrictions({ blocks_financial_actions: true })).restrictions[0]
+        ?.blocks_financial_actions,
     ).toBe(true);
-    expect(String(fetchImpl.mock.calls[1]![0])).toContain(
-      "blocks_financial_actions=true",
-    );
+    expect(String(fetchImpl.mock.calls[1]![0])).toContain("blocks_financial_actions=true");
     expect((await client.listFindings()).findings[0]?.finding_id).toBe("fnd-1");
     expect((await client.getReports()).report_kind).toBe("summary");
   });
@@ -228,9 +221,7 @@ describe("peer clients", () => {
       type: "STATUS_CHANGED",
       occurred_at: "2026-11-15T00:00:00Z",
     });
-    expect(String(fetchImpl.mock.calls[0]![0])).toContain(
-      "/v1/ops/audit-events",
-    );
+    expect(String(fetchImpl.mock.calls[0]![0])).toContain("/v1/ops/audit-events");
   });
 
   it("listOpsCases passes status=HISTORY query", async () => {

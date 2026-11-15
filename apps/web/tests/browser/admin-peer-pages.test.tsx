@@ -2,10 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { ShellProvider } from "@/adapters/shell-context";
 import { loadShellConfig } from "@/adapters/composition";
-import {
-  AdminPeerPanel,
-  type AdminPeerView,
-} from "@/components/admin/admin-peer-panel";
+import { AdminPeerPanel, type AdminPeerView } from "@/components/admin/admin-peer-panel";
 
 /** One representative page per peer family (+ peer-error). */
 const PEER_FAMILY_PAGES: {
@@ -159,18 +156,14 @@ describe("admin peer pages", () => {
     "$view ($peer) never shows stub copy; data when fetch succeeds",
     async (entry) => {
       render(
-        <ShellProvider
-          config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "real-peers" })}
-        >
+        <ShellProvider config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "real-peers" })}>
           <AdminPeerPanel view={entry.view} fetchImpl={fetchOkFor(entry)} />
         </ShellProvider>,
       );
 
       expect(screen.getByTestId(`admin-${entry.view}`)).toBeInTheDocument();
       expect(screen.queryByText("Not available yet")).not.toBeInTheDocument();
-      expect(
-        await screen.findByTestId(`admin-${entry.view}-data`),
-      ).toBeInTheDocument();
+      expect(await screen.findByTestId(`admin-${entry.view}-data`)).toBeInTheDocument();
       expect(screen.queryByTestId("peer-error")).not.toBeInTheDocument();
     },
   );
@@ -179,18 +172,14 @@ describe("admin peer pages", () => {
     "$view ($peer) peer failure shows peer-error — no stub copy",
     async (entry) => {
       render(
-        <ShellProvider
-          config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "real-peers" })}
-        >
+        <ShellProvider config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "real-peers" })}>
           <AdminPeerPanel view={entry.view} fetchImpl={fetchFail()} />
         </ShellProvider>,
       );
 
       expect(await screen.findByTestId("peer-error")).toBeInTheDocument();
       expect(screen.queryByText("Not available yet")).not.toBeInTheDocument();
-      expect(
-        screen.queryByTestId(`admin-${entry.view}-data`),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByTestId(`admin-${entry.view}-data`)).not.toBeInTheDocument();
     },
   );
 
@@ -228,13 +217,9 @@ describe("admin peer pages", () => {
     };
 
     for (const view of ["tenants", "teams", "security", "audit"] as const) {
-      const fetchImpl = vi.fn(async () =>
-        jsonResponse(bodies[view]),
-      ) as unknown as typeof fetch;
+      const fetchImpl = vi.fn(async () => jsonResponse(bodies[view])) as unknown as typeof fetch;
       const { unmount } = render(
-        <ShellProvider
-          config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "real-peers" })}
-        >
+        <ShellProvider config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "real-peers" })}>
           <AdminPeerPanel view={view} fetchImpl={fetchImpl} />
         </ShellProvider>,
       );

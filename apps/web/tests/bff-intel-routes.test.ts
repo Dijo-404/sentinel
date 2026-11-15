@@ -34,9 +34,7 @@ describe("BFF intel peer proxies", () => {
   function mockSession() {
     vi.mocked(cookies).mockResolvedValue({
       get: (name: string) =>
-        name === SESSION_COOKIE
-          ? { name: SESSION_COOKIE, value: "sess-user" }
-          : undefined,
+        name === SESSION_COOKIE ? { name: SESSION_COOKIE, value: "sess-user" } : undefined,
     } as Awaited<ReturnType<typeof cookies>>);
   }
 
@@ -50,18 +48,14 @@ describe("BFF intel peer proxies", () => {
     );
 
     const res = await assistantGet(
-      new NextRequest(
-        "http://localhost/api/bff/assistant/v1/threads?role=operator",
-      ),
+      new NextRequest("http://localhost/api/bff/assistant/v1/threads?role=operator"),
       { params: Promise.resolve({ path: ["v1", "threads"] }) },
     );
 
     expect(res.status).toBe(200);
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(url).toBe("http://assistant.test/v1/threads?role=operator");
-    expect(new Headers(init.headers).get("Authorization")).toBe(
-      "Bearer sess-user",
-    );
+    expect(new Headers(init.headers).get("Authorization")).toBe("Bearer sess-user");
   });
 
   it("knowledge GET /v1/articles forwards session bearer", async () => {
@@ -81,9 +75,7 @@ describe("BFF intel peer proxies", () => {
     expect(res.status).toBe(200);
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(url).toBe("http://knowledge.test/v1/articles");
-    expect(new Headers(init.headers).get("Authorization")).toBe(
-      "Bearer sess-user",
-    );
+    expect(new Headers(init.headers).get("Authorization")).toBe("Bearer sess-user");
   });
 
   it("ops-activity GET /v1/activity forwards session bearer", async () => {
@@ -103,9 +95,7 @@ describe("BFF intel peer proxies", () => {
     expect(res.status).toBe(200);
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(url).toBe("http://ops-activity.test/v1/activity");
-    expect(new Headers(init.headers).get("Authorization")).toBe(
-      "Bearer sess-user",
-    );
+    expect(new Headers(init.headers).get("Authorization")).toBe("Bearer sess-user");
   });
 
   it("missing session returns 401 — no peer call", async () => {

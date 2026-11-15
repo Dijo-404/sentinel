@@ -15,11 +15,7 @@ export type RiskPeerOptions = Omit<PeerJsonOptions, "peerLabel"> & {
 
 function validateDashboard(json: unknown, requestId: string): RiskDashboard {
   if (!json || typeof json !== "object") {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      "Risk dashboard is not an object",
-      requestId,
-    );
+    throw new PeerError("MALFORMED_PEER_RESPONSE", "Risk dashboard is not an object", requestId);
   }
   const o = json as Record<string, unknown>;
   for (const key of [
@@ -50,11 +46,7 @@ function validateReport(json: unknown, requestId: string): RiskReport {
   const dash = validateDashboard(json, requestId);
   const o = json as Record<string, unknown>;
   if (typeof o.report_kind !== "string" || !o.report_kind.trim()) {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      "Risk report missing report_kind",
-      requestId,
-    );
+    throw new PeerError("MALFORMED_PEER_RESPONSE", "Risk report missing report_kind", requestId);
   }
   return { ...dash, report_kind: o.report_kind };
 }
@@ -67,11 +59,7 @@ function requireString(
 ): string {
   const v = o[key];
   if (typeof v !== "string" || !v.trim()) {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      `${label} missing string ${key}`,
-      requestId,
-    );
+    throw new PeerError("MALFORMED_PEER_RESPONSE", `${label} missing string ${key}`, requestId);
   }
   return v;
 }
@@ -89,11 +77,7 @@ function validateInvestigations(
   }
   const raw = (json as Record<string, unknown>).investigations;
   if (!Array.isArray(raw)) {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      "Risk investigations missing array",
-      requestId,
-    );
+    throw new PeerError("MALFORMED_PEER_RESPONSE", "Risk investigations missing array", requestId);
   }
   const investigations = raw.map((item, i) => {
     if (!item || typeof item !== "object") {
@@ -130,11 +114,7 @@ function validateRestrictions(
   }
   const raw = (json as Record<string, unknown>).restrictions;
   if (!Array.isArray(raw)) {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      "Risk restrictions missing array",
-      requestId,
-    );
+    throw new PeerError("MALFORMED_PEER_RESPONSE", "Risk restrictions missing array", requestId);
   }
   const restrictions = raw.map((item, i) => {
     if (!item || typeof item !== "object") {
@@ -170,12 +150,7 @@ function validateRestrictions(
     return {
       restriction_id: requireString(o, "restriction_id", requestId, "restriction"),
       case_id: requireString(o, "case_id", requestId, "restriction"),
-      investigation_id: requireString(
-        o,
-        "investigation_id",
-        requestId,
-        "restriction",
-      ),
+      investigation_id: requireString(o, "investigation_id", requestId, "restriction"),
       status: requireString(o, "status", requestId, "restriction"),
       reason_code: requireString(o, "reason_code", requestId, "restriction"),
       blocks_financial_actions: o.blocks_financial_actions,
@@ -186,10 +161,7 @@ function validateRestrictions(
   return { restrictions };
 }
 
-function validateFindings(
-  json: unknown,
-  requestId: string,
-): { findings: RiskFinding[] } {
+function validateFindings(json: unknown, requestId: string): { findings: RiskFinding[] } {
   if (!json || typeof json !== "object") {
     throw new PeerError(
       "MALFORMED_PEER_RESPONSE",
@@ -199,11 +171,7 @@ function validateFindings(
   }
   const raw = (json as Record<string, unknown>).findings;
   if (!Array.isArray(raw)) {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      "Risk findings missing array",
-      requestId,
-    );
+    throw new PeerError("MALFORMED_PEER_RESPONSE", "Risk findings missing array", requestId);
   }
   const findings = raw.map((item, i) => {
     if (!item || typeof item !== "object") {
@@ -216,12 +184,7 @@ function validateFindings(
     const o = item as Record<string, unknown>;
     return {
       finding_id: requireString(o, "finding_id", requestId, "finding"),
-      investigation_id: requireString(
-        o,
-        "investigation_id",
-        requestId,
-        "finding",
-      ),
+      investigation_id: requireString(o, "investigation_id", requestId, "finding"),
       classification: requireString(o, "classification", requestId, "finding"),
       notes: typeof o.notes === "string" ? o.notes : "",
       recorded_at: requireString(o, "recorded_at", requestId, "finding"),
@@ -239,9 +202,7 @@ function queryString(params: Record<string, string | undefined>): string {
   return s ? `?${s}` : "";
 }
 
-export function createRealPeerRiskClient(
-  options: RiskPeerOptions,
-): RiskClient {
+export function createRealPeerRiskClient(options: RiskPeerOptions): RiskClient {
   const request = createPeerJsonFetcher({
     ...options,
     peerLabel: options.peerLabel ?? "risk",
@@ -278,9 +239,7 @@ export function createRealPeerRiskClient(
   };
 }
 
-export function createBffRiskClient(options?: {
-  fetchImpl?: typeof fetch;
-}): RiskClient {
+export function createBffRiskClient(options?: { fetchImpl?: typeof fetch }): RiskClient {
   return createRealPeerRiskClient({
     baseUrl: "/api/bff/risk",
     authMode: "credentials",

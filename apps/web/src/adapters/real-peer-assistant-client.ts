@@ -20,25 +20,15 @@ function validateThreads(
     typeof json !== "object" ||
     !Array.isArray((json as { threads?: unknown }).threads)
   ) {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      "Missing threads array",
-      requestId,
-    );
+    throw new PeerError("MALFORMED_PEER_RESPONSE", "Missing threads array", requestId);
   }
   const body = json as { threads: unknown[]; source?: unknown };
   const source =
-    typeof body.source === "string" && body.source.trim()
-      ? body.source.trim()
-      : "live";
+    typeof body.source === "string" && body.source.trim() ? body.source.trim() : "live";
 
   const threads = body.threads.map((row, i) => {
     if (!row || typeof row !== "object") {
-      throw new PeerError(
-        "MALFORMED_PEER_RESPONSE",
-        `Thread[${i}] is not an object`,
-        requestId,
-      );
+      throw new PeerError("MALFORMED_PEER_RESPONSE", `Thread[${i}] is not an object`, requestId);
     }
     const o = row as Record<string, unknown>;
     if (
@@ -71,25 +61,15 @@ function validateMessages(
     typeof json !== "object" ||
     !Array.isArray((json as { messages?: unknown }).messages)
   ) {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      "Missing messages array",
-      requestId,
-    );
+    throw new PeerError("MALFORMED_PEER_RESPONSE", "Missing messages array", requestId);
   }
   const body = json as { messages: unknown[]; source?: unknown };
   const source =
-    typeof body.source === "string" && body.source.trim()
-      ? body.source.trim()
-      : "live";
+    typeof body.source === "string" && body.source.trim() ? body.source.trim() : "live";
 
   const messages = body.messages.map((row, i) => {
     if (!row || typeof row !== "object") {
-      throw new PeerError(
-        "MALFORMED_PEER_RESPONSE",
-        `Message[${i}] is not an object`,
-        requestId,
-      );
+      throw new PeerError("MALFORMED_PEER_RESPONSE", `Message[${i}] is not an object`, requestId);
     }
     const o = row as Record<string, unknown>;
     if (
@@ -109,11 +89,7 @@ function validateMessages(
     if (o.role === "user" || o.role === "assistant" || o.role === "system") {
       role = o.role;
     } else {
-      throw new PeerError(
-        "MALFORMED_PEER_RESPONSE",
-        `Message[${i}] has invalid role`,
-        requestId,
-      );
+      throw new PeerError("MALFORMED_PEER_RESPONSE", `Message[${i}] has invalid role`, requestId);
     }
     const message: AssistantMessage = {
       message_id: o.message_id,
@@ -128,20 +104,12 @@ function validateMessages(
   return { messages, source };
 }
 
-function validateMessage(
-  json: unknown,
-  requestId: string,
-): AssistantMessage {
-  const wrapped = validateMessages(
-    { messages: [json], source: "live" },
-    requestId,
-  );
+function validateMessage(json: unknown, requestId: string): AssistantMessage {
+  const wrapped = validateMessages({ messages: [json], source: "live" }, requestId);
   return wrapped.messages[0]!;
 }
 
-export function createRealPeerAssistantClient(
-  options: AssistantPeerOptions,
-): AssistantClient {
+export function createRealPeerAssistantClient(options: AssistantPeerOptions): AssistantClient {
   const request = createPeerJsonFetcher({
     ...options,
     peerLabel: options.peerLabel ?? "assistant",
@@ -171,9 +139,7 @@ export function createRealPeerAssistantClient(
 }
 
 /** Browser path: same-origin BFF with session cookie. */
-export function createBffAssistantClient(options?: {
-  fetchImpl?: typeof fetch;
-}): AssistantClient {
+export function createBffAssistantClient(options?: { fetchImpl?: typeof fetch }): AssistantClient {
   return createRealPeerAssistantClient({
     baseUrl: "/api/bff/assistant",
     authMode: "credentials",

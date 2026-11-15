@@ -32,17 +32,13 @@ def evaluate_manifest(
     reasons: list[str] = []
 
     if manifest.contract_version != CONTRACT_VERSION:
-        checks.append(
-            CheckResult("manifest.contract_version", "FAIL", "INCOMPATIBLE_CONTRACT")
-        )
+        checks.append(CheckResult("manifest.contract_version", "FAIL", "INCOMPATIBLE_CONTRACT"))
         reasons.append("INCOMPATIBLE_CONTRACT")
     else:
         checks.append(CheckResult("manifest.contract_version", "PASS", "OK"))
 
     if manifest.baseline_contract_sha256 != CONTRACT_SHA256:
-        checks.append(
-            CheckResult("manifest.baseline_hash", "FAIL", "INCOMPATIBLE_BASELINE")
-        )
+        checks.append(CheckResult("manifest.baseline_hash", "FAIL", "INCOMPATIBLE_BASELINE"))
         reasons.append("INCOMPATIBLE_BASELINE")
     else:
         checks.append(CheckResult("manifest.baseline_hash", "PASS", "OK"))
@@ -99,9 +95,7 @@ def evaluate_manifest(
             )
             reasons.append("FIXTURE_ONLY_NOT_RELEASE_PROOF")
         else:
-            checks.append(
-                CheckResult(f"component.evidence_mode:{port}", "PASS", "OK")
-            )
+            checks.append(CheckResult(f"component.evidence_mode:{port}", "PASS", "OK"))
         integrity = check_component_integrity(component, artifact_root=artifact_root)
         checks.append(integrity)
         if integrity.status != "PASS":

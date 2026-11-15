@@ -27,13 +27,13 @@ Use these directories when they hold actual responsibilities. A small pure polic
 
 ## Module categories
 
-| Category | Baseline | Boundary |
-| --- | --- | --- |
-| Python service | FastAPI entry point or worker; module-local Python manifest/lockfile and PostgreSQL setup as needed | Authenticated versioned HTTP or injected typed port |
-| Python library/tool | Installable package with local CLI/tests and manifest/lockfile | Public exported ports and versioned JSON artifacts |
-| Web application | Next.js/TypeScript with local package manifest/lockfile | Case API client and injected component slots |
-| UI package | TypeScript component plus independent preview/test setup | Public typed view/client props; no host-app source imports |
-| Telemetry/evaluation/replay/release tooling | Minimal package/executable with local example inputs and negative cases | Injected runner/exporter and evidence/report contracts |
+| Category                                    | Baseline                                                                                            | Boundary                                                   |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| Python service                              | FastAPI entry point or worker; module-local Python manifest/lockfile and PostgreSQL setup as needed | Authenticated versioned HTTP or injected typed port        |
+| Python library/tool                         | Installable package with local CLI/tests and manifest/lockfile                                      | Public exported ports and versioned JSON artifacts         |
+| Web application                             | Next.js/TypeScript with local package manifest/lockfile                                             | Case API client and injected component slots               |
+| UI package                                  | TypeScript component plus independent preview/test setup                                            | Public typed view/client props; no host-app source imports |
+| Telemetry/evaluation/replay/release tooling | Minimal package/executable with local example inputs and negative cases                             | Injected runner/exporter and evidence/report contracts     |
 
 Technology choices follow the source specifications. Actual versions and dependency additions are selected and locked by the owning task. No root dependency installation is necessary for another module to finish.
 
@@ -63,18 +63,18 @@ The arrows are runtime interfaces, not implementation prerequisites. Each compon
 
 ## State and transaction ownership
 
-| Owner | State |
-| --- | --- |
-| Case API | Case/message/input snapshots, revisions, durable case events and workflow-event delivery |
-| Evidence service | Authenticated snapshots, original digested payloads, freshness/provenance and reconciliation facts |
-| Workflow | Checkpoints, run budgets, case-run leases and pending result delivery |
-| Action ledger | Authoritative approvals, eligibility/reservations, proposals/actions, stable operation/provider references, dispatch leases, outbox and financial audit |
-| Dispatcher | Its delivery/recovery bookkeeping; consumes ledger claims, never owns competing financial balances |
-| Verifier | Durable webhook inbox, recheck jobs, assessments and pending authenticated outcome delivery |
-| Simulator | Synthetic provider records, reference idempotency, credit outcomes and fault schedules |
-| Merchant settlement / inbox / disputes / SLA / teams | Merchant-scoped operational state only (findings, exceptions, dispute packets, SLA tasks, staff). No ledger table ownership |
-| Merchant refunds | Request tracking only; reservations/approvals/actions remain on the action ledger |
-| Merchant analytics / communications | Read-only aggregates and operator-approved draft text; no financial authority |
+| Owner                                                | State                                                                                                                                                   |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Case API                                             | Case/message/input snapshots, revisions, durable case events and workflow-event delivery                                                                |
+| Evidence service                                     | Authenticated snapshots, original digested payloads, freshness/provenance and reconciliation facts                                                      |
+| Workflow                                             | Checkpoints, run budgets, case-run leases and pending result delivery                                                                                   |
+| Action ledger                                        | Authoritative approvals, eligibility/reservations, proposals/actions, stable operation/provider references, dispatch leases, outbox and financial audit |
+| Dispatcher                                           | Its delivery/recovery bookkeeping; consumes ledger claims, never owns competing financial balances                                                      |
+| Verifier                                             | Durable webhook inbox, recheck jobs, assessments and pending authenticated outcome delivery                                                             |
+| Simulator                                            | Synthetic provider records, reference idempotency, credit outcomes and fault schedules                                                                  |
+| Merchant settlement / inbox / disputes / SLA / teams | Merchant-scoped operational state only (findings, exceptions, dispute packets, SLA tasks, staff). No ledger table ownership                             |
+| Merchant refunds                                     | Request tracking only; reservations/approvals/actions remain on the action ledger                                                                       |
+| Merchant analytics / communications                  | Read-only aggregates and operator-approved draft text; no financial authority                                                                           |
 
 Each stateful owner has local migrations and a test database. A shared PostgreSQL server is allowed in a development assembly, but schemas/credentials stay separate. No cross-service SQL, shared migration sequence or remote network call inside a financial database transaction.
 

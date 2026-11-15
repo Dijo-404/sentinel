@@ -28,9 +28,7 @@ describe("BFF voice peer proxy", () => {
   function mockSession() {
     vi.mocked(cookies).mockResolvedValue({
       get: (name: string) =>
-        name === SESSION_COOKIE
-          ? { name: SESSION_COOKIE, value: "sess-user" }
-          : undefined,
+        name === SESSION_COOKIE ? { name: SESSION_COOKIE, value: "sess-user" } : undefined,
     } as Awaited<ReturnType<typeof cookies>>);
   }
 
@@ -64,9 +62,7 @@ describe("BFF voice peer proxy", () => {
     expect(res.status).toBe(200);
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(url).toBe("http://voice.test/v1/transcribe");
-    expect(new Headers(init.headers).get("Authorization")).toBe(
-      "Bearer sess-user",
-    );
+    expect(new Headers(init.headers).get("Authorization")).toBe("Bearer sess-user");
   });
 
   it("missing VOICE_BASE_URL returns 503 — fail visible", async () => {

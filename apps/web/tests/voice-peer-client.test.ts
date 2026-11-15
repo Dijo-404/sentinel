@@ -1,8 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import {
-  createBffVoiceClient,
-  createRealPeerVoiceClient,
-} from "@/adapters/real-peer-voice-client";
+import { createBffVoiceClient, createRealPeerVoiceClient } from "@/adapters/real-peer-voice-client";
 import { createShellRuntime, loadShellConfig } from "@/adapters/composition";
 import { PeerError } from "@/domain/types";
 

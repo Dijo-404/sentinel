@@ -35,11 +35,13 @@
 ### Task 1: Design tokens, deps, app chrome base
 
 **Files:**
+
 - Modify: `apps/web/package.json`, `apps/web/package-lock.json`
 - Modify: `apps/web/src/app/globals.css`, `apps/web/src/app/layout.tsx`
 - Test: `apps/web/tests/browser/shell.test.tsx` (smoke still loads)
 
 **Interfaces:**
+
 - Produces: CSS vars `--night`, `--night-raised`, `--canvas`, `--surface`, `--lavender`, `--primary`, `--ink`, `--ink-secondary`, `--on-dark`, `--fog`, `--periwinkle`; font Inter; deps `framer-motion`, `recharts`
 
 - [ ] **Step 1:** Add `framer-motion` and `recharts` via npm in `apps/web`; Inter via `next/font/google` in `layout.tsx`.
@@ -52,6 +54,7 @@
 ### Task 2: App shell + shared login + landing
 
 **Files:**
+
 - Create: `apps/web/src/components/shell/app-sidebar.tsx`, `apps/web/src/components/marketing/landing-page.tsx`, `apps/web/src/components/marketing/hero-stage.tsx`
 - Modify: `apps/web/src/components/layout/protected-shell.tsx`
 - Modify: `apps/web/src/components/auth/role-login.tsx`
@@ -61,6 +64,7 @@
 - Modify: `apps/web/tests/browser/auth-portals.test.tsx` as needed for `/login`
 
 **Interfaces:**
+
 - Consumes: `PORTAL_NAV`, `logoutAction`, `loginAction`, `getSession`/`requireRole` helpers if available for signed-in nav
 - Produces: `ProtectedShell` with night sidebar; `LandingPage`; `/login` with workspace select setting hidden `role`
 
@@ -75,11 +79,13 @@
 ### Task 3: Viz primitives
 
 **Files:**
+
 - Create: `apps/web/src/components/viz/stat-block.tsx`, `trend-pill.tsx`, `chart-card.tsx`, `fixture-banner.tsx`
 - Create: `apps/web/src/components/viz/fixture-series.ts` (typed synthetic series helpers)
 - Test: `apps/web/tests/browser/viz-primitives.test.tsx`
 
 **Interfaces:**
+
 - Produces: `StatBlock({ label, value, caption? })`, `TrendPill({ value, direction })`, `ChartCard({ title, children })`, `FixtureBanner`, `fixtureSeries.*` returning number arrays / `{x,y}[]`
 
 - [ ] **Step 1:** Test renders StatBlock + FixtureBanner with simulator copy.
@@ -91,11 +97,13 @@
 ### Task 4: Merchant dashboard viz (parallel-ready)
 
 **Files:**
+
 - Modify: `apps/web/src/app/merchant/(protected)/dashboard/page.tsx`
 - Create: `apps/web/src/components/dashboards/merchant-overview.tsx`
 - Test: assert `merchant-dashboard` + fixture banner + ≥3 KPI labels
 
 **Interfaces:**
+
 - Consumes: viz primitives, `session`
 - Produces: merchant overview with volume/exceptions/refund-requests KPIs + Recharts area (fixture series)
 
@@ -106,12 +114,14 @@
 ### Task 5: Operator dashboard + queue wire (parallel-ready)
 
 **Files:**
+
 - Modify: `apps/web/src/app/operator/(protected)/dashboard/page.tsx`
 - Modify: `apps/web/src/app/operator/(protected)/queue/page.tsx`
 - Create: `apps/web/src/components/dashboards/operator-overview.tsx`
 - Reuse: `apps/web/src/components/operator-queue.tsx`
 
 **Interfaces:**
+
 - Consumes: `getCaseClient` / composition same as `/ops`, viz primitives
 - Produces: KPIs + status chart from `listOpsCases()` when available else fixture; `/operator/queue` renders `OperatorQueue`
 
@@ -123,11 +133,13 @@
 ### Task 6: Supervisor dashboard viz (parallel-ready)
 
 **Files:**
+
 - Modify: `apps/web/src/app/supervisor/(protected)/dashboard/page.tsx`
 - Create: `apps/web/src/components/dashboards/supervisor-overview.tsx`
 - Touch approvals chrome styles only if needed — **do not** change decide payload builders
 
 **Interfaces:**
+
 - Consumes: `listOpsCases({ status: "WAITING_APPROVAL" })` via existing client patterns, viz primitives
 - Produces: waiting-count KPI + pipeline strip; links to `/supervisor/approvals`
 
@@ -139,6 +151,7 @@
 ### Task 7: Docs + final check
 
 **Files:**
+
 - Modify: `apps/web/README.md`, `apps/web/CHANGELOG.md`
 
 - [ ] Document new `/` and `/login` flow, demo creds, screenshot commands.
@@ -152,4 +165,4 @@
 - After Task 3, Tasks 4–6 may run as parallel subagents in the same worktree if file ownership does not collide (different dashboard files).
 - Task 2 must finish before 4–6 (shell dependency).
 - Prefer `inherit` model for implementers on this host’s Free plan.
-)
+  )

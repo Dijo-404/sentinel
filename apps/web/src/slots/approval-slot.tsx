@@ -48,11 +48,7 @@ function wrapCaseApiDecide(decide: ApprovalSlotProps["decide"]): DecideClient {
           message: err.message,
           request_id: err.requestId,
         };
-        throw new DecisionClientError(
-          status,
-          wire,
-          mapWireError(status, wire),
-        );
+        throw new DecisionClientError(status, wire, mapWireError(status, wire));
       }
       throw err;
     }
@@ -63,35 +59,22 @@ function wrapCaseApiDecide(decide: ApprovalSlotProps["decide"]): DecideClient {
 export function ApprovalSlot(input: Props) {
   const shell = useContext(ShellContext);
   const mode = input.mode ?? shell?.config.mode ?? "fixture";
-  const reviewerId =
-    input.reviewerId ?? shell?.config.principal.principal_id ?? "";
+  const reviewerId = input.reviewerId ?? shell?.config.principal.principal_id ?? "";
 
   if (input.state === "error") {
     return (
-      <section
-        className="slot-box"
-        data-state="error"
-        data-testid="approval-slot"
-        role="alert"
-      >
+      <section className="slot-box" data-state="error" data-testid="approval-slot" role="alert">
         <h2>Approval slot unavailable</h2>
         <p>
           {input.error.code}: {input.error.message}
         </p>
-        <p className="muted">
-          Real-peer failure is visible; fixture fallback is not used.
-        </p>
+        <p className="muted">Real-peer failure is visible; fixture fallback is not used.</p>
       </section>
     );
   }
   if (input.state === "malformed") {
     return (
-      <section
-        className="slot-box"
-        data-state="error"
-        data-testid="approval-slot"
-        role="alert"
-      >
+      <section className="slot-box" data-state="error" data-testid="approval-slot" role="alert">
         <h2>Approval slot malformed</h2>
         <p>Peer returned incompatible approval-ui props.</p>
       </section>
@@ -120,9 +103,7 @@ export function ApprovalSlot(input: Props) {
           props.onConflict
             ? (event) => {
                 props.onConflict?.(
-                  `${event.reason_code}${
-                    event.request_id ? ` (${event.request_id})` : ""
-                  }`,
+                  `${event.reason_code}${event.request_id ? ` (${event.request_id})` : ""}`,
                 );
               }
             : undefined

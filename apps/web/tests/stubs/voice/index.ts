@@ -1,11 +1,7 @@
 import type { VoiceClient } from "@/application/ports";
 import { PeerError, type VoiceRequest, type VoiceResult } from "@/domain/types";
 
-export type StubVoice =
-  | "valid"
-  | "unavailable"
-  | "malformed"
-  | "unauthorized_or_out_of_scope";
+export type StubVoice = "valid" | "unavailable" | "malformed" | "unauthorized_or_out_of_scope";
 
 /** Local voice.v1 double. Optional; shell defaults to disabled. */
 export function createVoiceStub(scenario: StubVoice = "valid"): VoiceClient {

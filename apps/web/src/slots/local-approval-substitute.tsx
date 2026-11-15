@@ -5,11 +5,7 @@ import type { ApprovalSlotProps } from "@/application/ports";
 import { StatusChip } from "@/components/status-chip";
 import { MaskedRef } from "@/components/masked-ref";
 import { labelActionStatus } from "@/domain/status-labels";
-import {
-  maskProviderRef,
-  maskTransactionRef,
-  formatAmountMinor,
-} from "@/domain/mask";
+import { maskProviderRef, maskTransactionRef, formatAmountMinor } from "@/domain/mask";
 import { PeerError } from "@/domain/types";
 
 /**
@@ -35,9 +31,7 @@ export function LocalApprovalSubstitute(props: ApprovalSlotProps) {
         policy_version: props.action.payload.policy_version,
         expires_at: props.decisionExpiresAt,
       });
-      setMessage(
-        `Decision recorded: ${approval.decision} (${approval.approval_id})`,
-      );
+      setMessage(`Decision recorded: ${approval.decision} (${approval.approval_id})`);
       props.onRefresh?.();
     } catch (err) {
       const text =
@@ -64,8 +58,7 @@ export function LocalApprovalSubstitute(props: ApprovalSlotProps) {
     >
       <h2 id="approval-slot-title">Approval slot (local substitute)</h2>
       <p className="muted">
-        Embedded substitute for approval-ui.v1. Real package selected at
-        assembly.
+        Embedded substitute for approval-ui.v1. Real package selected at assembly.
       </p>
       <div className="row">
         <StatusChip label={actionLabel} />
@@ -73,23 +66,15 @@ export function LocalApprovalSubstitute(props: ApprovalSlotProps) {
           label="transaction"
           masked={maskTransactionRef(props.action.payload.transaction_ref)}
         />
-        <MaskedRef
-          label="provider"
-          masked={maskProviderRef(props.action.provider_ref)}
-        />
+        <MaskedRef label="provider" masked={maskProviderRef(props.action.provider_ref)} />
         <span className="mono" data-testid="approval-amount">
-          {formatAmountMinor(
-            props.action.payload.amount_minor,
-            props.action.payload.currency,
-          )}
+          {formatAmountMinor(props.action.payload.amount_minor, props.action.payload.currency)}
         </span>
       </div>
       <dl className="approval-facts" data-testid="approval-exact-facts">
         <div>
           <dt>Case revision</dt>
-          <dd data-testid="approval-case-revision">
-            {props.caseRecord.revision}
-          </dd>
+          <dd data-testid="approval-case-revision">{props.caseRecord.revision}</dd>
         </div>
         <div>
           <dt>Action digest</dt>
@@ -99,15 +84,11 @@ export function LocalApprovalSubstitute(props: ApprovalSlotProps) {
         </div>
         <div>
           <dt>Policy version</dt>
-          <dd data-testid="approval-policy-version">
-            {props.action.payload.policy_version}
-          </dd>
+          <dd data-testid="approval-policy-version">{props.action.payload.policy_version}</dd>
         </div>
         <div>
           <dt>Decision expiry</dt>
-          <dd data-testid="approval-decision-expires-at">
-            {props.decisionExpiresAt}
-          </dd>
+          <dd data-testid="approval-decision-expires-at">{props.decisionExpiresAt}</dd>
         </div>
       </dl>
       <div className="row" style={{ marginTop: "0.75rem" }}>

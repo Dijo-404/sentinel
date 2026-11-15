@@ -15,10 +15,6 @@
     "test": "329e9d914ffdb06f48c096281defc4f1c3850dda3b31ececc9abfde92b8daba0",
     "val": "24bffbe5fc7192ac6528e476962ce8936eaa7c5a07b4564ae79918da8f9c7e67"
   },
-  "splits": [
-    "dev",
-    "test",
-    "val"
-  ],
+  "splits": ["dev", "test", "val"],
   "synthetic_only": true
 }

@@ -25,10 +25,7 @@ type LoadState =
  */
 export default function MerchantSettlementsPage() {
   const { config } = useShell();
-  const client = useMemo(
-    () => createMerchantSettlementClientForMode(config.mode),
-    [config.mode],
-  );
+  const client = useMemo(() => createMerchantSettlementClientForMode(config.mode), [config.mode]);
   const [load, setLoad] = useState<LoadState>({ status: "loading" });
 
   useEffect(() => {
@@ -67,11 +64,10 @@ export default function MerchantSettlementsPage() {
     <div className="panel stack" data-testid="merchant-settlements">
       <h1>Settlements</h1>
       <p className="muted">
-        Settlement findings from merchant-settlement{" "}
-        <code>GET /v1/settlements/findings</code>. Not cash received.
+        Settlement findings from merchant-settlement <code>GET /v1/settlements/findings</code>. Not
+        cash received.
       </p>
-      {config.mode === "fixture" ||
-      (load.status === "ready" && load.source === "fixture") ? (
+      {config.mode === "fixture" || (load.status === "ready" && load.source === "fixture") ? (
         <FixtureBanner />
       ) : null}
 
@@ -79,18 +75,10 @@ export default function MerchantSettlementsPage() {
         <UiState tone="loading" title="Loading settlement findings…" />
       ) : null}
       {load.status === "error" ? (
-        <UiState
-          tone="error"
-          title="Settlements unavailable"
-          detail={load.detail}
-        />
+        <UiState tone="error" title="Settlements unavailable" detail={load.detail} />
       ) : null}
       {load.status === "empty" ? (
-        <UiState
-          tone="empty"
-          title="No findings"
-          detail="No settlement findings in scope."
-        />
+        <UiState tone="empty" title="No findings" detail="No settlement findings in scope." />
       ) : null}
       {load.status === "ready" ? (
         <table className="table" aria-label="Settlement findings">
@@ -110,10 +98,7 @@ export default function MerchantSettlementsPage() {
                 <td>{row.status}</td>
                 <td className="tnum">
                   {row.expected_minor != null
-                    ? formatAmountMinor(
-                        row.expected_minor,
-                        row.currency ?? "INR",
-                      )
+                    ? formatAmountMinor(row.expected_minor, row.currency ?? "INR")
                     : "—"}
                 </td>
               </tr>

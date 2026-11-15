@@ -3,13 +3,7 @@
  * Seeded synthetic users only. Never production credentials.
  */
 
-export type PortalRole =
-  | "customer"
-  | "merchant"
-  | "operator"
-  | "supervisor"
-  | "risk"
-  | "admin";
+export type PortalRole = "customer" | "merchant" | "operator" | "supervisor" | "risk" | "admin";
 
 export type WorkspaceAssignment = {
   assignment_id: string;
@@ -115,10 +109,7 @@ export type StubIdentity = {
     assignment: WorkspaceAssignment;
   } | null;
   /** Bind session to an assignment the user already holds. */
-  selectAssignment(
-    sessionId: string,
-    assignmentId: string,
-  ): SessionRecord | null;
+  selectAssignment(sessionId: string, assignmentId: string): SessionRecord | null;
   logout(sessionId: string): void;
   listStaffUsers(actorUserId: string): IdentityUser[] | { error: "FORBIDDEN" };
   listInvitations(actorUserId: string): Invitation[] | { error: "FORBIDDEN" };
@@ -159,9 +150,7 @@ export type StubIdentity = {
   patchProfile(
     sessionId: string,
     input: PatchProfileInput,
-  ):
-    | { ok: true; user: IdentityUser }
-    | { ok: false; code: string; message: string };
+  ): { ok: true; user: IdentityUser } | { ok: false; code: string; message: string };
   listNotifications(sessionId: string): {
     notifications: IdentityNotification[];
   } | null;
@@ -194,9 +183,7 @@ export type StubIdentity = {
     email: string;
     code: string;
     new_password: string;
-  }):
-    | { ok: true; status: "reset" }
-    | { ok: false; code: string; message: string };
+  }): { ok: true; status: "reset" } | { ok: false; code: string; message: string };
   reset(): void;
 };
 
@@ -395,10 +382,7 @@ export function createIdentityStub(): StubIdentity {
     return user;
   }
 
-  function issueSession(
-    user: IdentityUser,
-    assignment: WorkspaceAssignment,
-  ): SessionRecord {
+  function issueSession(user: IdentityUser, assignment: WorkspaceAssignment): SessionRecord {
     const session: SessionRecord = {
       session_id: newId("sess"),
       user_id: user.user_id,
@@ -507,9 +491,7 @@ export function createIdentityStub(): StubIdentity {
       if (!session || session.revoked) return null;
       const user = users.find((u) => u.user_id === session.user_id);
       if (!user || user.account_status !== "ACTIVE") return null;
-      const assignment = user.assignments.find(
-        (a) => a.assignment_id === assignmentId,
-      );
+      const assignment = user.assignments.find((a) => a.assignment_id === assignmentId);
       if (!assignment) return null;
       const next: SessionRecord = {
         ...session,
@@ -573,15 +555,11 @@ export function createIdentityStub(): StubIdentity {
       if (input.idempotency_key) {
         const existingId = inviteIdempotency.get(input.idempotency_key);
         if (existingId) {
-          const existing = invitations.find(
-            (i) => i.invitation_id === existingId,
-          );
+          const existing = invitations.find((i) => i.invitation_id === existingId);
           if (existing) return { ok: true, invitation: existing };
         }
       }
-      if (
-        users.some((u) => u.email === work_email && u.account_status === "ACTIVE")
-      ) {
+      if (users.some((u) => u.email === work_email && u.account_status === "ACTIVE")) {
         return {
           ok: false,
           code: "DUPLICATE",
@@ -590,10 +568,7 @@ export function createIdentityStub(): StubIdentity {
       }
       if (
         invitations.some(
-          (i) =>
-            i.work_email === work_email &&
-            i.role === role_id &&
-            i.status === "PENDING",
+          (i) => i.work_email === work_email && i.role === role_id && i.status === "PENDING",
         )
       ) {
         return {
@@ -630,9 +605,7 @@ export function createIdentityStub(): StubIdentity {
       if (!invitationId) {
         return { ok: false, code: "FORBIDDEN", message: "Invitation denied" };
       }
-      const invitation = invitations.find(
-        (i) => i.invitation_id === invitationId,
-      );
+      const invitation = invitations.find((i) => i.invitation_id === invitationId);
       if (!invitation || invitation.status !== "PENDING") {
         return { ok: false, code: "FORBIDDEN", message: "Invitation denied" };
       }
@@ -760,9 +733,7 @@ export function createIdentityStub(): StubIdentity {
       const resolved = requireResolved(sessionId);
       if (!resolved) return { ok: false, code: "UNAUTHORIZED" };
       const row = notifications.find(
-        (n) =>
-          n.notification_id === notificationId &&
-          n.user_id === resolved.user.user_id,
+        (n) => n.notification_id === notificationId && n.user_id === resolved.user.user_id,
       );
       if (!row) return { ok: false, code: "NOT_FOUND" };
       if (!row.read_at) {
@@ -845,9 +816,7 @@ export function createIdentityStub(): StubIdentity {
 
     forgotPassword(email) {
       const normalized = email.trim().toLowerCase();
-      const user = users.find(
-        (u) => u.email === normalized && u.account_status === "ACTIVE",
-      );
+      const user = users.find((u) => u.email === normalized && u.account_status === "ACTIVE");
       if (user) {
         resetCodes.set(normalized, "fixture-reset");
       }

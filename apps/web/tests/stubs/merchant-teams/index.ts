@@ -1,8 +1,4 @@
-import type {
-  MerchantSettings,
-  MerchantStaff,
-  MerchantTeamsClient,
-} from "@/application/ports";
+import type { MerchantSettings, MerchantStaff, MerchantTeamsClient } from "@/application/ports";
 import { PeerError } from "@/domain/types";
 
 /** Seed-aligned fixture staff (synthetic; fixture mode only). */

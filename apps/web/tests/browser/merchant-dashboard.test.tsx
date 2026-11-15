@@ -37,9 +37,7 @@ const sessionStub = {
 describe("merchant dashboard viz", () => {
   it("fixture mode shows merchant-analytics KPIs with fixture banner", async () => {
     render(
-      <ShellProvider
-        config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}
-      >
+      <ShellProvider config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}>
         <MerchantOverview
           session={sessionStub}
           analyticsClient={createMerchantAnalyticsStub("valid")}
@@ -97,9 +95,7 @@ describe("merchant dashboard viz", () => {
       </ShellProvider>,
     );
 
-    expect(await screen.findByTestId("state-empty")).toHaveTextContent(
-      "no merchant_ref",
-    );
+    expect(await screen.findByTestId("state-empty")).toHaveTextContent("no merchant_ref");
     expect(screen.queryByTestId("merchant-kpi-row")).not.toBeInTheDocument();
   });
 });

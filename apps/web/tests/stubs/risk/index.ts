@@ -54,12 +54,7 @@ export type RiskStub = "valid" | "unavailable" | "unauthorized_or_out_of_scope";
 
 function unavailableClient(): RiskClient {
   const fail = async () => {
-    throw new PeerError(
-      "PEER_UNAVAILABLE",
-      "risk peer unavailable",
-      "req-risk-unavailable",
-      503,
-    );
+    throw new PeerError("PEER_UNAVAILABLE", "risk peer unavailable", "req-risk-unavailable", 503);
   };
   return {
     getDashboard: fail,
@@ -72,12 +67,7 @@ function unavailableClient(): RiskClient {
 
 function forbiddenClient(): RiskClient {
   const fail = async () => {
-    throw new PeerError(
-      "FORBIDDEN",
-      "Risk dashboard out of scope",
-      "req-risk-forbidden",
-      403,
-    );
+    throw new PeerError("FORBIDDEN", "Risk dashboard out of scope", "req-risk-forbidden", 403);
   };
   return {
     getDashboard: fail,

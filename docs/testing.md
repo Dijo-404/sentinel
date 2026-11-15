@@ -28,12 +28,12 @@ Financial audit failure blocks creation of new commands without losing durable r
 
 Record exact command, environment, commit/version, contract hash, observed result and redacted artifact links. Separately identify:
 
-| Dimension | Values |
-| --- | --- |
-| Component under test | Real implementation or local reference peer |
-| Payment provider | Simulator or separately authorized external sandbox |
-| Model/voice | Fake/recorded or actual live call |
-| Run | Standalone, assembled components, replay or external pilot |
+| Dimension            | Values                                                     |
+| -------------------- | ---------------------------------------------------------- |
+| Component under test | Real implementation or local reference peer                |
+| Payment provider     | Simulator or separately authorized external sandbox        |
+| Model/voice          | Fake/recorded or actual live call                          |
+| Run                  | Standalone, assembled components, replay or external pilot |
 
 Passing fixture tests proves the tested component behavior under those fixtures. It is not evidence of product assembly, production safety, bank credit or a live provider integration. Report actual fixture counts/denominators, holdout grouping and measured model cost/latency only when run.
 

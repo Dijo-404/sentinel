@@ -31,28 +31,28 @@
 
 ## Locked decisions (builder defaults from spec)
 
-| Decision | Choice |
-|---|---|
-| Human roles | `customer`, `merchant`, `operator`, `supervisor`, `risk_officer`, `platform_admin` |
-| Staff provisioning | Platform Admin only (merchant self-invite behind flag, off) |
-| Account classes | Separate `customer` vs `staff` accounts; no casual promotion |
+| Decision            | Choice                                                                                                                                                       |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Human roles         | `customer`, `merchant`, `operator`, `supervisor`, `risk_officer`, `platform_admin`                                                                           |
+| Staff provisioning  | Platform Admin only (merchant self-invite behind flag, off)                                                                                                  |
+| Account classes     | Separate `customer` vs `staff` accounts; no casual promotion                                                                                                 |
 | Session propagation | Cookie session → BFF → short-lived scoped service credential / principal projection (§12.4 option C; temporary dual-run with seeded scoped tokens during M1) |
-| New modules | `services/identity` (identity.v1), `services/risk` (risk.v1) |
-| Web | Single Next.js app with six portal trees under `apps/web` |
-| Task IDs (proposed) | SN-035…SN-042 (register via owner process before claim) |
+| New modules         | `services/identity` (identity.v1), `services/risk` (risk.v1)                                                                                                 |
+| Web                 | Single Next.js app with six portal trees under `apps/web`                                                                                                    |
+| Task IDs (proposed) | SN-035…SN-042 (register via owner process before claim)                                                                                                      |
 
 ## Proposed task register (owner must publish)
 
-| ID | Root | Produces | Scope summary |
-|---|---|---|---|
-| SN-035 | `services/identity/**` | `identity.v1` | Users, sessions, invites, role grants, audit/outbox |
-| SN-036 | `services/risk/**` | `risk.v1` | Investigations, findings, restrictions |
-| SN-037 | `apps/api/**` (coord) | case-api role projections | Auth adapter, claim, customer/ops/supervisor projections |
-| SN-038 | `apps/web/**` | six portals + BFF | Logins, dashboards, protected layouts, Playwright |
-| SN-039 | `services/merchant-teams/**` + merchant portal adapters | membership projection | Identity-authoritative membership |
-| SN-040 | peer auth adapters (ledger/workflow/policy/evidence as needed) | principal catalog extension | New human roles in contracts |
-| SN-041 | `integration/core/**` | RBAC assembly journeys | AUTH/FLOW tests across peers |
-| SN-042 | observability/admin eval surfaces | metrics + admin health | Identity/risk spans; gated FinHarness |
+| ID     | Root                                                           | Produces                    | Scope summary                                            |
+| ------ | -------------------------------------------------------------- | --------------------------- | -------------------------------------------------------- |
+| SN-035 | `services/identity/**`                                         | `identity.v1`               | Users, sessions, invites, role grants, audit/outbox      |
+| SN-036 | `services/risk/**`                                             | `risk.v1`                   | Investigations, findings, restrictions                   |
+| SN-037 | `apps/api/**` (coord)                                          | case-api role projections   | Auth adapter, claim, customer/ops/supervisor projections |
+| SN-038 | `apps/web/**`                                                  | six portals + BFF           | Logins, dashboards, protected layouts, Playwright        |
+| SN-039 | `services/merchant-teams/**` + merchant portal adapters        | membership projection       | Identity-authoritative membership                        |
+| SN-040 | peer auth adapters (ledger/workflow/policy/evidence as needed) | principal catalog extension | New human roles in contracts                             |
+| SN-041 | `integration/core/**`                                          | RBAC assembly journeys      | AUTH/FLOW tests across peers                             |
+| SN-042 | observability/admin eval surfaces                              | metrics + admin health      | Identity/risk spans; gated FinHarness                    |
 
 Cross-module contract edits require coordinated PRs and versioned adapters; do not silently break SN-001–034 consumers.
 

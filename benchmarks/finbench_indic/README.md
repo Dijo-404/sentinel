@@ -52,12 +52,12 @@ uv run --frozen sentinel-finbench probe-peers \
 
 ## Layout
 
-| Path | Role |
-| --- | --- |
-| `datasets/indic-fin-v0.1.0/` | Synthetic grouped scenarios + hashed manifest |
-| `src/sentinel_finbench/` | Domain rules, evaluation use case, adapters, CLI |
-| `contracts/` | `finbench.v1` snapshot + compatibility checklist |
-| `tests/stubs/` | finharness-runtime + indic-context doubles |
+| Path                         | Role                                             |
+| ---------------------------- | ------------------------------------------------ |
+| `datasets/indic-fin-v0.1.0/` | Synthetic grouped scenarios + hashed manifest    |
+| `src/sentinel_finbench/`     | Domain rules, evaluation use case, adapters, CLI |
+| `contracts/`                 | `finbench.v1` snapshot + compatibility checklist |
+| `tests/stubs/`               | finharness-runtime + indic-context doubles       |
 
 ## Evidence limits
 

@@ -86,39 +86,24 @@ export function ActivityPanel({ activityClient }: Props) {
     <div className="panel stack" data-testid="operator-activity">
       <h1>Activity</h1>
       <p className="muted">
-        Ops feed from ops-activity <code>GET /v1/activity</code>. Advisory
-        only — not payment authority.
+        Ops feed from ops-activity <code>GET /v1/activity</code>. Advisory only — not payment
+        authority.
       </p>
-      {config.mode === "fixture" ||
-      (load.status === "ready" && load.label === "fixture") ? (
+      {config.mode === "fixture" || (load.status === "ready" && load.label === "fixture") ? (
         <FixtureBanner />
       ) : null}
 
-      {load.status === "loading" ? (
-        <UiState tone="loading" title="Loading activity…" />
-      ) : null}
+      {load.status === "loading" ? <UiState tone="loading" title="Loading activity…" /> : null}
       {load.status === "error" ? (
         <div data-testid="peer-error">
-          <UiState
-            tone="error"
-            title="Activity unavailable"
-            detail={load.detail}
-          />
+          <UiState tone="error" title="Activity unavailable" detail={load.detail} />
         </div>
       ) : null}
       {load.status === "empty" ? (
-        <UiState
-          tone="empty"
-          title="No activity"
-          detail="No feed rows in tenant scope."
-        />
+        <UiState tone="empty" title="No activity" detail="No feed rows in tenant scope." />
       ) : null}
       {load.status === "ready" ? (
-        <table
-          className="table"
-          aria-label="Ops activity"
-          data-testid="operator-activity-list"
-        >
+        <table className="table" aria-label="Ops activity" data-testid="operator-activity-list">
           <thead>
             <tr>
               <th>Id</th>
@@ -137,9 +122,7 @@ export function ActivityPanel({ activityClient }: Props) {
                 <td className="mono">{row.occurred_at}</td>
                 <td>
                   {row.case_id ? (
-                    <Link href={`/operator/cases/${row.case_id}`}>
-                      {row.case_id}
-                    </Link>
+                    <Link href={`/operator/cases/${row.case_id}`}>{row.case_id}</Link>
                   ) : (
                     "—"
                   )}

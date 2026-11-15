@@ -179,40 +179,25 @@ export function AssistantPanel({ role, testId, assistantClient }: Props) {
     <div className="panel stack" data-testid={testId}>
       <h1>Assistant</h1>
       <p className="muted">
-        Threads from assistant <code>GET /v1/threads?role={role}</code>.
-        Messages are <code>evidence_mode=sandbox</code> text only — no payment
-        authority.
+        Threads from assistant <code>GET /v1/threads?role={role}</code>. Messages are{" "}
+        <code>evidence_mode=sandbox</code> text only — no payment authority.
       </p>
       {config.mode === "fixture" ||
       (threadLoad.status === "ready" && threadLoad.label === "fixture") ? (
         <FixtureBanner />
       ) : null}
 
-      {threadLoad.status === "loading" ? (
-        <UiState tone="loading" title="Loading threads…" />
-      ) : null}
+      {threadLoad.status === "loading" ? <UiState tone="loading" title="Loading threads…" /> : null}
       {threadLoad.status === "error" ? (
         <div data-testid="peer-error">
-          <UiState
-            tone="error"
-            title="Assistant unavailable"
-            detail={threadLoad.detail}
-          />
+          <UiState tone="error" title="Assistant unavailable" detail={threadLoad.detail} />
         </div>
       ) : null}
       {threadLoad.status === "empty" ? (
-        <UiState
-          tone="empty"
-          title="No threads"
-          detail="No assistant threads for this role."
-        />
+        <UiState tone="empty" title="No threads" detail="No assistant threads for this role." />
       ) : null}
       {threadLoad.status === "ready" ? (
-        <ul
-          className="stack"
-          aria-label="Assistant threads"
-          data-testid={threadsTestId}
-        >
+        <ul className="stack" aria-label="Assistant threads" data-testid={threadsTestId}>
           {threadLoad.threads.map((row) => (
             <li key={row.thread_id}>
               <button
@@ -237,31 +222,18 @@ export function AssistantPanel({ role, testId, assistantClient }: Props) {
           ) : null}
           {messageLoad.status === "error" ? (
             <div data-testid="peer-error">
-              <UiState
-                tone="error"
-                title="Messages unavailable"
-                detail={messageLoad.detail}
-              />
+              <UiState tone="error" title="Messages unavailable" detail={messageLoad.detail} />
             </div>
           ) : null}
           {messageLoad.status === "empty" ? (
-            <UiState
-              tone="empty"
-              title="No messages"
-              detail="Thread is empty — honest []."
-            />
+            <UiState tone="empty" title="No messages" detail="Thread is empty — honest []." />
           ) : null}
           {messageLoad.status === "ready" ? (
-            <ul
-              className="stack"
-              aria-label="Assistant messages"
-              data-testid={messagesTestId}
-            >
+            <ul className="stack" aria-label="Assistant messages" data-testid={messagesTestId}>
               {messageLoad.messages.map((m) => (
                 <li key={m.message_id} className="stack">
                   <strong>
-                    {m.role}{" "}
-                    <span className="muted">({m.evidence_mode})</span>
+                    {m.role} <span className="muted">({m.evidence_mode})</span>
                   </strong>
                   <p style={{ margin: 0 }}>{m.text}</p>
                   <p className="muted mono" style={{ margin: 0 }}>
@@ -274,11 +246,7 @@ export function AssistantPanel({ role, testId, assistantClient }: Props) {
 
           {postError ? (
             <div data-testid="peer-error">
-              <UiState
-                tone="error"
-                title="Message not posted"
-                detail={postError}
-              />
+              <UiState tone="error" title="Message not posted" detail={postError} />
             </div>
           ) : null}
 

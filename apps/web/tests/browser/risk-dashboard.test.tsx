@@ -36,14 +36,8 @@ const sessionStub = {
 describe("risk portal dashboard", () => {
   it("fixture shows risk.v1 dashboard KPIs", async () => {
     render(
-      <ShellProvider
-        config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}
-      >
-        <PortalDashboard
-          role="risk"
-          session={sessionStub}
-          riskClient={createRiskStub("valid")}
-        />
+      <ShellProvider config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}>
+        <PortalDashboard role="risk" session={sessionStub} riskClient={createRiskStub("valid")} />
       </ShellProvider>,
     );
 
@@ -68,9 +62,7 @@ describe("risk portal dashboard", () => {
       </ShellProvider>,
     );
 
-    expect(await screen.findByTestId("state-empty")).toHaveTextContent(
-      "Metrics unavailable",
-    );
+    expect(await screen.findByTestId("state-empty")).toHaveTextContent("Metrics unavailable");
     expect(screen.queryByTestId("risk-kpi-row")).not.toBeInTheDocument();
   });
 });

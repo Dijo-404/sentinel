@@ -39,10 +39,7 @@ function error(code: string, message: string, requestId: string): WireError {
   return { code, message, request_id: requestId };
 }
 
-export function createCaseApiStub(
-  caseName: StubCase,
-  options: Options = {},
-): CaseApiStub {
+export function createCaseApiStub(caseName: StubCase, options: Options = {}): CaseApiStub {
   const principal = options.principal ?? defaultPrincipal;
   const approval = options.approval ?? defaultApproval;
 

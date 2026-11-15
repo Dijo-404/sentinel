@@ -21,10 +21,7 @@ export function ChartCard({
   children,
 }: Props) {
   return (
-    <section
-      className={`chart-card${className ? ` ${className}` : ""}`}
-      data-testid={testId}
-    >
+    <section className={`chart-card${className ? ` ${className}` : ""}`} data-testid={testId}>
       <header className="chart-card__head">
         <div>
           <h3 className="chart-card__title">{title}</h3>

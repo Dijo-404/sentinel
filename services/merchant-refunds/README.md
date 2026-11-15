@@ -31,25 +31,25 @@ from `.env.example`.
 
 ## API sketch
 
-| Method | Path | Notes |
-| --- | --- | --- |
-| `POST` | `/v1/refund-requests` | Draft create; requires `Idempotency-Key` |
-| `PATCH` | `/v1/refund-requests/{id}` | Draft updates |
-| `POST` | `/v1/refund-requests/{id}/submit` | Evidence + policy + ledger proposal |
-| `POST` | `/v1/refund-requests/{id}/decisions` | Forward supervisor decision → reserve |
-| `POST` | `/v1/refund-requests/{id}/sync` | Refresh from ledger; pending ≠ credit |
-| `GET` | `/v1/capabilities` | Declares fixture \| real-peers mode |
+| Method  | Path                                 | Notes                                    |
+| ------- | ------------------------------------ | ---------------------------------------- |
+| `POST`  | `/v1/refund-requests`                | Draft create; requires `Idempotency-Key` |
+| `PATCH` | `/v1/refund-requests/{id}`           | Draft updates                            |
+| `POST`  | `/v1/refund-requests/{id}/submit`    | Evidence + policy + ledger proposal      |
+| `POST`  | `/v1/refund-requests/{id}/decisions` | Forward supervisor decision → reserve    |
+| `POST`  | `/v1/refund-requests/{id}/sync`      | Refresh from ledger; pending ≠ credit    |
+| `GET`   | `/v1/capabilities`                   | Declares fixture \| real-peers mode      |
 
 Auth: `Authorization: Bearer token-merchant-refunds-demo` (synthetic local only).
 
 ## Consumed ports (local stubs)
 
-| Port | Stub location | Modes |
-| --- | --- | --- |
-| `case-api.v1` | `tests/stubs/case_api.py` | valid / unavailable / malformed / unauthorized_or_out_of_scope |
-| `policy.v1` | `tests/stubs/policy.py` | same |
-| `action-ledger.v1` | `tests/stubs/ledger.py` | same; sole `action_id` mint |
-| `evidence.v1` | `tests/stubs/evidence.py` | same |
+| Port               | Stub location             | Modes                                                          |
+| ------------------ | ------------------------- | -------------------------------------------------------------- |
+| `case-api.v1`      | `tests/stubs/case_api.py` | valid / unavailable / malformed / unauthorized_or_out_of_scope |
+| `policy.v1`        | `tests/stubs/policy.py`   | same                                                           |
+| `action-ledger.v1` | `tests/stubs/ledger.py`   | same; sole `action_id` mint                                    |
+| `evidence.v1`      | `tests/stubs/evidence.py` | same                                                           |
 
 Real-peer HTTP adapters: `src/sentinel_merchant_refunds/adapters/http_peers.py`.
 Compatibility checklist: `contracts/real-peer-compat.md` (real assembly unverified).

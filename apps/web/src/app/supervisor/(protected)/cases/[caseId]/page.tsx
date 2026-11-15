@@ -18,8 +18,8 @@ export default function SupervisorCaseDetailPage({
       <div className="panel stack">
         <h1>Case review</h1>
         <p className="muted">
-          Evidence and timeline with exact approve/reject when a proposal is
-          present. Proposal comes from getAction — not a fixture digest.
+          Evidence and timeline with exact approve/reject when a proposal is present. Proposal comes
+          from getAction — not a fixture digest.
         </p>
         <Link href="/supervisor/approvals">Back to approvals</Link>
       </div>
@@ -33,8 +33,7 @@ export default function SupervisorCaseDetailPage({
       <CaseTimeline caseId={caseId} caseClient={caseClient} />
       {config.mode === "fixture" ? (
         <p className="fixture-banner" role="status">
-          Fixture mode — approval slot uses local substitute; action still from
-          stub getAction
+          Fixture mode — approval slot uses local substitute; action still from stub getAction
         </p>
       ) : null}
     </div>

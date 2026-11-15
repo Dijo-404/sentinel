@@ -37,9 +37,7 @@ const sessionStub = {
 describe("merchant analytics page", () => {
   it("never shows stub copy; metrics region when fetch succeeds", async () => {
     render(
-      <ShellProvider
-        config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}
-      >
+      <ShellProvider config={loadShellConfig({ NEXT_PUBLIC_SHELL_MODE: "fixture" })}>
         <AnalyticsPanel
           session={sessionStub}
           analyticsClient={createMerchantAnalyticsStub("valid")}
@@ -49,9 +47,7 @@ describe("merchant analytics page", () => {
 
     expect(screen.getByTestId("merchant-analytics")).toBeInTheDocument();
     expect(screen.queryByText("Not available yet")).not.toBeInTheDocument();
-    expect(
-      await screen.findByTestId("merchant-analytics-metrics"),
-    ).toBeInTheDocument();
+    expect(await screen.findByTestId("merchant-analytics-metrics")).toBeInTheDocument();
     expect(screen.getByText("Unresolved")).toBeInTheDocument();
     expect(screen.getByText("INR 1000.00")).toBeInTheDocument();
   });
@@ -73,8 +69,6 @@ describe("merchant analytics page", () => {
 
     expect(await screen.findByTestId("peer-error")).toBeInTheDocument();
     expect(screen.queryByText("Not available yet")).not.toBeInTheDocument();
-    expect(
-      screen.queryByTestId("merchant-analytics-metrics"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId("merchant-analytics-metrics")).not.toBeInTheDocument();
   });
 });

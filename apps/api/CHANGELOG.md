@@ -67,6 +67,7 @@
 - AUTH-06/AUTH-08 + claim concurrency coverage; subject_refs binding on create unchanged. Refs #101.
 
 ### Unreleased (prior)
+
 - Refuse non-loopback HTTP bind while demo/sandbox bearer tokens remain configured.
 
 ### Changed — 14 November 2026

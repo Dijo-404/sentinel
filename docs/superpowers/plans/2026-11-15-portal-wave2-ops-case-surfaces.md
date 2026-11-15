@@ -41,6 +41,7 @@
 ### Task 1: Case-api ops messages inbox + history + audit projections
 
 **Files:**
+
 - Modify: `apps/api/src/sentinel_api/adapters/http/app.py`
 - Modify: `apps/api/src/sentinel_api/application/service.py`
 - Modify: `apps/api/src/sentinel_api/application/ports.py`
@@ -49,6 +50,7 @@
 - Modify: `apps/api/CHANGELOG.md`, `apps/api/README.md`
 
 **Interfaces:**
+
 - Consumes: existing `list_queue` / case_messages / case_events tables
 - Produces:
   - `GET /v1/ops/cases?status=ESCALATED` — already works; seed must leave ≥1 ESCALATED row (covered in Task 2)
@@ -73,12 +75,14 @@
 ### Task 2: Case-api seed rows for escalations / messages / history / audit
 
 **Files:**
+
 - Modify: case-api seed path used by wave verify (`apps/api` Makefile `seed` and/or `integration/core` seed hooks)
 - Modify: `apps/api/tests/...` asserting seed shapes if seed is module-local
 - Modify: `apps/api/README.md`, `integration/core/docs/sandbox-matrix.md` if ports/commands change
 - Modify: `apps/api/CHANGELOG.md`
 
 **Interfaces:**
+
 - For `tenant-demo`, after seed:
   - ≥1 case with `status=ESCALATED`
   - ≥1 case message visible via `GET /v1/ops/messages`
@@ -99,6 +103,7 @@
 ### Task 3: Web CaseClient + BFF paths for new ops GETs
 
 **Files:**
+
 - Modify: `apps/web/src/application/ports.ts` — add `listOpsMessages()`, `listOpsAuditEvents()`, document HISTORY on `listOpsCases`
 - Modify: `apps/web/src/adapters/real-peer-case-client.ts`, `bff-case-client.ts` (if thin wrapper), fixture stub `tests/stubs/case-api/index.ts`
 - Modify: existing BFF `apps/web/src/app/api/bff/case/[...path]/route.ts` (proxy already covers `/v1/ops/**` if path-passthrough — verify; extend only if allowlist blocks)
@@ -106,6 +111,7 @@
 - Modify: `apps/web/CHANGELOG.md`
 
 **Interfaces:**
+
 - `listOpsMessages(): Promise<{ messages: OpsMessage[] }>`
 - `listOpsAuditEvents(): Promise<{ events: OpsAuditEvent[] }>`
 - `listOpsCases({ status: "ESCALATED" | "HISTORY" | ... })` unchanged signature; stub returns seeded shapes in fixture mode only
@@ -123,6 +129,7 @@
 ### Task 4: Operator Escalations + Messages pages
 
 **Files:**
+
 - Replace: `apps/web/src/app/operator/(protected)/escalations/page.tsx`
 - Replace: `apps/web/src/app/operator/(protected)/messages/page.tsx`
 - Create: `apps/web/src/components/ops/escalations-panel.tsx`
@@ -131,6 +138,7 @@
 - Modify: `apps/web/CHANGELOG.md`
 
 **Interfaces:**
+
 - Escalations: `listOpsCases({ status: "ESCALATED" })` via browser case client / BFF; `data-testid="operator-escalations"`; rows link to `/operator/cases/{caseId}`; peer failure → `data-testid="peer-error"`; never “Not available yet”
 - Messages: `listOpsMessages()`; `data-testid="operator-messages"`; show case_id + text + occurred_at; empty `[]` OK; peer-error on failure
 
@@ -147,6 +155,7 @@
 ### Task 5: Supervisor Escalations + History + Audit pages
 
 **Files:**
+
 - Replace: `apps/web/src/app/supervisor/(protected)/escalations/page.tsx`
 - Replace: `apps/web/src/app/supervisor/(protected)/history/page.tsx`
 - Replace: `apps/web/src/app/supervisor/(protected)/audit/page.tsx`
@@ -157,6 +166,7 @@
 - Modify: `apps/web/CHANGELOG.md`
 
 **Interfaces:**
+
 - Escalations: same API as operator; links to `/supervisor/cases/{caseId}`; `data-testid="supervisor-escalations"`
 - History: `listOpsCases({ status: "HISTORY" })`; `data-testid="supervisor-history"`
 - Audit: `listOpsAuditEvents()`; `data-testid="supervisor-audit"`; display type/case_id/occurred_at; no decide controls
@@ -175,6 +185,7 @@
 ### Task 6: Supervisor Team via identity admin users + BFF
 
 **Files:**
+
 - Create: `apps/web/src/app/api/bff/identity/[...path]/route.ts` (mirror `_session-proxy.ts` pattern; upstream `IDENTITY_BASE_URL`)
 - Create: `apps/web/src/lib/server/identity-bff.ts` or thin fetch helper if needed
 - Replace: `apps/web/src/app/supervisor/(protected)/team/page.tsx`
@@ -186,6 +197,7 @@
 - Owned roots: `apps/web` always; `services/identity` only if endpoint missing (claim/coordinate)
 
 **Interfaces:**
+
 - Page `data-testid="supervisor-team"` lists `{ user_id or principal_id, email or display, role }[]` from peer
 - Fail closed `peer-error`; never invent roster
 - Fixture mode: local stub roster labeled fixture **only** when `SHELL_MODE=fixture`
@@ -203,6 +215,7 @@
 ### Task 7: Wave 2 verify hook
 
 **Files:**
+
 - Create/Modify: `integration/core/src/sentinel_core_assembly/adapters/verify_wave2.py` or extend `verify_wave0_1.py` with wave2 section
 - Create: `integration/core/scripts/verify-wave2.sh` (or Makefile target `verify-wave2`)
 - Modify: `integration/core/README.md`, `CHANGELOG.md`

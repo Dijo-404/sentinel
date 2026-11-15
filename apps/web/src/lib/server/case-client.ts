@@ -10,15 +10,10 @@ import { readSessionId } from "./auth";
  * CASE_API_BEARER_TOKEN remains a service/fixture fallback when no cookie.
  */
 export async function getServerCaseClient(
-  env: Record<string, string | undefined> = process.env as Record<
-    string,
-    string | undefined
-  >,
+  env: Record<string, string | undefined> = process.env as Record<string, string | undefined>,
   overrides?: { fetchImpl?: typeof fetch },
 ): Promise<CaseClient> {
-  const mode = (env.NEXT_PUBLIC_SHELL_MODE ?? "fixture") as
-    | "fixture"
-    | "real-peers";
+  const mode = (env.NEXT_PUBLIC_SHELL_MODE ?? "fixture") as "fixture" | "real-peers";
   if (mode === "fixture") {
     return createCaseApiStub("valid");
   }

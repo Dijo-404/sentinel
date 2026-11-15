@@ -44,14 +44,14 @@ Idempotent upsert. Seed refuses non-`tenant-demo` rows.
 
 ## Routes
 
-| Method | Path | Auth | Notes |
-| --- | --- | --- | --- |
-| GET | `/healthz` | none | liveness |
-| GET | `/readyz` | none | labels `mode` |
-| GET | `/v1/capabilities` | none | `financial_authority=false` |
-| GET | `/v1/articles` | operator, supervisor | list summaries |
-| GET | `/v1/articles/{id}` | operator, supervisor | full body |
-| GET | `/v1/search?q=` | operator, supervisor | ILIKE match |
+| Method | Path                | Auth                 | Notes                       |
+| ------ | ------------------- | -------------------- | --------------------------- |
+| GET    | `/healthz`          | none                 | liveness                    |
+| GET    | `/readyz`           | none                 | labels `mode`               |
+| GET    | `/v1/capabilities`  | none                 | `financial_authority=false` |
+| GET    | `/v1/articles`      | operator, supervisor | list summaries              |
+| GET    | `/v1/articles/{id}` | operator, supervisor | full body                   |
+| GET    | `/v1/search?q=`     | operator, supervisor | ILIKE match                 |
 
 ## Real-peer mode
 

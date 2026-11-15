@@ -4,10 +4,7 @@ import {
   getSharedIdentityStub,
   resetSharedIdentityStub,
 } from "./stubs/identity";
-import {
-  getIdentityClient,
-  resetIdentityClientCache,
-} from "@/lib/server/identity-client";
+import { getIdentityClient, resetIdentityClientCache } from "@/lib/server/identity-client";
 import { createRealPeerIdentityClient } from "@/adapters/real-peer-identity-client";
 import {
   isSafeInternalPath,
@@ -54,9 +51,7 @@ describe("identity stub", () => {
     });
     expect(created.ok).toBe(true);
     if (!created.ok) return;
-    expect(created.user.assignments.every((a) => a.role === "customer")).toBe(
-      true,
-    );
+    expect(created.user.assignments.every((a) => a.role === "customer")).toBe(true);
   });
 
   it("admin invite rejects customer role (no staff-register path)", () => {
@@ -121,10 +116,7 @@ describe("auth helpers", () => {
     expect(login.ok).toBe(true);
     if (!login.ok) return;
     const asg = login.workspaces[0]!;
-    const selected = id.selectAssignment(
-      login.session.session_id,
-      asg.assignment_id,
-    );
+    const selected = id.selectAssignment(login.session.session_id, asg.assignment_id);
     expect(selected?.active_assignment_id).toBe(asg.assignment_id);
   });
 
@@ -431,10 +423,7 @@ describe("real-peer identity client", () => {
           });
         }
         if (url.endsWith("/v1/auth/mfa/challenge")) {
-          return Response.json(
-            { status: "accepted", sandbox_code: "ABCD1234" },
-            { status: 202 },
-          );
+          return Response.json({ status: "accepted", sandbox_code: "ABCD1234" }, { status: 202 });
         }
         if (url.endsWith("/v1/auth/mfa/verify")) {
           return Response.json({
@@ -489,9 +478,9 @@ describe("real-peer identity client", () => {
       mfa_verified: true,
     });
 
-    await expect(
-      client.forgotPassword("customer@example.test"),
-    ).resolves.toMatchObject({ status: "accepted" });
+    await expect(client.forgotPassword("customer@example.test")).resolves.toMatchObject({
+      status: "accepted",
+    });
     await expect(
       client.resetPassword({
         email: "customer@example.test",
@@ -558,10 +547,7 @@ describe("fixture identity auth surface", () => {
     expect(notes.notifications.length).toBeGreaterThanOrEqual(1);
 
     const first = notes.notifications[0]!;
-    const marked = await client.markNotificationRead(
-      token,
-      first.notification_id,
-    );
+    const marked = await client.markNotificationRead(token, first.notification_id);
     expect(marked.read_at).toBeTruthy();
 
     const workspaces = await client.listWorkspaces(token);
@@ -576,13 +562,13 @@ describe("fixture identity auth surface", () => {
     const challenge = await client.mfaChallenge(token);
     expect(challenge.status).toBe("accepted");
     expect(typeof challenge.sandbox_code).toBe("string");
-    await expect(
-      client.mfaVerify(token, challenge.sandbox_code!),
-    ).resolves.toMatchObject({ mfa_verified: true });
+    await expect(client.mfaVerify(token, challenge.sandbox_code!)).resolves.toMatchObject({
+      mfa_verified: true,
+    });
 
-    await expect(
-      client.forgotPassword("customer@example.test"),
-    ).resolves.toMatchObject({ status: "accepted" });
+    await expect(client.forgotPassword("customer@example.test")).resolves.toMatchObject({
+      status: "accepted",
+    });
     await expect(
       client.resetPassword({
         email: "customer@example.test",

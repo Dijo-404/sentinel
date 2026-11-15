@@ -61,9 +61,7 @@ export function SupervisorDecisionWorkspace({
   const [caseRecord, setCaseRecord] = useState<Case | null>(null);
   const [evidence, setEvidence] = useState<Evidence[]>([]);
   const [action, setAction] = useState<ActionRecord | null>(null);
-  const [decisionExpiresAt, setDecisionExpiresAt] = useState<string | null>(
-    null,
-  );
+  const [decisionExpiresAt, setDecisionExpiresAt] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [permission, setPermission] = useState<string | null>(null);
   const [conflict, setConflict] = useState<string | null>(null);
@@ -109,10 +107,7 @@ export function SupervisorDecisionWorkspace({
       setAction(resolvedAction);
       setDecisionExpiresAt(expires);
     } catch (err) {
-      if (
-        err instanceof PeerError &&
-        (err.httpStatus === 403 || err.code === "FORBIDDEN")
-      ) {
+      if (err instanceof PeerError && (err.httpStatus === 403 || err.code === "FORBIDDEN")) {
         setPermission(`${err.code}: ${err.message}`);
       } else if (err instanceof PeerError) {
         setError(`${err.code}: ${err.message}`);
@@ -136,21 +131,13 @@ export function SupervisorDecisionWorkspace({
     return <UiState tone="loading" title="Loading decision workspace…" />;
   }
   if (permission) {
-    return (
-      <UiState
-        tone="permission"
-        title="Permission denied"
-        detail={permission}
-      />
-    );
+    return <UiState tone="permission" title="Permission denied" detail={permission} />;
   }
   if (error) {
     return <UiState tone="error" title="Decision unavailable" detail={error} />;
   }
   if (!caseRecord || !action || !decisionExpiresAt) {
-    return (
-      <UiState tone="empty" title="No proposal" detail="Nothing to decide." />
-    );
+    return <UiState tone="empty" title="No proposal" detail="Nothing to decide." />;
   }
 
   const slot =
@@ -176,8 +163,7 @@ export function SupervisorDecisionWorkspace({
           <StatusChip label={labelCaseStatus(caseRecord.status)} />
         </div>
         <p className="muted">
-          Exact amount and identifiers from the proposal. No free-text financial
-          edits.
+          Exact amount and identifiers from the proposal. No free-text financial edits.
         </p>
         {mode === "fixture" ? (
           <p className="fixture-banner" role="status">
@@ -185,25 +171,19 @@ export function SupervisorDecisionWorkspace({
           </p>
         ) : (
           <p className="fixture-banner" role="status">
-            Real-peer — ledger{" "}
-            <code className="mono">GET /v1/actions/…</code> + case-api{" "}
+            Real-peer — ledger <code className="mono">GET /v1/actions/…</code> + case-api{" "}
             <code className="mono">POST /v1/ops/actions/…/decisions</code>
           </p>
         )}
         <div className="row">
           <span className="mono" data-testid="decision-amount">
-            {formatAmountMinor(
-              action.payload.amount_minor,
-              action.payload.currency,
-            )}
+            {formatAmountMinor(action.payload.amount_minor, action.payload.currency)}
           </span>
           <MaskedRef
             label="transaction"
             masked={maskTransactionRef(action.payload.transaction_ref)}
           />
-          <Link
-            href={`/supervisor/cases/${encodeURIComponent(caseRecord.case_id)}`}
-          >
+          <Link href={`/supervisor/cases/${encodeURIComponent(caseRecord.case_id)}`}>
             Case detail
           </Link>
           <Link href="/supervisor/approvals">Back to queue</Link>
@@ -215,12 +195,7 @@ export function SupervisorDecisionWorkspace({
         ) : null}
       </div>
       {canDecide ? (
-        <ApprovalSlot
-          {...slot}
-          mode={mode}
-          reviewerId={reviewerId}
-          now={now}
-        />
+        <ApprovalSlot {...slot} mode={mode} reviewerId={reviewerId} now={now} />
       ) : (
         <UiState
           tone="permission"

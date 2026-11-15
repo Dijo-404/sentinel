@@ -1,0 +1,11 @@
+{
+  "name": "@sentinel/lint",
+  "private": true,
+  "description": "Pinned repository formatting tools; no application dependencies",
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "prettier": "3.10.1"
+  }
+}

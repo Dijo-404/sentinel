@@ -64,13 +64,8 @@ describe("portal auth UI", () => {
 
   it("signed-in landing shows Dashboard instead of Log in", () => {
     render(<LandingPage dashboardHref="/operator/dashboard" />);
-    expect(screen.getByTestId("landing-dashboard")).toHaveAttribute(
-      "href",
-      "/operator/dashboard",
-    );
-    expect(
-      screen.queryByRole("link", { name: "Get started" }),
-    ).not.toBeInTheDocument();
+    expect(screen.getByTestId("landing-dashboard")).toHaveAttribute("href", "/operator/dashboard");
+    expect(screen.queryByRole("link", { name: "Get started" })).not.toBeInTheDocument();
   });
 
   it("shared login has workspace select and role-login testid", () => {
@@ -82,14 +77,7 @@ describe("portal auth UI", () => {
     const values = Array.from(select.querySelectorAll("option")).map(
       (o) => (o as HTMLOptionElement).value,
     );
-    expect(values).toEqual([
-      "customer",
-      "merchant",
-      "operator",
-      "supervisor",
-      "risk",
-      "admin",
-    ]);
+    expect(values).toEqual(["customer", "merchant", "operator", "supervisor", "risk", "admin"]);
     expect(select).toHaveValue("merchant");
     expect(screen.getByTestId("demo-users")).toBeInTheDocument();
   });
@@ -101,9 +89,7 @@ describe("portal auth UI", () => {
 
     await user.selectOptions(screen.getByTestId("login-workspace"), "operator");
     expect(screen.queryByTestId("register-link")).not.toBeInTheDocument();
-    expect(screen.getByTestId("no-signup")).toHaveTextContent(
-      "invitation-only",
-    );
+    expect(screen.getByTestId("no-signup")).toHaveTextContent("invitation-only");
   });
 
   it("role mismatch surfaces only authorized workspaces", async () => {
@@ -128,13 +114,7 @@ describe("portal auth UI", () => {
       (o) => (o as HTMLOptionElement).value,
     );
     expect(values).not.toContain("customer");
-    expect(values).toEqual([
-      "merchant",
-      "operator",
-      "supervisor",
-      "risk",
-      "admin",
-    ]);
+    expect(values).toEqual(["merchant", "operator", "supervisor", "risk", "admin"]);
   });
 
   it("protected shell renders night sidebar with logout and data-portal", () => {
@@ -153,9 +133,6 @@ describe("portal auth UI", () => {
     const shell = document.querySelector("[data-portal='operator']");
     expect(shell).toBeTruthy();
     expect(screen.getByTestId("logout")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Dashboard" })).toHaveAttribute(
-      "aria-current",
-      "page",
-    );
+    expect(screen.getByRole("link", { name: "Dashboard" })).toHaveAttribute("aria-current", "page");
   });
 });

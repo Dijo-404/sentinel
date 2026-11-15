@@ -72,13 +72,13 @@ report = run(
 
 Helpers in [`identity.py`](src/sentinel_telemetry/identity.py) name spans and metrics from roles.md §15:
 
-| Span | Metric |
-|---|---|
-| `identity.session.authenticate` | `identity_login_attempts_total{role,result}` |
-| `identity.staff.invite` | `identity_staff_invitations_total{result}` |
-| `identity.role.assign` / `identity.role.revoke` | `identity_role_changes_total{role,operation}` |
-| `identity.session.revoke` | `identity_session_revocation_latency_seconds` |
-| (metric only) | `identity_authz_denied_total{permission,reason}` |
+| Span                                            | Metric                                           |
+| ----------------------------------------------- | ------------------------------------------------ |
+| `identity.session.authenticate`                 | `identity_login_attempts_total{role,result}`     |
+| `identity.staff.invite`                         | `identity_staff_invitations_total{result}`       |
+| `identity.role.assign` / `identity.role.revoke` | `identity_role_changes_total{role,operation}`    |
+| `identity.session.revoke`                       | `identity_session_revocation_latency_seconds`    |
+| (metric only)                                   | `identity_authz_denied_total{permission,reason}` |
 
 **Financial audit ≠ identity audit ≠ telemetry.** Action-ledger financial audit stays unsampled and authoritative for money. Identity audit events (`identity_audit_events`) stay authoritative inside identity.v1. Telemetry export failure must never suppress either audit family. Do not put emails, user IDs, tokens, or invitation secrets in metric labels.
 

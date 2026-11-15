@@ -1,8 +1,4 @@
-import type {
-  CaseClient,
-  OpsAuditEvent,
-  OpsMessage,
-} from "@/application/ports";
+import type { CaseClient, OpsAuditEvent, OpsMessage } from "@/application/ports";
 import {
   CONTRACT_VERSION,
   PeerError,
@@ -22,11 +18,7 @@ import caseDemo from "../../../contracts/fixtures/case-demo.json";
 import evidenceBundle from "../../../contracts/fixtures/evidence-bundle.json";
 import actionRecord from "../../../contracts/fixtures/action-record.json";
 
-export type StubCase =
-  | "valid"
-  | "unavailable"
-  | "malformed"
-  | "unauthorized_or_out_of_scope";
+export type StubCase = "valid" | "unavailable" | "malformed" | "unauthorized_or_out_of_scope";
 
 export type CaseApiStubOptions = {
   /** Role used for decide authorization. Default: deny unless `"supervisor"`. */
@@ -68,10 +60,7 @@ const DEMO_CASE_EVENTS: CaseEvent[] = [
 ];
 
 /** HISTORY alias on case-api = VERIFIED_RESOLVED | CLOSED_NO_ACTION. */
-const HISTORY_STATUSES: ReadonlySet<CaseState> = new Set([
-  "VERIFIED_RESOLVED",
-  "CLOSED_NO_ACTION",
-]);
+const HISTORY_STATUSES: ReadonlySet<CaseState> = new Set(["VERIFIED_RESOLVED", "CLOSED_NO_ACTION"]);
 
 const HISTORY_CASE: Case = {
   contract_version: CONTRACT_VERSION,
@@ -112,16 +101,14 @@ const FIXTURE_OPS_AUDIT_EVENTS: OpsAuditEvent[] = [
 function matchesOpsStatus(status: CaseState, filter?: string): boolean {
   if (!filter) return true;
   if (filter === "HISTORY") return HISTORY_STATUSES.has(status);
-  const parts = filter.split(",").map((s) => s.trim()).filter(Boolean);
+  const parts = filter
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
   return parts.includes(status);
 }
 
-function fail(
-  code: string,
-  message: string,
-  requestId: string,
-  httpStatus?: number,
-): never {
+function fail(code: string, message: string, requestId: string, httpStatus?: number): never {
   throw new PeerError(code, message, requestId, httpStatus);
 }
 
@@ -179,10 +166,7 @@ function validClient(options?: CaseApiStubOptions): CaseClient {
     revision: number,
   ): void {
     const list = eventsByCase.get(caseId) ?? [];
-    const sequence =
-      list.length === 0
-        ? 1
-        : Math.max(...list.map((e) => e.sequence)) + 1;
+    const sequence = list.length === 0 ? 1 : Math.max(...list.map((e) => e.sequence)) + 1;
     nextEventSeq += 1;
     list.push({
       event_id: `evt-${nextEventSeq}`,
@@ -202,17 +186,9 @@ function validClient(options?: CaseApiStubOptions): CaseClient {
   }
 
   return {
-    async createCase(
-      input: CaseCreate,
-      _idempotencyKey: string,
-    ): Promise<CaseCreated> {
+    async createCase(input: CaseCreate, _idempotencyKey: string): Promise<CaseCreated> {
       if (!input.message?.trim() || !input.order_reference?.trim()) {
-        fail(
-          "INVALID_INPUT",
-          "message and order_reference required",
-          "req-create-422",
-          422,
-        );
+        fail("INVALID_INPUT", "message and order_reference required", "req-create-422", 422);
       }
       const caseId = allocateCaseId();
       const created: Case = {
@@ -247,13 +223,7 @@ function validClient(options?: CaseApiStubOptions): CaseClient {
         status: "NEEDS_INPUT",
       };
       cases.set(caseId, updated);
-      appendEvent(
-        caseId,
-        "MESSAGE_ADDED",
-        updated.status,
-        "OPERATOR_MESSAGE",
-        updated.revision,
-      );
+      appendEvent(caseId, "MESSAGE_ADDED", updated.status, "OPERATOR_MESSAGE", updated.revision);
       return { ...updated };
     },
     async listEvents(caseId, after = 0) {
@@ -301,28 +271,15 @@ function validClient(options?: CaseApiStubOptions): CaseClient {
       }
       return structuredClone(demoAction);
     },
-    async decide(
-      actionId: string,
-      request: DecisionRequest,
-    ): Promise<Approval> {
+    async decide(actionId: string, request: DecisionRequest): Promise<Approval> {
       if (reviewerRole !== "supervisor") {
-        fail(
-          "FORBIDDEN",
-          "Supervisor role required to decide",
-          "req-decide-403",
-          403,
-        );
+        fail("FORBIDDEN", "Supervisor role required to decide", "req-decide-403", 403);
       }
       if (actionId !== demoAction.action_id) {
         fail("NOT_FOUND", "Action not found", "req-decide-404", 404);
       }
       if (request.action_digest !== demoAction.action_digest) {
-        fail(
-          "DIGEST_MISMATCH",
-          "Action digest mismatch",
-          "req-decide-409",
-          409,
-        );
+        fail("DIGEST_MISMATCH", "Action digest mismatch", "req-decide-409", 409);
       }
       return {
         approval_id: "approval-demo-1",
@@ -346,13 +303,7 @@ function validClient(options?: CaseApiStubOptions): CaseClient {
         contract_version: CONTRACT_VERSION,
       };
       cases.set(caseId, updated);
-      appendEvent(
-        caseId,
-        "ESCALATED",
-        updated.status,
-        "OPERATOR_ESCALATION",
-        updated.revision,
-      );
+      appendEvent(caseId, "ESCALATED", updated.status, "OPERATOR_ESCALATION", updated.revision);
       return { ...updated };
     },
     async getOperatorDashboard() {
@@ -385,12 +336,7 @@ function validClient(options?: CaseApiStubOptions): CaseClient {
 
 function unavailableClient(): CaseClient {
   const boom = async () =>
-    fail(
-      "PEER_UNAVAILABLE",
-      "Required peer unavailable",
-      "req-unavailable",
-      503,
-    );
+    fail("PEER_UNAVAILABLE", "Required peer unavailable", "req-unavailable", 503);
   return {
     createCase: boom,
     getCase: boom,
@@ -448,8 +394,7 @@ function malformedClient(): CaseClient {
 }
 
 function unauthorizedClient(): CaseClient {
-  const boom = async () =>
-    fail("FORBIDDEN", "Out of scope for principal", "req-forbidden", 403);
+  const boom = async () => fail("FORBIDDEN", "Out of scope for principal", "req-forbidden", 403);
   return {
     createCase: boom,
     getCase: boom,

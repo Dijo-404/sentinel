@@ -3,20 +3,14 @@
 import Link from "next/link";
 import { useActionState } from "react";
 import { useSearchParams } from "next/navigation";
-import {
-  resetPasswordAction,
-  type ChallengeActionResult,
-} from "@/lib/server/auth-actions";
+import { resetPasswordAction, type ChallengeActionResult } from "@/lib/server/auth-actions";
 
 const initial: ChallengeActionResult | null = null;
 
 export function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const emailFromQuery = searchParams.get("email") ?? "";
-  const [state, formAction, pending] = useActionState(
-    resetPasswordAction,
-    initial,
-  );
+  const [state, formAction, pending] = useActionState(resetPasswordAction, initial);
 
   return (
     <div className="auth-card panel stack" data-testid="auth-reset">
@@ -29,12 +23,7 @@ export function ResetPasswordForm() {
       </div>
 
       {state && state.ok ? (
-        <div
-          className="state-banner"
-          data-tone="empty"
-          data-testid="reset-success"
-          role="status"
-        >
+        <div className="state-banner" data-tone="empty" data-testid="reset-success" role="status">
           <p>{state.message}</p>
           <p>
             <Link href="/login">Sign in</Link>
@@ -77,12 +66,7 @@ export function ResetPasswordForm() {
 
           {state && !state.ok ? (
             state.peerError ? (
-              <div
-                className="state-banner"
-                data-tone="error"
-                data-testid="peer-error"
-                role="alert"
-              >
+              <div className="state-banner" data-tone="error" data-testid="peer-error" role="alert">
                 <strong>Identity unavailable</strong>
                 <p className="muted" style={{ margin: "0.35rem 0 0" }}>
                   {state.message}

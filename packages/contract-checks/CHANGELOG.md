@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed — 15 November 2026
+
+- Applied the repository Ruff baseline: sorted imports, formatted Python, and split long byte literals without changing canonical evidence.
+
 ### Added — 13 November 2026
 
 - Independently installable Python package, pinned local dependency lock, configuration example, CLI and module-local `make check`.

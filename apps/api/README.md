@@ -13,11 +13,11 @@ Authenticated case intake/query/messages, immutable per-revision `CaseInput` sna
 
 Operator and supervisor only (customer → 403). All tenant-scoped; empty list is honest empty, never fixture rows.
 
-| Endpoint | Notes |
-| --- | --- |
-| `GET /v1/ops/cases?status=…` | Queue filter. Exact `CaseState`, comma-separated states, or alias `HISTORY` = `{VERIFIED_RESOLVED, CLOSED_NO_ACTION}`. Max 50; optional `after` cursor. |
-| `GET /v1/ops/messages` | Newest-first inbox from `case_messages`. Shape `{ messages: [{ case_id, message_id, text, language, author, occurred_at }], next_cursor? }`. Max 50. |
-| `GET /v1/ops/audit-events` | Newest-first case events. Shape `{ events: [{ case_id, sequence, type, occurred_at, payload }], next_cursor? }`. Max 50. Returns stored `payload_json` as-is; writers already persist only sanitized domain fields (no separate read-path redaction). |
+| Endpoint                     | Notes                                                                                                                                                                                                                                                 |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /v1/ops/cases?status=…` | Queue filter. Exact `CaseState`, comma-separated states, or alias `HISTORY` = `{VERIFIED_RESOLVED, CLOSED_NO_ACTION}`. Max 50; optional `after` cursor.                                                                                               |
+| `GET /v1/ops/messages`       | Newest-first inbox from `case_messages`. Shape `{ messages: [{ case_id, message_id, text, language, author, occurred_at }], next_cursor? }`. Max 50.                                                                                                  |
+| `GET /v1/ops/audit-events`   | Newest-first case events. Shape `{ events: [{ case_id, sequence, type, occurred_at, payload }], next_cursor? }`. Max 50. Returns stored `payload_json` as-is; writers already persist only sanitized domain fields (no separate read-path redaction). |
 
 Authoritative approvals and money stay in the ledger. This API forwards the supervisor bearer token and exact `DecisionRequest` digest/revision; it does not mint approvals.
 
@@ -61,10 +61,10 @@ make -C apps/api seed
 
 Inserts synthetic ops rows for portal wave 2 surfaces:
 
-| Seed case | Status | Surfaces |
-| --- | --- | --- |
-| `case-seed-ops-escalated` | `ESCALATED` | escalations queue, messages inbox, audit events |
-| `case-seed-ops-history` | `CLOSED_NO_ACTION` | HISTORY filter, messages, audit events |
+| Seed case                 | Status             | Surfaces                                        |
+| ------------------------- | ------------------ | ----------------------------------------------- |
+| `case-seed-ops-escalated` | `ESCALATED`        | escalations queue, messages inbox, audit events |
+| `case-seed-ops-history`   | `CLOSED_NO_ACTION` | HISTORY filter, messages, audit events          |
 
 Non-`tenant-demo` → `SANDBOX_TENANT_REQUIRED`. Missing sandbox flag → `SANDBOX_FLAG_REQUIRED`. Non-Postgres URL → `POSTGRES_URL_REQUIRED`. Idempotent re-seed. Orchestrated via `make -C integration/core seed-sandbox` when `SENTINEL_API_DATABASE_URL` is set.
 
@@ -95,12 +95,12 @@ not stripped to a bare provider id when enqueueing workflow.
 
 ## Evidence labels
 
-| Dimension | This module check |
-| --- | --- |
-| Component under test | Real `sentinel-api` implementation |
-| Peers | Local fixture stubs under `tests/stubs/` |
-| Database | Disposable local PostgreSQL |
-| Payment provider / model | Not used |
-| Assembly / pilot | Unverified |
+| Dimension                | This module check                        |
+| ------------------------ | ---------------------------------------- |
+| Component under test     | Real `sentinel-api` implementation       |
+| Peers                    | Local fixture stubs under `tests/stubs/` |
+| Database                 | Disposable local PostgreSQL              |
+| Payment provider / model | Not used                                 |
+| Assembly / pilot         | Unverified                               |
 
 Real-peer integration against independently built workflow/evidence/ledger/verifier services is an owner assembly concern.

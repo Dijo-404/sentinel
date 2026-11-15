@@ -1,24 +1,32 @@
 """Run trusted local Makefiles using argv, with process/output bounds."""
 
 import os
-from pathlib import Path
 import selectors
 import signal
 import subprocess
 import time
+from pathlib import Path
 
 from .contracts import Module, ModuleResult
 from .discovery import contained
 
 
-def run_check(repo: Path, module: Module, *, make: str = "make",
-              timeout: float = 300, max_output_bytes: int = 65536) -> ModuleResult:
+def run_check(
+    repo: Path,
+    module: Module,
+    *,
+    make: str = "make",
+    timeout: float = 300,
+    max_output_bytes: int = 65536,
+) -> ModuleResult:
     root = contained(repo, module.root)
     contained(repo, module.root + "/Makefile")
     try:
         process = subprocess.Popen(
             [make, "--no-print-directory", "-C", str(root), "check"],
-            stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
             start_new_session=True,
         )
     except OSError:
@@ -61,6 +69,10 @@ def run_check(repo: Path, module: Module, *, make: str = "make",
                 pass
         process.wait()
         process.stdout.close()
-    return ModuleResult(module.id, module.root,
-                        status or ("PASS" if process.returncode == 0 else "FAIL"),
-                        process.returncode, output.decode("utf-8", errors="replace"))
+    return ModuleResult(
+        module.id,
+        module.root,
+        status or ("PASS" if process.returncode == 0 else "FAIL"),
+        process.returncode,
+        output.decode("utf-8", errors="replace"),
+    )

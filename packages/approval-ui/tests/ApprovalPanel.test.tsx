@@ -24,19 +24,11 @@ describe("ApprovalPanel browser checks", () => {
     expect(screen.getByTestId("amount")).toHaveTextContent("INR 1500.00 (150000 minor)");
     expect(screen.getByTestId("transaction-ref")).toHaveTextContent("TXN-B");
     expect(screen.getByTestId("policy-version")).toHaveTextContent("demo-policy-v1");
-    expect(screen.getByTestId("action-digest")).toHaveTextContent(
-      previewBundle.expected_sha256,
-    );
-    expect(screen.getByTestId("decision-expires-at")).toHaveTextContent(
-      "2026-11-13T14:00:00Z",
-    );
+    expect(screen.getByTestId("action-digest")).toHaveTextContent(previewBundle.expected_sha256);
+    expect(screen.getByTestId("decision-expires-at")).toHaveTextContent("2026-11-13T14:00:00Z");
     expect(screen.getByTestId("reviewer-id")).toHaveTextContent("supervisor-demo-1");
-    expect(screen.getByTestId("evidence-age-evidence-payment-b")).toHaveTextContent(
-      "age 1h 0m",
-    );
-    expect(screen.getByTestId("evidence-age-evidence-order")).toHaveTextContent(
-      "age 55m 0s",
-    );
+    expect(screen.getByTestId("evidence-age-evidence-payment-b")).toHaveTextContent("age 1h 0m");
+    expect(screen.getByTestId("evidence-age-evidence-order")).toHaveTextContent("age 55m 0s");
   });
 
   it("approve submits the supplied digest and revision", async () => {
@@ -54,9 +46,7 @@ describe("ApprovalPanel browser checks", () => {
       policy_version: "demo-policy-v1",
       expires_at: "2026-11-13T14:00:00Z",
     });
-    expect(await screen.findByTestId("decision-result")).toHaveTextContent(
-      "Recorded APPROVE",
-    );
+    expect(await screen.findByTestId("decision-result")).toHaveTextContent("Recorded APPROVE");
   });
 
   it("handles expired, stale, unauthorized, cross-tenant, and 409 accessibly", async () => {
@@ -108,11 +98,7 @@ describe("ApprovalPanel browser checks", () => {
     const user = userEvent.setup();
     const decide = vi.fn();
     render(
-      <ApprovalPanel
-        {...baseProps}
-        decide={decide}
-        now={() => new Date("2026-11-13T15:00:00Z")}
-      />,
+      <ApprovalPanel {...baseProps} decide={decide} now={() => new Date("2026-11-13T15:00:00Z")} />,
     );
 
     await user.click(screen.getByTestId("approve"));

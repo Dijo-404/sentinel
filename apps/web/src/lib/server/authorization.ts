@@ -1,12 +1,6 @@
 import { redirect } from "next/navigation";
 import type { PortalRole } from "../../../tests/stubs/identity";
-import {
-  getAuthSession,
-  loginPath,
-  portalPath,
-  type AuthSession,
-  workspaceChoices,
-} from "./auth";
+import { getAuthSession, loginPath, portalPath, type AuthSession, workspaceChoices } from "./auth";
 
 export type RequireRoleResult =
   | { ok: true; session: AuthSession }
@@ -18,9 +12,7 @@ export type RequireRoleResult =
       workspaces: ReturnType<typeof workspaceChoices>;
     };
 
-export async function checkRole(
-  required: PortalRole,
-): Promise<RequireRoleResult> {
+export async function checkRole(required: PortalRole): Promise<RequireRoleResult> {
   const session = await getAuthSession();
   const loginHref = loginPath(required);
   if (!session) {

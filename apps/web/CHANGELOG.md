@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed — 15 November 2026
+
+- Applied the repository Prettier baseline to TypeScript, TSX, CSS, and documentation without changing portal behavior.
+
 ### Added — 15 November 2026 (wave6 money-path composition gates)
 
 - Dedicated `tests/wave6-money-path-gates.test.tsx`: default `loadShellConfig({})`

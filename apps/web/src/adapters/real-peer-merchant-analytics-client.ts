@@ -1,24 +1,14 @@
-import type {
-  MerchantAnalyticsClient,
-  MerchantMetrics,
-} from "@/application/ports";
+import type { MerchantAnalyticsClient, MerchantMetrics } from "@/application/ports";
 import { PeerError } from "@/domain/types";
 import { createPeerJsonFetcher, type PeerJsonOptions } from "./peer-json";
 
-export type MerchantAnalyticsPeerOptions = Omit<
-  PeerJsonOptions,
-  "peerLabel"
-> & {
+export type MerchantAnalyticsPeerOptions = Omit<PeerJsonOptions, "peerLabel"> & {
   peerLabel?: string;
 };
 
 function validateMetrics(json: unknown, requestId: string): MerchantMetrics {
   if (!json || typeof json !== "object") {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      "Merchant metrics is not an object",
-      requestId,
-    );
+    throw new PeerError("MALFORMED_PEER_RESPONSE", "Merchant metrics is not an object", requestId);
   }
   const o = json as Record<string, unknown>;
   if (

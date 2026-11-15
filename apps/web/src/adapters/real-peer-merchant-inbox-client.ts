@@ -1,7 +1,4 @@
-import type {
-  InboxExceptionItem,
-  MerchantInboxClient,
-} from "@/application/ports";
+import type { InboxExceptionItem, MerchantInboxClient } from "@/application/ports";
 import { PeerError } from "@/domain/types";
 import { createPeerJsonFetcher, type PeerJsonOptions } from "./peer-json";
 
@@ -9,28 +6,13 @@ export type MerchantInboxPeerOptions = Omit<PeerJsonOptions, "peerLabel"> & {
   peerLabel?: string;
 };
 
-function validateList(
-  json: unknown,
-  requestId: string,
-): { items: InboxExceptionItem[] } {
-  if (
-    !json ||
-    typeof json !== "object" ||
-    !Array.isArray((json as { items?: unknown }).items)
-  ) {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      "Missing items array",
-      requestId,
-    );
+function validateList(json: unknown, requestId: string): { items: InboxExceptionItem[] } {
+  if (!json || typeof json !== "object" || !Array.isArray((json as { items?: unknown }).items)) {
+    throw new PeerError("MALFORMED_PEER_RESPONSE", "Missing items array", requestId);
   }
   const items = (json as { items: unknown[] }).items.map((row, i) => {
     if (!row || typeof row !== "object") {
-      throw new PeerError(
-        "MALFORMED_PEER_RESPONSE",
-        `Exception[${i}] is not an object`,
-        requestId,
-      );
+      throw new PeerError("MALFORMED_PEER_RESPONSE", `Exception[${i}] is not an object`, requestId);
     }
     const o = row as Record<string, unknown>;
     if (
@@ -83,11 +65,7 @@ export function createRealPeerMerchantInboxClient(
       if (query?.kind) params.set("kind", query.kind);
       if (query?.status) params.set("status", query.status);
       const qs = params.toString();
-      return request(
-        "GET",
-        `/v1/exceptions${qs ? `?${qs}` : ""}`,
-        validateList,
-      );
+      return request("GET", `/v1/exceptions${qs ? `?${qs}` : ""}`, validateList);
     },
   };
 }

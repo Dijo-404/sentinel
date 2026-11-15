@@ -2,14 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import {
-  Bar,
-  BarChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useShell } from "@/adapters/shell-context";
 import type { CaseClient, ShellMode } from "@/application/ports";
 import { PeerError } from "@/domain/types";
@@ -63,10 +56,7 @@ function CountBars({ data }: { data: { label: string; count: number }[] }) {
           axisLine={false}
           width={28}
         />
-        <Tooltip
-          cursor={{ fill: "rgba(82, 102, 235, 0.06)" }}
-          content={<ChartTooltip />}
-        />
+        <Tooltip cursor={{ fill: "rgba(82, 102, 235, 0.06)" }} content={<ChartTooltip />} />
         <Bar
           dataKey="count"
           name="Cases"
@@ -103,10 +93,7 @@ async function loadOperator(
       source: mode === "fixture" ? "fixture" : "live",
     };
   } catch (err) {
-    if (
-      err instanceof PeerError &&
-      (err.httpStatus === 403 || err.code === "FORBIDDEN")
-    ) {
+    if (err instanceof PeerError && (err.httpStatus === 403 || err.code === "FORBIDDEN")) {
       return { status: "permission", detail: peerDetail(err) };
     }
     return { status: "unavailable", detail: peerDetail(err) };
@@ -131,10 +118,7 @@ async function loadSupervisor(
       source: mode === "fixture" ? "fixture" : "live",
     };
   } catch (err) {
-    if (
-      err instanceof PeerError &&
-      (err.httpStatus === 403 || err.code === "FORBIDDEN")
-    ) {
+    if (err instanceof PeerError && (err.httpStatus === 403 || err.code === "FORBIDDEN")) {
       return { status: "permission", detail: peerDetail(err) };
     }
     return { status: "unavailable", detail: peerDetail(err) };
@@ -151,8 +135,7 @@ export function OpsCombinedOverview({
   mode: modeProp,
 }: Props) {
   const { caseClient: shellClient, config } = useShell();
-  const caseClient =
-    caseClientProp === undefined ? shellClient : caseClientProp;
+  const caseClient = caseClientProp === undefined ? shellClient : caseClientProp;
   const mode = modeProp ?? config.mode;
   const [load, setLoad] = useState<CombinedState>({ status: "loading" });
   const [chartReady, setChartReady] = useState(false);
@@ -217,18 +200,14 @@ export function OpsCombinedOverview({
   const showFixture =
     mode === "fixture" ||
     (load.status === "ready" &&
-      ((load.operator.status === "ready" &&
-        load.operator.source === "fixture") ||
-        (load.supervisor.status === "ready" &&
-          load.supervisor.source === "fixture")));
+      ((load.operator.status === "ready" && load.operator.source === "fixture") ||
+        (load.supervisor.status === "ready" && load.supervisor.source === "fixture")));
 
   return (
     <div className="stack" data-testid="ops-combined-dashboard">
       <div className="panel stack">
         <h1>Operations dashboard</h1>
-        <p className="muted">
-          Combined operator queue and supervisor approval projections.
-        </p>
+        <p className="muted">Combined operator queue and supervisor approval projections.</p>
         <p className="muted">
           Signed in as {session.user.email} · {session.assignment.label}
         </p>
@@ -276,11 +255,7 @@ export function OpsCombinedOverview({
                   <StatBlock
                     label="Open"
                     value={String(load.operator.data.open_total)}
-                    caption={
-                      load.operator.source === "live"
-                        ? "Scoped projection"
-                        : "Fixture peer"
-                    }
+                    caption={load.operator.source === "live" ? "Scoped projection" : "Fixture peer"}
                   />
                   <StatBlock
                     label="Waiting"
@@ -290,35 +265,22 @@ export function OpsCombinedOverview({
                   <StatBlock
                     label="Assigned"
                     value={String(load.operator.data.assigned_to_me)}
-                    caption={
-                      load.operator.source === "live"
-                        ? "Scoped projection"
-                        : "Fixture peer"
-                    }
+                    caption={load.operator.source === "live" ? "Scoped projection" : "Fixture peer"}
                   />
                   <StatBlock
                     label="Interventions"
                     value={String(load.operator.data.escalated)}
-                    caption={
-                      load.operator.source === "live"
-                        ? "Scoped projection"
-                        : "Fixture peer"
-                    }
+                    caption={load.operator.source === "live" ? "Scoped projection" : "Fixture peer"}
                   />
                 </div>
                 <ChartCard title="Case status (operator projection)">
-                  <div
-                    style={{ width: "100%", height: 220 }}
-                    data-testid="operator-status-chart"
-                  >
+                  <div style={{ width: "100%", height: 220 }} data-testid="operator-status-chart">
                     {chartReady ? (
                       <CountBars
-                        data={projectionStatusSlices(load.operator.data).map(
-                          (slice) => ({
-                            label: slice.name,
-                            count: slice.value,
-                          }),
-                        )}
+                        data={projectionStatusSlices(load.operator.data).map((slice) => ({
+                          label: slice.name,
+                          count: slice.value,
+                        }))}
                       />
                     ) : null}
                   </div>
@@ -355,9 +317,7 @@ export function OpsCombinedOverview({
                     label="Escalated"
                     value={String(load.supervisor.data.escalated_cases)}
                     caption={
-                      load.supervisor.source === "live"
-                        ? "Scoped projection"
-                        : "Fixture peer"
+                      load.supervisor.source === "live" ? "Scoped projection" : "Fixture peer"
                     }
                   />
                   <StatBlock
@@ -373,22 +333,12 @@ export function OpsCombinedOverview({
                         ? "Queue active"
                         : "Queue clear"
                     }
-                    direction={
-                      load.supervisor.data.waiting_approval_cases > 0
-                        ? "up"
-                        : "flat"
-                    }
+                    direction={load.supervisor.data.waiting_approval_cases > 0 ? "up" : "flat"}
                   />
-                  <p
-                    className="muted"
-                    data-testid="supervisor-projection-label"
-                  >
+                  <p className="muted" data-testid="supervisor-projection-label">
                     {load.supervisor.data.label}
                   </p>
-                  <Link
-                    href="/supervisor/approvals"
-                    data-testid="supervisor-open-approvals"
-                  >
+                  <Link href="/supervisor/approvals" data-testid="supervisor-open-approvals">
                     Open approvals
                   </Link>
                 </div>

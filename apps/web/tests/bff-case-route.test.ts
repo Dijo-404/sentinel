@@ -32,10 +32,9 @@ describe("BFF /api/bff/case route auth", () => {
       get: () => undefined,
     } as Awaited<ReturnType<typeof cookies>>);
 
-    const res = await GET(
-      new NextRequest("http://localhost/api/bff/case/v1/cases"),
-      { params: Promise.resolve({ path: ["v1", "cases"] }) },
-    );
+    const res = await GET(new NextRequest("http://localhost/api/bff/case/v1/cases"), {
+      params: Promise.resolve({ path: ["v1", "cases"] }),
+    });
 
     expect(res.status).toBe(401);
     const body = await res.json();
@@ -46,9 +45,7 @@ describe("BFF /api/bff/case route auth", () => {
   it("authenticated request forwards sentinel_session, not CASE_API_BEARER_TOKEN", async () => {
     vi.mocked(cookies).mockResolvedValue({
       get: (name: string) =>
-        name === SESSION_COOKIE
-          ? { name: SESSION_COOKIE, value: "sess-user" }
-          : undefined,
+        name === SESSION_COOKIE ? { name: SESSION_COOKIE, value: "sess-user" } : undefined,
     } as Awaited<ReturnType<typeof cookies>>);
 
     fetchMock.mockResolvedValue(
@@ -58,10 +55,9 @@ describe("BFF /api/bff/case route auth", () => {
       }),
     );
 
-    const res = await GET(
-      new NextRequest("http://localhost/api/bff/case/v1/cases"),
-      { params: Promise.resolve({ path: ["v1", "cases"] }) },
-    );
+    const res = await GET(new NextRequest("http://localhost/api/bff/case/v1/cases"), {
+      params: Promise.resolve({ path: ["v1", "cases"] }),
+    });
 
     expect(res.status).toBe(200);
     expect(fetchMock).toHaveBeenCalledOnce();

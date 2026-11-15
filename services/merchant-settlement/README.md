@@ -39,16 +39,16 @@ Synthetic tokens are in `contracts/principals.json`. Example operator bearer: `o
 
 ## Routes
 
-| Method | Path | Auth | Notes |
-| --- | --- | --- | --- |
-| GET | `/healthz` | none | liveness |
-| GET | `/readyz` | none | labels `mode` |
-| GET | `/v1/capabilities` | none | `contract_version`, `component=merchant-settlement`, `mode` |
-| POST | `/v1/settlements/batches` | operator/supervisor | JSON batch or `{..., csv_text}` → batch + findings |
-| GET | `/v1/settlements/batches/{batch_id}` | operator/supervisor | stored batch |
-| GET | `/v1/settlements/findings` | operator/supervisor | optional `batch_id`, `status` |
-| POST | `/v1/settlements/findings/{id}/assign` | operator/supervisor | `{assignee}` → `ASSIGNED` |
-| POST | `/v1/settlements/findings/{id}/close` | operator/supervisor | → `CLOSED` |
+| Method | Path                                   | Auth                | Notes                                                       |
+| ------ | -------------------------------------- | ------------------- | ----------------------------------------------------------- |
+| GET    | `/healthz`                             | none                | liveness                                                    |
+| GET    | `/readyz`                              | none                | labels `mode`                                               |
+| GET    | `/v1/capabilities`                     | none                | `contract_version`, `component=merchant-settlement`, `mode` |
+| POST   | `/v1/settlements/batches`              | operator/supervisor | JSON batch or `{..., csv_text}` → batch + findings          |
+| GET    | `/v1/settlements/batches/{batch_id}`   | operator/supervisor | stored batch                                                |
+| GET    | `/v1/settlements/findings`             | operator/supervisor | optional `batch_id`, `status`                               |
+| POST   | `/v1/settlements/findings/{id}/assign` | operator/supervisor | `{assignee}` → `ASSIGNED`                                   |
+| POST   | `/v1/settlements/findings/{id}/close`  | operator/supervisor | → `CLOSED`                                                  |
 
 ## Layout
 

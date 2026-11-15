@@ -1,7 +1,7 @@
 ---
 name: Independent agent task
 about: One independently buildable component with supplied contracts and local peer doubles
-title: '[SN-NEW] '
+title: "[SN-NEW] "
 labels: agents, status:backlog
 ---
 

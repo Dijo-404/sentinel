@@ -11,8 +11,7 @@ vi.mock("@/lib/server/auth-actions", () => ({
   switchWorkspaceAction: vi.fn(),
   forgotPasswordAction: vi.fn(async () => ({
     ok: true as const,
-    message:
-      "If an account exists for that email, reset instructions were sent.",
+    message: "If an account exists for that email, reset instructions were sent.",
   })),
   resetPasswordAction: vi.fn(async () => ({
     ok: true as const,

@@ -1,9 +1,6 @@
 "use server";
 
-import {
-  toPublicProfileUser,
-  type PublicProfileUser,
-} from "@/lib/identity-public";
+import { toPublicProfileUser, type PublicProfileUser } from "@/lib/identity-public";
 import { PeerError } from "@/domain/types";
 import { readSessionId } from "./auth";
 import { getIdentityClient } from "./identity-client";
@@ -18,7 +15,10 @@ export type MarkReadActionResult =
 
 const SESSION_REQUIRED = "Sign in to continue this step.";
 
-function peerFailure(err: unknown, fallback: string): {
+function peerFailure(
+  err: unknown,
+  fallback: string,
+): {
   ok: false;
   message: string;
   peerError: true;
@@ -42,9 +42,7 @@ export async function patchProfileAction(
     return { ok: false, message: SESSION_REQUIRED };
   }
   const display_name = String(formData.get("display_name") ?? "").trim();
-  const preferred_language = String(
-    formData.get("preferred_language") ?? "",
-  ).trim();
+  const preferred_language = String(formData.get("preferred_language") ?? "").trim();
   if (!display_name) {
     return { ok: false, message: "Display name is required." };
   }
@@ -85,10 +83,7 @@ export async function markNotificationReadAction(
     return { ok: false, message: "Notification id is required." };
   }
   try {
-    const result = await getIdentityClient().markNotificationRead(
-      sessionId,
-      notificationId,
-    );
+    const result = await getIdentityClient().markNotificationRead(sessionId, notificationId);
     return {
       ok: true,
       notification_id: result.notification_id,

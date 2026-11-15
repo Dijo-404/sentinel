@@ -40,6 +40,7 @@
 **Files:** Create owned root `services/assistant/` (pyproject, Makefile, README, CHANGELOG, migrations, src, tests, contracts/assistant.v1.json)
 
 **Interfaces:**
+
 - `GET /v1/health`, `GET /v1/capabilities`
 - `GET /v1/threads?role=customer|operator` → `{ threads: [{ thread_id, title, updated_at }] }`
 - `POST /v1/threads` `{ title? }` → thread
@@ -57,6 +58,7 @@
 **Files:** `services/knowledge/` mirror Task 1 shape
 
 **Interfaces:**
+
 - `GET /v1/articles` → `{ articles: [{ article_id, title, summary, updated_at }] }`
 - `GET /v1/articles/{id}` → article body
 - `GET /v1/search?q=` → `{ hits: [...] }` (simple ILIKE/title match OK)
@@ -71,6 +73,7 @@
 **Files:** `services/ops-activity/`
 
 **Interfaces:**
+
 - `GET /v1/activity` → `{ items: [{ activity_id, kind, summary, occurred_at, case_id? }] }` newest first max 50
 - May insert seed rows; optional later projection from case-api (document if sync stub)
 - Port `8029`
@@ -84,6 +87,7 @@
 **Files:** `services/platform-ai/`
 
 **Interfaces:**
+
 - `GET /v1/config` → `{ models: [...], kill_switch: bool, updated_at }`
 - `GET /v1/runs` → `{ runs: [{ run_id, model_id, status, started_at }] }` (metadata only)
 - Port `8036`; no money fields; seed one config row + one run
@@ -97,6 +101,7 @@
 **Files:** under `evals/core/` — store adapter, migration, ASGI/preview entry, tests
 
 **Interfaces:**
+
 - Persist `RunReport` rows; `GET /v1/reports`, `GET /v1/reports/{id}`
 - Port `8031` via `make preview-http` or documented preview
 - CLI/CI runner unchanged as authority; HTTP reads same store
@@ -111,6 +116,7 @@
 **Files:** `services/observability/` using types from `packages/telemetry` (Python port or JSON schema alignment — prefer import/copy of wire shapes without forking contract)
 
 **Interfaces:**
+
 - `POST /v1/ingest` (sandbox) / `GET /v1/signals` or `/v1/spans` list for admin
 - Port `8033`; seed ≥1 signal; never claim financial audit
 
@@ -121,6 +127,7 @@
 ### Task 7: Web BFF + operator/customer intel pages
 
 **Files:**
+
 - BFF routes: `apps/web/src/app/api/bff/assistant|knowledge|ops-activity/[...path]/route.ts`
 - Replace stubs: operator `activity`, `knowledge`, `assistant`; customer `assistant`
 - Panels + browser tests; `data-testid` + `peer-error`
@@ -133,6 +140,7 @@
 ### Task 8: Real `packages/approval-ui` in real-peers
 
 **Files:**
+
 - `apps/web/src/slots/approval-slot.tsx` — import `ApprovalPanel` from approval-ui package when mode real-peers (or always prefer package; fixture may keep substitute)
 - Workspace dependency: add `packages/approval-ui` to web package.json if needed
 - Map `ApprovalSlotProps` → `ApprovalPanel` props + decide client via case-api BFF
@@ -146,6 +154,7 @@
 ### Task 9: Voice on — BFF + composition + intake wiring
 
 **Files:**
+
 - BFF `apps/web/src/app/api/bff/voice/[...path]/route.ts`
 - Real peer voice client; `NEXT_PUBLIC_VOICE_ENABLED=true` in `.env.example` for product demo
 - Wire voice slot on intake (or documented portal surface already prepared)
@@ -159,6 +168,7 @@
 ### Task 10: Sandbox seed hooks + verify-wave4
 
 **Files:**
+
 - Wire `seed-sandbox` to new peers + evals/obs
 - `integration/core` verify-wave4: health/list endpoints for assistant/knowledge/activity; approval package import smoke; voice capabilities
 - Update `sandbox-matrix.md` ports

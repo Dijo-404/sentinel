@@ -20,11 +20,7 @@ export function StatBlock({ label, value, caption, series, trend }: Props) {
       <div className="stat-block__head">
         <p className="stat-block__label">{label}</p>
         {trend ? (
-          <TrendPill
-            value={trend.value}
-            direction={trend.direction}
-            tone={trend.tone}
-          />
+          <TrendPill value={trend.value} direction={trend.direction} tone={trend.tone} />
         ) : null}
       </div>
       <p className="stat-block__value tnum">{value}</p>

@@ -3,10 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useShell } from "@/adapters/shell-context";
 import { createMerchantAnalyticsClientForMode } from "@/adapters/composition-peers";
-import type {
-  MerchantAnalyticsClient,
-  MerchantMetrics,
-} from "@/application/ports";
+import type { MerchantAnalyticsClient, MerchantMetrics } from "@/application/ports";
 import { PeerError } from "@/domain/types";
 import { formatAmountMinor } from "@/domain/mask";
 import type { AuthSession } from "@/lib/server/auth";
@@ -73,8 +70,7 @@ export function AnalyticsPanel({ session, analyticsClient }: Props) {
         if (!cancelled) {
           setLoad({
             status: "error",
-            detail:
-              "Active assignment has no merchant_ref; metrics withheld",
+            detail: "Active assignment has no merchant_ref; metrics withheld",
           });
         }
         return;
@@ -116,8 +112,7 @@ export function AnalyticsPanel({ session, analyticsClient }: Props) {
       <p className="muted">
         Merchant metrics from merchant-analytics via BFF. Not payment authority.
       </p>
-      {config.mode === "fixture" ||
-      (load.status === "ready" && load.source === "fixture") ? (
+      {config.mode === "fixture" || (load.status === "ready" && load.source === "fixture") ? (
         <FixtureBanner />
       ) : null}
 
@@ -126,11 +121,7 @@ export function AnalyticsPanel({ session, analyticsClient }: Props) {
       ) : null}
       {load.status === "error" ? (
         <div data-testid="peer-error">
-          <UiState
-            tone="error"
-            title="Analytics unavailable"
-            detail={load.detail}
-          />
+          <UiState tone="error" title="Analytics unavailable" detail={load.detail} />
         </div>
       ) : null}
       {load.status === "ready" ? (
@@ -145,17 +136,10 @@ export function AnalyticsPanel({ session, analyticsClient }: Props) {
         >
           <StatBlock
             label="Unresolved"
-            value={formatAmountMinor(
-              load.metrics.unresolved_minor,
-              load.metrics.currency,
-            )}
+            value={formatAmountMinor(load.metrics.unresolved_minor, load.metrics.currency)}
             caption={caption}
           />
-          <StatBlock
-            label="Exception rate"
-            value={load.metrics.exception_rate}
-            caption={caption}
-          />
+          <StatBlock label="Exception rate" value={load.metrics.exception_rate} caption={caption} />
           <StatBlock
             label="Median handling"
             value={`${load.metrics.median_handling_seconds}s`}

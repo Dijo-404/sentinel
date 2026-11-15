@@ -6,11 +6,7 @@ vi.mock("next/headers", () => ({
 }));
 
 import { cookies } from "next/headers";
-import {
-  GET,
-  PATCH,
-  POST,
-} from "@/app/api/bff/identity/[...path]/route";
+import { GET, PATCH, POST } from "@/app/api/bff/identity/[...path]/route";
 import { SESSION_COOKIE } from "@/lib/server/auth";
 
 describe("BFF /api/bff/identity passthrough", () => {
@@ -32,9 +28,7 @@ describe("BFF /api/bff/identity passthrough", () => {
   it("PATCH /v1/auth/me forwards session bearer to identity peer", async () => {
     vi.mocked(cookies).mockResolvedValue({
       get: (name: string) =>
-        name === SESSION_COOKIE
-          ? { name: SESSION_COOKIE, value: "sess-user" }
-          : undefined,
+        name === SESSION_COOKIE ? { name: SESSION_COOKIE, value: "sess-user" } : undefined,
     } as Awaited<ReturnType<typeof cookies>>);
 
     fetchMock.mockResolvedValue(
@@ -71,9 +65,7 @@ describe("BFF /api/bff/identity passthrough", () => {
   it("GET notifications and POST forgot forward without inventing rows", async () => {
     vi.mocked(cookies).mockResolvedValue({
       get: (name: string) =>
-        name === SESSION_COOKIE
-          ? { name: SESSION_COOKIE, value: "sess-user" }
-          : undefined,
+        name === SESSION_COOKIE ? { name: SESSION_COOKIE, value: "sess-user" } : undefined,
     } as Awaited<ReturnType<typeof cookies>>);
 
     fetchMock.mockResolvedValue(
@@ -84,9 +76,7 @@ describe("BFF /api/bff/identity passthrough", () => {
     );
 
     const list = await GET(
-      new NextRequest(
-        "http://localhost/api/bff/identity/v1/auth/notifications",
-      ),
+      new NextRequest("http://localhost/api/bff/identity/v1/auth/notifications"),
       {
         params: Promise.resolve({
           path: ["v1", "auth", "notifications"],
@@ -94,9 +84,7 @@ describe("BFF /api/bff/identity passthrough", () => {
       },
     );
     expect(list.status).toBe(200);
-    expect(String(fetchMock.mock.calls[0]![0])).toContain(
-      "/v1/auth/notifications",
-    );
+    expect(String(fetchMock.mock.calls[0]![0])).toContain("/v1/auth/notifications");
 
     fetchMock.mockResolvedValue(
       new Response(JSON.stringify({ status: "accepted" }), {
@@ -106,14 +94,11 @@ describe("BFF /api/bff/identity passthrough", () => {
     );
 
     const forgot = await POST(
-      new NextRequest(
-        "http://localhost/api/bff/identity/v1/auth/password/forgot",
-        {
-          method: "POST",
-          body: JSON.stringify({ email: "a@b.test" }),
-          headers: { "content-type": "application/json" },
-        },
-      ),
+      new NextRequest("http://localhost/api/bff/identity/v1/auth/password/forgot", {
+        method: "POST",
+        body: JSON.stringify({ email: "a@b.test" }),
+        headers: { "content-type": "application/json" },
+      }),
       {
         params: Promise.resolve({
           path: ["v1", "auth", "password", "forgot"],
@@ -121,9 +106,7 @@ describe("BFF /api/bff/identity passthrough", () => {
       },
     );
     expect(forgot.status).toBe(202);
-    expect(String(fetchMock.mock.calls[1]![0])).toContain(
-      "/v1/auth/password/forgot",
-    );
+    expect(String(fetchMock.mock.calls[1]![0])).toContain("/v1/auth/password/forgot");
   });
 
   it("unauthenticated identity BFF returns 401", async () => {
@@ -131,10 +114,9 @@ describe("BFF /api/bff/identity passthrough", () => {
       get: () => undefined,
     } as Awaited<ReturnType<typeof cookies>>);
 
-    const res = await GET(
-      new NextRequest("http://localhost/api/bff/identity/v1/auth/me"),
-      { params: Promise.resolve({ path: ["v1", "auth", "me"] }) },
-    );
+    const res = await GET(new NextRequest("http://localhost/api/bff/identity/v1/auth/me"), {
+      params: Promise.resolve({ path: ["v1", "auth", "me"] }),
+    });
     expect(res.status).toBe(401);
     expect(fetchMock).not.toHaveBeenCalled();
   });

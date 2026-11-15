@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import Any, Literal, Mapping
+from typing import Any, Literal
 
 CONTRACT_VERSION = "sentinel.task-contracts.v1"
-CONTRACT_SHA256 = (
-    "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
-)
+CONTRACT_SHA256 = "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
 PORT = "release-evidence.v1"
 COMPONENT = "release-mvp"
 
@@ -120,9 +119,7 @@ class RunInput:
             raise ContractError("INVALID_INPUT", "parameters must be an object")
         for key, value in params.items():
             if not isinstance(key, str) or not isinstance(value, (str, int, bool)):
-                raise ContractError(
-                    "INVALID_INPUT", "parameters values must be string|int|bool"
-                )
+                raise ContractError("INVALID_INPUT", "parameters values must be string|int|bool")
             if isinstance(value, bool):
                 continue
             if isinstance(value, int) and not isinstance(value, bool):
@@ -279,9 +276,7 @@ class EvidenceManifest:
         comps = data.get("components")
         checks = data.get("required_checks")
         if not isinstance(comps, list) or not isinstance(checks, list):
-            raise ContractError(
-                "INVALID_INPUT", "components and required_checks must be arrays"
-            )
+            raise ContractError("INVALID_INPUT", "components and required_checks must be arrays")
         attrs = data.get("attributes", {})
         if attrs is None:
             attrs = {}

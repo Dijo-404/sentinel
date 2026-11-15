@@ -47,12 +47,7 @@ type LoadState =
  * Role portal dashboard. Customer uses case-api projections; risk uses risk.v1.
  * Otherwise explicit unavailable — never fake metric numbers.
  */
-export function PortalDashboard({
-  role,
-  session,
-  highlights,
-  riskClient: riskClientProp,
-}: Props) {
+export function PortalDashboard({ role, session, highlights, riskClient: riskClientProp }: Props) {
   const meta = PORTAL_META[role];
   const { caseClient, config } = useShell();
   const riskClient = useMemo(() => {
@@ -149,18 +144,14 @@ export function PortalDashboard({
   ];
 
   const caption =
-    load.status === "ready" && load.source === "live"
-      ? "Scoped projection"
-      : "Fixture peer";
+    load.status === "ready" && load.source === "live" ? "Scoped projection" : "Fixture peer";
 
   return (
     <div className="stack" data-testid={`${role}-dashboard`}>
       <div className="panel stack">
         <h1>{meta.title} dashboard</h1>
         <p className="muted">{meta.description}</p>
-        {config.mode === "fixture" || load.status === "ready" ? (
-          <FixtureBanner />
-        ) : null}
+        {config.mode === "fixture" || load.status === "ready" ? <FixtureBanner /> : null}
       </div>
       <div className="panel">
         <h2>Session</h2>
@@ -171,15 +162,9 @@ export function PortalDashboard({
         </ul>
       </div>
 
-      {load.status === "loading" ? (
-        <UiState tone="loading" title="Loading metrics…" />
-      ) : null}
+      {load.status === "loading" ? <UiState tone="loading" title="Loading metrics…" /> : null}
       {load.status === "unavailable" ? (
-        <UiState
-          tone="empty"
-          title="Metrics unavailable"
-          detail={load.detail}
-        />
+        <UiState tone="empty" title="Metrics unavailable" detail={load.detail} />
       ) : null}
       {load.status === "ready" && load.kind === "customer" ? (
         <div
@@ -191,16 +176,8 @@ export function PortalDashboard({
           }}
           data-testid="portal-kpi-row"
         >
-          <StatBlock
-            label="Open cases"
-            value={String(load.kpis.open_cases)}
-            caption={caption}
-          />
-          <StatBlock
-            label="Needs input"
-            value={String(load.kpis.needs_input)}
-            caption={caption}
-          />
+          <StatBlock label="Open cases" value={String(load.kpis.open_cases)} caption={caption} />
+          <StatBlock label="Needs input" value={String(load.kpis.needs_input)} caption={caption} />
           <StatBlock
             label="Waiting approval"
             value={String(load.kpis.waiting_approval)}

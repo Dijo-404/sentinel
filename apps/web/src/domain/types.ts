@@ -211,12 +211,7 @@ export class PeerError extends Error {
   readonly requestId: string;
   readonly httpStatus?: number;
 
-  constructor(
-    code: string,
-    message: string,
-    requestId: string,
-    httpStatus?: number,
-  ) {
+  constructor(code: string, message: string, requestId: string, httpStatus?: number) {
     super(message);
     this.name = "PeerError";
     this.code = code;
@@ -229,8 +224,6 @@ export function isApiError(value: unknown): value is ApiError {
   if (!value || typeof value !== "object") return false;
   const v = value as Record<string, unknown>;
   return (
-    typeof v.code === "string" &&
-    typeof v.message === "string" &&
-    typeof v.request_id === "string"
+    typeof v.code === "string" && typeof v.message === "string" && typeof v.request_id === "string"
   );
 }

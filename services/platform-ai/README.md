@@ -14,11 +14,11 @@ Typed snapshot: [contracts/platform-ai.v1.json](contracts/platform-ai.v1.json).
 
 ## Routes
 
-| Method | Path | Roles | Response |
-| --- | --- | --- | --- |
-| `GET` | `/v1/config` | platform_admin, sandbox-admin | `{ models, kill_switch, updated_at }` |
-| `GET` | `/v1/runs` | platform_admin, sandbox-admin | `{ runs: [{ run_id, model_id, status, started_at }] }` |
-| `GET` | `/v1/integrations` | platform_admin, sandbox-admin | `{ integrations: [{ integration_id, name, status, updated_at }] }` |
+| Method | Path               | Roles                         | Response                                                           |
+| ------ | ------------------ | ----------------------------- | ------------------------------------------------------------------ |
+| `GET`  | `/v1/config`       | platform_admin, sandbox-admin | `{ models, kill_switch, updated_at }`                              |
+| `GET`  | `/v1/runs`         | platform_admin, sandbox-admin | `{ runs: [{ run_id, model_id, status, started_at }] }`             |
+| `GET`  | `/v1/integrations` | platform_admin, sandbox-admin | `{ integrations: [{ integration_id, name, status, updated_at }] }` |
 
 Also: `/healthz`, `/readyz`, `/v1/capabilities` (`mode: fixture|real-peers`,
 `money_authority: false`).
@@ -67,10 +67,10 @@ services/platform-ai/
 
 ## Modes
 
-| Mode | How | Notes |
-| --- | --- | --- |
-| `fixture` (default) | in-memory store | used by `make check` unit HTTP tests |
-| `real-peers` | `PLATFORM_AI_MODE=real-peers` + `PLATFORM_AI_DATABASE_URL` | refuses missing DSN; never silent memory fallback |
+| Mode                | How                                                        | Notes                                             |
+| ------------------- | ---------------------------------------------------------- | ------------------------------------------------- |
+| `fixture` (default) | in-memory store                                            | used by `make check` unit HTTP tests              |
+| `real-peers`        | `PLATFORM_AI_MODE=real-peers` + `PLATFORM_AI_DATABASE_URL` | refuses missing DSN; never silent memory fallback |
 
 ## Evidence limits
 

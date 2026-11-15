@@ -1,7 +1,4 @@
-import type {
-  DisputeCaseSummary,
-  MerchantDisputesClient,
-} from "@/application/ports";
+import type { DisputeCaseSummary, MerchantDisputesClient } from "@/application/ports";
 import { PeerError } from "@/domain/types";
 
 export const FIXTURE_DISPUTES: DisputeCaseSummary[] = [

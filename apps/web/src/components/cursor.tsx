@@ -65,10 +65,7 @@ export function Cursor() {
     root.dataset.pointer = "custom";
 
     const commit = (next: { mode: Mode; label: string | null }) => {
-      if (
-        next.mode === current.current.mode &&
-        next.label === current.current.label
-      ) {
+      if (next.mode === current.current.mode && next.label === current.current.label) {
         return;
       }
       current.current = next;
@@ -127,9 +124,7 @@ export function Cursor() {
           rotate: hover ? -12 : 0,
         }}
         transition={
-          reduce
-            ? { duration: 0 }
-            : { type: "spring", stiffness: 520, damping: 28, mass: 0.5 }
+          reduce ? { duration: 0 } : { type: "spring", stiffness: 520, damping: 28, mass: 0.5 }
         }
         style={{ originX: "3px", originY: "2px" }}
       >
@@ -149,11 +144,7 @@ export function Cursor() {
             initial={{ opacity: 0, scale: 0.7, x: -6 }}
             animate={{ opacity: 1, scale: 1, x: 0 }}
             exit={{ opacity: 0, scale: 0.7 }}
-            transition={
-              reduce
-                ? { duration: 0 }
-                : { type: "spring", stiffness: 420, damping: 26 }
-            }
+            transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 26 }}
           >
             {label}
           </motion.span>

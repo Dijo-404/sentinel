@@ -43,9 +43,7 @@ describe("operator escalations page", () => {
 
     expect(screen.getByTestId("operator-escalations")).toBeInTheDocument();
     expect(screen.queryByText("Not available yet")).not.toBeInTheDocument();
-    expect(
-      await screen.findByTestId("operator-escalations-list"),
-    ).toBeInTheDocument();
+    expect(await screen.findByTestId("operator-escalations-list")).toBeInTheDocument();
     expect(screen.getByTestId("escalation-link-case-escalated-1")).toHaveAttribute(
       "href",
       "/operator/cases/case-escalated-1",
@@ -67,9 +65,7 @@ describe("operator escalations page", () => {
 
     expect(await screen.findByTestId("peer-error")).toBeInTheDocument();
     expect(screen.queryByText("Not available yet")).not.toBeInTheDocument();
-    expect(
-      screen.queryByTestId("operator-escalations-list"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId("operator-escalations-list")).not.toBeInTheDocument();
   });
 
   it("empty escalated list stays honest — no stub copy", async () => {
@@ -103,13 +99,9 @@ describe("operator messages page", () => {
 
     expect(screen.getByTestId("operator-messages")).toBeInTheDocument();
     expect(screen.queryByText("Not available yet")).not.toBeInTheDocument();
-    expect(
-      await screen.findByTestId("operator-messages-list"),
-    ).toBeInTheDocument();
+    expect(await screen.findByTestId("operator-messages-list")).toBeInTheDocument();
     expect(screen.getByText("case-demo-42")).toBeInTheDocument();
-    expect(
-      screen.getByText("Customer paid twice for the same order"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Customer paid twice for the same order")).toBeInTheDocument();
     expect(screen.getByText("2026-11-13T12:00:00Z")).toBeInTheDocument();
   });
 
@@ -128,9 +120,7 @@ describe("operator messages page", () => {
 
     expect(await screen.findByTestId("peer-error")).toBeInTheDocument();
     expect(screen.queryByText("Not available yet")).not.toBeInTheDocument();
-    expect(
-      screen.queryByTestId("operator-messages-list"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId("operator-messages-list")).not.toBeInTheDocument();
   });
 
   it("empty messages list stays honest — no stub copy", async () => {

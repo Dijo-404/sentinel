@@ -35,13 +35,13 @@ Synthetic tokens are in `contracts/principals.json`. Canonical workflow bearer: 
 
 ## Routes
 
-| Method | Path | Auth | Notes |
-| --- | --- | --- | --- |
-| GET | `/healthz` | none | liveness |
-| GET | `/readyz` | none | labels `mode` |
-| GET | `/v1/capabilities` | none | `contract_version`, `component=policy`, `mode` |
-| GET | `/v1/policies` | `platform_admin`, `workflow`, or `sandbox-admin` bearer | `{ policies: [{ policy_id, version, status, updated_at }] }` seeded with `demo-policy-v1`; read-only catalog, no rule mutation |
-| POST | `/v1/evaluate` | workflow bearer (ledger may use workflow-scoped service principal) | `PolicyRequest` → `PolicyResult` |
+| Method | Path               | Auth                                                               | Notes                                                                                                                          |
+| ------ | ------------------ | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| GET    | `/healthz`         | none                                                               | liveness                                                                                                                       |
+| GET    | `/readyz`          | none                                                               | labels `mode`                                                                                                                  |
+| GET    | `/v1/capabilities` | none                                                               | `contract_version`, `component=policy`, `mode`                                                                                 |
+| GET    | `/v1/policies`     | `platform_admin`, `workflow`, or `sandbox-admin` bearer            | `{ policies: [{ policy_id, version, status, updated_at }] }` seeded with `demo-policy-v1`; read-only catalog, no rule mutation |
+| POST   | `/v1/evaluate`     | workflow bearer (ledger may use workflow-scoped service principal) | `PolicyRequest` → `PolicyResult`                                                                                               |
 
 List auth tokens: `tok-platform-admin`, `tok-workflow` / `workflow-demo-token`, `tok-sandbox-admin`. Catalog seed: `contracts/policies.json` (`POLICY_CATALOG_PATH` override).
 

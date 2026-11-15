@@ -49,10 +49,7 @@ export function IntakeForm({
       // Cleared so a second click cannot file a duplicate complaint.
       setMessage("");
     } catch (err) {
-      if (
-        err instanceof PeerError &&
-        (err.httpStatus === 403 || err.code === "FORBIDDEN")
-      ) {
+      if (err instanceof PeerError && (err.httpStatus === 403 || err.code === "FORBIDDEN")) {
         setPermission(`${err.code}: ${err.message}`);
       } else if (err instanceof PeerError) {
         setError(`${err.code}: ${err.message}`);
@@ -68,19 +65,15 @@ export function IntakeForm({
     <div className="stack">
       <h1>{title}</h1>
       <p className="muted">
-        Tell us what went wrong with your payment. We verify it against your
-        order and keep you updated.
+        Tell us what went wrong with your payment. We verify it against your order and keep you
+        updated.
       </p>
       <LocalVoiceSubstitute
         enabled={voiceEnabled}
         client={voiceClient}
         onTranscript={(text) => setMessage(text)}
       />
-      <form
-        className="panel stack"
-        onSubmit={onSubmit}
-        aria-labelledby={`${formId}-title`}
-      >
+      <form className="panel stack" onSubmit={onSubmit} aria-labelledby={`${formId}-title`}>
         <h2 id={`${formId}-title`} className="sr-only">
           Create case
         </h2>
@@ -116,23 +109,14 @@ export function IntakeForm({
             aria-label="Complaint message"
           />
         </label>
-        <button
-          type="submit"
-          disabled={loading || !message.trim() || !orderReference.trim()}
-        >
+        <button type="submit" disabled={loading || !message.trim() || !orderReference.trim()}>
           Submit case
         </button>
       </form>
       {loading ? <UiState tone="loading" title="Submitting case…" /> : null}
-      {error ? (
-        <UiState tone="error" title="Intake failed" detail={error} />
-      ) : null}
+      {error ? <UiState tone="error" title="Intake failed" detail={error} /> : null}
       {permission ? (
-        <UiState
-          tone="permission"
-          title="Permission denied"
-          detail={permission}
-        />
+        <UiState tone="permission" title="Permission denied" detail={permission} />
       ) : null}
       {createdId ? (
         <UiState

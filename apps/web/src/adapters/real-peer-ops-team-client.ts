@@ -18,20 +18,12 @@ function validateOpsTeam(
     typeof json !== "object" ||
     !Array.isArray((json as { members?: unknown }).members)
   ) {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      "Missing members array",
-      requestId,
-    );
+    throw new PeerError("MALFORMED_PEER_RESPONSE", "Missing members array", requestId);
   }
   const body = json as { members: unknown[]; source?: unknown };
   const members = body.members.map((row, i) => {
     if (!row || typeof row !== "object") {
-      throw new PeerError(
-        "MALFORMED_PEER_RESPONSE",
-        `Member[${i}] is not an object`,
-        requestId,
-      );
+      throw new PeerError("MALFORMED_PEER_RESPONSE", `Member[${i}] is not an object`, requestId);
     }
     const o = row as Record<string, unknown>;
     if (
@@ -56,9 +48,7 @@ function validateOpsTeam(
   return { members, source: "identity" };
 }
 
-export function createRealPeerOpsTeamClient(
-  options: OpsTeamPeerOptions,
-): OpsTeamClient {
+export function createRealPeerOpsTeamClient(options: OpsTeamPeerOptions): OpsTeamClient {
   const request = createPeerJsonFetcher({
     ...options,
     peerLabel: options.peerLabel ?? "identity",
@@ -72,9 +62,7 @@ export function createRealPeerOpsTeamClient(
 }
 
 /** Browser path: same-origin BFF with session cookie. */
-export function createBffOpsTeamClient(options?: {
-  fetchImpl?: typeof fetch;
-}): OpsTeamClient {
+export function createBffOpsTeamClient(options?: { fetchImpl?: typeof fetch }): OpsTeamClient {
   return createRealPeerOpsTeamClient({
     baseUrl: "/api/bff/identity",
     authMode: "credentials",

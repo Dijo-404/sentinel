@@ -38,13 +38,13 @@ Synthetic bearer: `voice-demo-token` from `contracts/principals.json`.
 
 ## Routes
 
-| Method | Path | Auth | Notes |
-| --- | --- | --- | --- |
-| GET | `/healthz` | none | liveness |
-| GET | `/readyz` | none | labels `mode`; fixture readiness includes `fixture_label` |
-| GET | `/v1/capabilities` | none | `contract_version`, `component=voice`, `mode`, `port=voice.v1` |
-| POST | `/v1/transcribe` | voice bearer | `{language, audio_uri\|text, consent}` → `{original_text, language, ambiguous, reason_codes}` |
-| POST | `/v1/speak` | voice bearer | optional TTS; fixture returns labeled `fixture://tts/...` URI |
+| Method | Path               | Auth         | Notes                                                                                         |
+| ------ | ------------------ | ------------ | --------------------------------------------------------------------------------------------- |
+| GET    | `/healthz`         | none         | liveness                                                                                      |
+| GET    | `/readyz`          | none         | labels `mode`; fixture readiness includes `fixture_label`                                     |
+| GET    | `/v1/capabilities` | none         | `contract_version`, `component=voice`, `mode`, `port=voice.v1`                                |
+| POST   | `/v1/transcribe`   | voice bearer | `{language, audio_uri\|text, consent}` → `{original_text, language, ambiguous, reason_codes}` |
+| POST   | `/v1/speak`        | voice bearer | optional TTS; fixture returns labeled `fixture://tts/...` URI                                 |
 
 Exactly one of `audio_uri` or `text`. `consent=false` → 403. Provider outage/malformed audio fixtures → 503/422 with `TEXT_FALLBACK_AVAILABLE` so callers switch to text.
 
@@ -66,10 +66,10 @@ services/voice/
 
 ## Modes
 
-| Mode | How | Notes |
-| --- | --- | --- |
-| `fixture` (default) | local JSON under `fixtures/sarvam/` | used by `make check` |
-| `real-peers` | `VOICE_MODE=real-peers` + `SARVAM_API_KEY` | refuses missing key; never silent fixture fallback |
+| Mode                | How                                        | Notes                                              |
+| ------------------- | ------------------------------------------ | -------------------------------------------------- |
+| `fixture` (default) | local JSON under `fixtures/sarvam/`        | used by `make check`                               |
+| `real-peers`        | `VOICE_MODE=real-peers` + `SARVAM_API_KEY` | refuses missing key; never silent fixture fallback |
 
 ## Evidence limits
 

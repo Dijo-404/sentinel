@@ -1,6 +1,7 @@
 # SN-004 changelog
 
 ## Unreleased
+
 - Refuse non-loopback HTTP bind while demo/sandbox bearer tokens remain configured.
 
 ### Added — 14 November 2026 (Refs #79)
@@ -14,7 +15,6 @@
 ### Changed — 14 November 2026
 
 - Canonical tokens `tok-workflow` / `tok-verifier` / `tok-dispatcher` / `tok-sandbox-admin` (legacy `*-demo` aliases kept). Refs #77.
-
 
 ### Added — 13 November 2026
 

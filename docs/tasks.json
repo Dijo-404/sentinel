@@ -9,18 +9,13 @@
     "branch": "feat/sn-001-workspace",
     "depends_on": [],
     "root": "tooling/workspace",
-    "paths": [
-      "tooling/workspace/**",
-      ".github/workflows/module-checks.yml"
-    ],
+    "paths": ["tooling/workspace/**", ".github/workflows/module-checks.yml"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "module-checks.v1"
-    ],
+    "produces": ["module-checks.v1"],
     "consumes": [],
     "scope": [
       "Provide optional module discovery, check aggregation, CI templates, and local environment examples. Own no global dependency graph or sibling manifests. Validate against local sample modules so the tooling can finish before any product module exists."
@@ -63,17 +58,13 @@
     "branch": "feat/sn-002-contracts",
     "depends_on": [],
     "root": "packages/contract-checks",
-    "paths": [
-      "packages/contract-checks/**"
-    ],
+    "paths": ["packages/contract-checks/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "contract-checks.v1"
-    ],
+    "produces": ["contract-checks.v1"],
     "consumes": [],
     "scope": [
       "Implement portable schema/digest conformance checks and synthetic valid/invalid fixture bundles against the baseline supplied now. Do not defer initial contract definitions to this task or require consumers to import this implementation."
@@ -116,17 +107,13 @@
     "branch": "feat/sn-003-persistence",
     "depends_on": [],
     "root": "packages/persistence",
-    "paths": [
-      "packages/persistence/**"
-    ],
+    "paths": ["packages/persistence/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "persistence-kit.v1"
-    ],
+    "produces": ["persistence-kit.v1"],
     "consumes": [],
     "scope": [
       "Provide optional tenant-aware SQLAlchemy/Alembic patterns, isolated migration/seed utilities, and database checks within this package. Services own their migrations and can use direct local implementations without this toolkit."
@@ -169,17 +156,13 @@
     "branch": "feat/sn-004-simulator",
     "depends_on": [],
     "root": "services/simulator",
-    "paths": [
-      "services/simulator/**"
-    ],
+    "paths": ["services/simulator/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "payment-provider.v1"
-    ],
+    "produces": ["payment-provider.v1"],
     "consumes": [],
     "scope": [
       "Implement scoped synthetic payment/order/refund/credit APIs with stable-reference lookup and deterministic timeout-after-accept, delay, duplication, out-of-order and outage controls. Own all simulator fixtures and state locally."
@@ -222,17 +205,13 @@
     "branch": "feat/sn-005-policy",
     "depends_on": [],
     "root": "services/policy",
-    "paths": [
-      "services/policy/**"
-    ],
+    "paths": ["services/policy/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "policy.v1"
-    ],
+    "produces": ["policy.v1"],
     "consumes": [],
     "scope": [
       "Validate local proposal/evidence/approval inputs and return ALLOW, REQUIRE_APPROVAL, DENY or NEED_EVIDENCE. Use only versioned local rules and contract fixtures; do not require a live case/evidence/ledger service."
@@ -275,20 +254,14 @@
     "branch": "feat/sn-006-evidence",
     "depends_on": [],
     "root": "services/evidence",
-    "paths": [
-      "services/evidence/**"
-    ],
+    "paths": ["services/evidence/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "evidence.v1"
-    ],
-    "consumes": [
-      "payment-provider.v1"
-    ],
+    "produces": ["evidence.v1"],
+    "consumes": ["payment-provider.v1"],
     "scope": [
       "Collect scoped read-only facts through an injected payment-provider port, retain original digest/provenance/freshness, and reconcile duplicate/order/refund facts. Own evidence storage/migrations and a local provider stub."
     ],
@@ -302,12 +275,7 @@
         {
           "port": "payment-provider.v1",
           "location": "services/evidence/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         }
       ],
       "check_command": "make -C services/evidence check",
@@ -341,23 +309,14 @@
     "branch": "feat/sn-007-case-api",
     "depends_on": [],
     "root": "apps/api",
-    "paths": [
-      "apps/api/**"
-    ],
+    "paths": ["apps/api/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "case-api.v1"
-    ],
-    "consumes": [
-      "workflow.v1",
-      "evidence.v1",
-      "action-ledger.v1",
-      "verifier.v1"
-    ],
+    "produces": ["case-api.v1"],
+    "consumes": ["workflow.v1", "evidence.v1", "action-ledger.v1", "verifier.v1"],
     "scope": [
       "Implement case intake/query/messages, immutable per-revision input snapshots, operator queue/evidence, decision proxy, escalation, health and durable SSE. Own case/message/event state and migrations; inject local workflow/evidence/ledger/verifier stubs. The ledger owns authoritative approvals and money."
     ],
@@ -371,42 +330,22 @@
         {
           "port": "workflow.v1",
           "location": "apps/api/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "evidence.v1",
           "location": "apps/api/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "action-ledger.v1",
           "location": "apps/api/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "verifier.v1",
           "location": "apps/api/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         }
       ],
       "check_command": "make -C apps/api check",
@@ -440,24 +379,14 @@
     "branch": "feat/sn-008-workflow",
     "depends_on": [],
     "root": "services/workflow",
-    "paths": [
-      "services/workflow/**"
-    ],
+    "paths": ["services/workflow/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "workflow.v1"
-    ],
-    "consumes": [
-      "evidence.v1",
-      "policy.v1",
-      "action-ledger.v1",
-      "verifier.v1",
-      "case-api.v1"
-    ],
+    "produces": ["workflow.v1"],
+    "consumes": ["evidence.v1", "policy.v1", "action-ledger.v1", "verifier.v1", "case-api.v1"],
     "scope": [
       "Implement bounded typed LangGraph investigation/planning/policy/approval/wait/verification with a module-owned PostgreSQL checkpointer. Own a baseline configurable structured-model adapter and fake-model mode using ModelRequest/ModelResult; the Phase 2 context package is not required. Use local evidence/policy/ledger/verifier/case-result stubs. Deliver results through the case API with durable retries and idempotent revision checks. Read the original complaint, scoped order hint and complete per-revision message history through the case-input API snapshot."
     ],
@@ -471,52 +400,27 @@
         {
           "port": "evidence.v1",
           "location": "services/workflow/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "policy.v1",
           "location": "services/workflow/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "action-ledger.v1",
           "location": "services/workflow/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "verifier.v1",
           "location": "services/workflow/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "case-api.v1",
           "location": "services/workflow/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         }
       ],
       "check_command": "make -C services/workflow check",
@@ -550,21 +454,14 @@
     "branch": "feat/sn-009-reservations",
     "depends_on": [],
     "root": "services/action-ledger",
-    "paths": [
-      "services/action-ledger/**"
-    ],
+    "paths": ["services/action-ledger/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "action-ledger.v1"
-    ],
-    "consumes": [
-      "policy.v1",
-      "evidence.v1"
-    ],
+    "produces": ["action-ledger.v1"],
+    "consumes": ["policy.v1", "evidence.v1"],
     "scope": [
       "Own authoritative approvals, eligibility snapshots, reservations, immutable action/operation/provider references, dispatch claims, transactional outbox and financial audit in one service database. Implement authenticated ports with local policy/evidence fixtures and independent migrations."
     ],
@@ -578,22 +475,12 @@
         {
           "port": "policy.v1",
           "location": "services/action-ledger/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "evidence.v1",
           "location": "services/action-ledger/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         }
       ],
       "check_command": "make -C services/action-ledger check",
@@ -627,21 +514,14 @@
     "branch": "feat/sn-010-dispatch-recovery",
     "depends_on": [],
     "root": "services/dispatcher",
-    "paths": [
-      "services/dispatcher/**"
-    ],
+    "paths": ["services/dispatcher/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "dispatcher.v1"
-    ],
-    "consumes": [
-      "action-ledger.v1",
-      "payment-provider.v1"
-    ],
+    "produces": ["dispatcher.v1"],
+    "consumes": ["action-ledger.v1", "payment-provider.v1"],
     "scope": [
       "Consume authenticated ledger-issued commands, dispatch only through the configured provider, and report accepted/unknown outcomes through ledger ports. Supply local ledger/provider stubs and durable worker state; never create a second authoritative ledger."
     ],
@@ -655,22 +535,12 @@
         {
           "port": "action-ledger.v1",
           "location": "services/dispatcher/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "payment-provider.v1",
           "location": "services/dispatcher/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         }
       ],
       "check_command": "make -C services/dispatcher check",
@@ -704,23 +574,14 @@
     "branch": "feat/sn-011-verification",
     "depends_on": [],
     "root": "services/verifier",
-    "paths": [
-      "services/verifier/**"
-    ],
+    "paths": ["services/verifier/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "verifier.v1"
-    ],
-    "consumes": [
-      "payment-provider.v1",
-      "action-ledger.v1",
-      "evidence.v1",
-      "case-api.v1"
-    ],
+    "produces": ["verifier.v1"],
+    "consumes": ["payment-provider.v1", "action-ledger.v1", "evidence.v1", "case-api.v1"],
     "scope": [
       "Own verified webhook inbox, scheduled rechecks and closure assessment. Use independent migrations and local provider/ledger/evidence stubs; send authenticated evidence to ledger APIs instead of editing financial tables."
     ],
@@ -734,42 +595,22 @@
         {
           "port": "payment-provider.v1",
           "location": "services/verifier/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "action-ledger.v1",
           "location": "services/verifier/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "evidence.v1",
           "location": "services/verifier/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "case-api.v1",
           "location": "services/verifier/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         }
       ],
       "check_command": "make -C services/verifier check",
@@ -803,22 +644,14 @@
     "branch": "feat/sn-012-ui-shell",
     "depends_on": [],
     "root": "apps/web",
-    "paths": [
-      "apps/web/**"
-    ],
+    "paths": ["apps/web/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "web-shell.v1"
-    ],
-    "consumes": [
-      "case-api.v1",
-      "approval-ui.v1",
-      "voice.v1"
-    ],
+    "produces": ["web-shell.v1"],
+    "consumes": ["case-api.v1", "approval-ui.v1", "voice.v1"],
     "scope": [
       "Build text intake, case timeline, operator queue and evidence pages with a local case-client stub and a documented approval/voice component slot. Own its Next.js manifest/lockfile and preview; do not import missing UI/voice packages."
     ],
@@ -832,32 +665,17 @@
         {
           "port": "case-api.v1",
           "location": "apps/web/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "approval-ui.v1",
           "location": "apps/web/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "voice.v1",
           "location": "apps/web/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         }
       ],
       "check_command": "make -C apps/web check",
@@ -879,9 +697,7 @@
       "PR/artifact links and separate real-component, payment-simulator, fake/live model and assembly evidence status."
     ],
     "gate": "Self-contained issue, supplied contract baseline, disjoint root, and agreed claim. No other task completion or phase-release prerequisite.",
-    "optional_consumes": [
-      "voice.v1"
-    ]
+    "optional_consumes": ["voice.v1"]
   },
   {
     "id": "SN-013",
@@ -893,21 +709,14 @@
     "branch": "feat/sn-013-approval-ui",
     "depends_on": [],
     "root": "packages/approval-ui",
-    "paths": [
-      "packages/approval-ui/**"
-    ],
+    "paths": ["packages/approval-ui/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "approval-ui.v1"
-    ],
-    "consumes": [
-      "case-api.v1",
-      "action-ledger.v1"
-    ],
+    "produces": ["approval-ui.v1"],
+    "consumes": ["case-api.v1", "action-ledger.v1"],
     "scope": [
       "Build an embeddable typed approval/evidence component with its own preview and injected authorized client. Own its manifest/lockfile, fixtures and browser checks; do not edit or require the web shell."
     ],
@@ -921,22 +730,12 @@
         {
           "port": "case-api.v1",
           "location": "packages/approval-ui/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "action-ledger.v1",
           "location": "packages/approval-ui/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         }
       ],
       "check_command": "make -C packages/approval-ui check",
@@ -970,17 +769,13 @@
     "branch": "feat/sn-014-core-integration",
     "depends_on": [],
     "root": "integration/core",
-    "paths": [
-      "integration/core/**"
-    ],
+    "paths": ["integration/core/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "core-assembly.v1"
-    ],
+    "produces": ["core-assembly.v1"],
     "consumes": [
       "case-api.v1",
       "workflow.v1",
@@ -1003,72 +798,37 @@
         {
           "port": "case-api.v1",
           "location": "integration/core/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "workflow.v1",
           "location": "integration/core/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "action-ledger.v1",
           "location": "integration/core/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "dispatcher.v1",
           "location": "integration/core/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "verifier.v1",
           "location": "integration/core/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "payment-provider.v1",
           "location": "integration/core/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "web-shell.v1",
           "location": "integration/core/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         }
       ],
       "check_command": "make -C integration/core check",
@@ -1102,17 +862,13 @@
     "branch": "feat/sn-015-observability",
     "depends_on": [],
     "root": "packages/telemetry",
-    "paths": [
-      "packages/telemetry/**"
-    ],
+    "paths": ["packages/telemetry/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "telemetry.v1"
-    ],
+    "produces": ["telemetry.v1"],
     "consumes": [],
     "scope": [
       "Provide injected OTel hooks, redaction, bounded-label metrics and a module-local collector/dashboard example. Use local synthetic span/event producers rather than editing or requiring API/worker implementations."
@@ -1155,20 +911,14 @@
     "branch": "feat/sn-016-evaluation",
     "depends_on": [],
     "root": "evals/core",
-    "paths": [
-      "evals/core/**"
-    ],
+    "paths": ["evals/core/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "evaluation.v1"
-    ],
-    "consumes": [
-      "core-assembly.v1"
-    ],
+    "produces": ["evaluation.v1"],
+    "consumes": ["core-assembly.v1"],
     "scope": [
       "Implement versioned fixture loading, injected candidate runner/HTTP adapter, deterministic safety/outcome scoring and held-out split reports. Include local conforming and deliberately unsafe candidate doubles; product implementations are not prerequisites."
     ],
@@ -1182,12 +932,7 @@
         {
           "port": "core-assembly.v1",
           "location": "evals/core/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         }
       ],
       "check_command": "make -C evals/core check",
@@ -1221,17 +966,13 @@
     "branch": "feat/sn-017-voice",
     "depends_on": [],
     "root": "services/voice",
-    "paths": [
-      "services/voice/**"
-    ],
+    "paths": ["services/voice/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "voice.v1"
-    ],
+    "produces": ["voice.v1"],
     "consumes": [],
     "scope": [
       "Implement opt-in speech/transcript ports with a standalone client example, local Sarvam response fixtures and text fallback. Own all voice assets/tests; avoid edits to the main web app and never require live credentials for local checks."
@@ -1274,21 +1015,14 @@
     "branch": "feat/sn-018-replay",
     "depends_on": [],
     "root": "replay/core",
-    "paths": [
-      "replay/core/**"
-    ],
+    "paths": ["replay/core/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "replay.v1"
-    ],
-    "consumes": [
-      "evaluation.v1",
-      "payment-provider.v1"
-    ],
+    "produces": ["replay.v1"],
+    "consumes": ["evaluation.v1", "payment-provider.v1"],
     "scope": [
       "Implement virtual-clock event replay and injected simulator/candidate/scorer ports. Bundle local conforming and defective retry examples with versions/seeds; do not require the evaluator or simulator implementation."
     ],
@@ -1302,22 +1036,12 @@
         {
           "port": "evaluation.v1",
           "location": "replay/core/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "payment-provider.v1",
           "location": "replay/core/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         }
       ],
       "check_command": "make -C replay/core check",
@@ -1351,23 +1075,14 @@
     "branch": "feat/sn-019-mvp-acceptance",
     "depends_on": [],
     "root": "release/mvp",
-    "paths": [
-      "release/mvp/**"
-    ],
+    "paths": ["release/mvp/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "release-evidence.v1"
-    ],
-    "consumes": [
-      "core-assembly.v1",
-      "evaluation.v1",
-      "replay.v1",
-      "telemetry.v1"
-    ],
+    "produces": ["release-evidence.v1"],
+    "consumes": ["core-assembly.v1", "evaluation.v1", "replay.v1", "telemetry.v1"],
     "scope": [
       "Build evidence-manifest validation, clean-checkout/demo procedures, artifact integrity checks and release-report rendering using local positive/negative manifests. This task delivers the verification kit; actual product release acceptance is a separate owner run."
     ],
@@ -1381,42 +1096,22 @@
         {
           "port": "core-assembly.v1",
           "location": "release/mvp/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "evaluation.v1",
           "location": "release/mvp/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "replay.v1",
           "location": "release/mvp/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "telemetry.v1",
           "location": "release/mvp/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         }
       ],
       "check_command": "make -C release/mvp check",
@@ -1450,24 +1145,14 @@
     "branch": "feat/sn-020-finharness-extraction",
     "depends_on": [],
     "root": "packages/finharness-sdk",
-    "paths": [
-      "packages/finharness-sdk/**"
-    ],
+    "paths": ["packages/finharness-sdk/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "finharness-sdk.v1"
-    ],
-    "consumes": [
-      "evidence.v1",
-      "policy.v1",
-      "action-ledger.v1",
-      "verifier.v1",
-      "indic-context.v1"
-    ],
+    "produces": ["finharness-sdk.v1"],
+    "consumes": ["evidence.v1", "policy.v1", "action-ledger.v1", "verifier.v1", "indic-context.v1"],
     "scope": [
       "Implement optional reusable protocols, configuration, case manifests and injected client/adapters now against local ports. Do not wait to extract a missing MVP implementation; never duplicate the authoritative executor, case store or financial rules."
     ],
@@ -1481,52 +1166,27 @@
         {
           "port": "evidence.v1",
           "location": "packages/finharness-sdk/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "policy.v1",
           "location": "packages/finharness-sdk/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "action-ledger.v1",
           "location": "packages/finharness-sdk/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "verifier.v1",
           "location": "packages/finharness-sdk/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "indic-context.v1",
           "location": "packages/finharness-sdk/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         }
       ],
       "check_command": "make -C packages/finharness-sdk check",
@@ -1560,17 +1220,13 @@
     "branch": "feat/sn-021-indic-context",
     "depends_on": [],
     "root": "packages/indic-context",
-    "paths": [
-      "packages/indic-context/**"
-    ],
+    "paths": ["packages/indic-context/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "indic-context.v1"
-    ],
+    "produces": ["indic-context.v1"],
     "consumes": [],
     "scope": [
       "Implement configurable fake/live Sarvam ports, source-preserving normalization, structured proposal parsing and ambiguity checks with module-local evidence fixtures. No FinHarness/voice/workflow implementation is required."
@@ -1613,17 +1269,13 @@
     "branch": "feat/sn-022-harness-runtime",
     "depends_on": [],
     "root": "services/finharness-runtime",
-    "paths": [
-      "services/finharness-runtime/**"
-    ],
+    "paths": ["services/finharness-runtime/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "finharness-runtime.v1"
-    ],
+    "produces": ["finharness-runtime.v1"],
     "consumes": [
       "finharness-sdk.v1",
       "indic-context.v1",
@@ -1645,62 +1297,32 @@
         {
           "port": "finharness-sdk.v1",
           "location": "services/finharness-runtime/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "indic-context.v1",
           "location": "services/finharness-runtime/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "evidence.v1",
           "location": "services/finharness-runtime/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "policy.v1",
           "location": "services/finharness-runtime/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "action-ledger.v1",
           "location": "services/finharness-runtime/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "verifier.v1",
           "location": "services/finharness-runtime/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         }
       ],
       "check_command": "make -C services/finharness-runtime check",
@@ -1734,21 +1356,14 @@
     "branch": "feat/sn-023-finbench",
     "depends_on": [],
     "root": "benchmarks/finbench_indic",
-    "paths": [
-      "benchmarks/finbench_indic/**"
-    ],
+    "paths": ["benchmarks/finbench_indic/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "finbench.v1"
-    ],
-    "consumes": [
-      "finharness-runtime.v1",
-      "indic-context.v1"
-    ],
+    "produces": ["finbench.v1"],
+    "consumes": ["finharness-runtime.v1", "indic-context.v1"],
     "scope": [
       "Implement grouped synthetic datasets, version/hash manifests, deterministic scoring and injected candidate adapters with local model/runtime fakes. Own the CLI/report examples and test data without requiring context/runtime packages."
     ],
@@ -1762,22 +1377,12 @@
         {
           "port": "finharness-runtime.v1",
           "location": "benchmarks/finbench_indic/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "indic-context.v1",
           "location": "benchmarks/finbench_indic/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         }
       ],
       "check_command": "make -C benchmarks/finbench_indic check",
@@ -1811,22 +1416,14 @@
     "branch": "feat/sn-024-harness-observability",
     "depends_on": [],
     "root": "packages/finharness-telemetry",
-    "paths": [
-      "packages/finharness-telemetry/**"
-    ],
+    "paths": ["packages/finharness-telemetry/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "harness-telemetry.v1"
-    ],
-    "consumes": [
-      "telemetry.v1",
-      "finharness-runtime.v1",
-      "finbench.v1"
-    ],
+    "produces": ["harness-telemetry.v1"],
+    "consumes": ["telemetry.v1", "finharness-runtime.v1", "finbench.v1"],
     "scope": [
       "Implement injectable sanitized runtime/evaluation hooks, audit correlation and module-local dashboard/export examples. Use local emitter/exporter fakes instead of modifying another telemetry package or shared infrastructure."
     ],
@@ -1840,32 +1437,17 @@
         {
           "port": "telemetry.v1",
           "location": "packages/finharness-telemetry/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "finharness-runtime.v1",
           "location": "packages/finharness-telemetry/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "finbench.v1",
           "location": "packages/finharness-telemetry/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         }
       ],
       "check_command": "make -C packages/finharness-telemetry check",
@@ -1899,22 +1481,14 @@
     "branch": "feat/sn-025-harness-replay",
     "depends_on": [],
     "root": "replay/finharness",
-    "paths": [
-      "replay/finharness/**"
-    ],
+    "paths": ["replay/finharness/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "harness-replay.v1"
-    ],
-    "consumes": [
-      "finharness-runtime.v1",
-      "finbench.v1",
-      "replay.v1"
-    ],
+    "produces": ["harness-replay.v1"],
+    "consumes": ["finharness-runtime.v1", "finbench.v1", "replay.v1"],
     "scope": [
       "Implement counterfactual replay and reviewed promotion scoring through injected runner/scorer ports with local candidates and fault schedules. Own a separate package; no import from unfinished SDK, replay or benchmark packages."
     ],
@@ -1928,32 +1502,17 @@
         {
           "port": "finharness-runtime.v1",
           "location": "replay/finharness/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "finbench.v1",
           "location": "replay/finharness/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "replay.v1",
           "location": "replay/finharness/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         }
       ],
       "check_command": "make -C replay/finharness check",
@@ -1987,17 +1546,13 @@
     "branch": "feat/sn-026-sandbox-pilot",
     "depends_on": [],
     "root": "validation/sandbox-pilot",
-    "paths": [
-      "validation/sandbox-pilot/**"
-    ],
+    "paths": ["validation/sandbox-pilot/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "sandbox-validation.v1"
-    ],
+    "produces": ["sandbox-validation.v1"],
     "consumes": [
       "core-assembly.v1",
       "finharness-runtime.v1",
@@ -2018,52 +1573,27 @@
         {
           "port": "core-assembly.v1",
           "location": "validation/sandbox-pilot/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "finharness-runtime.v1",
           "location": "validation/sandbox-pilot/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "finbench.v1",
           "location": "validation/sandbox-pilot/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "harness-telemetry.v1",
           "location": "validation/sandbox-pilot/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "harness-replay.v1",
           "location": "validation/sandbox-pilot/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         }
       ],
       "check_command": "make -C validation/sandbox-pilot check",
@@ -2097,21 +1627,14 @@
     "branch": "feat/sn-027-merchant-settlement",
     "depends_on": [],
     "root": "services/merchant-settlement",
-    "paths": [
-      "services/merchant-settlement/**"
-    ],
+    "paths": ["services/merchant-settlement/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "merchant-settlement.v1"
-    ],
-    "consumes": [
-      "evidence.v1",
-      "payment-provider.v1"
-    ],
+    "produces": ["merchant-settlement.v1"],
+    "consumes": ["evidence.v1", "payment-provider.v1"],
     "optional_consumes": [],
     "scope": [
       "Import synthetic settlement CSV/JSON batches, match payments and orders through evidence/provider ports, and flag missing entries, duplicate rows, fee differences and short settlements. Own discrepancy state only; never write provider refunds or ledger tables."
@@ -2126,22 +1649,12 @@
         {
           "port": "evidence.v1",
           "location": "services/merchant-settlement/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "payment-provider.v1",
           "location": "services/merchant-settlement/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         }
       ],
       "check_command": "make -C services/merchant-settlement check",
@@ -2174,21 +1687,14 @@
     "branch": "feat/sn-028-merchant-inbox",
     "depends_on": [],
     "root": "services/merchant-inbox",
-    "paths": [
-      "services/merchant-inbox/**"
-    ],
+    "paths": ["services/merchant-inbox/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "merchant-inbox.v1"
-    ],
-    "consumes": [
-      "case-api.v1",
-      "evidence.v1"
-    ],
+    "produces": ["merchant-inbox.v1"],
+    "consumes": ["case-api.v1", "evidence.v1"],
     "optional_consumes": [],
     "scope": [
       "Provide a merchant-scoped exception inbox for paid-but-unfulfilled orders, unmatched payments and pending refunds with filters, assignment, notes and escalation. Escalation must remain distinct from verified resolution; no ledger authority."
@@ -2203,22 +1709,12 @@
         {
           "port": "case-api.v1",
           "location": "services/merchant-inbox/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "evidence.v1",
           "location": "services/merchant-inbox/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         }
       ],
       "check_command": "make -C services/merchant-inbox check",
@@ -2251,23 +1747,14 @@
     "branch": "feat/sn-029-merchant-refunds",
     "depends_on": [],
     "root": "services/merchant-refunds",
-    "paths": [
-      "services/merchant-refunds/**"
-    ],
+    "paths": ["services/merchant-refunds/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "merchant-refunds.v1"
-    ],
-    "consumes": [
-      "case-api.v1",
-      "policy.v1",
-      "action-ledger.v1",
-      "evidence.v1"
-    ],
+    "produces": ["merchant-refunds.v1"],
+    "consumes": ["case-api.v1", "policy.v1", "action-ledger.v1", "evidence.v1"],
     "optional_consumes": [],
     "scope": [
       "Let merchant staff draft and submit refund requests with attached evidence, track supervisor approval through action-ledger/policy ports, and surface verified outcomes. Never mint provider refunds, edit ledger tables, or treat pending confirmation as customer credit."
@@ -2282,42 +1769,22 @@
         {
           "port": "case-api.v1",
           "location": "services/merchant-refunds/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "policy.v1",
           "location": "services/merchant-refunds/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "action-ledger.v1",
           "location": "services/merchant-refunds/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "evidence.v1",
           "location": "services/merchant-refunds/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         }
       ],
       "check_command": "make -C services/merchant-refunds check",
@@ -2350,21 +1817,14 @@
     "branch": "feat/sn-030-merchant-disputes",
     "depends_on": [],
     "root": "services/merchant-disputes",
-    "paths": [
-      "services/merchant-disputes/**"
-    ],
+    "paths": ["services/merchant-disputes/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "merchant-disputes.v1"
-    ],
-    "consumes": [
-      "case-api.v1",
-      "evidence.v1"
-    ],
+    "produces": ["merchant-disputes.v1"],
+    "consumes": ["case-api.v1", "evidence.v1"],
     "optional_consumes": [],
     "scope": [
       "Create dispute cases, collect transaction/order/delivery evidence into an evidence packet, and track deadlines through terminal outcomes. Own dispute state only; financial actions remain on ledger ports when separately requested."
@@ -2379,22 +1839,12 @@
         {
           "port": "case-api.v1",
           "location": "services/merchant-disputes/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "evidence.v1",
           "location": "services/merchant-disputes/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         }
       ],
       "check_command": "make -C services/merchant-disputes check",
@@ -2427,20 +1877,14 @@
     "branch": "feat/sn-031-merchant-sla",
     "depends_on": [],
     "root": "services/merchant-sla",
-    "paths": [
-      "services/merchant-sla/**"
-    ],
+    "paths": ["services/merchant-sla/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "merchant-sla.v1"
-    ],
-    "consumes": [
-      "case-api.v1"
-    ],
+    "produces": ["merchant-sla.v1"],
+    "consumes": ["case-api.v1"],
     "optional_consumes": [],
     "scope": [
       "Configure merchant response/resolution targets, assign case tasks, highlight overdue work and schedule follow-ups. Escalation must not mark a case financially resolved."
@@ -2455,12 +1899,7 @@
         {
           "port": "case-api.v1",
           "location": "services/merchant-sla/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         }
       ],
       "check_command": "make -C services/merchant-sla check",
@@ -2493,21 +1932,14 @@
     "branch": "feat/sn-032-merchant-analytics",
     "depends_on": [],
     "root": "services/merchant-analytics",
-    "paths": [
-      "services/merchant-analytics/**"
-    ],
+    "paths": ["services/merchant-analytics/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "merchant-analytics.v1"
-    ],
-    "consumes": [
-      "case-api.v1",
-      "evidence.v1"
-    ],
+    "produces": ["merchant-analytics.v1"],
+    "consumes": ["case-api.v1", "evidence.v1"],
     "optional_consumes": [],
     "scope": [
       "Compute merchant-scoped read-only analytics: exception rates, unresolved amounts, refund aging, handling time and recurring causes from case/evidence ports. No mutations of peer state."
@@ -2522,22 +1954,12 @@
         {
           "port": "case-api.v1",
           "location": "services/merchant-analytics/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "evidence.v1",
           "location": "services/merchant-analytics/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         }
       ],
       "check_command": "make -C services/merchant-analytics check",
@@ -2570,24 +1992,15 @@
     "branch": "feat/sn-033-merchant-comms",
     "depends_on": [],
     "root": "packages/merchant-comms",
-    "paths": [
-      "packages/merchant-comms/**"
-    ],
+    "paths": ["packages/merchant-comms/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "merchant-comms.v1"
-    ],
-    "consumes": [
-      "case-api.v1",
-      "indic-context.v1"
-    ],
-    "optional_consumes": [
-      "indic-context.v1"
-    ],
+    "produces": ["merchant-comms.v1"],
+    "consumes": ["case-api.v1", "indic-context.v1"],
+    "optional_consumes": ["indic-context.v1"],
     "scope": [
       "Generate English/Tamil/Hindi customer or merchant status drafts with an operator approval gate and simulated delivery history. Models propose text only; no financial authority. Indic-context remains optional with a local fake."
     ],
@@ -2601,22 +2014,12 @@
         {
           "port": "case-api.v1",
           "location": "packages/merchant-comms/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "indic-context.v1",
           "location": "packages/merchant-comms/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         }
       ],
       "check_command": "make -C packages/merchant-comms check",
@@ -2649,20 +2052,14 @@
     "branch": "feat/sn-034-merchant-teams",
     "depends_on": [],
     "root": "services/merchant-teams",
-    "paths": [
-      "services/merchant-teams/**"
-    ],
+    "paths": ["services/merchant-teams/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "merchant-teams.v1"
-    ],
-    "consumes": [
-      "case-api.v1"
-    ],
+    "produces": ["merchant-teams.v1"],
+    "consumes": ["case-api.v1"],
     "optional_consumes": [],
     "scope": [
       "Manage merchant-scoped staff accounts, roles, advisory approval limits and an activity timeline. Approval limits are advisory metadata only and must never authorize ledger or provider writes."
@@ -2677,12 +2074,7 @@
         {
           "port": "case-api.v1",
           "location": "services/merchant-teams/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         }
       ],
       "check_command": "make -C services/merchant-teams check",
@@ -2715,17 +2107,13 @@
     "branch": "feat/sn-035-identity",
     "depends_on": [],
     "root": "services/identity",
-    "paths": [
-      "services/identity/**"
-    ],
+    "paths": ["services/identity/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "identity.v1"
-    ],
+    "produces": ["identity.v1"],
     "consumes": [],
     "optional_consumes": [],
     "scope": [
@@ -2768,21 +2156,14 @@
     "branch": "feat/sn-036-risk",
     "depends_on": [],
     "root": "services/risk",
-    "paths": [
-      "services/risk/**"
-    ],
+    "paths": ["services/risk/**"],
     "contract_baseline": {
       "version": "sentinel.task-contracts.v1",
       "document": "docs/independent-task-contracts.md",
       "sha256": "0db3ba2bba994f10d3060bc7173035360c15ffe23189cea409f7327e23c36feb"
     },
-    "produces": [
-      "risk.v1"
-    ],
-    "consumes": [
-      "case-api.v1",
-      "workflow.v1"
-    ],
+    "produces": ["risk.v1"],
+    "consumes": ["case-api.v1", "workflow.v1"],
     "optional_consumes": [],
     "scope": [
       "Own fraud investigations, structured findings and authorized financial-action restrictions under services/risk. Restriction clearance never grants ledger approval or provider write. Inject local case-api and workflow stubs for independent development."
@@ -2797,22 +2178,12 @@
         {
           "port": "case-api.v1",
           "location": "services/risk/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         },
         {
           "port": "workflow.v1",
           "location": "services/risk/tests/stubs/",
-          "cases": [
-            "valid",
-            "unavailable",
-            "malformed",
-            "unauthorized_or_out_of_scope"
-          ]
+          "cases": ["valid", "unavailable", "malformed", "unauthorized_or_out_of_scope"]
         }
       ],
       "check_command": "make -C services/risk check",

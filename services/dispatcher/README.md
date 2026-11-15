@@ -53,25 +53,25 @@ Evidence mode for `make check`: `payment-provider: simulated stub`, `action-ledg
 
 ## Layout
 
-| Path | Role |
-| --- | --- |
-| `src/sentinel_dispatcher/domain/` | Digest, validation, recovery decisions (framework-free) |
-| `src/sentinel_dispatcher/application/` | `DispatchWorker` use case and ports |
-| `src/sentinel_dispatcher/adapters/` | FastAPI probe surface, PostgreSQL store, HTTP peer clients, clocks |
-| `tests/stubs/` | Ledger and provider doubles |
-| `contracts/` | `dispatcher.v1` snapshot and real-peer checklist |
-| `migrations/0001_dispatch_jobs.sql` | Owned durable schema |
-| `fixtures/demo_command.json` | Baseline claim/refund examples |
+| Path                                   | Role                                                               |
+| -------------------------------------- | ------------------------------------------------------------------ |
+| `src/sentinel_dispatcher/domain/`      | Digest, validation, recovery decisions (framework-free)            |
+| `src/sentinel_dispatcher/application/` | `DispatchWorker` use case and ports                                |
+| `src/sentinel_dispatcher/adapters/`    | FastAPI probe surface, PostgreSQL store, HTTP peer clients, clocks |
+| `tests/stubs/`                         | Ledger and provider doubles                                        |
+| `contracts/`                           | `dispatcher.v1` snapshot and real-peer checklist                   |
+| `migrations/0001_dispatch_jobs.sql`    | Owned durable schema                                               |
+| `fixtures/demo_command.json`           | Baseline claim/refund examples                                     |
 
 ## HTTP probe surface
 
 Assembly probes use FastAPI (default `DISPATCHER_MODE` from env):
 
-| Method | Path | Body |
-| --- | --- | --- |
-| GET | `/healthz` | `{"status":"ok"}` |
-| GET | `/readyz` | `{"status":"ready","mode":"fixture\|real-peers"}` |
-| GET | `/v1/capabilities` | `contract_version`, `component=dispatcher`, `port=dispatcher.v1`, `mode`, `contract_sha256` |
+| Method | Path               | Body                                                                                        |
+| ------ | ------------------ | ------------------------------------------------------------------------------------------- |
+| GET    | `/healthz`         | `{"status":"ok"}`                                                                           |
+| GET    | `/readyz`          | `{"status":"ready","mode":"fixture\|real-peers"}`                                           |
+| GET    | `/v1/capabilities` | `contract_version`, `component=dispatcher`, `port=dispatcher.v1`, `mode`, `contract_sha256` |
 
 Worker dispatch is **not** an HTTP route. Use CLI `run-once` / `recover` against ledger + payment-provider.
 

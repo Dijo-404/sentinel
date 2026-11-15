@@ -25,8 +25,7 @@
   --viz-warn: #d99a2b;
   --viz-risk: #d4577a;
 
-  --shadow-soft:
-    0 1px 2px rgba(40, 37, 59, 0.04), 0 8px 24px rgba(40, 37, 59, 0.06);
+  --shadow-soft: 0 1px 2px rgba(40, 37, 59, 0.04), 0 8px 24px rgba(40, 37, 59, 0.06);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --space-section: clamp(4rem, 9vw, 8rem);
 

@@ -35,9 +35,7 @@ export function ShellProvider({
     };
   }, [caseClient, voiceClient, config]);
 
-  return (
-    <ShellContext.Provider value={value}>{children}</ShellContext.Provider>
-  );
+  return <ShellContext.Provider value={value}>{children}</ShellContext.Provider>;
 }
 
 export function useShell(): Ctx {

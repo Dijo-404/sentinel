@@ -19,13 +19,7 @@ const STROKE: Record<NonNullable<Props["tone"]>, string> = {
 };
 
 /** Smooth SVG trend line with a soft area fill. Display-only. */
-export function Sparkline({
-  values,
-  label,
-  width = 120,
-  height = 36,
-  tone = "primary",
-}: Props) {
+export function Sparkline({ values, label, width = 120, height = 36, tone = "primary" }: Props) {
   const id = useId();
   const reduce = useReducedMotion();
   if (values.length < 2) return null;

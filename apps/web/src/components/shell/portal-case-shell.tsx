@@ -1,10 +1,7 @@
 "use client";
 
 import { useContext, useMemo, type ReactNode } from "react";
-import {
-  ShellProvider,
-  ShellContext,
-} from "@/adapters/shell-context";
+import { ShellProvider, ShellContext } from "@/adapters/shell-context";
 import { createCaseApiStub } from "@/adapters/fixture-case-client";
 import type { PortalRole } from "../../../tests/stubs/identity";
 
@@ -13,13 +10,7 @@ import type { PortalRole } from "../../../tests/stubs/identity";
  * Root ShellProvider only knows NEXT_PUBLIC_DEMO_ROLE, which breaks supervisor decide.
  * Real-peers keep the parent BFF client (server enforces roles).
  */
-export function PortalCaseShell({
-  role,
-  children,
-}: {
-  role: PortalRole;
-  children: ReactNode;
-}) {
+export function PortalCaseShell({ role, children }: { role: PortalRole; children: ReactNode }) {
   const shell = useContext(ShellContext);
   const caseClient = useMemo(() => {
     if (!shell || shell.config.mode !== "fixture") return undefined;

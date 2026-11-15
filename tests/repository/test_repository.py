@@ -3,19 +3,23 @@
 import copy
 import hashlib
 import json
-from pathlib import Path
 import subprocess
 import tempfile
 import unittest
+from pathlib import Path
 
+from scripts.repository.tasks import (
+    index_issues,
+    merge_issue_maps,
+    render_issue,
+    require_commit_files,
+)
 from scripts.repository.validate import (
     is_ignored_markdown_path,
+    valid_markdown_whitespace,
     validate_repository,
     validate_tasks,
-    valid_markdown_whitespace,
 )
-from scripts.repository.tasks import index_issues, merge_issue_maps, render_issue, require_commit_files
-
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -97,11 +101,25 @@ class RepositoryTests(unittest.TestCase):
         self.assertTrue(any("contract path" in e for e in validate_tasks(self.tasks, ROOT)))
 
     def test_renamed_issue_keeps_stable_identity(self):
-        issues = [{"number": 7, "title": "A renamed task", "body": "<!-- sentinel-task: SN-001 -->", "html_url": "https://github.com/example/repo/issues/7"}]
+        issues = [
+            {
+                "number": 7,
+                "title": "A renamed task",
+                "body": "<!-- sentinel-task: SN-001 -->",
+                "html_url": "https://github.com/example/repo/issues/7",
+            }
+        ]
         self.assertEqual(index_issues(issues)["SN-001"]["number"], 7)
 
     def test_closed_issue_also_prevents_duplicate(self):
-        issues = [{"number": 9, "title": "[SN-001] Previous implementation", "body": "", "state": "closed"}]
+        issues = [
+            {
+                "number": 9,
+                "title": "[SN-001] Previous implementation",
+                "body": "",
+                "state": "closed",
+            }
+        ]
         self.assertEqual(index_issues(issues)["SN-001"]["number"], 9)
 
     def test_duplicate_or_conflicting_identity_fails_closed(self):
@@ -149,13 +167,24 @@ class RepositoryTests(unittest.TestCase):
     def test_publisher_rejects_working_files_that_differ_from_linked_commit(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
+
             def git(*arguments):
-                return subprocess.run(["git", "-C", str(root), *arguments],
-                                      check=True, capture_output=True, text=True).stdout.strip()
+                return subprocess.run(
+                    ["git", "-C", str(root), *arguments], check=True, capture_output=True, text=True
+                ).stdout.strip()
+
             git("init", "-q", "--initial-branch=main")
             (root / "baseline.md").write_text("reviewed baseline\n")
             git("add", "baseline.md")
-            git("-c", "user.name=Test", "-c", "user.email=test@example.invalid", "commit", "-qm", "fixture")
+            git(
+                "-c",
+                "user.name=Test",
+                "-c",
+                "user.email=test@example.invalid",
+                "commit",
+                "-qm",
+                "fixture",
+            )
             commit = git("rev-parse", "HEAD")
             require_commit_files(root, commit, ["baseline.md"])
             (root / "baseline.md").write_text("unreviewed changes\n")

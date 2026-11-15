@@ -1,9 +1,7 @@
 import type { PortalRole } from "../../tests/stubs/identity";
 
 /** Advisory UI permission projection only — never authoritative. */
-export function previewPermissions(
-  role: Exclude<PortalRole, "customer">,
-): string[] {
+export function previewPermissions(role: Exclude<PortalRole, "customer">): string[] {
   switch (role) {
     case "merchant":
       return [
@@ -38,18 +36,14 @@ export function previewPermissions(
   }
 }
 
-export const PORTAL_META: Record<
-  PortalRole,
-  { title: string; description: string }
-> = {
+export const PORTAL_META: Record<PortalRole, { title: string; description: string }> = {
   customer: {
     title: "Customer portal",
     description: "Report payment problems and track verified resolutions.",
   },
   merchant: {
     title: "Merchant portal",
-    description:
-      "Settlements, exceptions and refund requests for your business.",
+    description: "Settlements, exceptions and refund requests for your business.",
   },
   operator: {
     title: "Support Operator",

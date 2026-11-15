@@ -6,9 +6,7 @@ import { authorizedJson, type AuthorizedHttpConfig } from "./http.js";
  * Real-peer adapter for action-ledger.v1:
  * POST /v1/actions/{action_id}/decisions
  */
-export function createActionLedgerDecideClient(
-  config: AuthorizedHttpConfig,
-): DecideClient {
+export function createActionLedgerDecideClient(config: AuthorizedHttpConfig): DecideClient {
   return async (actionId: string, request: DecisionRequest): Promise<Approval> => {
     return authorizedJson<Approval>(
       config,

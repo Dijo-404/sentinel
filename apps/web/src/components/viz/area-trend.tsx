@@ -24,31 +24,15 @@ type Props = {
 };
 
 /** Smoothed multi-series area chart with gradient fills and a shared tooltip. */
-export function AreaTrend({
-  data,
-  xKey,
-  series,
-  height = 300,
-  yFormat,
-}: Props) {
+export function AreaTrend({ data, xKey, series, height = 300, yFormat }: Props) {
   const uid = useId().replace(/:/g, "");
   return (
     <div className="area-trend" style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart
-          data={data}
-          margin={{ top: 8, right: 8, left: -12, bottom: 0 }}
-        >
+        <AreaChart data={data} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
           <defs>
             {series.map((s) => (
-              <linearGradient
-                key={s.key}
-                id={`${uid}-${s.key}`}
-                x1="0"
-                x2="0"
-                y1="0"
-                y2="1"
-              >
+              <linearGradient key={s.key} id={`${uid}-${s.key}`} x1="0" x2="0" y1="0" y2="1">
                 <stop offset="0%" stopColor={s.color} stopOpacity={0.32} />
                 <stop offset="100%" stopColor={s.color} stopOpacity={0} />
               </linearGradient>

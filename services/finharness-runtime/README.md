@@ -25,11 +25,11 @@ Contract baseline: `sentinel.task-contracts.v1` · SHA-256 `0db3ba2bba994f10d306
 
 ## Behavior
 
-| Mode | Writes | Notifications | Notes |
-| --- | --- | --- | --- |
-| `legacy` | n/a | n/a | Routing off; new cases not pinned |
-| `shadow` | never | never | Read-only proposal comparison; no write adapter/credentials |
-| `harness` | only if `financial_writes=true` | only if explicitly enabled | Sandbox-tenant gated; SN-009 remains authority |
+| Mode      | Writes                          | Notifications              | Notes                                                       |
+| --------- | ------------------------------- | -------------------------- | ----------------------------------------------------------- |
+| `legacy`  | n/a                             | n/a                        | Routing off; new cases not pinned                           |
+| `shadow`  | never                           | never                      | Read-only proposal comparison; no write adapter/credentials |
+| `harness` | only if `financial_writes=true` | only if explicitly enabled | Sandbox-tenant gated; SN-009 remains authority              |
 
 - **Pinning:** `start_case` records `runtime_version` + workflow pin. Survives config switch and process restart (`JsonCaseStore`).
 - **Rollout/rollback:** `rollout_percent` affects **new** cases only. In-flight pins stay.

@@ -128,10 +128,7 @@ export interface CaseClient {
    * `status` accepts a CaseState, comma-separated states, or alias `HISTORY`
    * (= VERIFIED_RESOLVED | CLOSED_NO_ACTION on case-api).
    */
-  listOpsCases(query?: {
-    status?: string;
-    after?: string;
-  }): Promise<OpsCaseList>;
+  listOpsCases(query?: { status?: string; after?: string }): Promise<OpsCaseList>;
   /** Ops message inbox — GET /v1/ops/messages. */
   listOpsMessages(): Promise<{ messages: OpsMessage[]; next_cursor?: string }>;
   /** Ops audit feed — GET /v1/ops/audit-events. */

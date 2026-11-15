@@ -37,20 +37,7 @@ export function volumeVsRefunds(days = 14): {
   };
 }
 
-const MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 /** Fixed simulator "today", so server and client render identical axis labels. */
 export const FIXTURE_TODAY = Date.UTC(2026, 10, 13);

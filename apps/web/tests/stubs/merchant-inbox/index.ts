@@ -1,7 +1,4 @@
-import type {
-  InboxExceptionItem,
-  MerchantInboxClient,
-} from "@/application/ports";
+import type { InboxExceptionItem, MerchantInboxClient } from "@/application/ports";
 import { PeerError } from "@/domain/types";
 
 export const FIXTURE_EXCEPTIONS: InboxExceptionItem[] = [
@@ -31,9 +28,7 @@ export const FIXTURE_EXCEPTIONS: InboxExceptionItem[] = [
 
 export type InboxStub = "valid" | "unavailable" | "empty";
 
-export function createMerchantInboxStub(
-  scenario: InboxStub = "valid",
-): MerchantInboxClient {
+export function createMerchantInboxStub(scenario: InboxStub = "valid"): MerchantInboxClient {
   if (scenario === "unavailable") {
     return {
       async listExceptions() {

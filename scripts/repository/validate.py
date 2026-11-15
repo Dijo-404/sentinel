@@ -1,27 +1,50 @@
 """Validate the repository baseline without installing application dependencies."""
 
-from collections import Counter
 import hashlib
 import json
-from pathlib import Path, PurePosixPath
 import re
 import sys
+from collections import Counter
+from pathlib import Path, PurePosixPath
 from urllib.parse import unquote
-
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 REQUIRED = {
-    "id", "title", "lane", "phase", "priority", "optional", "branch", "root",
-    "depends_on", "paths", "contract_baseline", "produces", "consumes",
-    "optional_consumes", "scope", "standalone", "acceptance", "evidence",
-    "assembly_acceptance", "gate",
+    "id",
+    "title",
+    "lane",
+    "phase",
+    "priority",
+    "optional",
+    "branch",
+    "root",
+    "depends_on",
+    "paths",
+    "contract_baseline",
+    "produces",
+    "consumes",
+    "optional_consumes",
+    "scope",
+    "standalone",
+    "acceptance",
+    "evidence",
+    "assembly_acceptance",
+    "gate",
 }
 
 # Dependency/build trees are not repository-owned; skip even when names lack a leading dot.
-IGNORED_MARKDOWN_DIRS = frozenset({
-    "node_modules", "dist", "build", "coverage", "htmlcov", "vendor",
-    "venv", "__pycache__",
-})
+IGNORED_MARKDOWN_DIRS = frozenset(
+    {
+        "node_modules",
+        "dist",
+        "build",
+        "coverage",
+        "htmlcov",
+        "vendor",
+        "venv",
+        "__pycache__",
+    }
+)
 
 
 def is_ignored_markdown_path(relative):
@@ -90,7 +113,7 @@ def validate_tasks(tasks, root):
                 errors.append(f"{name}: duplicate interface producer {port}")
             producers[port] = task
     for index, (first, a) in enumerate(owned):
-        for second, b in owned[index + 1:]:
+        for second, b in owned[index + 1 :]:
             if first != second and (a == b or a in b.parents or b in a.parents):
                 errors.append(f"ownership overlap: {first} {a}, {second} {b}")
     for task in tasks:
@@ -98,7 +121,11 @@ def validate_tasks(tasks, root):
             peer = producers.get(port)
             if peer is None:
                 errors.append(f"{task['id']}: unknown consumed interface {port}")
-            elif task["phase"] == 1 and not task["optional"] and port not in task["optional_consumes"]:
+            elif (
+                task["phase"] == 1
+                and not task["optional"]
+                and port not in task["optional_consumes"]
+            ):
                 if peer["phase"] != 1 or peer["optional"]:
                     errors.append(f"{task['id']}: hidden optional MVP dependency {port}")
     return errors
@@ -107,7 +134,7 @@ def validate_tasks(tasks, root):
 def valid_markdown_whitespace(text):
     """Allow intentional two-space Markdown hard breaks without rewriting source specs."""
     return text.endswith("\n") and all(
-        line[len(line.rstrip()):] in ("", "  ") for line in text.splitlines()
+        line[len(line.rstrip()) :] in ("", "  ") for line in text.splitlines()
     )
 
 
@@ -151,7 +178,9 @@ def validate_repository(root=REPOSITORY_ROOT):
                 continue
             text = file.read_text()
             if not valid_markdown_whitespace(text):
-                errors.append(f"{file.relative_to(root)}: trailing whitespace or missing final newline")
+                errors.append(
+                    f"{file.relative_to(root)}: trailing whitespace or missing final newline"
+                )
             # Ignore code examples: paths in templates are illustrative, not links.
             prose = re.sub(r"```.*?```", "", text, flags=re.S)
             for target in re.findall(r"\]\(([^)]+)\)", prose):
@@ -171,7 +200,10 @@ def main():
     if errors:
         print("\n".join(errors), file=sys.stderr)
         return 1
-    print("Repository checks passed: independent tasks, owned roots, contracts, issue references and documentation.")
+    print(
+        "Repository checks passed: independent tasks, owned roots, contracts, "
+        "issue references and documentation."
+    )
     print("This validates repository metadata; application/component tests are separate.")
     return 0
 

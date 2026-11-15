@@ -3,10 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useShell } from "@/adapters/shell-context";
 import { createMerchantDisputesClientForMode } from "@/adapters/composition-peers";
-import type {
-  DisputeCaseSummary,
-  MerchantDisputesClient,
-} from "@/application/ports";
+import type { DisputeCaseSummary, MerchantDisputesClient } from "@/application/ports";
 import { PeerError } from "@/domain/types";
 import type { AuthSession } from "@/lib/server/auth";
 import { FixtureBanner } from "@/components/viz/fixture-banner";
@@ -76,8 +73,7 @@ export function DisputesPanel({ session, disputesClient }: Props) {
         if (!cancelled) {
           setLoad({
             status: "error",
-            detail:
-              "Active assignment has no merchant_ref; disputes withheld",
+            detail: "Active assignment has no merchant_ref; disputes withheld",
           });
         }
         return;
@@ -116,32 +112,20 @@ export function DisputesPanel({ session, disputesClient }: Props) {
       <h1>Disputes</h1>
       <p className="muted">
         Dispute cases from merchant-disputes{" "}
-        <code>GET /v1/merchants/&#123;merchant_ref&#125;/disputes</code>. Not
-        payment authority.
+        <code>GET /v1/merchants/&#123;merchant_ref&#125;/disputes</code>. Not payment authority.
       </p>
-      {config.mode === "fixture" ||
-      (load.status === "ready" && load.source === "fixture") ? (
+      {config.mode === "fixture" || (load.status === "ready" && load.source === "fixture") ? (
         <FixtureBanner />
       ) : null}
 
-      {load.status === "loading" ? (
-        <UiState tone="loading" title="Loading disputes…" />
-      ) : null}
+      {load.status === "loading" ? <UiState tone="loading" title="Loading disputes…" /> : null}
       {load.status === "error" ? (
         <div data-testid="peer-error">
-          <UiState
-            tone="error"
-            title="Disputes unavailable"
-            detail={load.detail}
-          />
+          <UiState tone="error" title="Disputes unavailable" detail={load.detail} />
         </div>
       ) : null}
       {load.status === "empty" ? (
-        <UiState
-          tone="empty"
-          title="No disputes"
-          detail="No dispute cases in merchant scope."
-        />
+        <UiState tone="empty" title="No disputes" detail="No dispute cases in merchant scope." />
       ) : null}
       {load.status === "ready" ? (
         <table

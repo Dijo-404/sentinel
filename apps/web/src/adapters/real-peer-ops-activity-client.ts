@@ -10,30 +10,16 @@ function validateActivity(
   json: unknown,
   requestId: string,
 ): { items: ActivityItem[]; source: string } {
-  if (
-    !json ||
-    typeof json !== "object" ||
-    !Array.isArray((json as { items?: unknown }).items)
-  ) {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      "Missing items array",
-      requestId,
-    );
+  if (!json || typeof json !== "object" || !Array.isArray((json as { items?: unknown }).items)) {
+    throw new PeerError("MALFORMED_PEER_RESPONSE", "Missing items array", requestId);
   }
   const body = json as { items: unknown[]; source?: unknown };
   const source =
-    typeof body.source === "string" && body.source.trim()
-      ? body.source.trim()
-      : "live";
+    typeof body.source === "string" && body.source.trim() ? body.source.trim() : "live";
 
   const items = body.items.map((row, i) => {
     if (!row || typeof row !== "object") {
-      throw new PeerError(
-        "MALFORMED_PEER_RESPONSE",
-        `Activity[${i}] is not an object`,
-        requestId,
-      );
+      throw new PeerError("MALFORMED_PEER_RESPONSE", `Activity[${i}] is not an object`, requestId);
     }
     const o = row as Record<string, unknown>;
     if (

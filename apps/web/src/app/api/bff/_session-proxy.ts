@@ -47,8 +47,7 @@ export function createSessionPeerProxy(config: SessionProxyConfig) {
     const suffix = path.map(encodeURIComponent).join("/");
     const target = `${base}/${suffix}${req.nextUrl.search}`;
     const requestId =
-      req.headers.get("x-request-id") ??
-      `${config.requestIdPrefix}-${crypto.randomUUID()}`;
+      req.headers.get("x-request-id") ?? `${config.requestIdPrefix}-${crypto.randomUUID()}`;
 
     let upstream: Response;
     try {
@@ -63,9 +62,7 @@ export function createSessionPeerProxy(config: SessionProxyConfig) {
       if (idempotency) headers["Idempotency-Key"] = idempotency;
 
       const body =
-        req.method === "GET" || req.method === "HEAD"
-          ? undefined
-          : await req.arrayBuffer();
+        req.method === "GET" || req.method === "HEAD" ? undefined : await req.arrayBuffer();
 
       upstream = await fetch(target, {
         method: req.method,
@@ -78,9 +75,7 @@ export function createSessionPeerProxy(config: SessionProxyConfig) {
         {
           code: "PEER_UNAVAILABLE",
           message:
-            err instanceof Error
-              ? err.message
-              : `Network failure contacting ${config.peerLabel}`,
+            err instanceof Error ? err.message : `Network failure contacting ${config.peerLabel}`,
           request_id: requestId,
         },
         { status: 503 },
@@ -91,8 +86,7 @@ export function createSessionPeerProxy(config: SessionProxyConfig) {
     return new NextResponse(text, {
       status: upstream.status,
       headers: {
-        "Content-Type":
-          upstream.headers.get("content-type") ?? "application/json",
+        "Content-Type": upstream.headers.get("content-type") ?? "application/json",
         "X-Request-Id": upstream.headers.get("x-request-id") ?? requestId,
       },
     });

@@ -12,15 +12,8 @@ import {
   ROLE_LABELS,
   STAFF_ROLES,
 } from "../../tests/stubs/identity";
-import type {
-  IdentityClient,
-  InviteStaffInput,
-  MeResult,
-} from "@/lib/server/identity-client";
-import {
-  identityRoleToPortal,
-  staffInviteRoleToIdentity,
-} from "@/lib/server/identity-roles";
+import type { IdentityClient, InviteStaffInput, MeResult } from "@/lib/server/identity-client";
+import { identityRoleToPortal, staffInviteRoleToIdentity } from "@/lib/server/identity-roles";
 import { PeerError, isApiError } from "@/domain/types";
 
 export type RealPeerIdentityOptions = {
@@ -32,9 +25,7 @@ export type RealPeerIdentityOptions = {
  * Real-peer identity.v1 adapter (server-only).
  * Failures stay visible — never falls back to the fixture stub.
  */
-export function createRealPeerIdentityClient(
-  options: RealPeerIdentityOptions,
-): IdentityClient {
+export function createRealPeerIdentityClient(options: RealPeerIdentityOptions): IdentityClient {
   const base = options.baseUrl.replace(/\/$/, "");
   const fetchImpl = options.fetchImpl ?? fetch;
 
@@ -74,9 +65,7 @@ export function createRealPeerIdentityClient(
     } catch (err) {
       throw new PeerError(
         "PEER_UNAVAILABLE",
-        err instanceof Error
-          ? err.message
-          : "Network failure contacting identity",
+        err instanceof Error ? err.message : "Network failure contacting identity",
         requestId,
         503,
       );
@@ -100,12 +89,7 @@ export function createRealPeerIdentityClient(
     const okStatuses = init?.okStatuses ?? [200, 201];
     if (!okStatuses.includes(response.status)) {
       if (isApiError(json)) {
-        throw new PeerError(
-          json.code,
-          json.message,
-          json.request_id,
-          response.status,
-        );
+        throw new PeerError(json.code, json.message, json.request_id, response.status);
       }
       throw new PeerError(
         response.status === 401
@@ -150,15 +134,11 @@ export function createRealPeerIdentityClient(
     assignmentId: string,
   ): Promise<SessionRecord | null> {
     try {
-      const { json, requestId } = await request(
-        "POST",
-        "/v1/auth/workspaces/select",
-        {
-          bearer: sessionToken,
-          body: { assignment_id: assignmentId },
-          okStatuses: [200],
-        },
-      );
+      const { json, requestId } = await request("POST", "/v1/auth/workspaces/select", {
+        bearer: sessionToken,
+        body: { assignment_id: assignmentId },
+        okStatuses: [200],
+      });
       if (!json || typeof json !== "object") {
         throw new PeerError(
           "MALFORMED_PEER_RESPONSE",
@@ -167,10 +147,8 @@ export function createRealPeerIdentityClient(
         );
       }
       const body = json as Record<string, unknown>;
-      const token =
-        typeof body.session_token === "string" ? body.session_token : null;
-      const expiresAt =
-        typeof body.expires_at === "string" ? body.expires_at : null;
+      const token = typeof body.session_token === "string" ? body.session_token : null;
+      const expiresAt = typeof body.expires_at === "string" ? body.expires_at : null;
       const active = body.active_assignment;
       if (!token || !expiresAt || !active || typeof active !== "object") {
         throw new PeerError(
@@ -179,10 +157,7 @@ export function createRealPeerIdentityClient(
           requestId,
         );
       }
-      const assignment = mapWorkspace(
-        active as Record<string, unknown>,
-        requestId,
-      );
+      const assignment = mapWorkspace(active as Record<string, unknown>, requestId);
       return {
         session_id: token,
         user_id: "",
@@ -221,8 +196,7 @@ export function createRealPeerIdentityClient(
           if (err.httpStatus === 403 || err.code === "FORBIDDEN") {
             const msg = err.message.toLowerCase();
             if (msg.includes("pending")) return { ok: false, code: "PENDING" };
-            if (msg.includes("suspend"))
-              return { ok: false, code: "SUSPENDED" };
+            if (msg.includes("suspend")) return { ok: false, code: "SUSPENDED" };
             return { ok: false, code: "INVALID_CREDENTIALS" };
           }
         }
@@ -239,19 +213,15 @@ export function createRealPeerIdentityClient(
         return { ok: false, code: "PRIVILEGED_FIELDS_REJECTED" };
       }
       try {
-        const { json, requestId } = await request(
-          "POST",
-          "/v1/auth/customer/register",
-          {
-            body: {
-              email: input.email,
-              password: input.password,
-              display_name: input.display_name,
-              ...(input.language ? { preferred_language: input.language } : {}),
-            },
-            okStatuses: [201],
+        const { json, requestId } = await request("POST", "/v1/auth/customer/register", {
+          body: {
+            email: input.email,
+            password: input.password,
+            display_name: input.display_name,
+            ...(input.language ? { preferred_language: input.language } : {}),
           },
-        );
+          okStatuses: [201],
+        });
         return mapRegisterSuccess(json, requestId);
       } catch (err) {
         if (err instanceof PeerError) {
@@ -301,14 +271,10 @@ export function createRealPeerIdentityClient(
     },
 
     async listNotifications(sessionToken) {
-      const { json, requestId } = await request(
-        "GET",
-        "/v1/auth/notifications",
-        {
-          bearer: sessionToken,
-          okStatuses: [200],
-        },
-      );
+      const { json, requestId } = await request("GET", "/v1/auth/notifications", {
+        bearer: sessionToken,
+        okStatuses: [200],
+      });
       if (!json || typeof json !== "object") {
         throw new PeerError(
           "MALFORMED_PEER_RESPONSE",
@@ -325,9 +291,7 @@ export function createRealPeerIdentityClient(
         );
       }
       return {
-        notifications: rows.map((row) =>
-          mapNotification(row, requestId),
-        ),
+        notifications: rows.map((row) => mapNotification(row, requestId)),
       };
     },
 
@@ -348,10 +312,7 @@ export function createRealPeerIdentityClient(
         );
       }
       const body = json as Record<string, unknown>;
-      if (
-        typeof body.notification_id !== "string" ||
-        typeof body.read_at !== "string"
-      ) {
+      if (typeof body.notification_id !== "string" || typeof body.read_at !== "string") {
         throw new PeerError(
           "MALFORMED_PEER_RESPONSE",
           "Mark-read missing notification_id or read_at",
@@ -365,28 +326,20 @@ export function createRealPeerIdentityClient(
     },
 
     async requestVerify(sessionToken) {
-      const { json, requestId } = await request(
-        "POST",
-        "/v1/auth/verify/request",
-        {
-          bearer: sessionToken,
-          body: {},
-          okStatuses: [202],
-        },
-      );
+      const { json, requestId } = await request("POST", "/v1/auth/verify/request", {
+        bearer: sessionToken,
+        body: {},
+        okStatuses: [202],
+      });
       return mapChallengeAccepted(json, requestId);
     },
 
     async confirmVerify(sessionToken, code) {
-      const { json, requestId } = await request(
-        "POST",
-        "/v1/auth/verify/confirm",
-        {
-          bearer: sessionToken,
-          body: { code },
-          okStatuses: [200],
-        },
-      );
+      const { json, requestId } = await request("POST", "/v1/auth/verify/confirm", {
+        bearer: sessionToken,
+        body: { code },
+        okStatuses: [200],
+      });
       if (!json || typeof json !== "object") {
         throw new PeerError(
           "MALFORMED_PEER_RESPONSE",
@@ -409,14 +362,10 @@ export function createRealPeerIdentityClient(
     },
 
     async mfaChallenge(sessionToken) {
-      const { json, requestId } = await request(
-        "POST",
-        "/v1/auth/mfa/challenge",
-        {
-          bearer: sessionToken,
-          okStatuses: [202],
-        },
-      );
+      const { json, requestId } = await request("POST", "/v1/auth/mfa/challenge", {
+        bearer: sessionToken,
+        okStatuses: [202],
+      });
       return mapChallengeAccepted(json, requestId);
     },
 
@@ -434,10 +383,7 @@ export function createRealPeerIdentityClient(
         );
       }
       const body = json as Record<string, unknown>;
-      if (
-        body.mfa_verified !== true ||
-        typeof body.mfa_verified_at !== "string"
-      ) {
+      if (body.mfa_verified !== true || typeof body.mfa_verified_at !== "string") {
         throw new PeerError(
           "MALFORMED_PEER_RESPONSE",
           "MFA verify missing mfa_verified fields",
@@ -451,14 +397,10 @@ export function createRealPeerIdentityClient(
     },
 
     async forgotPassword(email) {
-      const { json, requestId } = await request(
-        "POST",
-        "/v1/auth/password/forgot",
-        {
-          body: { email },
-          okStatuses: [202],
-        },
-      );
+      const { json, requestId } = await request("POST", "/v1/auth/password/forgot", {
+        body: { email },
+        okStatuses: [202],
+      });
       return mapChallengeAccepted(json, requestId);
     },
 
@@ -487,18 +429,14 @@ export function createRealPeerIdentityClient(
     },
 
     async resetPassword(input) {
-      const { json, requestId } = await request(
-        "POST",
-        "/v1/auth/password/reset",
-        {
-          body: {
-            email: input.email,
-            code: input.code,
-            new_password: input.new_password,
-          },
-          okStatuses: [200],
+      const { json, requestId } = await request("POST", "/v1/auth/password/reset", {
+        body: {
+          email: input.email,
+          code: input.code,
+          new_password: input.new_password,
         },
-      );
+        okStatuses: [200],
+      });
       if (!json || typeof json !== "object") {
         throw new PeerError(
           "MALFORMED_PEER_RESPONSE",
@@ -553,10 +491,7 @@ export function createRealPeerIdentityClient(
           okStatuses: [200],
         });
       } catch (err) {
-        if (
-          err instanceof PeerError &&
-          (err.httpStatus === 401 || err.code === "UNAUTHORIZED")
-        ) {
+        if (err instanceof PeerError && (err.httpStatus === 401 || err.code === "UNAUTHORIZED")) {
           return;
         }
         throw err;
@@ -601,14 +536,10 @@ export function createRealPeerIdentityClient(
 
     async listInvitations(sessionToken) {
       try {
-        const { json, requestId } = await request(
-          "GET",
-          "/v1/admin/invitations",
-          {
-            bearer: sessionToken,
-            okStatuses: [200],
-          },
-        );
+        const { json, requestId } = await request("GET", "/v1/admin/invitations", {
+          bearer: sessionToken,
+          okStatuses: [200],
+        });
         if (!json || typeof json !== "object") {
           throw new PeerError(
             "MALFORMED_PEER_RESPONSE",
@@ -649,25 +580,19 @@ export function createRealPeerIdentityClient(
         };
       }
       try {
-        const { json, requestId } = await request(
-          "POST",
-          "/v1/admin/invitations",
-          {
-            bearer: sessionToken,
-            body: {
-              display_name: input.display_name,
-              work_email: input.work_email,
-              tenant_id: input.tenant_id,
-              role_id,
-              ...(input.scope ? { scope: input.scope } : {}),
-              ...(input.reason ? { reason: input.reason } : {}),
-              ...(input.idempotency_key
-                ? { idempotency_key: input.idempotency_key }
-                : {}),
-            },
-            okStatuses: [201],
+        const { json, requestId } = await request("POST", "/v1/admin/invitations", {
+          bearer: sessionToken,
+          body: {
+            display_name: input.display_name,
+            work_email: input.work_email,
+            tenant_id: input.tenant_id,
+            role_id,
+            ...(input.scope ? { scope: input.scope } : {}),
+            ...(input.reason ? { reason: input.reason } : {}),
+            ...(input.idempotency_key ? { idempotency_key: input.idempotency_key } : {}),
           },
-        );
+          okStatuses: [201],
+        });
         if (!json || typeof json !== "object") {
           throw new PeerError(
             "MALFORMED_PEER_RESPONSE",
@@ -725,21 +650,15 @@ export function createRealPeerIdentityClient(
 
     async acceptInvitation(input) {
       try {
-        const { json, requestId } = await request(
-          "POST",
-          "/v1/auth/accept-invitation",
-          {
-            body: {
-              token: input.token,
-              email: input.email,
-              password: input.password,
-              ...(input.display_name
-                ? { display_name: input.display_name }
-                : {}),
-            },
-            okStatuses: [201],
+        const { json, requestId } = await request("POST", "/v1/auth/accept-invitation", {
+          body: {
+            token: input.token,
+            email: input.email,
+            password: input.password,
+            ...(input.display_name ? { display_name: input.display_name } : {}),
           },
-        );
+          okStatuses: [201],
+        });
         return mapAcceptInvitation(json, requestId);
       } catch (err) {
         if (err instanceof PeerError) {
@@ -785,17 +704,11 @@ export function createRealPeerIdentityClient(
 
 function mapLoginSuccess(json: unknown, requestId: string): LoginResult {
   if (!json || typeof json !== "object") {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      "Login response is not an object",
-      requestId,
-    );
+    throw new PeerError("MALFORMED_PEER_RESPONSE", "Login response is not an object", requestId);
   }
   const body = json as Record<string, unknown>;
-  const token =
-    typeof body.session_token === "string" ? body.session_token : null;
-  const expiresAt =
-    typeof body.expires_at === "string" ? body.expires_at : null;
+  const token = typeof body.session_token === "string" ? body.session_token : null;
+  const expiresAt = typeof body.expires_at === "string" ? body.expires_at : null;
   if (!token || !expiresAt) {
     throw new PeerError(
       "MALFORMED_PEER_RESPONSE",
@@ -811,11 +724,7 @@ function mapLoginSuccess(json: unknown, requestId: string): LoginResult {
       ? mapWorkspace(active as Record<string, unknown>, requestId)
       : workspaces[0];
   if (!activeAssignment) {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      "Login missing workspaces",
-      requestId,
-    );
+    throw new PeerError("MALFORMED_PEER_RESPONSE", "Login missing workspaces", requestId);
   }
   user.assignments = workspaces;
   const session: SessionRecord = {
@@ -831,17 +740,11 @@ function mapLoginSuccess(json: unknown, requestId: string): LoginResult {
 
 function mapRegisterSuccess(json: unknown, requestId: string): RegisterResult {
   if (!json || typeof json !== "object") {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      "Register response is not an object",
-      requestId,
-    );
+    throw new PeerError("MALFORMED_PEER_RESPONSE", "Register response is not an object", requestId);
   }
   const body = json as Record<string, unknown>;
-  const token =
-    typeof body.session_token === "string" ? body.session_token : null;
-  const expiresAt =
-    typeof body.expires_at === "string" ? body.expires_at : null;
+  const token = typeof body.session_token === "string" ? body.session_token : null;
+  const expiresAt = typeof body.expires_at === "string" ? body.expires_at : null;
   if (!token || !expiresAt) {
     throw new PeerError(
       "MALFORMED_PEER_RESPONSE",
@@ -850,10 +753,7 @@ function mapRegisterSuccess(json: unknown, requestId: string): RegisterResult {
     );
   }
   const user = mapPublicUser(body.user, requestId);
-  const assignment = mapWorkspace(
-    body.assignment as Record<string, unknown>,
-    requestId,
-  );
+  const assignment = mapWorkspace(body.assignment as Record<string, unknown>, requestId);
   user.assignments = [assignment];
   const session: SessionRecord = {
     session_id: token,
@@ -876,11 +776,7 @@ function mapMe(
   assignment: WorkspaceAssignment;
 } | null {
   if (!json || typeof json !== "object") {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      "Me response is not an object",
-      requestId,
-    );
+    throw new PeerError("MALFORMED_PEER_RESPONSE", "Me response is not an object", requestId);
   }
   const body = json as Record<string, unknown>;
   const user = mapPublicUser(body.user, requestId);
@@ -890,19 +786,14 @@ function mapMe(
   if (!activeRaw || typeof activeRaw !== "object") {
     return null;
   }
-  const assignment = mapWorkspace(
-    activeRaw as Record<string, unknown>,
-    requestId,
-  );
-  const peerExpires =
-    typeof body.expires_at === "string" ? body.expires_at : null;
+  const assignment = mapWorkspace(activeRaw as Record<string, unknown>, requestId);
+  const peerExpires = typeof body.expires_at === "string" ? body.expires_at : null;
   const session: SessionRecord = {
     session_id: sessionToken,
     user_id: user.user_id,
     active_assignment_id: assignment.assignment_id,
     issued_at: new Date().toISOString(),
-    expires_at:
-      peerExpires ?? new Date(Date.now() + 12 * 3600_000).toISOString(),
+    expires_at: peerExpires ?? new Date(Date.now() + 12 * 3600_000).toISOString(),
     revoked: false,
   };
   return { session, user, assignment };
@@ -927,10 +818,8 @@ function mapAcceptInvitation(
     );
   }
   const body = json as Record<string, unknown>;
-  const token =
-    typeof body.session_token === "string" ? body.session_token : null;
-  const expiresAt =
-    typeof body.expires_at === "string" ? body.expires_at : null;
+  const token = typeof body.session_token === "string" ? body.session_token : null;
+  const expiresAt = typeof body.expires_at === "string" ? body.expires_at : null;
   if (!token || !expiresAt) {
     throw new PeerError(
       "MALFORMED_PEER_RESPONSE",
@@ -946,10 +835,7 @@ function mapAcceptInvitation(
       requestId,
     );
   }
-  const assignment = mapWorkspace(
-    body.assignment as Record<string, unknown>,
-    requestId,
-  );
+  const assignment = mapWorkspace(body.assignment as Record<string, unknown>, requestId);
   user.assignments = [assignment];
   const session: SessionRecord = {
     session_id: token,
@@ -964,34 +850,22 @@ function mapAcceptInvitation(
 
 function mapPublicUser(raw: unknown, requestId: string): IdentityUser {
   if (!raw || typeof raw !== "object") {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      "User payload missing",
-      requestId,
-    );
+    throw new PeerError("MALFORMED_PEER_RESPONSE", "User payload missing", requestId);
   }
   const u = raw as Record<string, unknown>;
   if (typeof u.user_id !== "string" || typeof u.email !== "string") {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      "User missing user_id or email",
-      requestId,
-    );
+    throw new PeerError("MALFORMED_PEER_RESPONSE", "User missing user_id or email", requestId);
   }
-  const statusRaw =
-    typeof u.status === "string" ? u.status.toUpperCase() : "ACTIVE";
+  const statusRaw = typeof u.status === "string" ? u.status.toUpperCase() : "ACTIVE";
   const account_status =
     statusRaw === "SUSPENDED" || statusRaw === "PENDING" ? statusRaw : "ACTIVE";
-  const account_class =
-    u.account_type === "staff" ? ("staff" as const) : ("customer" as const);
+  const account_class = u.account_type === "staff" ? ("staff" as const) : ("customer" as const);
   return {
     user_id: u.user_id,
     email: u.email,
     display_name: typeof u.display_name === "string" ? u.display_name : "",
-    preferred_language:
-      typeof u.preferred_language === "string" ? u.preferred_language : "",
-    email_verified_at:
-      typeof u.email_verified_at === "string" ? u.email_verified_at : null,
+    preferred_language: typeof u.preferred_language === "string" ? u.preferred_language : "",
+    email_verified_at: typeof u.email_verified_at === "string" ? u.email_verified_at : null,
     password: "",
     account_status,
     account_class,
@@ -999,16 +873,9 @@ function mapPublicUser(raw: unknown, requestId: string): IdentityUser {
   };
 }
 
-function mapNotification(
-  raw: unknown,
-  requestId: string,
-): IdentityNotification {
+function mapNotification(raw: unknown, requestId: string): IdentityNotification {
   if (!raw || typeof raw !== "object") {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      "Notification payload missing",
-      requestId,
-    );
+    throw new PeerError("MALFORMED_PEER_RESPONSE", "Notification payload missing", requestId);
   }
   const n = raw as Record<string, unknown>;
   if (
@@ -1032,10 +899,7 @@ function mapNotification(
   };
 }
 
-function mapChallengeAccepted(
-  json: unknown,
-  requestId: string,
-): ChallengeAccepted {
+function mapChallengeAccepted(json: unknown, requestId: string): ChallengeAccepted {
   if (!json || typeof json !== "object") {
     throw new PeerError(
       "MALFORMED_PEER_RESPONSE",
@@ -1061,10 +925,7 @@ function mapChallengeAccepted(
   return result;
 }
 
-function mapSandboxCode(
-  json: unknown,
-  requestId: string,
-): { code: string } {
+function mapSandboxCode(json: unknown, requestId: string): { code: string } {
   if (!json || typeof json !== "object") {
     throw new PeerError(
       "MALFORMED_PEER_RESPONSE",
@@ -1074,11 +935,7 @@ function mapSandboxCode(
   }
   const body = json as Record<string, unknown>;
   if (typeof body.code !== "string" || !body.code) {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      "Sandbox code response missing code",
-      requestId,
-    );
+    throw new PeerError("MALFORMED_PEER_RESPONSE", "Sandbox code response missing code", requestId);
   }
   return { code: body.code };
 }
@@ -1086,37 +943,20 @@ function mapSandboxCode(
 function mapStaffUser(raw: unknown, requestId: string): IdentityUser {
   const user = mapPublicUser(raw, requestId);
   const assignmentsRaw =
-    raw && typeof raw === "object"
-      ? (raw as { assignments?: unknown }).assignments
-      : undefined;
+    raw && typeof raw === "object" ? (raw as { assignments?: unknown }).assignments : undefined;
   user.assignments = mapWorkspaceList(assignmentsRaw, requestId);
   return user;
 }
 
-function mapWorkspaceList(
-  raw: unknown,
-  requestId: string,
-): WorkspaceAssignment[] {
+function mapWorkspaceList(raw: unknown, requestId: string): WorkspaceAssignment[] {
   if (!Array.isArray(raw)) {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      "Workspaces must be an array",
-      requestId,
-    );
+    throw new PeerError("MALFORMED_PEER_RESPONSE", "Workspaces must be an array", requestId);
   }
-  return raw.map((item) =>
-    mapWorkspace(item as Record<string, unknown>, requestId),
-  );
+  return raw.map((item) => mapWorkspace(item as Record<string, unknown>, requestId));
 }
 
-function mapWorkspace(
-  raw: Record<string, unknown>,
-  requestId: string,
-): WorkspaceAssignment {
-  if (
-    typeof raw.assignment_id !== "string" ||
-    typeof raw.tenant_id !== "string"
-  ) {
+function mapWorkspace(raw: Record<string, unknown>, requestId: string): WorkspaceAssignment {
+  if (typeof raw.assignment_id !== "string" || typeof raw.tenant_id !== "string") {
     throw new PeerError(
       "MALFORMED_PEER_RESPONSE",
       "Workspace missing assignment_id or tenant_id",
@@ -1150,11 +990,7 @@ function mapWorkspace(
 
 function mapInvitation(raw: unknown, requestId: string): Invitation {
   if (!raw || typeof raw !== "object") {
-    throw new PeerError(
-      "MALFORMED_PEER_RESPONSE",
-      "Invitation payload missing",
-      requestId,
-    );
+    throw new PeerError("MALFORMED_PEER_RESPONSE", "Invitation payload missing", requestId);
   }
   const inv = raw as Record<string, unknown>;
   const roleId = typeof inv.role_id === "string" ? inv.role_id : "";
@@ -1166,17 +1002,13 @@ function mapInvitation(raw: unknown, requestId: string): Invitation {
       requestId,
     );
   }
-  const statusRaw =
-    typeof inv.status === "string" ? inv.status.toUpperCase() : "PENDING";
+  const statusRaw = typeof inv.status === "string" ? inv.status.toUpperCase() : "PENDING";
   const status =
-    statusRaw === "ACCEPTED" ||
-    statusRaw === "REVOKED" ||
-    statusRaw === "EXPIRED"
+    statusRaw === "ACCEPTED" || statusRaw === "REVOKED" || statusRaw === "EXPIRED"
       ? statusRaw
       : "PENDING";
   return {
-    invitation_id:
-      typeof inv.invitation_id === "string" ? inv.invitation_id : "",
+    invitation_id: typeof inv.invitation_id === "string" ? inv.invitation_id : "",
     work_email: typeof inv.work_email === "string" ? inv.work_email : "",
     display_name: typeof inv.display_name === "string" ? inv.display_name : "",
     tenant_id: typeof inv.tenant_id === "string" ? inv.tenant_id : "",
@@ -1184,9 +1016,6 @@ function mapInvitation(raw: unknown, requestId: string): Invitation {
     scope: {},
     status,
     created_by: "",
-    expires_at:
-      typeof inv.expires_at === "string"
-        ? inv.expires_at
-        : new Date().toISOString(),
+    expires_at: typeof inv.expires_at === "string" ? inv.expires_at : new Date().toISOString(),
   };
 }

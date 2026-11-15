@@ -3,10 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useShell } from "@/adapters/shell-context";
 import { createMerchantTeamsClientForMode } from "@/adapters/composition-peers";
-import type {
-  MerchantSettings,
-  MerchantTeamsClient,
-} from "@/application/ports";
+import type { MerchantSettings, MerchantTeamsClient } from "@/application/ports";
 import { PeerError } from "@/domain/types";
 import type { AuthSession } from "@/lib/server/auth";
 import { FixtureBanner } from "@/components/viz/fixture-banner";
@@ -74,8 +71,7 @@ export function SettingsPanel({ session, teamsClient }: Props) {
         if (!cancelled) {
           setLoad({
             status: "error",
-            detail:
-              "Active assignment has no merchant_ref; settings withheld",
+            detail: "Active assignment has no merchant_ref; settings withheld",
           });
         }
         return;
@@ -109,11 +105,9 @@ export function SettingsPanel({ session, teamsClient }: Props) {
     <div className="panel stack" data-testid="merchant-settings">
       <h1>Settings</h1>
       <p className="muted">
-        Business preferences from merchant-teams{" "}
-        <code>GET /v1/merchant/settings</code>.
+        Business preferences from merchant-teams <code>GET /v1/merchant/settings</code>.
       </p>
-      {config.mode === "fixture" ||
-      (load.status === "ready" && load.label === "fixture") ? (
+      {config.mode === "fixture" || (load.status === "ready" && load.label === "fixture") ? (
         <FixtureBanner />
       ) : null}
 
@@ -122,19 +116,11 @@ export function SettingsPanel({ session, teamsClient }: Props) {
       ) : null}
       {load.status === "error" ? (
         <div data-testid="peer-error">
-          <UiState
-            tone="error"
-            title="Settings unavailable"
-            detail={load.detail}
-          />
+          <UiState tone="error" title="Settings unavailable" detail={load.detail} />
         </div>
       ) : null}
       {load.status === "ready" ? (
-        <dl
-          className="stack"
-          aria-label="Merchant settings"
-          data-testid="merchant-settings-data"
-        >
+        <dl className="stack" aria-label="Merchant settings" data-testid="merchant-settings-data">
           <div>
             <dt className="muted">Merchant</dt>
             <dd>{load.settings.merchant_ref}</dd>

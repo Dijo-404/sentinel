@@ -36,10 +36,10 @@ make preview
 
 ## Modes
 
-| Mode | Peers | Evidence | MVP claim |
-| --- | --- | --- | --- |
-| `fixture` | In-process reference peers | Labeled `fixture`; report sets `payment_provider=simulator` | Always `assembled_mvp_claimed=false` |
-| `real-peers` | HTTP `/v1/capabilities` + journey drivers | Rejects missing peers, incompatible contract/mode, and `evidence_mode=fixture`; report sets `payment_provider=simulator` | Never auto-claims product release |
+| Mode         | Peers                                     | Evidence                                                                                                                 | MVP claim                            |
+| ------------ | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------ |
+| `fixture`    | In-process reference peers                | Labeled `fixture`; report sets `payment_provider=simulator`                                                              | Always `assembled_mvp_claimed=false` |
+| `real-peers` | HTTP `/v1/capabilities` + journey drivers | Rejects missing peers, incompatible contract/mode, and `evidence_mode=fixture`; report sets `payment_provider=simulator` | Never auto-claims product release    |
 
 Probe rule: every required peer must advertise `mode=real-peers` (including the simulator). Reports still label `payment_provider=simulator` so sandbox is never confused with live rails.
 
@@ -47,12 +47,12 @@ Probe rule: every required peer must advertise `mode=real-peers` (including the 
 
 `sentinel-core-assembly run --mode fixture` (and `check`) emit:
 
-| Field | Honest value |
-| --- | --- |
-| `payment_provider` | `simulator` (never omit as if live) |
-| `path` | `browser-to-credit-fixture` when authority journeys pass; else `fixture-reference` — never `live-provider` |
-| `sn009_authority_exercised` | `true` when `browser_to_credit` / `duplicate_approval_deny` postconditions pass |
-| `assembled_mvp_claimed` | always `false` |
+| Field                       | Honest value                                                                                               |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `payment_provider`          | `simulator` (never omit as if live)                                                                        |
+| `path`                      | `browser-to-credit-fixture` when authority journeys pass; else `fixture-reference` — never `live-provider` |
+| `sn009_authority_exercised` | `true` when `browser_to_credit` / `duplicate_approval_deny` postconditions pass                            |
+| `assembled_mvp_claimed`     | always `false`                                                                                             |
 
 Real-peers rejects `evidence_mode=fixture` on input artifacts (fail closed before journeys).
 
@@ -110,11 +110,11 @@ make -C integration/core verify-wave0-1
 
 Asserts HTTP 200 + JSON for:
 
-| Check | Peer URL | Seed marker |
-| --- | --- | --- |
-| metrics | `GET /v1/merchants/merchant-demo-1/metrics?window_start&window_end` | `merchant_ref=merchant-demo-1` |
-| disputes | `GET /v1/merchants/merchant-demo/disputes` | `dispute-seed-demo-1` |
-| risk list | `GET /v1/risk/investigations` | `inv-seed-case-demo-42` |
+| Check     | Peer URL                                                            | Seed marker                    |
+| --------- | ------------------------------------------------------------------- | ------------------------------ |
+| metrics   | `GET /v1/merchants/merchant-demo-1/metrics?window_start&window_end` | `merchant_ref=merchant-demo-1` |
+| disputes  | `GET /v1/merchants/merchant-demo/disputes`                          | `dispute-seed-demo-1`          |
+| risk list | `GET /v1/risk/investigations`                                       | `inv-seed-case-demo-42`        |
 
 Bearer defaults match module `.env.example` (`operator-token`, `tok-risk-officer`). Override with `VERIFY_*_URL` / `VERIFY_*_TOKEN`.
 
@@ -161,13 +161,13 @@ make -C integration/core verify-wave2
 
 Asserts HTTP 200 + non-empty seeded JSON for:
 
-| Check | Peer URL | Seed marker |
-| --- | --- | --- |
-| ESCALATED | `GET /v1/ops/cases?status=ESCALATED` | `case-seed-ops-escalated` |
-| HISTORY | `GET /v1/ops/cases?status=HISTORY` | `case-seed-ops-history` |
-| messages | `GET /v1/ops/messages` | seed case message present |
-| audit-events | `GET /v1/ops/audit-events` | seed case event present |
-| team (optional) | `GET /v1/ops/team` | non-empty `members` when `VERIFY_IDENTITY_TOKEN` set |
+| Check           | Peer URL                             | Seed marker                                          |
+| --------------- | ------------------------------------ | ---------------------------------------------------- |
+| ESCALATED       | `GET /v1/ops/cases?status=ESCALATED` | `case-seed-ops-escalated`                            |
+| HISTORY         | `GET /v1/ops/cases?status=HISTORY`   | `case-seed-ops-history`                              |
+| messages        | `GET /v1/ops/messages`               | seed case message present                            |
+| audit-events    | `GET /v1/ops/audit-events`           | seed case event present                              |
+| team (optional) | `GET /v1/ops/team`                   | non-empty `members` when `VERIFY_IDENTITY_TOKEN` set |
 
 Bearers: case-api fixtures `token-operator` / `token-supervisor` (override `VERIFY_OPERATOR_TOKEN` / `VERIFY_SUPERVISOR_TOKEN`). Not assembly matrix `tok-operator` (absent from case-api auth map). Identity needs a supervisor **session** from login (`VERIFY_IDENTITY_TOKEN`), not a matrix `tok-*`. Web BFF/pages not required — script hits case-api (+ identity) directly.
 
@@ -218,12 +218,12 @@ make -C integration/core verify-wave3
 
 Asserts HTTP 200 + seeded JSON for:
 
-| Check | Peer URL | Seed marker |
-| --- | --- | --- |
-| me | `GET /v1/auth/me` | `customer@example.test` + `preferred_language=en` |
-| notifications | `GET /v1/auth/notifications` | `11111111-1111-1111-1111-111111111301` |
-| workspaces | `GET /v1/auth/workspaces` | customer workspace present |
-| forgot | `POST /v1/auth/password/forgot` | HTTP 202 known+unknown, same public shape |
+| Check         | Peer URL                        | Seed marker                                       |
+| ------------- | ------------------------------- | ------------------------------------------------- |
+| me            | `GET /v1/auth/me`               | `customer@example.test` + `preferred_language=en` |
+| notifications | `GET /v1/auth/notifications`    | `11111111-1111-1111-1111-111111111301`            |
+| workspaces    | `GET /v1/auth/workspaces`       | customer workspace present                        |
+| forgot        | `POST /v1/auth/password/forgot` | HTTP 202 known+unknown, same public shape         |
 
 Session: login with `customer@example.test` + `IDENTITY_DEMO_PASSWORD` (default `x`), or set `VERIFY_IDENTITY_TOKEN` to a hashed **session** from login. Not assembly matrix `tok-customer`. Web BFF/pages not required — script hits identity directly.
 
@@ -262,16 +262,16 @@ make -C integration/core verify-wave4
 
 Asserts HTTP 200 + seeded JSON for:
 
-| Check | Peer URL | Seed marker |
-| --- | --- | --- |
-| assistant health | `GET /healthz` | `status=ok` |
-| assistant threads | `GET /v1/threads?role=customer` | `thr-seed-tenant-demo` |
-| knowledge health | `GET /healthz` | `status=ok` |
-| knowledge articles | `GET /v1/articles` | `article-demo-refund-policy` |
-| ops-activity health | `GET /healthz` | `status=ok` |
-| ops-activity feed | `GET /v1/activity` | `act-seed-case-demo-42` |
-| voice capabilities | `GET /v1/capabilities` | `component=voice`, `port=voice.v1` |
-| approval-ui package | offline | `packages/approval-ui` exports `ApprovalPanel` |
+| Check               | Peer URL                        | Seed marker                                    |
+| ------------------- | ------------------------------- | ---------------------------------------------- |
+| assistant health    | `GET /healthz`                  | `status=ok`                                    |
+| assistant threads   | `GET /v1/threads?role=customer` | `thr-seed-tenant-demo`                         |
+| knowledge health    | `GET /healthz`                  | `status=ok`                                    |
+| knowledge articles  | `GET /v1/articles`              | `article-demo-refund-policy`                   |
+| ops-activity health | `GET /healthz`                  | `status=ok`                                    |
+| ops-activity feed   | `GET /v1/activity`              | `act-seed-case-demo-42`                        |
+| voice capabilities  | `GET /v1/capabilities`          | `component=voice`, `port=voice.v1`             |
+| approval-ui package | offline                         | `packages/approval-ui` exports `ApprovalPanel` |
 
 Tokens default to peer demo maps: `tok-customer` (assistant), `operator-token`
 (knowledge + ops-activity). Override with `VERIFY_*_TOKEN` / `VERIFY_*_URL`.
@@ -340,17 +340,17 @@ make -C integration/core verify-wave5
 
 Asserts HTTP 200 + seeded JSON for:
 
-| Check | Peer URL | Seed marker / token |
-| --- | --- | --- |
-| identity admin session | login `admin@example.test` | hashed session (not `tok-*`) |
-| identity roles | `GET /v1/admin/roles` | `platform_admin` in `human_roles` |
-| identity tenants | `GET /v1/admin/tenants` | `tenant-demo` |
-| policy policies | `GET /v1/policies` | `demo-policy-v1` / `tok-platform-admin` |
-| merchant-teams merchants | `GET /v1/admin/merchants` | `merchant-demo-1` / `platform-admin-token` |
-| platform-ai config | `GET /v1/config` | `model-sandbox-1` / `admin-token` |
-| platform-ai integrations | `GET /v1/integrations` | `integration-sandbox-1` / `admin-token` |
-| evals reports | `GET /v1/reports` | `eval-sandbox-1` / `admin-token` |
-| observability signals | `GET /v1/signals` | `sig-seed-request-handle` / `admin-token` |
+| Check                    | Peer URL                   | Seed marker / token                        |
+| ------------------------ | -------------------------- | ------------------------------------------ |
+| identity admin session   | login `admin@example.test` | hashed session (not `tok-*`)               |
+| identity roles           | `GET /v1/admin/roles`      | `platform_admin` in `human_roles`          |
+| identity tenants         | `GET /v1/admin/tenants`    | `tenant-demo`                              |
+| policy policies          | `GET /v1/policies`         | `demo-policy-v1` / `tok-platform-admin`    |
+| merchant-teams merchants | `GET /v1/admin/merchants`  | `merchant-demo-1` / `platform-admin-token` |
+| platform-ai config       | `GET /v1/config`           | `model-sandbox-1` / `admin-token`          |
+| platform-ai integrations | `GET /v1/integrations`     | `integration-sandbox-1` / `admin-token`    |
+| evals reports            | `GET /v1/reports`          | `eval-sandbox-1` / `admin-token`           |
+| observability signals    | `GET /v1/signals`          | `sig-seed-request-handle` / `admin-token`  |
 
 #### Curl checklist (wave 5)
 
@@ -393,13 +393,13 @@ make -C integration/core verify-wave6
 
 Asserts:
 
-| Check | What |
-| --- | --- |
-| portal stub scan | `apps/web/src/app/**` has no "Not available yet" / "Fixture placeholder" / "not connected to its service yet" |
-| fixture assembly | in-process journeys PASS with `payment_provider=simulator`, `path=browser-to-credit-fixture`, `sn009_authority_exercised=true`, `assembled_mvp_claimed=false` |
-| approval-ui package | `packages/approval-ui` exports `ApprovalPanel` |
-| approval-ui slot | `apps/web` real-peers slot mounts package panel (not local substitute first) |
-| live real-peers | **skipped** unless `VERIFY_WAVE6_LIVE=1` (then provider subset; peers must be up) |
+| Check               | What                                                                                                                                                          |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| portal stub scan    | `apps/web/src/app/**` has no "Not available yet" / "Fixture placeholder" / "not connected to its service yet"                                                 |
+| fixture assembly    | in-process journeys PASS with `payment_provider=simulator`, `path=browser-to-credit-fixture`, `sn009_authority_exercised=true`, `assembled_mvp_claimed=false` |
+| approval-ui package | `packages/approval-ui` exports `ApprovalPanel`                                                                                                                |
+| approval-ui slot    | `apps/web` real-peers slot mounts package panel (not local substitute first)                                                                                  |
+| live real-peers     | **skipped** unless `VERIFY_WAVE6_LIVE=1` (then provider subset; peers must be up)                                                                             |
 
 Optional live (simulator only — never live payment rails):
 

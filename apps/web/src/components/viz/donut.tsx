@@ -5,13 +5,7 @@ import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 
 export type Slice = { name: string; value: number };
 
-const COLORS = [
-  "var(--viz-1)",
-  "var(--viz-2)",
-  "var(--viz-3)",
-  "var(--viz-4)",
-  "var(--viz-5)",
-];
+const COLORS = ["var(--viz-1)", "var(--viz-2)", "var(--viz-3)", "var(--viz-4)", "var(--viz-5)"];
 
 type Props = {
   slices: Slice[];
@@ -26,9 +20,7 @@ export function Donut({ slices, centerLabel = "Total", height = 220 }: Props) {
   const total = slices.reduce((a, s) => a + s.value, 0);
   const shown = active === null ? null : slices[active];
   // Zero slices stay in the legend but draw no sector (avoids hairline ticks).
-  const visible = slices
-    .map((s, index) => ({ ...s, index }))
-    .filter((s) => s.value > 0);
+  const visible = slices.map((s, index) => ({ ...s, index })).filter((s) => s.value > 0);
 
   if (total === 0) {
     return <p className="viz-empty">No cases in scope yet.</p>;
@@ -85,9 +77,7 @@ export function Donut({ slices, centerLabel = "Total", height = 220 }: Props) {
               />
               {/* Single text node so legend text never equals a bare KPI label. */}
               <span className="donut__name">{`${s.name} (${s.value})`}</span>
-              <span className="donut__pct tnum">
-                {Math.round((s.value / total) * 100)}%
-              </span>
+              <span className="donut__pct tnum">{Math.round((s.value / total) * 100)}%</span>
             </button>
           </li>
         ))}

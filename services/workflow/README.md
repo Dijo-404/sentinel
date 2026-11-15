@@ -38,15 +38,15 @@ uv run sentinel-workflow serve
 
 ## Layout
 
-| Path | Role |
-| --- | --- |
-| `src/sentinel_workflow/domain/` | Wire types, canonical action digest |
-| `src/sentinel_workflow/application/` | Accept/run/outbox use cases and ports |
-| `src/sentinel_workflow/graph/` | LangGraph nodes and compile |
-| `src/sentinel_workflow/adapters/` | HTTP API, Postgres, fake/HTTP model, real-peer HTTP, fixture peers |
-| `contracts/` | Request/ack/digest snapshots + compatibility checklist |
-| `tests/stubs/` | Local doubles for evidence/policy/ledger/verifier/case-api |
-| `migrations/` | Module-owned schema reference |
+| Path                                 | Role                                                               |
+| ------------------------------------ | ------------------------------------------------------------------ |
+| `src/sentinel_workflow/domain/`      | Wire types, canonical action digest                                |
+| `src/sentinel_workflow/application/` | Accept/run/outbox use cases and ports                              |
+| `src/sentinel_workflow/graph/`       | LangGraph nodes and compile                                        |
+| `src/sentinel_workflow/adapters/`    | HTTP API, Postgres, fake/HTTP model, real-peer HTTP, fixture peers |
+| `contracts/`                         | Request/ack/digest snapshots + compatibility checklist             |
+| `tests/stubs/`                       | Local doubles for evidence/policy/ledger/verifier/case-api         |
+| `migrations/`                        | Module-owned schema reference                                      |
 
 ## Acceptance coverage
 
@@ -57,13 +57,13 @@ uv run sentinel-workflow serve
 
 ## Evidence labels
 
-| Dimension | This module's local check |
-| --- | --- |
-| Component under test | Real `sentinel-workflow` |
-| Payment provider | Not called (ledger stub only) |
-| Model | Fake (labeled) |
-| Peers | Local stubs under `tests/stubs/` |
-| Assembly / real peers | Unverified |
+| Dimension             | This module's local check        |
+| --------------------- | -------------------------------- |
+| Component under test  | Real `sentinel-workflow`         |
+| Payment provider      | Not called (ledger stub only)    |
+| Model                 | Fake (labeled)                   |
+| Peers                 | Local stubs under `tests/stubs/` |
+| Assembly / real peers | Unverified                       |
 
 ## Ownership
 

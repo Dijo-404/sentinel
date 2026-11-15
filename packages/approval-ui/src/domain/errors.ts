@@ -25,11 +25,7 @@ export function mapWireError(status: number, error: WireError): DecisionUiCode {
   ) {
     return "CONFLICT";
   }
-  if (
-    code.includes("STALE") ||
-    code.includes("REVISION") ||
-    code === "CASE_REVISION_MISMATCH"
-  ) {
+  if (code.includes("STALE") || code.includes("REVISION") || code === "CASE_REVISION_MISMATCH") {
     return "STALE";
   }
   if (code.includes("EXPIRED") || code.includes("EXPIRY")) {

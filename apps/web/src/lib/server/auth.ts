@@ -36,8 +36,7 @@ export type LoginAttempt =
 const REGISTER_FAILURE =
   "We couldn't create this account. Check your name, email and password (min 8 characters), or sign in if you already have an account.";
 
-const GENERIC_AUTH_FAILURE =
-  "Sign-in failed. Check your credentials and try again.";
+const GENERIC_AUTH_FAILURE = "Sign-in failed. Check your credentials and try again.";
 
 export function portalPath(role: PortalRole): string {
   return `/${role}/dashboard`;
@@ -75,10 +74,7 @@ export function isSafeInternalPath(
   return true;
 }
 
-export function safePortalRedirect(
-  path: string | null | undefined,
-  role: PortalRole,
-): string {
+export function safePortalRedirect(path: string | null | undefined, role: PortalRole): string {
   if (!isSafeInternalPath(path, role)) {
     return portalPath(role);
   }
@@ -203,10 +199,7 @@ export async function registerCustomerAccount(input: {
   roles?: unknown;
   tenant_id?: unknown;
   subject_refs?: unknown;
-}): Promise<
-  | { ok: true; redirectTo: string }
-  | { ok: false; code: string; message: string }
-> {
+}): Promise<{ ok: true; redirectTo: string } | { ok: false; code: string; message: string }> {
   // Reject privileged client fields before any peer call.
   if (
     input.roles !== undefined ||
@@ -254,8 +247,7 @@ export async function acceptInvitationAccount(input: {
   password: string;
   display_name?: string;
 }): Promise<
-  | { ok: true; redirectTo: string; role: PortalRole }
-  | { ok: false; code: string; message: string }
+  { ok: true; redirectTo: string; role: PortalRole } | { ok: false; code: string; message: string }
 > {
   const token = input.token?.trim() ?? "";
   const email = input.email?.trim() ?? "";
@@ -316,10 +308,7 @@ export async function logoutCurrentSession(): Promise<void> {
  */
 export async function switchActiveAssignment(
   assignmentId: string,
-): Promise<
-  | { ok: true; role: PortalRole; redirectTo: string }
-  | { ok: false; message: string }
-> {
+): Promise<{ ok: true; role: PortalRole; redirectTo: string } | { ok: false; message: string }> {
   const trimmed = assignmentId?.trim() ?? "";
   if (!trimmed) {
     return { ok: false, message: "Workspace assignment is required." };
@@ -340,10 +329,7 @@ export async function switchActiveAssignment(
     };
   }
   const identity = getIdentityClient();
-  const activated = await identity.selectAssignment(
-    current.session.session_id,
-    trimmed,
-  );
+  const activated = await identity.selectAssignment(current.session.session_id, trimmed);
   if (!activated) {
     return { ok: false, message: "Could not switch workspace." };
   }

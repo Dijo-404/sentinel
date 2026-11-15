@@ -26,14 +26,14 @@ LEDGER_MODE=fixture  # process boot still needs injected peers; use tests or com
 
 ## Routes
 
-| Method | Path | Role |
-| --- | --- | --- |
-| `POST` | `/v1/actions/proposals` | workflow → `ActionRecord` 201 |
-| `POST` | `/v1/actions/{action_id}/decisions` | supervisor → `Approval` |
-| `POST` | `/v1/actions/reservations` | workflow → `ActionRecord` 201/200 identical retry |
-| `POST` | `/v1/actions/claims` | dispatcher → `ClaimResult` |
-| `GET` | `/v1/actions/{action_id}` | workflow, dispatcher, verifier, operator, supervisor |
-| `POST` | `/v1/actions/{action_id}/outcomes` | dispatcher (accepted/unknown); verifier (evidence-confirmed) |
+| Method | Path                                | Role                                                         |
+| ------ | ----------------------------------- | ------------------------------------------------------------ |
+| `POST` | `/v1/actions/proposals`             | workflow → `ActionRecord` 201                                |
+| `POST` | `/v1/actions/{action_id}/decisions` | supervisor → `Approval`                                      |
+| `POST` | `/v1/actions/reservations`          | workflow → `ActionRecord` 201/200 identical retry            |
+| `POST` | `/v1/actions/claims`                | dispatcher → `ClaimResult`                                   |
+| `GET`  | `/v1/actions/{action_id}`           | workflow, dispatcher, verifier, operator, supervisor         |
+| `POST` | `/v1/actions/{action_id}/outcomes`  | dispatcher (accepted/unknown); verifier (evidence-confirmed) |
 
 Also: `/healthz`, `/readyz`, `/v1/capabilities`.
 
@@ -49,10 +49,10 @@ Synthetic bearer tokens are listed in `.env.example` (`token-*-demo`). Body fiel
 
 ## Local stubs and real peers
 
-| Port | Fixture | Real-peer adapter |
-| --- | --- | --- |
-| `policy.v1` | `tests/stubs/policy.py` (`valid`, `unavailable`, `malformed`, `unauthorized_or_out_of_scope`) | `HttpPolicyClient` |
-| `evidence.v1` | `tests/stubs/evidence.py` (same cases) | `HttpEvidenceClient` |
+| Port          | Fixture                                                                                       | Real-peer adapter    |
+| ------------- | --------------------------------------------------------------------------------------------- | -------------------- |
+| `policy.v1`   | `tests/stubs/policy.py` (`valid`, `unavailable`, `malformed`, `unauthorized_or_out_of_scope`) | `HttpPolicyClient`   |
+| `evidence.v1` | `tests/stubs/evidence.py` (same cases)                                                        | `HttpEvidenceClient` |
 
 `LEDGER_MODE=real-peers` requires `POLICY_BASE_URL` and `EVIDENCE_BASE_URL`. Missing/unauthorized/malformed peers raise visibly; there is no silent fixture fallback.
 

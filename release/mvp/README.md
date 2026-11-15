@@ -59,12 +59,12 @@ PYTHONPATH=src:. python -m sentinel_release_mvp report \
 
 ## Local doubles
 
-| Port | Location | Cases |
-| --- | --- | --- |
+| Port               | Location                     | Cases                                                       |
+| ------------------ | ---------------------------- | ----------------------------------------------------------- |
 | `core-assembly.v1` | `tests/stubs/core_assembly/` | valid, unavailable, malformed, unauthorized_or_out_of_scope |
-| `evaluation.v1` | `tests/stubs/evaluation/` | same |
-| `replay.v1` | `tests/stubs/replay/` | same |
-| `telemetry.v1` | `tests/stubs/telemetry/` | same |
+| `evaluation.v1`    | `tests/stubs/evaluation/`    | same                                                        |
+| `replay.v1`        | `tests/stubs/replay/`        | same                                                        |
+| `telemetry.v1`     | `tests/stubs/telemetry/`     | same                                                        |
 
 Real-peer adapter: `adapters/real_peer.py` loads configured file/HTTP RunReports.
 Missing, malformed, or unauthorized peers fail with `PeerError`. There is no
@@ -72,12 +72,12 @@ silent fixture fallback.
 
 ## Evidence labels
 
-| Dimension | Local self-test | Strict release example |
-| --- | --- | --- |
-| Component under test | fixture manifests | `real` |
-| Payment provider | `simulator` | `simulator` (external sandbox separate) |
-| Model | `fake` | `fake` or `live` (labeled only) |
-| Release approved | always `false` for kit self-test | `true` only when strict checks pass |
+| Dimension            | Local self-test                  | Strict release example                  |
+| -------------------- | -------------------------------- | --------------------------------------- |
+| Component under test | fixture manifests                | `real`                                  |
+| Payment provider     | `simulator`                      | `simulator` (external sandbox separate) |
+| Model                | `fake`                           | `fake` or `live` (labeled only)         |
+| Release approved     | always `false` for kit self-test | `true` only when strict checks pass     |
 
 ## Assembly limits
 

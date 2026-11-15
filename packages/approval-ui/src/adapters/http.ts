@@ -89,11 +89,7 @@ export async function authorizedJson<T>(
           message: "Peer returned an error without a contract envelope",
           request_id: "local-envelope",
         };
-    throw new DecisionClientError(
-      response.status,
-      error,
-      mapWireError(response.status, error),
-    );
+    throw new DecisionClientError(response.status, error, mapWireError(response.status, error));
   }
 
   return parsed as T;

@@ -8,19 +8,14 @@ export default async function CustomerNotificationsPage() {
   await requireRole("customer");
   const sessionId = await readSessionId();
   if (!sessionId) {
-    return (
-      <NotificationsPanel
-        error={{ code: "UNAUTHORIZED", message: "Session required" }}
-      />
-    );
+    return <NotificationsPanel error={{ code: "UNAUTHORIZED", message: "Session required" }} />;
   }
 
   try {
     const listed = await getIdentityClient().listNotifications(sessionId);
     return <NotificationsPanel notifications={listed.notifications} />;
   } catch (err) {
-    const message =
-      err instanceof PeerError ? err.message : "Identity peer unavailable";
+    const message = err instanceof PeerError ? err.message : "Identity peer unavailable";
     return (
       <NotificationsPanel
         error={{

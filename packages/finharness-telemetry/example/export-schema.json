@@ -21,9 +21,5 @@
     "transaction_ref",
     "customer_id"
   ],
-  "sample_metrics": [
-    "finharness_model_requests_total",
-    "finharness_cases_total",
-    "finbench_score"
-  ]
+  "sample_metrics": ["finharness_model_requests_total", "finharness_cases_total", "finbench_score"]
 }

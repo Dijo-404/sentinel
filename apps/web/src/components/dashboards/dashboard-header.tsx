@@ -9,13 +9,7 @@ type Props = {
 };
 
 /** Page heading for portal dashboards: who is signed in and which workspace. */
-export function DashboardHeader({
-  title,
-  description,
-  displayName,
-  workspace,
-  children,
-}: Props) {
+export function DashboardHeader({ title, description, displayName, workspace, children }: Props) {
   return (
     <header className="dash-header">
       <div className="dash-header__text">

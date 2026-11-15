@@ -29,9 +29,7 @@ type LoadState =
   | { status: "ready"; cases: Case[]; source: "live" | "fixture" };
 
 function testIdFor(basePath: EscalationsBasePath): string {
-  return basePath === "/supervisor"
-    ? "supervisor-escalations"
-    : "operator-escalations";
+  return basePath === "/supervisor" ? "supervisor-escalations" : "operator-escalations";
 }
 
 /**
@@ -40,8 +38,7 @@ function testIdFor(basePath: EscalationsBasePath): string {
  */
 export function EscalationsPanel({ basePath, caseClient: caseClientProp }: Props) {
   const { caseClient: shellClient, config } = useShell();
-  const caseClient =
-    caseClientProp === undefined ? shellClient : caseClientProp;
+  const caseClient = caseClientProp === undefined ? shellClient : caseClientProp;
   const rootTestId = testIdFor(basePath);
 
   const [load, setLoad] = useState<LoadState>({ status: "loading" });
@@ -91,40 +88,24 @@ export function EscalationsPanel({ basePath, caseClient: caseClientProp }: Props
     <div className="panel stack" data-testid={rootTestId}>
       <h1>Escalations</h1>
       <p className="muted">
-        Escalated cases from case-api{" "}
-        <code>GET /v1/ops/cases?status=ESCALATED</code>. Escalation is a
-        handoff, not resolution.
+        Escalated cases from case-api <code>GET /v1/ops/cases?status=ESCALATED</code>. Escalation is
+        a handoff, not resolution.
       </p>
-      {config.mode === "fixture" ||
-      (load.status === "ready" && load.source === "fixture") ? (
+      {config.mode === "fixture" || (load.status === "ready" && load.source === "fixture") ? (
         <FixtureBanner />
       ) : null}
 
-      {load.status === "loading" ? (
-        <UiState tone="loading" title="Loading escalations…" />
-      ) : null}
+      {load.status === "loading" ? <UiState tone="loading" title="Loading escalations…" /> : null}
       {load.status === "error" ? (
         <div data-testid="peer-error">
-          <UiState
-            tone="error"
-            title="Escalations unavailable"
-            detail={load.detail}
-          />
+          <UiState tone="error" title="Escalations unavailable" detail={load.detail} />
         </div>
       ) : null}
       {load.status === "empty" ? (
-        <UiState
-          tone="empty"
-          title="No escalations"
-          detail="No escalated cases in scope."
-        />
+        <UiState tone="empty" title="No escalations" detail="No escalated cases in scope." />
       ) : null}
       {load.status === "ready" ? (
-        <div
-          className="panel"
-          style={{ overflowX: "auto" }}
-          data-testid={`${rootTestId}-list`}
-        >
+        <div className="panel" style={{ overflowX: "auto" }} data-testid={`${rootTestId}-list`}>
           <table className="table" aria-label="Escalated cases">
             <thead>
               <tr>
@@ -142,10 +123,7 @@ export function EscalationsPanel({ basePath, caseClient: caseClientProp }: Props
                       href={`${basePath}/cases/${encodeURIComponent(c.case_id)}`}
                       data-testid={`escalation-link-${c.case_id}`}
                     >
-                      <MaskedRef
-                        label="case_id"
-                        masked={maskReference(c.case_id, "case-…")}
-                      />
+                      <MaskedRef label="case_id" masked={maskReference(c.case_id, "case-…")} />
                     </Link>
                   </td>
                   <td>

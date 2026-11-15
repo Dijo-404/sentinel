@@ -29,33 +29,21 @@ export function VerifyContactForm() {
         ? confirmState.message
         : null;
   const requestSoftError =
-    requestState && !requestState.ok && !requestState.peerError
-      ? requestState.message
-      : null;
+    requestState && !requestState.ok && !requestState.peerError ? requestState.message : null;
   const confirmSoftError =
-    confirmState && !confirmState.ok && !confirmState.peerError
-      ? confirmState.message
-      : null;
-  const success =
-    (requestState && requestState.ok) || (confirmState && confirmState.ok);
+    confirmState && !confirmState.ok && !confirmState.peerError ? confirmState.message : null;
+  const success = (requestState && requestState.ok) || (confirmState && confirmState.ok);
 
   return (
     <div className="auth-card panel stack" data-testid="auth-verify">
       <div>
         <p className="brand auth-brand">Sentinel</p>
         <h1>Verify contact</h1>
-        <p className="muted">
-          Request a sandbox verification code, then confirm it.
-        </p>
+        <p className="muted">Request a sandbox verification code, then confirm it.</p>
       </div>
 
       {peerError ? (
-        <div
-          className="state-banner"
-          data-tone="error"
-          data-testid="peer-error"
-          role="alert"
-        >
+        <div className="state-banner" data-tone="error" data-testid="peer-error" role="alert">
           <strong>Identity unavailable</strong>
           <p className="muted" style={{ margin: "0.35rem 0 0" }}>
             {peerMessage}
@@ -64,12 +52,7 @@ export function VerifyContactForm() {
       ) : null}
 
       {success && !peerError ? (
-        <div
-          className="state-banner"
-          data-tone="empty"
-          data-testid="verify-success"
-          role="status"
-        >
+        <div className="state-banner" data-tone="empty" data-testid="verify-success" role="status">
           <p>
             {confirmState && confirmState.ok
               ? confirmState.message
@@ -87,20 +70,11 @@ export function VerifyContactForm() {
 
       <form action={requestAction} className="stack">
         {requestSoftError ? (
-          <div
-            className="state-banner"
-            data-tone="error"
-            data-testid="verify-error"
-            role="alert"
-          >
+          <div className="state-banner" data-tone="error" data-testid="verify-error" role="alert">
             <p>{requestSoftError}</p>
           </div>
         ) : null}
-        <button
-          type="submit"
-          disabled={requestPending}
-          data-testid="verify-request"
-        >
+        <button type="submit" disabled={requestPending} data-testid="verify-request">
           {requestPending ? "Requesting…" : "Send verification code"}
         </button>
       </form>
@@ -117,20 +91,11 @@ export function VerifyContactForm() {
           />
         </label>
         {confirmSoftError ? (
-          <div
-            className="state-banner"
-            data-tone="error"
-            data-testid="verify-error"
-            role="alert"
-          >
+          <div className="state-banner" data-tone="error" data-testid="verify-error" role="alert">
             <p>{confirmSoftError}</p>
           </div>
         ) : null}
-        <button
-          type="submit"
-          disabled={confirmPending}
-          data-testid="verify-confirm"
-        >
+        <button type="submit" disabled={confirmPending} data-testid="verify-confirm">
           {confirmPending ? "Confirming…" : "Confirm"}
         </button>
       </form>

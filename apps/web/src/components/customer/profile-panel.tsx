@@ -1,14 +1,8 @@
 "use client";
 
 import { useActionState, useMemo } from "react";
-import {
-  toPublicProfileUser,
-  type PublicProfileUser,
-} from "@/lib/identity-public";
-import {
-  patchProfileAction,
-  type ProfileActionResult,
-} from "@/lib/server/customer-actions";
+import { toPublicProfileUser, type PublicProfileUser } from "@/lib/identity-public";
+import { patchProfileAction, type ProfileActionResult } from "@/lib/server/customer-actions";
 
 type Props = {
   user?: PublicProfileUser | null;
@@ -33,8 +27,7 @@ export function ProfilePanel({ user, error }: Props) {
     : state && !state.ok && state.peerError
       ? state.message
       : null;
-  const softError =
-    state && !state.ok && !state.peerError ? state.message : null;
+  const softError = state && !state.ok && !state.peerError ? state.message : null;
   const success = Boolean(state && state.ok);
 
   const displayUser = useMemo((): PublicProfileUser | null => {
@@ -52,12 +45,7 @@ export function ProfilePanel({ user, error }: Props) {
       </p>
 
       {peerError ? (
-        <div
-          className="state-banner"
-          data-tone="error"
-          data-testid="peer-error"
-          role="alert"
-        >
+        <div className="state-banner" data-tone="error" data-testid="peer-error" role="alert">
           <strong>Identity unavailable</strong>
           <p className="muted" style={{ margin: "0.35rem 0 0" }}>
             {peerMessage}
@@ -78,11 +66,7 @@ export function ProfilePanel({ user, error }: Props) {
             </div>
           ) : null}
 
-          <form
-            action={action}
-            className="stack"
-            data-testid="customer-profile-data"
-          >
+          <form action={action} className="stack" data-testid="customer-profile-data">
             <div>
               <p className="muted" style={{ margin: 0 }}>
                 Email
@@ -118,11 +102,7 @@ export function ProfilePanel({ user, error }: Props) {
                 <p>{softError}</p>
               </div>
             ) : null}
-            <button
-              type="submit"
-              disabled={pending}
-              data-testid="profile-save"
-            >
+            <button type="submit" disabled={pending} data-testid="profile-save">
               {pending ? "Saving…" : "Save profile"}
             </button>
           </form>

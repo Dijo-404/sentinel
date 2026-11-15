@@ -7,14 +7,7 @@ import { ROLE_LABELS } from "../../../tests/stubs/identity";
 import { PORTAL_META } from "@/lib/permissions";
 import { loginAction, type ActionResult } from "@/lib/server/auth-actions";
 
-const PORTALS: PortalRole[] = [
-  "customer",
-  "merchant",
-  "operator",
-  "supervisor",
-  "risk",
-  "admin",
-];
+const PORTALS: PortalRole[] = ["customer", "merchant", "operator", "supervisor", "risk", "admin"];
 
 type Props = {
   /** Preselected workspace (e.g. from `?portal=`). */
@@ -31,11 +24,7 @@ export function RoleLogin({ role = "customer", next }: Props) {
   const showRegister = selectedRole === "customer";
 
   return (
-    <div
-      className="auth-card panel stack"
-      data-testid="role-login"
-      data-role={selectedRole}
-    >
+    <div className="auth-card panel stack" data-testid="role-login" data-role={selectedRole}>
       <div>
         <p className="brand auth-brand">Sentinel</p>
         <h1>Sign in</h1>
@@ -91,11 +80,7 @@ export function RoleLogin({ role = "customer", next }: Props) {
         {showRegister ? (
           <label>
             Preferred language
-            <select
-              name="language"
-              defaultValue="en"
-              aria-label="Preferred language"
-            >
+            <select name="language" defaultValue="en" aria-label="Preferred language">
               <option value="en">English</option>
               <option value="hi">Hindi</option>
               <option value="ta">Tamil</option>
@@ -104,12 +89,7 @@ export function RoleLogin({ role = "customer", next }: Props) {
         ) : null}
 
         {state && !state.ok ? (
-          <div
-            className="state-banner"
-            data-tone="error"
-            data-testid="login-error"
-            role="alert"
-          >
+          <div className="state-banner" data-tone="error" data-testid="login-error" role="alert">
             <p>{state.message}</p>
             {state.workspaces && state.workspaces.length > 0 ? (
               <ul data-testid="authorized-workspaces">
@@ -139,8 +119,7 @@ export function RoleLogin({ role = "customer", next }: Props) {
         </p>
       ) : (
         <p className="muted" data-testid="no-signup">
-          Staff accounts are invitation-only. There is no public sign-up for
-          this portal.
+          Staff accounts are invitation-only. There is no public sign-up for this portal.
         </p>
       )}
 

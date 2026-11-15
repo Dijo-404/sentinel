@@ -126,11 +126,7 @@ export function createActionLedgerStub(
       if (caseName === "conflict") {
         throw new DecisionClientError(
           409,
-          error(
-            "IDEMPOTENCY_CONFLICT",
-            "Key already used with a different payload",
-            "ledger-409",
-          ),
+          error("IDEMPOTENCY_CONFLICT", "Key already used with a different payload", "ledger-409"),
           "CONFLICT",
         );
       }
