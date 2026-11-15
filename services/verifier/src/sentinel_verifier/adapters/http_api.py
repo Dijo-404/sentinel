@@ -6,6 +6,7 @@ from typing import Any
 
 from fastapi import FastAPI, Header, Request
 from fastapi.responses import JSONResponse, Response
+from starlette.concurrency import run_in_threadpool
 
 from sentinel_verifier import COMPONENT, CONTRACT_SHA256, CONTRACT_VERSION, __version__
 from sentinel_verifier.adapters.auth_tokens import TokenPrincipalMap
@@ -83,7 +84,10 @@ def create_app(
         x_sentinel_signature: str | None = Header(default=None, alias="X-Sentinel-Signature"),
     ):
         raw = await request.body()
-        result = service.ingest_webhook(raw_body=raw, signature=x_sentinel_signature)
+        # Case-api calls back for the assessment before it accepts credit closure.
+        result = await run_in_threadpool(
+            service.ingest_webhook, raw_body=raw, signature=x_sentinel_signature
+        )
         return JSONResponse(status_code=202, content=result)
 
     @app.post("/v1/assessments")

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Fixed — credit webhook assessment callback (Refs #144)
+
+- Run synchronous webhook reconciliation in the HTTP worker pool. Case-api can
+  fetch the verifier assessment while accepting credit closure, without blocking
+  the verifier event loop and timing out with 503. Durable inbox retries and
+  signature, freshness and tenant checks remain enforced.
+
 - Refuse non-loopback HTTP bind while demo/sandbox bearer tokens remain configured.
 
 ### Changed — 14 November 2026
