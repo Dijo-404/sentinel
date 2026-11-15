@@ -2,7 +2,13 @@
 
 from __future__ import annotations
 
-from ..domain.types import Article, Principal
+from ..domain.types import (
+    DEFAULT_SEARCH_LIMIT,
+    MAX_SEARCH_LIMIT,
+    Article,
+    Principal,
+    SearchHit,
+)
 from .errors import NotFoundError, UnauthorizedError, ValidationError
 from .ports import ArticleStore
 
@@ -22,12 +28,16 @@ class KnowledgeService:
             raise NotFoundError("Article not found")
         return article
 
-    def search(self, principal: Principal, query: str) -> list[Article]:
+    def search(
+        self, principal: Principal, query: str, limit: int = DEFAULT_SEARCH_LIMIT
+    ) -> list[SearchHit]:
         self._require_reader(principal)
         q = query.strip()
         if not q:
             raise ValidationError("q is required")
-        return self._store.search_articles(principal.tenant_id, q)
+        if not 1 <= limit <= MAX_SEARCH_LIMIT:
+            raise ValidationError(f"limit must be between 1 and {MAX_SEARCH_LIMIT}")
+        return self._store.search_articles(principal.tenant_id, q, limit)
 
     @staticmethod
     def _require_reader(principal: Principal) -> None:
