@@ -804,7 +804,7 @@ class SqlCaseRepository:
         now: datetime | None = None,
         lease_seconds: int = WORKFLOW_JOB_LEASE_SECONDS,
     ) -> list[tuple[str, WorkflowRequest]]:
-        """Claim PENDING jobs, or CLAIMED jobs whose lease expired (crash reclaim)."""
+        """Claim due PENDING jobs, or CLAIMED jobs whose lease expired (crash reclaim)."""
         claim_now = now or datetime.now(UTC)
         lease_expires = claim_now + timedelta(seconds=lease_seconds)
         with self._engine.begin() as conn:
@@ -814,7 +814,13 @@ class SqlCaseRepository:
                         """
                         WITH picked AS (
                           SELECT id FROM workflow_outbox
-                          WHERE status = 'PENDING'
+                          WHERE (
+                               status = 'PENDING'
+                               AND (
+                                 lease_expires_at IS NULL
+                                 OR lease_expires_at <= :now
+                               )
+                             )
                              OR (
                                status = 'CLAIMED'
                                AND (
@@ -845,13 +851,29 @@ class SqlCaseRepository:
                 for row in rows
             ]
 
-    def mark_workflow_job(self, *, job_row_id: str, status: str, detail: str = "") -> None:
+    def mark_workflow_job(
+        self,
+        *,
+        job_row_id: str,
+        status: str,
+        detail: str = "",
+        retry_at: datetime | None = None,
+    ) -> None:
         with self._engine.begin() as conn:
             conn.execute(
                 schema.workflow_outbox.update()
                 .where(schema.workflow_outbox.c.id == job_row_id)
-                .values(status=status, detail=detail, lease_expires_at=None)
+                .values(status=status, detail=detail, lease_expires_at=retry_at)
             )
+
+    def count_workflow_attempt(self, *, job_row_id: str) -> int:
+        with self._engine.begin() as conn:
+            return conn.execute(
+                schema.workflow_outbox.update()
+                .where(schema.workflow_outbox.c.id == job_row_id)
+                .values(attempts=schema.workflow_outbox.c.attempts + 1)
+                .returning(schema.workflow_outbox.c.attempts)
+            ).scalar_one()
 
     def _insert_workflow_outbox(self, conn, *, tenant_id: str, request: WorkflowRequest) -> None:
         payload = request.to_dict()

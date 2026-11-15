@@ -6,7 +6,7 @@ from typing import Any
 
 import httpx
 
-from sentinel_api.adapters.peers.errors import malformed, unauthorized, unavailable
+from sentinel_api.adapters.peers.errors import malformed, rejected, unauthorized, unavailable
 from sentinel_api.domain.types import (
     CONTRACT_VERSION,
     Approval,
@@ -33,6 +33,8 @@ class HttpWorkflowClient:
             )
         except httpx.HTTPError as exc:
             raise unavailable("workflow") from exc
+        if response.status_code in {409, 422, 429}:
+            raise rejected("workflow", response.status_code)
         self._check("workflow", response)
         body = response.json()
         if not isinstance(body, dict) or body.get("accepted") is not True:

@@ -24,6 +24,10 @@ class Settings(BaseSettings):
     identity_sessions_path: str = "fixtures/identity_sessions.json"
     service_token: str = "tok-case-api"
     host: str = "127.0.0.1"
+    # Workflow outbox: bounded retry of transient peer rejections (409/422/429).
+    workflow_retry_max_attempts: int = Field(default=5, ge=1)
+    workflow_retry_base_seconds: float = Field(default=2.0, gt=0)
+    workflow_retry_max_seconds: float = Field(default=300.0, gt=0)
 
     def token_path(self, base: Path) -> Path:
         path = Path(self.token_map_path)
